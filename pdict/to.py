@@ -3,9 +3,20 @@ __author__ = 'thorwhalen'
 import itertools
 import re
 from collections import namedtuple
+from collections import Counter
+
 
 def namedtuple(d):
     return namedtuple('blah', d.keys())(**d)
+
+
+class hashabledict(dict):
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
+
+
+def count_dicts(d):
+    return Counter(map(hashabledict, d))
 
 
 class Struct:

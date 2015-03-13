@@ -1,9 +1,9 @@
 __author__ = 'thor'
 
 
-import util.ulist as ulist
-import daf.get
-import daf.gr
+import ut.util.ulist as ulist
+import ut.daf.get
+import ut.daf.gr
 from ut.parse.web.url import get_domain_and_suffix
 from ut.parse.web.url import get_sub_domain_and_suffix
 import tldextract
@@ -14,12 +14,12 @@ def group_count(df, gr_cols=None, count_col=None, keep_order=True):
     adds a column containing the count of the number of groups (defined by the gr_cols columns)
     """
     gr_cols = gr_cols or df.columns
-    count_col = count_col or daf.get.free_col_name(df, ['count', 'gr_count'])
+    count_col = count_col or ut.daf.get.free_col_name(df, ['count', 'gr_count'])
     if keep_order:
         df = df.copy()
         df['column_to_keep_original_order'] = range(len(df))
     gr_cols = ulist.ascertain_list(gr_cols)
-    gr_df = daf.gr.group_and_count(df[gr_cols], count_col=count_col)
+    gr_df = ut.daf.gr.group_and_count(df[gr_cols], count_col=count_col)
     df = df.merge(gr_df, left_on=gr_cols, right_on=gr_cols)
     if keep_order:
         df.sort(columns=['column_to_keep_original_order'], inplace=True)
