@@ -1,15 +1,56 @@
 __author__ = 'thor'
 
 import os
+import re
 import librosa
 import pysoundfile as sf
 import wave
+import contextlib
 
 from IPython.display import Audio
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import partial
 
+wav_text_info_exp = re.compile("^.*WAVEbextZ\x03\x00\x00([^\x00]+)")
+
+
+def sound_file_info_dict(filepath):
+    filename = os.path.basename(filepath)
+    (shortname, extension) = os.path.splitext(filename)
+    d = {'filepath': filepath,
+         'name': shortname,
+         'size': os.path.getsize(filepath),
+         'ext': extension[1:]
+         }
+    if extension == '.wav':
+        with contextlib.closing(wave.open(filepath,'r')) as f:
+            d['channels'] = f.getnchannels()
+            d['sample_width'] = f.getsampwidth()
+            d['frames'] = f.getnframes()
+            d['frame_rate'] = f.getframerate()
+            d['duration'] = d['frames'] / float(d['frame_rate'])
+        with file(filepath, 'r') as f:
+            text_info = get_wav_text_info(f)
+            if text_info is not None:
+                d['inner_wav_text'] = text_info
+
+    return d
+
+def get_wav_text_info(filespec):
+    if isinstance(filespec, basestring):
+        with file(filespec, 'r') as fd:
+            m = wav_text_info_exp.match(fd.read())
+            if m is not None:
+                return m.groups()[0]
+            else:
+                return None
+    else:
+        m = wav_text_info_exp.match(filespec.read())
+        if m is not None:
+            return m.groups()[0]
+        else:
+            return None
 
 def wf_and_sr(*args, **kwargs):
     if len(args) > 0:
@@ -27,7 +68,11 @@ def wf_and_sr(*args, **kwargs):
 
 def hear_sound(*args, **kwargs):
     wf, sr = wf_and_sr(*args, **kwargs)
-    return Audio(data=wf, rate=sr, autoplay=kwargs.get('autoplay', False))
+    try:
+        return Audio(data=wf, rate=sr, autoplay=kwargs.get('autoplay', False))
+    except ValueError:
+        # just return left audio (stereo PCM signals are unsupported
+        return Audio(data=wf[0, :], rate=sr, autoplay=kwargs.get('autoplay', False))
 
 
 def plot_wf(*args, **kwargs):
