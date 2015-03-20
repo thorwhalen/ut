@@ -7,12 +7,11 @@ print '''
     ppr
 '''
 
-import ut as ms
-
 import os
 import re
 import pandas as pd
 import numpy as np
+from numpy import *
 
 import ut.daf.ch
 import ut.daf.manip

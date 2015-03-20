@@ -24,7 +24,7 @@ def sound_file_info_dict(filepath):
          'ext': extension[1:]
          }
     if extension == '.wav':
-        with contextlib.closing(wave.open(filepath,'r')) as f:
+        with contextlib.closing(wave.open(filepath, 'r')) as f:
             d['channels'] = f.getnchannels()
             d['sample_width'] = f.getsampwidth()
             d['frames'] = f.getnframes()
@@ -36,6 +36,7 @@ def sound_file_info_dict(filepath):
                 d['inner_wav_text'] = text_info
 
     return d
+
 
 def get_wav_text_info(filespec):
     if isinstance(filespec, basestring):
@@ -51,6 +52,7 @@ def get_wav_text_info(filespec):
             return m.groups()[0]
         else:
             return None
+
 
 def wf_and_sr(*args, **kwargs):
     if len(args) > 0:

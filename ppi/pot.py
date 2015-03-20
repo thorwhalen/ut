@@ -9,7 +9,7 @@ import numpy as np
 
 import ut.pcoll.order_conserving as colloc
 
-import ut as ms
+# import ut as ms
 from ut.daf.op import cartesian_product
 from ut.daf.gr import group_and_count
 from ut.daf.ch import ch_col_names
@@ -381,9 +381,9 @@ class ProbPot(Pot):
     def plot_relrisk_matrix(relrisk):
         t = relrisk.copy()
         matrix_shape = (t['exposure'].nunique(), t['event'].nunique())
-        m = ms.daf.to.map_vals_to_ints_inplace(t, cols_to_map=['exposure'])
+        m = ut.daf.to.map_vals_to_ints_inplace(t, cols_to_map=['exposure'])
         m = m['exposure']
-        ms.daf.to.map_vals_to_ints_inplace(t, cols_to_map={'event': dict(zip(m, range(len(m))))})
+        ut.daf.to.map_vals_to_ints_inplace(t, cols_to_map={'event': dict(zip(m, range(len(m))))})
         RR = zeros(matrix_shape)
         RR[t['exposure'], t['event']] = t['relative_risk']
         RR[range(len(m)), range(len(m))] = nan
@@ -404,7 +404,7 @@ class ProbPot(Pot):
         xticks(range(shape(RRL)[0]), m, rotation=90)
         yticks(range(shape(RRL)[1]), m)
         cbar = colorbar()
-        cbar.ax.set_yticklabels(["%.02f" % x for x in np.exp2(array(ms.pplot.get.get_colorbar_tick_labels_as_floats(cbar)))])
+        cbar.ax.set_yticklabels(["%.02f" % x for x in np.exp2(array(ut.pplot.get.get_colorbar_tick_labels_as_floats(cbar)))])
 
 #
 #

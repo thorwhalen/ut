@@ -3,7 +3,7 @@ __author__ = 'thorwhalen'
 
 import pandas as pd
 import ut.pdict.ot as pdict_ot
-import util.ulist as util_ulist
+import ut.util.ulist as util_ulist
 from collections import OrderedDict
 import re
 import ut.pstr.trans as pstr_trans
