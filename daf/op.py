@@ -1,6 +1,6 @@
 __author__ = 'thor'
 
-import pandas as pd
+# import pandas as pd
 import ut.util.ulist as util_ulist
 import re
 import ut.pcoll.order_conserving as colloc
