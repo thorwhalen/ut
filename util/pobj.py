@@ -2,6 +2,16 @@ __author__ = 'thor'
 
 import ut.pdict.get as pdict_get
 import ut.util.ulist as util_ulist
+from optparse import OptionParser
+import inspect
+
+
+def methods_of(obj_or_class):
+    if type(obj_or_class) == type:
+        t = inspect.getmembers(obj_or_class, predicate=inspect.ismethod)
+    else:
+        t = inspect.getmembers(obj_or_class.__class__, predicate=inspect.ismethod)
+    return [x[0] for x in t]
 
 
 def set_attributes(obj, attr_dict=dict(), default_attr_dict=None):
@@ -32,3 +42,6 @@ def has_callable_attr(obj, attr):
 
 def has_non_callable_attr(obj, attr):
     return hasattr(obj, attr) and not hasattr(getattr(obj, attr), '__call__')
+
+
+

@@ -8,7 +8,7 @@ import pandas as pd
 # output: string of ascii char correspondents
 #   (replacing, for example, accentuated letters with non-accentuated versions of the latter)
 def mk_termCounts(dat,indexColName,strColName,data_folder=''):
-    from util import log
+    from analyzer import log
     from daf.get import get_data
     dat = get_data(dat,data_folder)
     log.printProgress("making {} word counts (wc)",strColName)
@@ -26,7 +26,7 @@ def mk_termCounts(dat,indexColName,strColName,data_folder=''):
 # output: series of the tokens of the strings, processed for AdWords keywords
 #   i.e. string is lower capsed and asciied, and words are [\w&]+
 def to_kw_tokens(dat,indexColName,strColName,data_folder=''):
-    from util import log
+    from analyzer import log
     import pstr.trans
     from daf.get import get_data
     dat = get_data(dat,data_folder)

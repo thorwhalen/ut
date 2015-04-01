@@ -1,8 +1,8 @@
 __author__ = 'thorwhalen'
 
 import pfile.accessor as pfile_accessor
-from util.pstore import MyStore
-from util.pstore import StoreAccessor
+from analyzer.pstore import MyStore
+from analyzer.pstore import StoreAccessor
 
 local_facc = pfile_accessor.for_local('hdf5/')
 

@@ -1,7 +1,7 @@
 __author__ = 'thorwhalen'
 
 import pandas as pd
-import util.ulist as ulist
+import analyzer.ulist as ulist
 import pstr.trans as pstr_trans
 import aw.manip as aw_manip
 

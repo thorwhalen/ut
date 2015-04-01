@@ -6,7 +6,7 @@ from numpy.lib import arraysetops
 import pandas as pd
 
 import daf
-import util
+import analyzer
 
 
 def get_unique(d,cols):
@@ -95,4 +95,4 @@ def rm_nan_rows(df):
 
 
 def assert_dependencies(df,cols,prefix_message=""):
-    assert daf.check.has_columns(df,cols),"need (all) columns {}: {}".format(util.ulist.to_str(cols),prefix_message)
+    assert daf.check.has_columns(df,cols),"need (all) columns {}: {}".format(analyzer.ulist.to_str(cols),prefix_message)

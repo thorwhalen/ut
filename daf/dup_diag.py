@@ -8,8 +8,8 @@ Two rows are (dup_cols-)duplicates of each other if they have exactly the same v
 """
 
 import pandas as pd
-from util.counter import Counter
-import util.ulist as ulist
+from analyzer.counter import Counter
+import analyzer.ulist as ulist
 import numpy as np
 import daf.manip as daf_manip
 

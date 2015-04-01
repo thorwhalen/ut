@@ -10,7 +10,7 @@ from lxml import etree
 import tldextract
 import parse.util as util
 from urlparse import urlparse, parse_qs
-from util import extract_section
+from analyzer import extract_section
 
 # RE_HAS_NEW_LINE = re.compile('\n|\r')
 RE_NUM_SEP = "[,\.\s]"

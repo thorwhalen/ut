@@ -1,9 +1,9 @@
 __author__ = 'thor'
 
-import util.log as util_log
-import util.pobj as util_pobj
+import analyzer.log as util_log
+import analyzer.pobj as util_pobj
 import pdict.get as pdict_get
-import util.ulist as util_ulist
+import analyzer.ulist as util_ulist
 import pandas as pd
 
 

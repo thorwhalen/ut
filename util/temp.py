@@ -1,5 +1,5 @@
 __author__ = 'thorwhalen'
-from util.var import to_list
+from analyzer.var import to_list
 
 l = to_list("this is me")
 print l
