@@ -38,6 +38,19 @@ def sound_file_info_dict(filepath):
     return d
 
 
+def ensure_mono(wf):
+    if len(np.shape(wf)) == 2:
+        return wf[:, 0]
+    else:
+        return wf
+
+
+def stereo_to_mono(source, target):
+    wf, sr = wf_and_sr(source)
+    wf = ensure_mono(wf)
+    sf.write(data=wf, file=target, samplerate=sr)
+
+
 def get_wav_text_info(filespec):
     if isinstance(filespec, basestring):
         with file(filespec, 'r') as fd:
@@ -73,8 +86,11 @@ def hear_sound(*args, **kwargs):
     try:
         return Audio(data=wf, rate=sr, autoplay=kwargs.get('autoplay', False))
     except ValueError:
-        # just return left audio (stereo PCM signals are unsupported
-        return Audio(data=wf[0, :], rate=sr, autoplay=kwargs.get('autoplay', False))
+        try:
+            # just return left audio (stereo PCM signals are unsupported
+            return Audio(data=wf[0, :], rate=sr, autoplay=kwargs.get('autoplay', False))
+        except:
+            return Audio(data=wf[:, 0], rate=sr, autoplay=kwargs.get('autoplay', False))
 
 
 def plot_wf(*args, **kwargs):
