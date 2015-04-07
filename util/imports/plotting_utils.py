@@ -1,6 +1,6 @@
 __author__ = 'thor'
 
-import ut as ms
+import ut
 
 import ut.pplot.hist
 import ut.pplot.annotate

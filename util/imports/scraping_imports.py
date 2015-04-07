@@ -24,7 +24,7 @@ from selenium import webdriver
 
 # from selenium.webdriver.common.keys import Keys
 
-import ut as ms
+import ut
 import ut.parse.util
 from ut.parse.util import disp_html
 import ut.util.log

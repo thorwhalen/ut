@@ -1,7 +1,7 @@
 __author__ = 'thor'
 
 
-import ut as ms
+import ut
 
 import os
 import re
