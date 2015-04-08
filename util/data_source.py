@@ -23,8 +23,8 @@ def for_global_local():
                 'hotel': 'venere/hotel',
                 'geography': 'venere/geography',
                 'proptype': 'venere/property_type',
-                'khan_html': 's3/ms-slurps/html/', # 'html/google_results_tests/'
-                'khan_parsed_results': 's3/ms-slurps/parsed', # 'dict/google_results_parse_result'
+                'khan_html': 's3/ut-slurps/html/', # 'html/google_results_tests/'
+                'khan_parsed_results': 's3/ut-slurps/parsed', # 'dict/google_results_parse_result'
                 'khan_info_dict': 's3/semantics-data/gresult_info_dict', # 'dict/gresult_trinity_info'
             }
     a_dict = {

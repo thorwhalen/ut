@@ -28,7 +28,7 @@ class S3(object):
         assert not extension, "extension has not been implement yet for S3."
 
         if access_key and not secret:
-            if access_key == 'ms':
+            if access_key == 'ut':
                 access_key = os.environ['VEN_AWS_ACCESS_KEY_ID']
                 secret = os.environ['VEN_AWS_SECRET_ACCESS_KEY']
             elif access_key == 'mon':

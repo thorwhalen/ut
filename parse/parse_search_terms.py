@@ -155,7 +155,7 @@ class ParseSearchTerms(object):
     @classmethod
     def for_test_cloud(cls, log_filename):
         return cls.for_cloud(
-            html_folder='ms-slurps/html/',
+            html_folder='ut-slurps/html/',
             parsed_results_folder='loc-data/dict/google_results_parse_result/',
             info_dict_folder='loc-data/dict/gresult_trinity_info/',
             log_filename = log_filename)
@@ -163,8 +163,8 @@ class ParseSearchTerms(object):
     @classmethod
     def for_semantics_cloud(cls, log_filename):
         return cls.for_cloud(
-            html_folder='ms-slurps/html/',
-            parsed_results_folder='ms-slurps/parsed',
+            html_folder='ut-slurps/html/',
+            parsed_results_folder='ut-slurps/parsed',
             info_dict_folder='semantics-data/gresult_info_dict/',
             log_filename = KhanLogger.default_log_path_with_unique_name(log_filename)
         )
@@ -223,7 +223,7 @@ class ParseSearchTerms(object):
 
     def _set_cloud_data_source(self, html_folder=None, parsed_dict_folder=None):
         # getting htmls
-        html_folder = html_folder or 'ms-slurps/html/'
+        html_folder = html_folder or 'ut-slurps/html/'
         html_data_accessor = DataAccessor(relative_root=html_folder,
                                           extension='',
                                           force_extension=True,
@@ -231,7 +231,7 @@ class ParseSearchTerms(object):
                                           location=DataAccessor.LOCATION_S3)
         self.get_html = html_data_accessor.loads
         # # getting parsed_dicts
-        # parsed_dict_folder = parsed_dict_folder or 'ms-slurps/parsed/'
+        # parsed_dict_folder = parsed_dict_folder or 'ut-slurps/parsed/'
         # parsed_dict_accessor = DataAccessor(relative_root=parsed_dict_folder,
         #                                   extension='.dict',
         #                                   force_extension=True,
@@ -409,14 +409,14 @@ def print_failure(search_term, failure_type):
 if __name__ == '__main__':
     # os.environ['MS_DATA']='/Users/mattjmorris/Dropbox/Dev/py/data/'
     # pst = ParseSearchTerms.for_semantics_cloud('sem_cloud_local')
-    # s3 = S3('ms-slurps', 'to-slurp_raw')
+    # s3 = S3('ut-slurps', 'to-slurp_raw')
 
     # import os
     print "begin"
     st = "5 star hotels leeds"
     pst = ParseSearchTerms.for_local(
-        html_folder='s3/ms-slurps/html',
-        parsed_results_folder='s3/ms-slurps/parsed',
+        html_folder='s3/ut-slurps/html',
+        parsed_results_folder='s3/ut-slurps/parsed',
         info_dict_folder='s3/semantics-data/gresult_info_dict',
         log_filename='log_parse_search_terms_02.txt')
     pst.process(st)

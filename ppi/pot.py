@@ -9,7 +9,7 @@ import numpy as np
 
 import ut.pcoll.order_conserving as colloc
 
-# import ut as ms
+# import ut as ut
 from ut.daf.op import cartesian_product
 from ut.daf.gr import group_and_count
 from ut.daf.ch import ch_col_names

@@ -23,7 +23,7 @@ def group_normalization(df, var_col, group=None, agg=mean, dif=sub,
         * keep_anchor: boolean specifying whether to keep the anchor column (default False)
         * anchor_name: a name for the anchor value, when singular
 
-    >> t = ms.daf.get.rand(nrows=4, values_spec=[2,1,9], columns=['A','B','C'])
+    >> t = ut.daf.get.rand(nrows=4, values_spec=[2,1,9], columns=['A','B','C'])
     >> print t
     >> print group_normalization(t, 'C', agg=sum, dif=lambda x, y: x - y, keep_anchor=True)
        A  B  C

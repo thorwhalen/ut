@@ -45,10 +45,18 @@ def ensure_mono(wf):
         return wf
 
 
-def stereo_to_mono(source, target):
-    wf, sr = wf_and_sr(source)
-    wf = ensure_mono(wf)
-    sf.write(data=wf, file=target, samplerate=sr)
+def stereo_to_mono(source, target, print_progress=False):
+    if os.path.isdir(source) and os.path.isdir(target):
+        from glob import iglob
+        for i, filepath in enumerate(iglob(source + '*.wav')):
+            filename = os.path.basename(filepath)
+            if print_progress:
+                print("{}: {}".format(i, filename))
+            stereo_to_mono(filepath, os.path.join(target, filename))
+    else:
+        wf, sr = wf_and_sr(source)
+        wf = ensure_mono(wf)
+        sf.write(data=wf, file=target, samplerate=sr)
 
 
 def get_wav_text_info(filespec):

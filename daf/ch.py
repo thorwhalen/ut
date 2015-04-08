@@ -1,6 +1,5 @@
 __author__ = 'thorwhalen'
 
-import ut as ms
 import pandas as pd
 import ut.daf.get as daf_get
 import ut.pstr.trans as pstr_trans

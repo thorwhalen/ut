@@ -160,7 +160,7 @@ _languages = {
   'lv': 'Latvian',
   'lt': 'Lithuanian',
   'mk': 'Macedonian',
-  'ms': 'Malay',
+  'ut': 'Malay',
   'ml': 'Malayalam',
   'mt': 'Maltese',
   'mr': 'Marathi',

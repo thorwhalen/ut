@@ -5,8 +5,8 @@ print '''
     disp_html (but careful! save before use)
     BeautifulSoup
     bs3_BeautifulSoup
-    ms.util.log.hms_message
-    ms.webscrape.util.*
+    ut.util.log.hms_message
+    ut.webscrape.util.*
     filename_from_url
     url_from_filename
 '''

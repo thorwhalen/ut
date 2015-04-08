@@ -7,7 +7,7 @@ import re
 # import pandas as pd
 # import numpy as np
 
-# import ut as ms
+# import ut as ut
 #
 # import ut.daf.get
 
@@ -291,7 +291,7 @@ class KeyCount(KeyVal):
 
 
 # if __name__ == "__main__":
-#     d = ms.daf.get.rand(nrows=9)
+#     d = ut.daf.get.rand(nrows=9)
 #     s = d['A'].iloc[0:5]
 #     ss = d['B'].iloc[3:8]
 #     t = s + ss

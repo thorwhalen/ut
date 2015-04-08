@@ -183,7 +183,7 @@ class AmazonBookWatch(object):
     db = MongoClient()['misc']['book_watch']
 
     def __init__(self, **kwargs):
-        self.s3 = S3(bucket_name='public-ms-images', access_key='ms')
+        self.s3 = S3(bucket_name='public-ut-images', access_key='ut')
         attribute_name = 'product_list'
         setattr(self, attribute_name, kwargs.get(attribute_name, None) or AmazonBookWatch.default[attribute_name])
         attribute_name = 'watch_list'
