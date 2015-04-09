@@ -10,7 +10,9 @@ import contextlib
 from IPython.display import Audio
 import matplotlib.pyplot as plt
 import numpy as np
-from functools import partial
+# from functools import partial
+
+from ut.util.log import printProgress
 
 wav_text_info_exp = re.compile("^.*WAVEbextZ\x03\x00\x00([^\x00]+)")
 
@@ -45,17 +47,20 @@ def ensure_mono(wf):
         return wf
 
 
-def stereo_to_mono(source, target, print_progress=False):
+def stereo_to_mono_and_extreme_silence_cropping(source, target, print_progress=False):
     if os.path.isdir(source) and os.path.isdir(target):
         from glob import iglob
+        if source[-1] != '/':
+            source += '/'
         for i, filepath in enumerate(iglob(source + '*.wav')):
             filename = os.path.basename(filepath)
             if print_progress:
-                print("{}: {}".format(i, filename))
-            stereo_to_mono(filepath, os.path.join(target, filename))
+                printProgress("{}: {}".format(i, filename))
+            stereo_to_mono_and_extreme_silence_cropping(filepath, os.path.join(target, filename))
     else:
         wf, sr = wf_and_sr(source)
         wf = ensure_mono(wf)
+        wf = crop_head_and_tail_silence(wf)
         sf.write(data=wf, file=target, samplerate=sr)
 
 
@@ -106,12 +111,42 @@ def plot_wf(*args, **kwargs):
     plt.plot(np.linspace(start=0, stop=len(wf)/float(sr), num=len(wf)), wf)
 
 
+def display_sound(*args, **kwargs):
+    plot_wf(*args, **kwargs)
+    return hear_sound(*args, **kwargs)
+
+
 def duration_of_wf_and_sr(wf, sr):
     return len(wf) / float(sr)
 
 
 def n_wf_points_from_duration_and_sr(duration, sr):
     return int(round(duration * sr))
+
+
+def get_consecutive_zeros_locations(wf, sr, thresh_consecutive_zeros_seconds=0.1):
+
+    thresh_consecutive_zeros = thresh_consecutive_zeros_seconds * sr
+    list_of_too_many_zeros_idx_and_len = list()
+    cum_of_zeros = 0
+
+    for i in xrange(len(wf)):
+        if wf[i] == 0:
+            cum_of_zeros += 1  # accumulate
+        else:
+            if cum_of_zeros > thresh_consecutive_zeros:
+                list_of_too_many_zeros_idx_and_len.append({'idx': i - cum_of_zeros, 'len': cum_of_zeros})  # remember
+            cum_of_zeros = 0  # reinit
+    if cum_of_zeros > thresh_consecutive_zeros:
+        list_of_too_many_zeros_idx_and_len.append({'idx': i - cum_of_zeros, 'len': cum_of_zeros})  # remember
+
+    return list_of_too_many_zeros_idx_and_len
+
+
+def crop_head_and_tail_silence(wf):
+    first_non_zero = np.argmax(wf != 0)
+    last_non_zero = len(wf) - np.argmin(np.flipud(wf == 0))
+    return wf[first_non_zero:last_non_zero]
 
 
 # def wf_and_sr_of_middle_seconds(filepath, sample_seconds=5.0, pad=False):
@@ -232,6 +267,7 @@ class Sound(object):
 
     def display_sound(self, **kwargs):
         print("{}".format(self.name))
+        self.plot_wf()
         return Audio(data=self.wf, rate=self.sr, **kwargs)
 
     def melspectrogram(self, mel_kwargs={}):

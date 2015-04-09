@@ -7,6 +7,8 @@ from pymongo.cursor import Cursor
 
 from ut.sound import util as sutil
 from ut.daf.manip import reorder_columns_as
+from ut.sound.util import Sound
+from ut.pstr.trans import str_to_utf8_or_bust
 
 
 class MgDacc(object):
@@ -16,10 +18,15 @@ class MgDacc(object):
         self.path_field = path_field
 
     def filepath_of(self, path):
-        return os.path.join(self.root_folder, path)
+        return str_to_utf8_or_bust(os.path.join(self.root_folder, path))
 
     def get_wf_and_sr(self, path, **kwargs):
         return sutil.wf_and_sr_from_filepath(self.filepath_of(path), **kwargs)
+
+    def get_sound(self, path, **kwargs):
+        name = kwargs.pop('name', os.path.splitext(os.path.basename(path))[0])
+        wf, sr = self.get_wf_and_sr(path, **kwargs)
+        return Sound(wf=wf, sr=sr, name=name)
 
 
 class SegmentDacc(MgDacc):
