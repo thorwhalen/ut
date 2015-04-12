@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from analyzer import InputElement, InputElementCollection, Analyzer
+from analyzer import Analyzer
 from params import default
 
 from ut.daf.to import to_html

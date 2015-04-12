@@ -47,12 +47,13 @@ def ensure_mono(wf):
         return wf
 
 
-def stereo_to_mono_and_extreme_silence_cropping(source, target, print_progress=False):
+def stereo_to_mono_and_extreme_silence_cropping(source, target, subtype=None, print_progress=False):
     if os.path.isdir(source) and os.path.isdir(target):
         from glob import iglob
         if source[-1] != '/':
             source += '/'
         for i, filepath in enumerate(iglob(source + '*.wav')):
+            print filepath
             filename = os.path.basename(filepath)
             if print_progress:
                 printProgress("{}: {}".format(i, filename))
@@ -61,7 +62,7 @@ def stereo_to_mono_and_extreme_silence_cropping(source, target, print_progress=F
         wf, sr = wf_and_sr(source)
         wf = ensure_mono(wf)
         wf = crop_head_and_tail_silence(wf)
-        sf.write(data=wf, file=target, samplerate=sr)
+        sf.write(data=wf, file=target, samplerate=sr, subtype=subtype)
 
 
 def get_wav_text_info(filespec):
