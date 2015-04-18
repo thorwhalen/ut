@@ -3,14 +3,14 @@ __author__ = 'thorwhalen'
 
 from bs4 import BeautifulSoup
 import re
-import os.path
-from urllib2 import urlopen
-from pfile import to
+# import os.path
+# from urllib2 import urlopen
+# from ut.pfile import to
 from lxml import etree
 import tldextract
-import parse.util as util
+import ut.parse.util as util
 from urlparse import urlparse, parse_qs
-from analyzer import extract_section
+from ut.util import extract_section
 
 # RE_HAS_NEW_LINE = re.compile('\n|\r')
 RE_NUM_SEP = "[,\.\s]"

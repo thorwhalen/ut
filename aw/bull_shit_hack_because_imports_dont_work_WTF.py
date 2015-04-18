@@ -1,12 +1,12 @@
 __author__ = 'thorwhalen'
 
 
-import aw
+import ut.aw
 from numpy.lib import arraysetops
 import pandas as pd
 
-import daf
-import analyzer
+import ut.daf
+import ut.util
 
 
 def get_unique(d,cols):
@@ -15,8 +15,10 @@ def get_unique(d,cols):
     index = [gp_keys[0] for gp_keys in grouped.groups.values()]
     return d.reindex(index)
 
+
 def get_non_low_str_of_col(d,col):
-    return d[d[col]!=aw.manip.lower_series(d[col])]
+    return d[d[col] != ut.aw.manip.lower_series(d[col])]
+
 
 def print_unique_counts(d):
     column_list = d.columns.tolist()
@@ -26,9 +28,8 @@ def print_unique_counts(d):
         print "number of unique {}: {}".format(c,len(arraysetops.unique(d[c])))
 
 
-
 def get_kw_duplicates(df):
-    df =aw.manip.add_col(df,'kw_lower',overwrite=False)
+    df =ut.aw.manip.add_col(df,'kw_lower',overwrite=False)
     df = get_duplicates(df,'kw_lower')
 
 
@@ -37,7 +38,7 @@ def get_duplicates(df,cols):
     grouped = df.groupby(cols)
     unique_index = [gp_keys[0] for gp_keys in grouped.groups.values()]
     non_unique_index = list(set(df.index)-set(unique_index))
-    duplicates_df =aw.diagnosis.get_unique(df.irow(non_unique_index),cols)
+    duplicates_df = ut.aw.diagnosis.get_unique(df.irow(non_unique_index),cols)
     duplicates_df = duplicates_df[cols]
     return df.merge(pd.DataFrame(duplicates_df))
 
@@ -49,7 +50,7 @@ def add_col(df,colname,overwrite=True):
     The overwrite flag (defaulted to True) specified whether
     """
     if isinstance(colname,str):
-        if overwrite==False and daf.check.has_columns(df,colname):
+        if overwrite==False and ut.daf.check.has_columns(df,colname):
             return df # just return the df as is
         else:
             if colname=='lower_kw':
@@ -95,4 +96,4 @@ def rm_nan_rows(df):
 
 
 def assert_dependencies(df,cols,prefix_message=""):
-    assert daf.check.has_columns(df,cols),"need (all) columns {}: {}".format(analyzer.ulist.to_str(cols),prefix_message)
+    assert ut.daf.check.has_columns(df,cols),"need (all) columns {}: {}".format(ut.util.ulist.to_str(cols),prefix_message)

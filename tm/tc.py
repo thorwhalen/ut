@@ -8,8 +8,8 @@ import pandas as pd
 # output: string of ascii char correspondents
 #   (replacing, for example, accentuated letters with non-accentuated versions of the latter)
 def mk_termCounts(dat,indexColName,strColName,data_folder=''):
-    from analyzer import log
-    from daf.get import get_data
+    from ut.util import log
+    from ut.daf.get import get_data
     dat = get_data(dat,data_folder)
     log.printProgress("making {} word counts (wc)",strColName)
     sr = to_kw_fd(dat[strColName])
@@ -26,16 +26,16 @@ def mk_termCounts(dat,indexColName,strColName,data_folder=''):
 # output: series of the tokens of the strings, processed for AdWords keywords
 #   i.e. string is lower capsed and asciied, and words are [\w&]+
 def to_kw_tokens(dat,indexColName,strColName,data_folder=''):
-    from analyzer import log
-    import pstr.trans
-    from daf.get import get_data
+    from ut.util import log
+    import ut.pstr.trans
+    from ut.daf.get import get_data
     dat = get_data(dat,data_folder)
     log.printProgress("making {} tokens",strColName)
     sr = dat[strColName]
     sr.index = dat.hotel_id.tolist()
     # preprocess string
     sr = sr.map(lambda x: x.lower())
-    sr = sr.map(lambda x: pstr.trans.toascii(x))
+    sr = sr.map(lambda x: ut.pstr.trans.toascii(x))
     # tokenize
     sr = sr.map(lambda x:nltk.regexp_tokenize(x,'[\w&]+'))
     # return this
@@ -45,18 +45,18 @@ def to_kw_tokens(dat,indexColName,strColName,data_folder=''):
 # output: nltk.FreqDist (word count) of the tokens of the string, processed for AdWords keywords
 #   i.e. string is lower capsed and asciied, and words are [\w&]+
 def to_kw_fd(s):
-    import pstr.trans
+    import ut.pstr.trans
     if isinstance(s,pd.Series):
         # preprocess string
         s = s.map(lambda x: x.lower())
-        s = s.map(lambda x: pstr.trans.toascii(x))
+        s = s.map(lambda x: ut.pstr.trans.toascii(x))
         # tokenize
         s = s.map(lambda x:nltk.regexp_tokenize(x,'[\w&]+'))
         # return series of fds
         return s.map(lambda tokens:nltk.FreqDist(tokens))
     elif isinstance(s,str):
         # preprocess string
-        s = pstr.trans.toascii(s.lower())
+        s = ut.pstr.trans.toascii(s.lower())
         # tokenize
         tokens = nltk.regexp_tokenize(s,'[\w&]+')
         return nltk.FreqDist(tokens)

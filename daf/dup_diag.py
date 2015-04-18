@@ -8,10 +8,10 @@ Two rows are (dup_cols-)duplicates of each other if they have exactly the same v
 """
 
 import pandas as pd
-from analyzer.counter import Counter
-import analyzer.ulist as ulist
+from ut.util.counter import Counter
+import ut.util.ulist as ulist
 import numpy as np
-import daf.manip as daf_manip
+import ut.daf.manip as daf_manip
 
 
 def add_min_unique_prefix(df, token_list_col,
@@ -146,16 +146,20 @@ def get_duplicates(d, dup_cols=None, keep_count=False):
     t = dup_and_nondup_groups(d, dup_cols)
     try:
         t = t.get_group(True)
-        if keep_count==False: del t['dup_count']
+        if not keep_count:
+            del t['dup_count']
         return t
     except:
         return pd.DataFrame(columns=d.columns)
 
+
 def get_non_duplicates(d, dup_cols=None, keep_count=False):
     dup_cols = dup_cols or d.columns.tolist()
     t = dup_and_nondup_groups(d,dup_cols).get_group(False)
-    if keep_count==False: del t['dup_count']
+    if not keep_count:
+        del t['dup_count']
     return t
+
 
 def dup_and_nondup_dataframes(d,dup_cols=None,keep_count=False):
     """

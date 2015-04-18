@@ -23,7 +23,7 @@ def SMOTE(T, N, k):
     ----------
     T : array-like, shape = [n_minority_samples, n_features]
         Holds the minority samples
-    N : percetange of new synthetic samples: 
+    N : percentage of new synthetic samples:
         n_synthetic_samples = N/100 * n_minority_samples. Can be < 100.
     k : int. Number of nearest neighbours. 
 
@@ -61,6 +61,6 @@ def SMOTE(T, N, k):
                 
             dif = T[nn_index] - T[i]
             gap = np.random.random()
-            S[n + i * N, :] = T[i,:] + gap * dif[:]
+            S[n + i * N, :] = T[i, :] + gap * dif[:]
     
     return S

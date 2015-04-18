@@ -53,11 +53,13 @@ def stereo_to_mono_and_extreme_silence_cropping(source, target, subtype=None, pr
         if source[-1] != '/':
             source += '/'
         for i, filepath in enumerate(iglob(source + '*.wav')):
-            print filepath
             filename = os.path.basename(filepath)
             if print_progress:
                 printProgress("{}: {}".format(i, filename))
-            stereo_to_mono_and_extreme_silence_cropping(filepath, os.path.join(target, filename))
+            stereo_to_mono_and_extreme_silence_cropping(
+                filepath,
+                os.path.join(target, filename)
+            )
     else:
         wf, sr = wf_and_sr(source)
         wf = ensure_mono(wf)

@@ -1,9 +1,9 @@
 __author__ = 'thorwhalen'
 
 import pandas as pd
-import analyzer.ulist as ulist
-import pstr.trans as pstr_trans
-import aw.manip as aw_manip
+import ut.util.ulist as ulist
+import ut.pstr.trans as pstr_trans
+import ut.aw.manip as aw_manip
 
 _Broad = 'BROAD'
 _Phrase = 'PHRASE'
