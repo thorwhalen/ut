@@ -11,41 +11,44 @@ class Analyzer(object):
     inputs.
 
     An Analyzer is defined by a list of dicts, each specifying an form input element in a way that is very similar to
-    standard html form elements. Each dict should contain a name and a type. If the type is 'submit', the Analyzer
+    standard html form elements. Each dict should contain a name and a type. If the type is 'button', the Analyzer
     should have a method of the same name as the 'name' key of the element. This is checked by the
-    verify_existence_of_submit_functions() method.
+    verify_existence_of_button_functions() method.
 
     Attributes:
         * input_element_collection: The underlying InputElementCollection
-        * submit_method: A list of the names of the InputElements that have type='submit'
+        * button_method: A list of the names of the InputElements that have type='button'
         * input: A dict containing the {key: val} pairs of the forms input values (these are set only when the
         set_inputs(**kwargs) is called.
 
     The set_input(**kwargs) method updates the input key values (only for those already existing keys)
 
-    The call_submit_function(name, **kwargs) updates the input key values (using set_input(**kwargs)) and then calls
+    The call_button_function(name, **kwargs) updates the input key values (using set_input(**kwargs)) and then calls
     the named method with the **kwargs input.
 
 
     """
-    def __init__(self, form_elements, to_html_kwargs={}):
+    def __init__(self, form_elements, to_html_kwargs={}, analyzer_name=''):
+        to_html_kwargs = dict(prefix='<div id="analyzer_input">\n',
+                              suffix='<input type="hidden" name="analyzer_name" value="{}" />\n</div>'.format(analyzer_name),
+                              **to_html_kwargs)
         self.input_element_collection = InputElementCollection(form_elements, to_html_kwargs)
-        self.submit_methods = list()
+        self.button_methods = list()
         self.input = dict()
         for k, v in self.input_element_collection.iteritems():
-            if v['type'] == 'submit':
-                self.submit_methods.append(v['name'])
+            if v['type'] == 'button':
+                self.button_methods.append(v['name'])
             else:
                 self.input.update({k: v.get('value', None)})
 
     def to_html(self,  **kwargs):
         return self.input_element_collection.to_html(**kwargs)
 
-    def verify_existence_of_submit_functions(self):
+    def verify_existence_of_button_functions(self):
         methods_list = self.method_list()
-        for method_name in self.submit_methods:
+        for method_name in self.button_methods:
             assert method_name in methods_list, \
-                "This method is missing (is in submit input_element): {}".format(method_name)
+                "This method is missing (is in button input_element): {}".format(method_name)
 
     def method_list(self):
         return methods_of(self)
@@ -53,7 +56,7 @@ class Analyzer(object):
     def set_inputs(self, **kwargs):
         self.input.update(**{k: v for k, v in kwargs.iteritems() if k in self.input.keys()})
 
-    def call_submit_function(self, name, **kwargs):
+    def call_button_function(self, name, **kwargs):
         self.set_inputs(**kwargs)
         return self.__getattribute__(name)(**kwargs)
 
@@ -80,7 +83,8 @@ class InputElementCollection(OrderedDict):
     through the constructor's to_html_kwargs argument.
     """
     def __init__(self, form_elements, to_html_kwargs={}):
-        self.to_html_kwargs = dict(to_html_kwargs, **dict(prefix="<form>\n", suffix="</form>\n", sep="\n<br>\n"))
+        self.to_html_kwargs = dict(dict(prefix="<form>\n", suffix="</form>\n", sep="\n<br>\n"),
+                                   **to_html_kwargs)
         form_element_list = [(x['name'], InputElement(x)) for x in form_elements]
         # for form_element in form_elements:
         #     form_element_list.append((form_element['name'], form_element))
@@ -104,7 +108,7 @@ class InputElement(dict):
     There are other keys that are not standard attributes:
         * the display key specifies what text will be displayed before the input box. If the display key is not
         specified, it will be created and given the value of name. Therefore, if you want to display nothing, you must
-        specify display="". The type='submit' input elements are treated slightly differently. If display key is not
+        specify display="". The type='button' input elements are treated slightly differently. If display key is not
         specified, it will not be created. But if the value key is not specified, it will take on the value of the
         name attribute.
 
@@ -118,13 +122,13 @@ class InputElement(dict):
         key_list = self.keys()
         assert 'name' in key_list, "you need to have a 'name' in a InputElement"
         assert 'type' in key_list, "you need to have a 'type' in a InputElement (see html input tag types)"
-        if self['type'] == 'submit':
+        if self['type'] == 'button':
             if not self.get('value'):
                 self['value'] = self['name']
         else:
             if not self.get('display'):
                 self['display'] = self['name']
-        # if self['type'] == 'submit':
+        # if self['type'] == 'button':
         #     if 'function' not in key_list:
         #         self.update(function=self['name'])
 
@@ -134,7 +138,9 @@ class InputElement(dict):
 
     def to_html(self, **kwargs):
         d = self.copy()
-        if d['type'] == 'input':
+        element_type = d['type']
+        element_name = d['name']
+        if element_type == 'input':
             html = ""
             d['value'] == d.pop('display', "")
         else:
@@ -145,6 +151,8 @@ class InputElement(dict):
         # d.pop('function', None)  # get rid of function
         for k, v in d.iteritems():
             html += ' {}="{}"'.format(k, v)
+        if element_type == 'button':
+            html += ' onclick="getResult(\'{}\')"'.format(element_name)
         html += ">"
         return html
 

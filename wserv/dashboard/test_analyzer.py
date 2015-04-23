@@ -13,15 +13,16 @@ from ut.daf.to import to_html
 form_elements = [
     dict(name='your_name', type='text', display="Your Name", value='Unknown'),
     dict(name='max_num', type='number', value=1),
-    dict(name='register', type='submit', value='register inputs'),
+    dict(name='register', type='button', value='register inputs'),
     dict(name='npts', type='number', value=30, display="num of rand pts"),
-    dict(name='graph', type='submit', value="graph it")
+    dict(name='graph', type='button', value="graph it")
 ]
 
 
 class TestAnalyzer(Analyzer):
-    def __init__(self, input_element_collection=form_elements, work_folder='.'):
-        super(TestAnalyzer, self).__init__(input_element_collection)
+    def __init__(self, input_element_collection=form_elements, analyzer_name='test_analyzer', work_folder='.'):
+        super(TestAnalyzer, self).__init__(form_elements=input_element_collection,
+                                           analyzer_name=analyzer_name)
         self.a = dict()
         self.a['image_html'] = '<img style="box-shadow:         3px 3px 5px 6px #ccc;" src={image_url}>'
         self.work_folder = work_folder

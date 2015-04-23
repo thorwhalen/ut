@@ -5,6 +5,7 @@ from itertools import permutations
 import pandas as pd
 from pandas import Series, DataFrame
 from numpy import array
+from scipy.stats import chi2_contingency
 
 from ut.ppi.pot import Pot
 from ut.pdict.special import DictDefaultDict
@@ -33,6 +34,38 @@ class EdgeCounter(object):
         s += "num of edges: %d\n" % len(self.edge)
         s += "sum of edge counts: %d\n" % sum([v for v in self.edge.itervalues()])
         return s
+
+    def contingency_table(self, var, var2=None):
+        """
+        Returns a (numpy 2x2 array) contingency tables of the counts of
+            [[~var & ~var2, ~var & var2],
+             [var & ~var2, var & var2]]
+        """
+        if var2 is None:
+            var2 = var[1]
+            var = var[0]
+        n11 = self.edge[(var, var2)]
+        n_1 = self.node[var2]
+        n1_ = self.node[var]
+        return array([[self.num_of_sets - n_1 - n1_ + n11, n_1 - n11],
+                      [n1_ - n11, n11]])
+
+    def contingency_table_stats(self, contingency_table_stats_fun='chi2_pvalue'):
+        """
+        returns a dict with the same size and whose (var, var2) keys are those of as self.edge,
+        and whose values are contingency_table_stats_fun(contingency_table(var, var2))
+
+        contingency_table_stats_fun defaults to scipy.stats.chi2_contingency(contingency_table)[1]
+        (the p-value of the chi square test.
+        """
+        if isinstance(contingency_table_stats_fun, basestring):
+            if contingency_table_stats_fun == 'chi2_pvalue':
+                contingency_table_stats_fun = lambda x: chi2_contingency(x)[1]
+            else:
+                ValueError("Unknown contingency_table_stats_fun")
+
+        return {(var, var2): contingency_table_stats_fun(self.contingency_table(var, var2))
+                for var, var2 in self.edge.iterkeys()}
 
 
 class NaiveGraph(object):
@@ -120,6 +153,7 @@ class BinaryNaiveGraph(NaiveGraph):
             a += self.prior_numerator  # to smooth a
 
             # making the .node attribution, which will hold the prob distributions for nodes
+
             d = DataFrame(a / n, columns=['true'])
             d['false'] = 1 - d['true']
             d = d[['false', 'true']]
@@ -133,7 +167,7 @@ class BinaryNaiveGraph(NaiveGraph):
 
             # making the .edge attribution, which will hold the likelihood distributions for pairs of nodes
 
-            ba_count = ba_count + prior_item_item_numerator
+            ba_count += prior_item_item_numerator
             d = DataFrame((a - ba_count) / (n - a), columns=['10'])
             d['00'] = 1 - d['10']
             d['11'] = ba_count / a
