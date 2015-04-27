@@ -15,7 +15,7 @@ form_elements = [
     dict(name='max_num', type='number', value=1),
     dict(name='register', type='button', value='register inputs'),
     dict(name='npts', type='number', value=30, display="num of rand pts"),
-    dict(name='graph', type='button', value="graph it")
+    dict(name='graph_it', type='button', value="graph it")
 ]
 
 
