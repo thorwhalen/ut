@@ -3,7 +3,7 @@ __author__ = 'thor'
 import os
 import re
 import librosa
-import pysoundfile as sf
+import soundfile as sf
 import wave
 import contextlib
 
@@ -187,7 +187,17 @@ def wav_file_framerate(file_pointer_or_path):
 
 def wf_and_sr_from_filepath(filepath, **kwargs):
     kwargs = dict({'always_2d': False}, **kwargs)
+
+    if 'offset_s' in kwargs.keys() or 'duration' in kwargs.keys():
+        sample_rate = wave.Wave_read(filepath).getframerate()
+        start = int(round(kwargs.pop('offset_s', 0) * sample_rate))
+        kwargs['start'] = start
+        duration = kwargs.pop('duration', None)
+        if duration is not None:
+            kwargs['stop'] = int(start + round(duration * sample_rate))
+
     return sf.read(filepath, **kwargs)
+
     # kwargs = dict({'sr': None}, **kwargs)
     # return librosa.load(filepath, **kwargs)
 
