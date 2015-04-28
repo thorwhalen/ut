@@ -261,13 +261,40 @@ class Sound(object):
         self.wf = wf
         self.sr = sr
         self.name = name
+        self.info = {}
 
     @classmethod
     def from_file(cls, filepath, name=None, **kwargs):
-        name = name or os.path.splitext((os.path.basename(filepath)))[0]
+        file_name, extension = os.path.splitext((os.path.basename(filepath)))
+        name = name or file_name
         kwargs = dict({'always_2d': False}, **kwargs)
-        y, sr = sf.read(filepath, **kwargs)
-        return Sound(wf=y, sr=sr, name=name)
+
+        wf, sr = wf_and_sr_from_filepath(filepath, **kwargs)
+
+        sound = Sound(wf=wf, sr=sr, name=name)
+
+        if extension == '.wav':
+            try:
+                sound.info = sound_file_info_dict(filepath)
+                offset_s = kwargs.get('offset_s', None)
+                if offset_s is not None:
+                    sound.info['offset_s'] = float(offset_s)
+                duration = kwargs.get('duration', None)
+                if duration is not None:
+                    sound.info['duration'] = float(duration)
+                if duration is not None or offset_s is not None:
+                    offset_s = offset_s or 0
+                    sound.info['frames'] = int((duration - offset_s) * 48000)
+                    sound.info.pop('size')
+            except Exception:
+                pass
+
+        return sound
+
+    def save_to_wav(self, filepath=None, samplerate=None, **kwargs):
+        samplerate = samplerate or self.sr
+        filepath = filepath or (self.name + '.wav')
+        sf.write(self.wf, file=filepath, samplerate=samplerate, **kwargs)
 
     def plot_wf(self):
         plot_wf(wf=self.wf, sr=self.sr)
