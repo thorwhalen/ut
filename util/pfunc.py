@@ -3,6 +3,11 @@ __author__ = 'thor'
 import functional
 import functools
 
+
+def filter_kwargs_to_func_arguments(func, kwargs):
+    return dict([(k, v) for k, v in kwargs.iteritems() if k in func.func_code.co_varnames])
+
+
 def multi_compose(x):
     return functional.partial(functools.reduce, functional.compose)(x)
 

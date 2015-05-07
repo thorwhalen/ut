@@ -4,6 +4,7 @@ from numpy import *
 import sklearn as sk
 
 
+
 class ZeroEstimator(sk.base.BaseEstimator):
     def __init__(self):
         self._mean_y = nan

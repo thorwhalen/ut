@@ -13,6 +13,7 @@ import numpy as np
 # from functools import partial
 
 from ut.util.log import printProgress
+from ut.util.pfunc import filter_kwargs_to_func_arguments
 
 wav_text_info_exp = re.compile("^.*WAVEbextZ\x03\x00\x00([^\x00]+)")
 
@@ -196,6 +197,7 @@ def wf_and_sr_from_filepath(filepath, **kwargs):
         if duration is not None:
             kwargs['stop'] = int(start + round(duration * sample_rate))
 
+    kwargs = filter_kwargs_to_func_arguments(sf.read, kwargs)
     return sf.read(filepath, **kwargs)
 
     # kwargs = dict({'sr': None}, **kwargs)
@@ -313,7 +315,7 @@ class Sound(object):
     def melspectrogram(self, mel_kwargs={}):
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         # We use a small hop length of 64 here so that the frames line up with the beat tracker example below.
-        mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 64, 'n_mels': 128})
+        mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
         S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
         # Convert to log scale (dB). We'll use the peak power as reference.
         log_S = librosa.logamplitude(S, ref_power=np.max)

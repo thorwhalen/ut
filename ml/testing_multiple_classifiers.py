@@ -67,7 +67,7 @@ colors = itertools.cycle(colors)
 
 def score_classifier(X, y, clf, nfeats=None,
                      scoring=default_scorers, score_aggreg=default_score_aggreg,
-                     scale=None, decompose=None, decompose_params={},
+                     scale=None, decompose=None, select=None, decompose_params={},
                      nfolds=10, shuffle=True, random_fold_state=None,
                      include_train_stats=False):
     """
@@ -85,7 +85,7 @@ def score_classifier(X, y, clf, nfeats=None,
     if nfeats is None:
         nfeats = np.shape(X)[1]
 
-    X = X[:, :nfeats]
+    # X = X[:, :nfeats]
 
     stratified_k_fold = cross_validation.StratifiedKFold(y, n_folds=nfolds,
                                                          shuffle=shuffle,
@@ -105,6 +105,11 @@ def score_classifier(X, y, clf, nfeats=None,
             pipeline_steps.append(('scale', scale))
         if decompose:
             pipeline_steps.append(('decompose', decompose))
+        if select:
+            pipeline_steps.append(('select', feature_selection.SelectKBest(k=nfeats)))
+        else:
+            X = X[:, :nfeats]
+
         pipeline_steps.append(('clf', clf))
 
         pipeline = Pipeline(steps=pipeline_steps)
@@ -136,6 +141,7 @@ def test_classifiers(X, y,
                  nfolds=10,
                  scale=None,
                  decompose=None,
+                 select=None,
                  decompose_params={},
                  print_progress=False,
                  score_to_plot=None
@@ -157,6 +163,8 @@ def test_classifiers(X, y,
     if clfs is None:
         clfs = default_classifiers
 
+    clfs = clfs_to_dict_clfs(clfs)
+
     general_info_dict = dict()
     if scale is not None and scale is not False:  # preprocessing.StandardScaler(), preprocessing.MinMaxScaler()
         if scale is True:
@@ -164,17 +172,19 @@ def test_classifiers(X, y,
         general_info_dict['scale'] = get_name(scale)
     if decompose is not None and decompose is not False:
         if decompose is True:
-            decompose = decomposition.PCA()  # PCA, KernelPCA, ProbabilisticPCA, RandomizedPCA, TruncatedSVD
+            decompose = decomposition.PCA(**decompose_params)  # PCA, KernelPCA, ProbabilisticPCA, RandomizedPCA, TruncatedSVD
         general_info_dict['decompose'] = get_name(decompose)
 
     clf_results = list()
 
     for i_nfeats, nfeats in enumerate(n_features):
         for i_clf, clf in enumerate(clfs):
-            d = dict(general_info_dict, **{'model': get_name(clf), 'nfeats': nfeats})
+            clf_name = clf.keys()[0]
+            clf = clf[clf_name]
+            d = dict(general_info_dict, **{'model': clf_name, 'nfeats': nfeats})
             if print_progress:
                 printProgress("{}: nfeats={}, nfolds={}".format(
-                    get_name(clf),
+                    clf_name,
                     n_features[i_nfeats],
                     nfolds))
             # try:
@@ -182,13 +192,14 @@ def test_classifiers(X, y,
             score_result = \
                 score_classifier(X,
                    y,
-                   clf=clfs[i_clf],
+                   clf=clf,
                    nfeats=nfeats,
                    scoring=scoring,
                    score_aggreg=score_aggreg,
                    nfolds=nfolds,
                    scale=scale,
                    decompose=decompose,
+                   select=select,
                    decompose_params=decompose_params)
             d.update({'seconds': (datetime.now() - start_time).total_seconds()})
             d.update(score_result.to_dict())
@@ -207,6 +218,13 @@ def test_classifiers(X, y,
         plot_score(clf_results, score_to_plot)
 
     return reorder_columns_as(clf_results, ['model', 'nfeats', 'seconds'])
+
+
+def clfs_to_dict_clfs(clfs):
+    for i, clf in enumerate(clfs):
+        if not isinstance(clf, dict):
+            clfs[i] = {get_name(clf): clf}
+    return clfs
 
 
 def decompose_data(X, decompose, n_components=None, y=None, decompose_params={}):
