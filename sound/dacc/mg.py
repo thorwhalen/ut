@@ -26,6 +26,7 @@ class MgDacc(object):
 
     def get_sound(self, path_or_doc, **kwargs):
         if not isinstance(path_or_doc, basestring):
+            path_or_doc = path_or_doc.copy()
             file_path = path_or_doc.pop(self.path_field)
             kwargs = dict(kwargs, **path_or_doc)
             path_or_doc = file_path
@@ -110,7 +111,7 @@ class SegmentDacc(MgDacc):
         #                                           offset_s=kwargs['offset_s'],
         #                                           duration=kwargs['duration'])
 
-    def get_segment_iterator(self, only_segments=True, *args, **kwargs):
+    def get_segment_iterator(self, only_segments=True, fields=None, *args, **kwargs):
         cursor = self.mgc.find(*args, **kwargs)
 
         def segment_iterator():
@@ -118,10 +119,12 @@ class SegmentDacc(MgDacc):
                 segments = d.pop(self.segment_field)
                 if segments is not None:
                     for dd in segments:
-                        if only_segments:
+                        if not only_segments:
+                            dd = dict(d, **dd)
+                        if fields is None:
                             yield dd
                         else:
-                            yield dict(d, **dd)
+                            yield {k: v for k, v in dd.iteritems() if k in fields}
 
         return segment_iterator()
 
