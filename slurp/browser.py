@@ -19,10 +19,17 @@ class Browser(object):
     CONFIG = json.load(open(os.path.dirname(__file__) + "/config.json"))
     USER_AGENTS = CONFIG["USER_AGENTS"]
     HEADERS = CONFIG["HEADERS"]
-    ANONYMIZER_AUTH = HTTPProxyAuth(os.environ['VEN_ANONYMIZER_LOGIN'], os.environ['VEN_ANONYMIZER_PASS'])
-    ANONYMIZER_PROXIES = {'http': os.environ['VEN_ANONYMIZER_PROX_HTTP']}#,'https': os.environ['VEN_ANONYMIZER_PROX_HTTPS']}
-    PROXYMESH_AUTH = requests.auth.HTTPProxyAuth(os.environ['PROXYMESH_USER'], os.environ['PROXYMESH_PASS'])
-    PROXYMESH_PROXIES = {'http': 'http://us.proxymesh.com:31280'}
+    try:
+        ANONYMIZER_AUTH = HTTPProxyAuth(os.environ['VEN_ANONYMIZER_LOGIN'], os.environ['VEN_ANONYMIZER_PASS'])
+        ANONYMIZER_PROXIES = {'http': os.environ['VEN_ANONYMIZER_PROX_HTTP']}#,'https': os.environ['VEN_ANONYMIZER_PROX_HTTPS']}
+    except KeyError:
+        print("VEN_ANONYMIZER_LOGIN, VEN_ANONYMIZER_PASS, and/or VEN_ANONYMIZER_PROX_HTTP missing from environment")
+    try:
+        PROXYMESH_AUTH = requests.auth.HTTPProxyAuth(os.environ['PROXYMESH_USER'], os.environ['PROXYMESH_PASS'])
+        PROXYMESH_PROXIES = {'http': 'http://us.proxymesh.com:31280'}
+    except KeyError:
+        print("PROXYMESH_USER and/or PROXYMESH_PASS missing from environment")
+
 
     def __init__(self, **kwargs):
         """

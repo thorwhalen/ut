@@ -3,6 +3,23 @@ __author__ = 'thorwhalen'
 import os
 import glob
 from ut.pcoll.op import ismember
+import re
+
+
+def recursive_file_walk_iterator(directory, pattern=''):
+    if isinstance(pattern, basestring):
+        pattern = re.compile(pattern)
+    # return pattern
+    for name in os.listdir(directory):
+        full_path = os.path.join(directory, name)
+        # print full_path
+        if os.path.isdir(full_path):
+            for entry in recursive_file_walk_iterator(full_path, pattern):
+                yield entry
+        elif os.path.isfile(full_path):
+            # print full_path
+            if pattern.search(full_path):
+                yield full_path
 
 
 def add_extension_if_not_present(filename, ext=None):
@@ -20,7 +37,8 @@ def files_of(folder):
     """
     returns a list of files in the folder, EXCLUDING hidden files
     """
-    return glob.glob(os.path.join(folder,'*'))
+    return glob.glob(os.path.join(folder, '*'))
+
 
 def files_of_folder(folder):
     f = []

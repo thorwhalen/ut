@@ -1,6 +1,6 @@
 __author__ = 'thor'
 
-import pfile.accessor as pfile_accessor
+import ut.pfile.accessor as pfile_accessor
 import os
 import pdb
 

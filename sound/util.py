@@ -148,6 +148,7 @@ def get_consecutive_zeros_locations(wf, sr, thresh_consecutive_zeros_seconds=0.1
 
 
 def crop_head_and_tail_silence(wf):
+    assert len(wf.shape) == 1, "The silence crop is only implemented for mono sounds"
     first_non_zero = np.argmax(wf != 0)
     last_non_zero = len(wf) - np.argmin(np.flipud(wf == 0))
     return wf[first_non_zero:last_non_zero]
@@ -198,7 +199,10 @@ def wf_and_sr_from_filepath(filepath, **kwargs):
             kwargs['stop'] = int(start + round(duration * sample_rate))
 
     kwargs = filter_kwargs_to_func_arguments(sf.read, kwargs)
-    return sf.read(filepath, **kwargs)
+    wf, sr = sf.read(filepath, **kwargs)
+    if kwargs.get('ensure_mono'):
+        wf = ensure_mono(wf)
+    return wf, sr
 
     # kwargs = dict({'sr': None}, **kwargs)
     # return librosa.load(filepath, **kwargs)
@@ -310,7 +314,7 @@ class Sound(object):
     def display_sound(self, **kwargs):
         print("{}".format(self.name))
         self.plot_wf()
-        return Audio(data=self.wf, rate=self.sr, **kwargs)
+        return Audio(data=ensure_mono(self.wf), rate=self.sr, **kwargs)
 
     def melspectrogram(self, mel_kwargs={}):
         # Let's make and display a mel-scaled power (energy-squared) spectrogram

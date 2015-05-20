@@ -42,6 +42,11 @@ def clean_html_01(html):
 
 
 def disp_html(html):
+    if not isinstance(html, basestring):
+        try:
+            html = html.renderContents()
+        except AttributeError or TypeError:
+            pass
     try:
         html_disp = disp_html_fun(html)
     except BaseException as e:

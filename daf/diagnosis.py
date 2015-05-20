@@ -5,6 +5,7 @@ Includes various adwords elements diagnosis functions
 
 #from ut.util.var import my_to_list as to_list, my_to_list
 from numpy.lib import arraysetops
+from numpy import argmax
 import pandas as pd
 from ut.util.ulist import ascertain_list
 import ut.util.var as util_var
@@ -14,10 +15,10 @@ def diag_df(df):
     cols = df.columns
     t = list()
     for c in cols:
-        x = df[c].iloc[0]
+        x = df[c].iloc[argmax(df[c].notnull())]
         item = {'column': c,
                 'type': type(x).__name__,
-                'first_value': x}
+                'non_null_value': x}
         try:
             item['num_uniques'] = df[c].nunique()
         except Exception:
@@ -32,6 +33,7 @@ def diag_df(df):
             item['num_nonnan'] = None
         t.append(item)
     return pd.DataFrame(t)
+
 
 def numof(logical_series):
     return len([x for x in logical_series if x])
