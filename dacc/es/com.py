@@ -30,19 +30,27 @@ class ElasticCom(object):
     def search_and_export_to_df(self, *args, **kwargs):
         convert_numeric = kwargs.pop('convert_numeric', True)
         convert_dates = kwargs.pop('convert_dates', 'coerce')
+        exclude_fields = kwargs.pop('exclude_fields', [])
 
         mapping = self.es.indices.get_mapping(index=self.index, doc_type=self.doc_type)
         mapping = mapping[self.index]['mappings'][self.doc_type]['properties']
         fields_with_type = es_types_to_main_types(mapping)
 
         df = pd.DataFrame(self.search_and_export_to_dict(*args, **kwargs))
+        if len(exclude_fields) > 0:
+            if isinstance(exclude_fields, basestring):
+                exclude_fields = [exclude_fields]
+            for field in exclude_fields:
+                df.drop(field, axis=1, inplace=True)
 
         if convert_numeric:
-            fields = fields_with_type['number']
-            df[fields].convert_objects(convert_numeric=convert_numeric, copy=False)
+            fields = [x for x in fields_with_type['number'] if x not in exclude_fields]
+            if len(fields) > 0:
+                df[fields] = df[fields].convert_objects(convert_numeric=convert_numeric, copy=False)
         if convert_dates:
-            fields = fields_with_type['date']
-            df[fields].convert_objects(convert_dates=convert_dates, copy=False)
+            fields = [x for x in fields_with_type['date'] if x not in exclude_fields]
+            if len(fields) > 0:
+                df[fields] = df[fields].convert_objects(convert_dates=convert_dates, copy=False)
         return df
 
     def insert(self, d, overwrite=False, **kwargs):
@@ -75,6 +83,7 @@ def es_types_to_main_types(mapping):
     fields_with_type['string'] = [k for k, v in mapping.iteritems() if v['type'] in ['string']]
     fields_with_type['date'] = [k for k, v in mapping.iteritems() if v['type'] in ['date']]
     return fields_with_type
+
 
 def get_search_hits(es_response, _id=True, data_key=None):
     response_hits = es_response['hits']['hits']

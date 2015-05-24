@@ -7,7 +7,7 @@ import re
 
 from ut.pplot.to import simple_plotly
 
-from pandas.util import decorators
+
 class ParallelTimeSeriesDacc(object):
 
     def __init__(self, data_source, date_var, index_var, ts_vars_name='vars', **kwargs):
@@ -18,12 +18,16 @@ class ParallelTimeSeriesDacc(object):
                 from ut.dacc.es.com import ElasticCom
 
                 es_kwargs = kwargs.get('es_kwargs', {})
-                es_kwargs = dict(es_kwargs, **{'index': kwargs.get('index'), 'doc_type': kwargs.get('data_type')})
+                if 'index' in kwargs.keys():
+                    es_kwargs['index'] = kwargs.pop('index')
+                if 'data_type' in kwargs.keys():
+                    es_kwargs['data_type'] = kwargs.pop('data_type')
                 ec = ElasticCom(**es_kwargs)
 
                 search_kwargs = kwargs.get('search_kwargs', {})
                 search_kwargs = dict({'_id': False}, **search_kwargs)
-                self.df = ec.search_and_export_to_df(**search_kwargs)
+                exclude_fields = search_kwargs.pop('exclude_fields', [])
+                self.df = ec.search_and_export_to_df(exclude_fields=exclude_fields, **search_kwargs)
 
             else:
                 raise NotImplementedError("Unrecognized data_source: {}".format(data_source))

@@ -22,7 +22,7 @@ def lower_ascii_slash_w_terms():
 
 
 def lower_ascii_term_replacer(map_spec, rep_col=None, by_col=None, term_padding_exp=r'\b'):
-    term_replacer = TermReplacer(map_spec, rep_col=None, by_col=None, term_padding_exp=r'\b')
+    term_replacer = TermReplacer(map_spec, rep_col=rep_col, by_col=by_col, term_padding_exp=term_padding_exp)
     return TextProcessor(text_processors=[preprocess_text_lower_ascii, term_replacer.replace_terms]).process
 
 
@@ -36,7 +36,7 @@ def erenev_kw_str_term_replacer(rep_col=None, by_col=None, term_padding_exp=r'\b
 
 
 ########################################################################################################################
-##### Class that composes mutilple text processors
+# Class that composes mutilple text processors
 class TextProcessor(object):
     def __init__(self, text_processors):
         self.text_processors = text_processors
@@ -48,8 +48,9 @@ class TextProcessor(object):
 
     # TODO: Replace TextProcessor composition using util_pfunc.multi_compose
 
+
 ########################################################################################################################
-##### A menu of text processors
+# A menu of text processors
 
 def preprocess_text_lower_ascii(text):
     """
@@ -59,6 +60,7 @@ def preprocess_text_lower_ascii(text):
     such as "b&b", "new_york"), and what ever needs to be done before tokens are retrieved from text.
     """
     return pstr_trans.toascii(text).lower()
+
 
 class TermReplacer(object):
     def __init__(self, map_spec, rep_col=None, by_col=None, term_padding_exp=r'\b'):
