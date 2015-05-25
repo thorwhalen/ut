@@ -2,8 +2,30 @@ __author__ = 'thor'
 
 import pandas as pd
 import numpy as np
-import daf.manip as daf_manip
-import daf.ch as daf_ch
+import ut.daf.manip as daf_manip
+import ut.daf.ch as daf_ch
+
+# from ut.pstr.trans import toascii as strip_accents
+from sklearn.feature_extraction.text import strip_accents_unicode as strip_accents
+
+
+def to_lower_ascii(d):
+    if isinstance(d, pd.DataFrame):
+        d = d.copy()
+        d = d.convert_objects(convert_dates=True, convert_numeric=True)
+        lower_ascii = lambda x: strip_accents(x).lower()
+        d.columns = map(lower_ascii, d.columns)
+        for c in d.columns:
+            if d[c].dtype == 'O':
+                d[c].fillna('', inplace=True)
+            if d[c].dtype != 'float' and d[c].dtype != 'int':
+                try:
+                    d[c] = map(lower_ascii, map(unicode, d[c]))
+                except TypeError as e:
+                    print e.message
+        return d
+    else:
+        raise NotImplementedError("the input format '{}' is not handled".format(type(d)))
 
 
 def smallest_unik_prefix(tok_lists, min_prefix_len=1, tok_list_col=None, list_sep=' '):

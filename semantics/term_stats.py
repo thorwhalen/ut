@@ -84,7 +84,7 @@ def __process_term_doc_var_names__(term_doc_df, doc_var=None, term_var='term'):
     return (term_doc_df, doc_var, term_var)
 
 
-def mk_termCounts(dat,indexColName,strColName,data_folder=''):
+def mk_termCounts(dat, indexColName, strColName, data_folder=''):
     """
     input: data_folder='', dataname, savename='',
     output: string of ascii char correspondents
@@ -105,7 +105,7 @@ def mk_termCounts(dat,indexColName,strColName,data_folder=''):
     #printProgress('Done!')
 
 
-def to_kw_tokens(dat,indexColName,strColName,data_folder=''):
+def to_kw_tokens(dat, indexColName, strColName, data_folder=''):
     """
     input: daf of strings
     output: series of the tokens of the strings, processed for AdWords keywords
@@ -114,7 +114,7 @@ def to_kw_tokens(dat,indexColName,strColName,data_folder=''):
     from ut.util import log
     import ut.pstr.trans
     from ut.daf.get import get_data
-    dat = get_data(dat,data_folder)
+    dat = get_data(dat, data_folder)
     log.printProgress("making {} tokens",strColName)
     sr = dat[strColName]
     sr.index = dat.hotel_id.tolist()

@@ -5,6 +5,7 @@ Includes various adwords elements diagnosis functions
 
 #from ut.util.var import my_to_list as to_list, my_to_list
 from numpy.lib import arraysetops
+from numpy import array
 from numpy import argmax
 import pandas as pd
 from ut.util.ulist import ascertain_list
@@ -15,7 +16,10 @@ def diag_df(df):
     cols = df.columns
     t = list()
     for c in cols:
-        x = df[c].iloc[argmax(df[c].notnull())]
+        lidx = df[c].notnull()
+        x = df[c].iloc[argmax(lidx)]
+        if x == '':
+            x = df[c].iloc[argmax(lidx & (array(df[c]) != ''))]
         item = {'column': c,
                 'type': type(x).__name__,
                 'non_null_value': x}

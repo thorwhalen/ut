@@ -12,6 +12,7 @@ from ut.daf.manip import rm_cols_if_present
 from ut.daf.manip import rollout_cols
 from ut.serialize.s3 import S3
 from ut.pfile.to import ungzip
+from ut.util.log import printProgress
 
 s3_backup_bucket_name = 'mongo-db-bak'
 
@@ -26,6 +27,22 @@ s3_backup_bucket_name = 'mongo-db-bak'
 #     AWS_SECRET_ACCESS_KEY = os.environ['VEN_AWS_SECRET_ACCESS_KEY']
 # except KeyError:
 #     pass
+
+
+def copy_collection_from_remote_to_local(remote_client, remote_db, remote_collection,
+                                         local_db=None, local_collection=None, verbose=False):
+    local_db = local_db or remote_db
+    local_collection = local_collection or remote_collection
+
+    remote_collection_connection = remote_client[remote_db][remote_collection]
+    local_collection_connection = mg.MongoClient().get_database(local_db).get_collection(local_collection)
+    local_collection_connection.delete_many({})
+    for i, d in enumerate(remote_collection_connection.find()):
+        if verbose:
+            printProgress("item {}".format(i))
+        local_collection_connection.insert(d)
+
+
 
 
 def get_dict_with_key_from_collection(key, collection):
