@@ -5,6 +5,12 @@ def add_defaults(d, default_dict):
     return dict(default_dict, **d)
 
 
+def recursive_left_union(a, b):
+    b_copy = b.copy()
+    recursively_update_with(b_copy, a)
+    return b_copy
+
+
 def recursively_update_with(a, b):
     """
     Recursively updates a with b.

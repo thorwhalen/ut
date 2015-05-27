@@ -4,6 +4,7 @@ import pymongo as mg
 import os
 import re
 import pandas as pd
+from numpy import inf
 import subprocess
 from datetime import datetime
 
@@ -30,17 +31,28 @@ s3_backup_bucket_name = 'mongo-db-bak'
 
 
 def copy_collection_from_remote_to_local(remote_client, remote_db, remote_collection,
-                                         local_db=None, local_collection=None, verbose=False):
+                                         local_db=None, local_collection=None,
+                                         max_docs_per_collection=inf, verbose=False):
     local_db = local_db or remote_db
     local_collection = local_collection or remote_collection
 
     remote_collection_connection = remote_client[remote_db][remote_collection]
-    local_collection_connection = mg.MongoClient().get_database(local_db).get_collection(local_collection)
-    local_collection_connection.delete_many({})
+
+    local_db_connection = mg.MongoClient().get_database(local_db)
+    if local_collection in local_db_connection.collection_names():
+        print("Local collection '{}' existed and is being deleted".format(local_collection))
+        try:
+            local_db_connection[local_collection].drop()
+        except mg.errors.OperationFailure as e:
+            print("  !!! Nope, can't delete that: {}".format(e.message))
+    local_collection_connection = local_db_connection.get_collection(local_collection)
     for i, d in enumerate(remote_collection_connection.find()):
-        if verbose:
-            printProgress("item {}".format(i))
-        local_collection_connection.insert(d)
+        if i < max_docs_per_collection:
+            if verbose:
+                printProgress("item {}".format(i))
+            local_collection_connection.insert(d)
+        else:
+            break
 
 
 
