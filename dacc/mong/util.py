@@ -38,14 +38,14 @@ def copy_collection_from_remote_to_local(remote_client, remote_db, remote_collec
 
     remote_collection_connection = remote_client[remote_db][remote_collection]
 
-    local_db_connection = mg.MongoClient().get_database(local_db)
+    local_db_connection = mg.MongoClient()[local_db]
     if local_collection in local_db_connection.collection_names():
         print("Local collection '{}' existed and is being deleted".format(local_collection))
         try:
             local_db_connection[local_collection].drop()
         except mg.errors.OperationFailure as e:
             print("  !!! Nope, can't delete that: {}".format(e.message))
-    local_collection_connection = local_db_connection.get_collection(local_collection)
+    local_collection_connection = local_db_connection[local_collection]
     for i, d in enumerate(remote_collection_connection.find()):
         if i < max_docs_per_collection:
             if verbose:
@@ -53,8 +53,6 @@ def copy_collection_from_remote_to_local(remote_client, remote_db, remote_collec
             local_collection_connection.insert(d)
         else:
             break
-
-
 
 
 def get_dict_with_key_from_collection(key, collection):
