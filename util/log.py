@@ -3,8 +3,10 @@ __author__ = 'thorwhalen'
 from ut.util.ulist import ascertain_list
 import logging
 from datetime import datetime
+import json
 
 default_log_filepath = 'default_log.log'
+
 
 def printProgress(message='', args=[]):
     """
@@ -13,8 +15,10 @@ def printProgress(message='', args=[]):
     use: To be able to track processes (and the time they take)
     """
     args = ascertain_list(args)
-    t = datetime.now().time()
-    print "%02.0f:%02.0f:%02.0f " % (t.hour, t.minute, t.second) + message.format(*args)
+    print(hms_message(message.format(*args)))
+    # t = datetime.now().time()
+    # print("{:.0f}:{:.0f}:{:.0f} - {}".format(t.hour, t.minute, t.second, message.format(*args)))
+    # print "%02.0f:%02.0f:%02.0f " % (t.hour, t.minute, t.second) + message.format(*args)
 
     #def printProgress(message,args):
     #    print "".format([message,pstr(datetime.now().time())]+args)
@@ -22,7 +26,8 @@ def printProgress(message='', args=[]):
 
 def hms_message(msg=''):
     t = datetime.now().time()
-    return "{:02}:{:02}:{:02} - {}".format(t.hour, t.minute, t.second, msg)
+    return "{:.0f}:{:.0f}:{:.0f} - {}".format(t.hour, t.minute, t.second, msg)
+    # return "{:02}:{:02}:{:02} - {}".format(t.hour, t.minute, t.second, msg)
 
 
 def get_a_logger(**kwargs):
