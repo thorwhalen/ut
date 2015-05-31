@@ -13,7 +13,12 @@ from os import environ # does this load the whole array? Can we just take MS_DAT
 import ut.pstr.trans as pstr_trans
 import shutil
 
-MS_DATA = os.environ['MS_DATA']
+try:
+    MS_DATA = os.environ['MS_DATA']
+except KeyError:
+    MS_DATA = ''
+
+
 LOCATION_LOCAL = 'LOCAL'
 LOCATION_S3 = 'S3'
 

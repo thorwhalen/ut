@@ -1,10 +1,10 @@
 __author__ = 'thorwhalen'
 
 
-import pfile.name as pfile_name
-from khan_utils.encoding import to_unicode_or_bust
-from serialize.local import Local
-from serialize.s3 import S3
+import ut.pfile.name as pfile_name
+# from ut.khan_utils.encoding import to_unicode_or_bust
+from ut.serialize.local import Local
+from ut.serialize.s3 import S3
 
 
 class DataAccessor(object):
