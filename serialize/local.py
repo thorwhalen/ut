@@ -10,7 +10,10 @@ import ut.pstr.to as str_to
 from ut.pstr.trans import str_to_unicode_or_bust
 #from os import environ # does this load the whole array? Can we just take MS_DATA instead?
 
-MS_DATA = os.environ['MS_DATA']
+try:
+    MS_DATA = os.environ['MS_DATA']
+except KeyError:
+    MS_DATA = ''
 
 ENCODING_NONE = 0
 ENCODING_UNICODE = 1
