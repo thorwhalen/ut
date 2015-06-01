@@ -20,11 +20,12 @@ class ElasticCom(object):
         _id = kwargs.pop('_id', True)
         data_key = kwargs.pop('data_key', kwargs.get('fields')) or '_source'
         kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
+        print args
+        print kwargs
         if kwargs.get('size', None) is None:
             kwargs['size'] = 1
             t = self.es.search(*args, **kwargs)
             kwargs['size'] = t['hits']['total']
-
         return get_search_hits(self.es.search(*args, **kwargs), _id=_id, data_key=data_key)
 
     def search_and_export_to_df(self, *args, **kwargs):
