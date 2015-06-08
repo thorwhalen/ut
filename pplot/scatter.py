@@ -23,6 +23,8 @@ def df_scatter_plot(df, x=None, y=None, label=None, **kwargs):
         color = colors[i]
         ax.scatter(xvals, yvals, label=str(i), facecolor=color, **kwargs)
 
+    mpl_plt.legend()
+
 
 def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
     '''Create a scatter matrix of the variables in df, with differently colored
