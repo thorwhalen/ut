@@ -2,6 +2,26 @@ __author__ = 'thor'
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as mpl_plt
+
+# Get "Set2" colors from ColorBrewer (all colorbrewer scales: http://bl.ocks.org/mbostock/5577023)
+
+default_colors = ['#e41a1c', '#377eb8', '#4eae4b', '#994fa1', '#ff8101', '#fdfc33', '#a8572c', '#f482be', '#999999']
+
+
+def df_scatter_plot(df, x=None, y=None, label=None, **kwargs):
+
+    colors = kwargs.pop('colors', default_colors)
+    label_list = kwargs.pop('label_list', np.array(df[label].unique()))
+    kwargs = dict(dict(alpha=0.7, edgecolor='black', linewidth=0.10, s=50), **kwargs)
+    fig, ax = mpl_plt.subplots(1)
+
+    for i, this_label in enumerate(label_list):
+        d = df[df[label] == this_label]
+        xvals = np.array(d[x])
+        yvals = np.array(d[y])
+        color = colors[i]
+        ax.scatter(xvals, yvals, label=str(i), facecolor=color, **kwargs)
 
 
 def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
