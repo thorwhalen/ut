@@ -3,6 +3,7 @@ __author__ = 'thor'
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as mpl_plt
+import prettyplotlib as ppl
 
 # Get "Set2" colors from ColorBrewer (all colorbrewer scales: http://bl.ocks.org/mbostock/5577023)
 
@@ -11,19 +12,26 @@ default_colors = ['#e41a1c', '#377eb8', '#4eae4b', '#994fa1', '#ff8101', '#fdfc3
 
 def df_scatter_plot(df, x=None, y=None, label=None, **kwargs):
 
-    colors = kwargs.pop('colors', default_colors)
+    if label is None:
+        if len(df.columns) != 3:
+            raise ValueError("I can't (or rather won't) guess the label if there's not exactly 3 columns. "
+                             "You need to specify it")
+        else:
+            label = [t for t in df.columns if t not in [x, y]][0]
+    colors = kwargs.pop('colors', None)
     label_list = kwargs.pop('label_list', np.array(df[label].unique()))
-    kwargs = dict(dict(alpha=0.7, edgecolor='black', linewidth=0.10, s=50), **kwargs)
     fig, ax = mpl_plt.subplots(1)
 
     for i, this_label in enumerate(label_list):
         d = df[df[label] == this_label]
         xvals = np.array(d[x])
         yvals = np.array(d[y])
-        color = colors[i]
-        ax.scatter(xvals, yvals, label=str(i), facecolor=color, **kwargs)
+        if colors:
+            ppl.scatter(ax, xvals, yvals, label=str(i), facecolor=colors[i], **kwargs)
+        else:
+            ppl.scatter(ax, xvals, yvals, label=str(i), **kwargs)
 
-    mpl_plt.legend()
+    ppl.legend(ax)
 
 
 def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
