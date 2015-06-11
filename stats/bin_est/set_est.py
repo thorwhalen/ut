@@ -18,7 +18,6 @@ default['set_elements_name'] = 'element'  # category of the elements used in the
 default['set_column'] = 'set'  # name of column that contains the sets (which will index the data)
 
 
-
 class SetEst(object):
     def __init__(self, d, **kwargs):
         # process inputs
