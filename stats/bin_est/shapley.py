@@ -1,23 +1,35 @@
 __author__ = 'thor'
 
 from numpy import *
+import numpy as np
 import pandas as pd
 from collections import Counter, OrderedDict, defaultdict
+import string
+import random as rnd
 import itertools
+from ut.util.uiter import all_subsets_of
 
 from ut.stats.bin_est.set_est import Shapley as Shapley_1
 
 # from ut.daf.manip import rollin_col
 
 
-def compute_shapley_values_from_coalition_contributions(coalition_values):
+def compute_shapley_values_from_coalition_contributions(coalition_values, normalize=False):
     coalition_values = pd.DataFrame(index=coalition_values.keys(),
                                     data=coalition_values.values(),
                                     columns=['value'])
     se = Shapley_1(coalition_values, success='value')
     se.change_type_of_d_index(tuple)
-    return se.compute_shapley_values()
+    shapley_values = se.compute_shapley_values()
+    if normalize:
+        return _normalize_dict_values(shapley_values)
+    else:
+        return shapley_values
 
+
+def _normalize_dict_values(d):
+    value_sum = float(np.sum(d.values()))
+    return {k: v / value_sum for k, v in d.items()}
 
 def all_subsets_iterator(superset):
     return itertools.chain(
@@ -117,7 +129,6 @@ class ShapleyDataModel(object):
         self.item_list = unique(concatenate(self.coalition_obs.keys()))
 
 
-
 def _test_shapley_data_model():
     list_of_coalitions = [['A', 'B', 'C'], ['A', 'C', 'B'], ['B', 'A', 'C'], ['A', 'A', 'B', 'C'],
                           ['C', 'A'], ['B', 'C'], ['C', 'B'], ['C', 'B'], ['A']]
@@ -130,6 +141,52 @@ def _test_shapley_data_model():
 
 
     print("All good in _test_shapley_data_model")
+
+
+def rand_shapley_values(items=3):
+    if isinstance(items, int):
+        items = ','.join(string.ascii_uppercase[:items]).split(',')
+    if isinstance(items, list):
+        items = {items[i]: 2**i for i in range(len(items))}
+    return items
+
+
+class LinearValuedCoalitionGenerator(object):
+    def __init__(self, shapley_values=3, normalize=False):
+        shapley_values = shapley_values or 3
+        if not isinstance(shapley_values, dict):
+            shapley_values = rand_shapley_values(items=shapley_values)
+        self.shapley_values = shapley_values
+        if normalize:
+            self.shapley_values = _normalize_dict_values(self.shapley_values)
+
+    @staticmethod
+    def coalition_of(coalition):
+        return tuple(sort(coalition))
+
+    def coalition_value(self, coalition):
+        return sum([self.shapley_values[item] for item in coalition])
+
+    def rand_coalition(self):
+        return self.coalition_of(rnd.sample(self.shapley_values.keys(), rnd.randint(1, len(self.shapley_values))))
+
+    def rand_coalition_obs(self):
+        coalition = self.rand_coalition()
+        return {coalition: self.coalition_value(coalition)}
+
+    def rand_coalition_obs_cum(self, n_draws=None):
+        n_draws = n_draws or len(self.shapley_values) / 2
+        coalition_obs = Counter()
+        for x in itertools.starmap(self.rand_coalition_obs, itertools.repeat([], n_draws)):
+            coalition_obs.update(x)
+        return coalition_obs
+
+    def coalition_values(self):
+        return {self.coalition_of(coalition): self.coalition_value(coalition)
+                for coalition in all_subsets_of(self.shapley_values.keys(), include_empty_set=False)}
+
+
+
 
 # class ShapleyDataModel_old(object):
 #     def __init__(self, item_seperator=','):

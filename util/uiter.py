@@ -12,6 +12,16 @@ import itertools
 #         for i in itertools.count(start, size):
 #             yield seq[i: i + size]
 
+
+def all_subsets_of(iterable, include_empty_set=True):
+    if include_empty_set is True:
+        start = 0
+    else:
+        start = 1
+    n = len(list(iterable))
+    return itertools.chain(*itertools.imap(lambda x: itertools.combinations(iterable, x), xrange(start, n+1)))
+
+
 def take(n, iterable):
     "Return first n items of the iterable as a list"
     return list(itertools.islice(iterable, n))
