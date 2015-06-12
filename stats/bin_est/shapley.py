@@ -14,7 +14,7 @@ from ut.stats.bin_est.set_est import Shapley as Shapley_1
 # from ut.daf.manip import rollin_col
 
 
-def compute_shapley_values_from_coalition_contributions(coalition_values, normalize=False):
+def compute_shapley_values_from_coalition_values(coalition_values, normalize=False):
     coalition_values = pd.DataFrame(index=coalition_values.keys(),
                                     data=coalition_values.values(),
                                     columns=['value'])
@@ -30,6 +30,7 @@ def compute_shapley_values_from_coalition_contributions(coalition_values, normal
 def _normalize_dict_values(d):
     value_sum = float(np.sum(d.values()))
     return {k: v / value_sum for k, v in d.items()}
+
 
 def all_subsets_iterator(superset):
     return itertools.chain(
@@ -83,7 +84,13 @@ class ShapleyDataModel(object):
         """
         Updates the self.coalition_obs with the input dict of coalition: obs_value
         """
-        self.coalition_obs.update(coalition_obs_dict)
+        self.absorb_coalition_and_value(coalition_obs_dict.keys()[0], coalition_obs_dict.values()[0])
+
+    def absorb_coalition_and_value(self, coalition, value):
+        """
+        Updates the self.coalition_obs with the input dict of coalition: obs_value
+        """
+        self.coalition_obs.update({self.coalition_of(coalition): value})
 
     def coalition_values(self, verbose=False):
         """
