@@ -13,11 +13,14 @@ import ut.util.var as util_var
 
 
 def diag_df(df):
+    df = df.reset_index(drop=True)  # added this 150613 because problems with obj and str indices
     cols = df.columns
     t = list()
     for c in cols:
         lidx = df[c].notnull()
+
         x = df[c].iloc[argmax(lidx)]
+
         if x == '':
             x = df[c].iloc[argmax(lidx & (array(df[c]) != ''))]
         item = {'column': c,
