@@ -1,7 +1,7 @@
 __author__ = 'thorwhalen'
 
 import ut.util.ulist as ulist
-
+from numpy import isnan
 
 # def recursive_list_of_keys(d, key=None):
 #     """
@@ -21,7 +21,7 @@ import ut.util.ulist as ulist
 
 def key_if_exists_else_return_none(d, key):
     DeprecationWarning('You should really call this one liner directly!!')
-    return d.get(key)
+    return d.get(key, None)
 
 
 def mk_fixed_coordinates_value_getter(get_key_list):
@@ -85,3 +85,7 @@ def get_subdict_and_remainder(d, list_of_keys):
 
 def all_but(d, exclude_keys):
     return get_subdict(d, set(d.keys()).difference(ulist.ascertain_list(exclude_keys)))
+
+
+def all_non_null(d):
+    return {k: v for k, v in d.iteritems() if v is not None and not isnan(v)}
