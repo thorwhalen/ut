@@ -78,7 +78,7 @@ def ppr(x):
 
 def see_linked_header(text, level=0, link_to_sections=None, indent_size=3):
     if link_to_sections is None:
-        if level == 0:
+        if level <= 1:
             link_to_sections = True
         else:
             link_to_sections = False
@@ -99,10 +99,10 @@ def see_linked_header(text, level=0, link_to_sections=None, indent_size=3):
     header_prefix = "#" + "#" * level
 
     section = '{indent}{bullet}<a href="#{text}">{text}</a><br>'.format(indent=indent, bullet=bullet, text=text)
-    header = '<p><a name="{text}"></a></p>\n{header_prefix} {text}\n'.format(header_prefix=header_prefix, text=text)
+    header = '<p><a name="{text}"></a></p>\n{header_prefix} {text}'.format(header_prefix=header_prefix, text=text)
 
     if link_to_sections:
-        header += '[[top]](#sections)'
+        header += ' [[top]](#sections)'
 
     print(section)
     print("")
