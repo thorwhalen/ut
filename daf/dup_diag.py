@@ -189,11 +189,11 @@ def dup_and_nondup_groups(d,dup_cols=None):
         DDG.get_group(False) is a dataframe containing rows that are not duplicated (dup_count==1)
     """
     dup_cols  = dup_cols or d.columns.tolist()
-    dc = mk_dup_count_col(d,dup_cols)
-    d = mk_dup_count_col(d,dup_cols).groupby(dc['dup_count']>1)
+    dc = mk_dup_count_col(d, dup_cols)
+    d = mk_dup_count_col(d, dup_cols).groupby(dc['dup_count']>1)
     return d
 
-def mk_dup_count_col(d,dup_cols=None):
+def mk_dup_count_col(d, dup_cols=None):
     """
     d: dataframe
     dup_cols: a list of columns of this dataframe (defaulting to all columns of the dataframe)
@@ -205,7 +205,7 @@ def mk_dup_count_col(d,dup_cols=None):
     if dup_cols is None: dup_cols = d.columns.tolist()
     # return pd.merge(d,pd.DataFrame({'dup_count':d.groupby(dup_cols).size()}),on=dup_cols)
     # index-reset version:
-    return pd.merge(d,pd.DataFrame({'dup_count':d.groupby(dup_cols).size()}).reset_index(),on=dup_cols)
+    return pd.merge(d, pd.DataFrame({'dup_count': d.groupby(dup_cols).size()}).reset_index(), on=dup_cols)
 
 # def group_by_dup_count(d,dup_cols=None):
 #     """

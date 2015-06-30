@@ -74,3 +74,36 @@ class PPR(object):
 
 def ppr(x):
     PPR.__call__(x)
+
+
+def see_linked_header(text, level=0, link_to_sections=None, indent_size=3):
+    if link_to_sections is None:
+        if level == 0:
+            link_to_sections = True
+        else:
+            link_to_sections = False
+
+    section_level_bullet = [
+        "&#8227; ",
+        "&#8250; ",
+        "&#8226; ",
+        "&#8208; ",
+        "&#8901; ",
+        " "
+    ]
+
+    text = text.replace('"', "'")
+    single_indent = "&nbsp;" * indent_size
+    indent = single_indent * level
+    bullet = section_level_bullet[min(level, len(section_level_bullet))]
+    header_prefix = "#" + "#" * level
+
+    section = '{indent}{bullet}<a href="#{text}">{text}</a><br>'.format(indent=indent, bullet=bullet, text=text)
+    header = '<p><a name="{text}"></a></p>\n{header_prefix} {text}\n'.format(header_prefix=header_prefix, text=text)
+
+    if link_to_sections:
+        header += '[[top]](#sections)'
+
+    print(section)
+    print("")
+    print(header)

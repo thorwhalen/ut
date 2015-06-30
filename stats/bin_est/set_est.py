@@ -85,9 +85,10 @@ class SetEst(object):
 
     def change_type_of_d_index(self, change_to_type=tuple):
         index_name = self.d.index.name or 'index'
-        self.d.loc[:, index_name] = map(change_to_type, self.d.index.values)
+        self.d = self.d.reset_index(drop=False)
+        self.d.loc[:, index_name] = self.d.loc[:, index_name].apply(change_to_type)
         self.d = self.d.set_index(index_name)
-        self.index_type = type(self.d.index.values[0])
+        self.index_type = type(self.d.index.values[0])  # couldn't I use change_to_type here?
 
     def subset_summed_d(self, cols=None):
         cols = cols or [self.success, self.trial]
@@ -189,6 +190,15 @@ class Shapley(SetEst):
         subsets_intersecting_with_element[:, element_col_lidx] = 0
         t['success'] = t[self.val_col] - array(map(self.get_subset_val, subsets_intersecting_with_element))
         return t
+
+    def _compute_single_shapley_value_experimental(self, element):
+        def group_stats_fun(g):
+            return g['success'].sum() / float(g['subset_sizes'].iloc[0])
+        t = self._mk_marginal_values_for_element(element)
+        tt = t[['subset_sizes', 'success']].groupby('subset_sizes').apply(group_stats_fun)
+        return mean(tt)
+        # tt = t[['subset_sizes', 'success']].groupby('subset_sizes').mean()
+        # return mean(tt['success'])
 
     @staticmethod
     def mk_subset_summed_closure_from_set_success_df(df, **kwargs):

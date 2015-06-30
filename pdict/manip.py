@@ -1,5 +1,34 @@
 __author__ = 'thorwhalen'
 
+from collections import MutableMapping
+from numpy import concatenate
+from itertools import chain, imap
+
+
+def rollout(d, key, sep='.', copy=True):
+    if isinstance(d, dict):
+        if copy:
+            d = d.copy()
+        key_value = d.pop(key)
+        if sep is None:
+            prefix = ''
+        else:
+            prefix = key + sep
+        return [dict({prefix + k: v for k, v in element.iteritems()}, **d) for element in key_value]
+    else:
+        return list(chain(*imap(lambda x: rollout(x, key=key, sep=sep, copy=copy), d)))
+
+
+def flatten(d, parent_key='', sep='.'):
+    items = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, MutableMapping):
+            items.extend(flatten(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
 
 def add_defaults(d, default_dict):
     return dict(default_dict, **d)

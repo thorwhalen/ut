@@ -25,6 +25,7 @@ def digitize_and_group(df, digit_cols=None, digit_agg_fun='mean', agg_fun='mean'
 
     return df.groupby(t.to_dict(outtype='list').values()).agg(agg_fun)
 
+
 def digitize(df, bins=2, index='both int and mapping', **kwargs):
     '''
     digitize(df, bins=2, index=None [, right (False)])

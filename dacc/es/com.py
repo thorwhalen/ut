@@ -4,9 +4,15 @@ import sys
 import elasticsearch
 from elasticsearch import Elasticsearch
 import elasticsearch.helpers
+from elasticsearch.helpers import scan
+
+from collections import defaultdict
 
 from pymongo import MongoClient
 import pandas as pd
+from itertools import imap, islice
+
+from ut.pdict.manip import rollout
 
 
 class ElasticCom(object):
@@ -16,26 +22,52 @@ class ElasticCom(object):
         self.doc_type = doc_type
         self.es = Elasticsearch(hosts=hosts, **kwargs)
 
+    def search(self, *args, **kwargs):
+        kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
+        return self.es.search(*args, **kwargs)
+
+    def source_scan_iterator(self, extractor=None, scroll='10m', *args, **kwargs):
+        """
+        Returns an iterator that yields the _source field of scan results one at a time
+        """
+        kwargs['index'] = kwargs.get('index', self.index)
+        kwargs['doc_type'] = kwargs.get('doc_type', self.doc_type)
+        start = kwargs.pop('start', None)
+        stop = kwargs.pop('stop', None)
+        scanner = scan(self.es, scroll=scroll, *args, **kwargs)
+        if stop is not None:
+            scanner = islice(scan(self.es, scroll=scroll, *args, **kwargs), start, stop)
+
+        if extractor is None:
+            return imap(lambda x: x['_source'], scanner)
+        else:
+            return imap(lambda x: extractor(x['_source']), scanner)
+
     def search_and_export_to_dict(self, *args, **kwargs):
         _id = kwargs.pop('_id', True)
         data_key = kwargs.pop('data_key', kwargs.get('fields')) or '_source'
+        rollout_key = kwargs.pop('rollout_key', None)
+
         kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
-        print args
-        print kwargs
+
+        # If size is None, set it to hits total
         if kwargs.get('size', None) is None:
             kwargs['size'] = 1
             t = self.es.search(*args, **kwargs)
             kwargs['size'] = t['hits']['total']
-        return get_search_hits(self.es.search(*args, **kwargs), _id=_id, data_key=data_key)
+
+        d = get_search_hits(self.es.search(*args, **kwargs), _id=_id, data_key=data_key)
+
+        if rollout_key:
+            d = rollout(d, key=rollout_key, copy=False)
+
+        return d
 
     def search_and_export_to_df(self, *args, **kwargs):
         convert_numeric = kwargs.pop('convert_numeric', True)
-        convert_dates = kwargs.pop('convert_dates', 'coerce')
-        exclude_fields = kwargs.pop('exclude_fields', [])
+        convert_dates = kwargs.pop('convert_dates', 'coerce')  # specify convert_dates='coerce' to convert dates
 
-        mapping = self.es.indices.get_mapping(index=self.index, doc_type=self.doc_type)
-        mapping = mapping[self.index]['mappings'][self.doc_type]['properties']
-        fields_with_type = es_types_to_main_types(mapping)
+        exclude_fields = kwargs.pop('exclude_fields', [])
 
         df = pd.DataFrame(self.search_and_export_to_dict(*args, **kwargs))
         if len(exclude_fields) > 0:
@@ -44,15 +76,26 @@ class ElasticCom(object):
             for field in exclude_fields:
                 df.drop(field, axis=1, inplace=True)
 
-        if convert_numeric:
-            fields = [x for x in fields_with_type['number'] if x not in exclude_fields]
-            if len(fields) > 0:
-                df[fields] = df[fields].convert_objects(convert_numeric=convert_numeric, copy=False)
-        if convert_dates:
-            fields = [x for x in fields_with_type['date'] if x not in exclude_fields]
-            if len(fields) > 0:
-                df[fields] = df[fields].convert_objects(convert_dates=convert_dates, copy=False)
+        if convert_numeric or convert_dates:
+            mapping = self.get_fields_mapping_info()
+            fields_with_type = es_types_to_main_types(mapping)
+
+            if convert_numeric:
+                fields = [x for x in fields_with_type['number'] if x not in exclude_fields]
+                if len(fields) > 0:
+                    df[fields] = df[fields].convert_objects(convert_numeric=convert_numeric, copy=False)
+
+            if convert_dates:
+                fields = [x for x in fields_with_type['date'] if x not in exclude_fields]
+                if len(fields) > 0:
+                    df[fields] = df[fields].convert_objects(convert_dates=convert_dates, copy=False)
+
         return df
+
+    def get_fields_mapping_info(self):
+        mapping = self.es.indices.get_mapping(index=self.index, doc_type=self.doc_type)
+        mapping = mapping[self.index]['mappings'][self.doc_type]['properties']
+        return mapping
 
     def insert(self, d, overwrite=False, **kwargs):
         doc_id = str(d.pop('_id'))
@@ -78,11 +121,22 @@ class ElasticCom(object):
 
 
 def es_types_to_main_types(mapping):
-    fields_with_type = dict()
-    fields_with_type['number'] = [k for k, v in mapping.iteritems() if v['type']
-                                   in ['float', 'double', 'byte', 'short', 'integer', 'long']]
-    fields_with_type['string'] = [k for k, v in mapping.iteritems() if v['type'] in ['string']]
-    fields_with_type['date'] = [k for k, v in mapping.iteritems() if v['type'] in ['date']]
+    fields_with_type = defaultdict(list)
+    for k, v in mapping.iteritems():
+        if 'type' in v.keys():
+            v_type = v.get('type')
+            if v_type in ['float', 'double', 'byte', 'short', 'integer', 'long']:
+                fields_with_type['number'].append(k)
+            else:
+                fields_with_type[v_type].append(k)
+        elif 'properties' in v.keys():
+            nested_fields_with_type = es_types_to_main_types(v['properties'])
+            for kk, vv in nested_fields_with_type.iteritems():
+                fields_with_type[kk].extend(map(lambda x: k + '.' + x, vv))
+    # fields_with_type['number'] = [k for k, v in mapping.iteritems() if v['type']
+    #                               in ['float', 'double', 'byte', 'short', 'integer', 'long']]
+    # fields_with_type['string'] = [k for k, v in mapping.iteritems() if v['type'] in ['string']]
+    # fields_with_type['date'] = [k for k, v in mapping.iteritems() if v['type'] in ['date']]
     return fields_with_type
 
 

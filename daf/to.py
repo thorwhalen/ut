@@ -7,11 +7,28 @@ from bs4 import BeautifulSoup
 import copy
 import itertools
 import numpy as np
+from hashlib import md5
 
 import ut as ms
 from ut.daf.manip import recursive_update
 from ut.util.ulist import sort_as
 from ut.daf.resources.disp_templates import inline_html_table_template
+
+
+def map_strings_to_their_mp5s(df, cols_to_map):
+    if isinstance(cols_to_map, basestring):
+        cols_to_map = [cols_to_map]
+
+    def md5_of(s):
+        m = md5()
+        m.update(s)
+        return m.hexdigest()
+
+    df = df.copy()
+    for c in cols_to_map:
+        df[c] = df[c].apply(md5_of)
+
+    return df
 
 
 def map_vals_to_ints_inplace(df, cols_to_map):
@@ -126,6 +143,7 @@ def dict_list_of_rows(df, dropna=False):
 def dict_list_of_cols(df):
     DeprecationWarning('Come on! Use df.to_dict() directly would you?!')
     return df.to_dict()
+
 
 def zip_pickle(df, filepath):
     df.to_pickle(filepath)
