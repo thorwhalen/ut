@@ -102,7 +102,7 @@ def see_linked_header(text, level=0, link_to_sections=None, indent_size=3):
     header = '<p><a name="{text}"></a></p>\n{header_prefix} {text}'.format(header_prefix=header_prefix, text=text)
 
     if link_to_sections:
-        header += ' [[top]](#sections)'
+        header += ' [^](#sections) '
 
     print(section)
     print("")

@@ -71,7 +71,7 @@ class Pot(object):
         var_list = colloc.intersect(ascertain_list(var_list), self.vars())
         if var_list:  # if non-empty, marginalize out other variables
             return Pot(self.tb[var_list + ['pval']].groupby(var_list).sum().reset_index())
-        else:  # if var_list is empty, return a singleton potential containing the sum of the vals of self.tb
+        else:  # if _var_list is empty, return a singleton potential containing the sum of the vals of self.tb
             return Pot(pd.DataFrame({'pval': self.tb['pval'].sum()}, index=['']))
 
     def __rshift__(self, var_list):
@@ -79,7 +79,7 @@ class Pot(object):
 
     def normalize(self, var_list=[]):
         """
-        'Normalization' of the pot with respect to var_list.
+        'Normalization' of the pot with respect to _var_list.
         Will define the pot by the projection of the pot on a subset of the variables.
 
         Note: If this subset is the empty set, this will correspond to "full normalization", i.e. dividing the vals by
