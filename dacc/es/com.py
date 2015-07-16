@@ -1,6 +1,7 @@
 __author__ = 'thor'
 
 import sys
+import numpy as np
 import elasticsearch
 from elasticsearch import Elasticsearch
 import elasticsearch.helpers
@@ -13,6 +14,8 @@ import pandas as pd
 from itertools import imap, islice
 
 from ut.pdict.manip import rollout
+from ut.util.log import printProgress
+
 
 
 class ElasticCom(object):
@@ -42,6 +45,30 @@ class ElasticCom(object):
             return imap(lambda x: x['_source'], scanner)
         else:
             return imap(lambda x: extractor(x['_source']), scanner)
+
+    def dict_of_source_data(self,
+                            extractor=None,
+                            start=None,
+                            stop=None,
+                            print_progress_every=None,
+                            source_scan_iterator_kwargs={}):
+
+        source_scan_iterator_kwargs['scroll'] = source_scan_iterator_kwargs.get('scroll', '10m')
+        extracting_scanner = self.source_scan_iterator(extractor=extractor,
+                                                       start=start,
+                                                       stop=stop,
+                                                       **source_scan_iterator_kwargs)
+        print_progress_every = print_progress_every or np.inf
+        start = start or 0
+
+        d = list()
+        for i, item in enumerate(extracting_scanner, start=start):
+            if np.mod(i, print_progress_every) == 0:
+                printProgress("offset: {}".format(i))
+            if item is not None:
+                d.append(item)
+
+        return d
 
     def search_and_export_to_dict(self, *args, **kwargs):
         _id = kwargs.pop('_id', True)
