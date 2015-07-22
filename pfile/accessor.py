@@ -31,14 +31,14 @@ def ms_data_path(relative_root, root_folder=MS_DATA):
 ####################################################################################################################
 # FACTORIES
 def for_local(relative_root='', read_only=False, extension=None, force_extension=False, root_folder=MS_DATA, **kwargs):
-    # if a full path (i.e. starting with "/" is entered as a relative_root, then take it as the root_folder
+    # if a full path (i.e. starting with "/" is entered as a relative_root, then take it as the sound_file_root_folder
     if relative_root and ((relative_root[0] == '/') or (relative_root[0] == '~')):
         root_folder = relative_root
         relative_root = ''
     elif relative_root == 'test':  # if relative root is test...
         relative_root = 'test'
         print "you asked for a local test, so I forced the root to be %s" % relative_root
-    # ensure that root_folder ends with a "/"
+    # ensure that sound_file_root_folder ends with a "/"
     file_handler = FilepathHandler(relative_root=pfile_name.ensure_slash_suffix(root_folder)+relative_root)
     # take care of extensions
     if extension:
@@ -293,7 +293,7 @@ class Accessor(object):
     def local_file_loc_proc_simple(self, file_spec):
         # add extension
         file_spec = self.handle_extension(file_spec)
-        # remove slash suffix if present (because self.root_folder ends with / already)
+        # remove slash suffix if present (because self.sound_file_root_folder ends with / already)
         if file_spec.startswith('/'):
             file_spec = file_spec[1:]
 
@@ -336,7 +336,7 @@ def file_loc_proc_from_full_path(fullpath):
         return FilepathHandler(relative_root=fullpath).process
 
 def fullpath_to_s3_kargs(filename):
-    # remove slash suffix if present (because self.root_folder ends with / already)
+    # remove slash suffix if present (because self.sound_file_root_folder ends with / already)
     if filename.startswith('/'):
         filename = filename[1:]
     mother_root = pfile_name.get_highest_level_folder(filename)

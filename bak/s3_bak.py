@@ -50,7 +50,7 @@ class S3(object):
         if not filename:
             return self.root_folder
 
-        # remove slash suffix if present (because self.root_folder ends with / already)
+        # remove slash suffix if present (because self.sound_file_root_folder ends with / already)
         if filename.startswith('/'):
             filename = filename[1:]
         # add extension

@@ -27,19 +27,28 @@ class Markov(object):
 
     @staticmethod
     def from_sequences(seqs, **kwargs):
-        initial_probs = Counter([seq[0] for seq in seqs])
-        initial_probs = pd.Series(initial_probs)
-        initial_probs = initial_probs / initial_probs.sum()
+        initial_probs = Markov.seqs_to_initial_probs(seqs)
 
-        event_pair_counts = Counter(chain(*imap(_sliding_window_iter, seqs)))
-        cond_probs = pd.DataFrame([{'t': k[0], 't+1': k[1], 'count': v}
-                                  for k, v in event_pair_counts.iteritems()])
-        cond_probs = cond_probs.set_index(['t', 't+1']).sort()
-        cond_probs = cond_probs['count'].unstack('t')
+        cond_probs = Markov.seqs_to_pair_count_df(seqs)
         cond_probs = cond_probs.divide(cond_probs.sum(axis=0), axis='columns')
 
         return Markov(cond_probs=cond_probs, initial_probs=initial_probs, **kwargs)
 
+    @staticmethod
+    def seqs_to_initial_probs(seqs):
+        initial_probs = Counter([seq[0] for seq in seqs])
+        initial_probs = pd.Series(initial_probs)
+        initial_probs = initial_probs / initial_probs.sum()
+        return initial_probs
+
+    @staticmethod
+    def seqs_to_pair_count_df(seqs):
+        event_pair_counts = Counter(chain(*imap(_sliding_window_iter, seqs)))
+        pair_count_df = pd.DataFrame([{'t': k[0], 't+1': k[1], 'count': v}
+                                  for k, v in event_pair_counts.iteritems()])
+        pair_count_df = pair_count_df.set_index(['t', 't+1']).sort()
+        pair_count_df = pair_count_df['count'].unstack('t')
+        return pair_count_df
 
 
 
