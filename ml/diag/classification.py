@@ -6,20 +6,25 @@ import pandas as pd
 def pred_truth_counts(truth, pred, stat='count'):
     d = pd.DataFrame({'pred': pred, 'truth': truth})[['pred', 'truth']].groupby(['pred', 'truth']).size()
     if stat == 'count':
-        return d
+        d.name = 'count'
     elif stat == 'perc':
-        return 100 * d / sum(d)
+        d = 100 * d / sum(d)
+        d.name = 'perc'
     elif stat == 'ratio':
-        return d / sum(d)
+        d = d / sum(d)
+        d.name = 'ratio'
     elif stat == 'pred':
         d = d / d.groupby(level='pred').sum()
-        return d.reorder_levels(['pred', 'truth'])\
+        d = d.reorder_levels(['pred', 'truth'])\
             .sort(inplace=False, ascending=False)\
             .sortlevel('pred', sort_remaining=False)
+        d.name = 'P(truth|pred)'
     elif stat == 'truth':
         d = d / d.groupby(level='truth').sum()
-        return d.reorder_levels(['truth', 'pred'])\
+        d = d.reorder_levels(['truth', 'pred'])\
             .sort(inplace=False, ascending=False)\
             .sortlevel('truth', sort_remaining=False)
+        d.name = 'P(pred|truth)'
     else:
         raise ValueError("Unknown stat (must be count, perc, pred, or truth")
+    return d

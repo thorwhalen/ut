@@ -156,7 +156,7 @@ def test_classifiers(X, y,
     if isinstance(n_features, int):  # if n_features is an int, it's the number of different feature set lens to try out
         # ... so make this feature set len list
         total_n_features = np.shape(X)[1]
-        n_features = range(1, total_n_features + 1, np.floor(total_n_features / n_features))[:n_features]
+        n_features = range(1, total_n_features + 1, int(np.floor(total_n_features / n_features)))[:n_features]
     y = np.asarray(y, dtype="|S6")
     n_features = np.array(n_features)
 
