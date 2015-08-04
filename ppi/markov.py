@@ -8,12 +8,19 @@ from itertools import islice, chain, imap
 class Markov(object):
     def __init__(self, cond_probs, initial_probs, states=None, t_name=None, t_plus_1_name=None):
         self.initial_probs = initial_probs
+        self.cond_probs = cond_probs
         if states is None:  # take the states of initial probs, sorted by descending order of probability
+            states = list(self.index.values)
+            more_states = set(self.cond_probs.index.values).union(self.cond_probs.columns.values)
+            for extra_state in set(more_states).difference(states):
+                states.append(extra_state)
+                self.initial_probs.loc[extra_state] = 0.0
             states = self.initial_probs.sort(inplace=False, ascending=False).index.values
+
         self.labels = states
         self.initial_probs = self.initial_probs[states]
 
-        self.cond_probs = cond_probs.fillna(0).loc[states, states]
+        self.cond_probs = self.cond_probs.loc[states, states].fillna(0.0)
 
         if t_name is None:  # given the name of the columns, or 't' if columns have no name
             t_name = self.cond_probs.columns.name or 't'
