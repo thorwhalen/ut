@@ -10,7 +10,7 @@ class Markov(object):
         self.initial_probs = initial_probs
         self.cond_probs = cond_probs
         if states is None:  # take the states of initial probs, sorted by descending order of probability
-            states = list(self.index.values)
+            states = list(self.initial_probs.index.values)
             more_states = set(self.cond_probs.index.values).union(self.cond_probs.columns.values)
             for extra_state in set(more_states).difference(states):
                 states.append(extra_state)
