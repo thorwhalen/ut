@@ -1,7 +1,7 @@
 __author__ = 'thor'
 
 import pandas as pd
-from collections import Counter
+from collections import Counter, defaultdict
 from itertools import islice, chain, imap
 
 
@@ -56,6 +56,62 @@ class Markov(object):
         pair_count_df = pair_count_df.set_index(['t', 't+1']).sort()
         pair_count_df = pair_count_df['count'].unstack('t')
         return pair_count_df
+
+
+class MarkovCounts(object):
+    def __init__(self):
+        self.initial_counts = Counter()
+        self.pair_counts = Counter()
+
+    def add_sequence(self, seq):
+        self.initial_counts.update([seq[0]])
+        self.pair_counts.update(_sliding_window_iter(seq))
+
+
+class IndexedMarkovCounts(object):
+    def __init__(self):
+        self.markov_counts = defaultdict(lambda: MarkovCounts())
+
+    def add_sequence(self, index, seq):
+        self.markov_counts[index].add_sequence(seq)
+
+    def __getstate__(self):
+        return {
+            'markov_counts': dict(self.markov_counts)
+        }
+
+    def __setstate__(self, state):
+        self.markov_counts = defaultdict(lambda: MarkovCounts(), state['markov_counts'])
+
+    # def __getstate__(self):
+    #     return {
+    #         'initial_counts': dict(self.initial_counts),
+    #         'pair_counts': dict(self.pair_counts),
+    #     }
+    #
+    # def __setstate__(self, state):
+    #     self.initial_counts = defaultdict(lambda: Counter(), state['initial_counts'])
+    #     self.pair_counts = defaultdict(lambda: Counter(), state['pair_counts'])
+
+
+class MultipleMarkovCounts(object):
+    def __init__(self):
+        self.initial_counts = defaultdict(lambda: Counter())
+        self.pair_counts = defaultdict(lambda: Counter())
+
+    def add_sequence(self, index, seq):
+        self.initial_counts[index].update([seq[0]])
+        self.pair_counts[index].update(_sliding_window_iter(seq))
+
+    def __getstate__(self):
+        return {
+            'initial_counts': dict(self.initial_counts),
+            'pair_counts': dict(self.pair_counts),
+        }
+
+    def __setstate__(self, state):
+        self.initial_counts = defaultdict(lambda: Counter(), state['initial_counts'])
+        self.pair_counts = defaultdict(lambda: Counter(), state['pair_counts'])
 
 
 
