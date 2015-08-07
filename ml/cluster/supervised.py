@@ -8,7 +8,9 @@ import bisect
 
 
 class SeperateClassKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
-    def __init__(self, n_clusters=8, init='k-means++', n_init=10, max_iter=300,
+    def __init__(self, n_clusters=8,
+                 method='volume',
+                 init='k-means++', n_init=10, max_iter=300,
                  tol=1e-4, precompute_distances='auto',
                  verbose=0, random_state=None, copy_x=True, n_jobs=1):
         if hasattr(init, '__array__'):
@@ -16,6 +18,7 @@ class SeperateClassKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
             init = np.asarray(init, dtype=np.float64)
 
         self.n_clusters = n_clusters
+        self.method = method
         self.init = init
         self.max_iter = max_iter
         self.tol = tol
@@ -34,38 +37,54 @@ class SeperateClassKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
         if self.n_clusters < n_classes:
             self.n_clusters = n_classes
 
-        ################################################################################################################
-        # Take the number of pts per class to decide on how many clusters to get
-        num_of_clusters_for_class = np.ones(n_classes) \
-                                    + _choose_distribution_according_to_weights(n_pts_per_class, self.n_clusters)
+        kmeans = KMeans(
+                    init=self.init,
+                    max_iter=self.max_iter,
+                    tol=self.tol,
+                    precompute_distances=self.precompute_distances,
+                    n_init=self.n_init,
+                    verbose=self.verbose,
+                    random_state=self.random_state,
+                    copy_x=self.copy_x,
+                    n_jobs=self.n_jobs
+                )
+
+        if self.method == 'volume':
+            ################################################################################################################
+            # Take the number of pts per class to decide on how many clusters to get
+            num_of_clusters_for_class = np.ones(n_classes) \
+                                        + _choose_distribution_according_to_weights(n_pts_per_class,
+                                                                                    self.n_clusters - n_classes)
+        elif self.method == 'inertia':
+            ################################################################################################################
+            # Make a first pass with a single cluster for each class
+            cluster_center_closeness = np.zeros(n_classes)
+            for i, label in enumerate(self.classes_):
+                kmeans.set_params(n_clusters=1)
+                kmeans.fit(X[y == label])
+                cluster_center_closeness[i] = kmeans.inertia_
+
+            ################################################################################################################
+            # Then choose the cluster_center_closeness to choose the n clusters distribution
+            num_of_clusters_for_class = np.ones(n_classes) \
+                                        + _choose_distribution_according_to_weights(cluster_center_closeness,
+                                                                                    self.n_clusters - n_classes)
+        else:
+            ValueError("Unknown method {}".format(self.method))
+
         cluster_center_closeness = np.zeros(n_classes)
         cluster_centers_ = list()
         for i, label in enumerate(self.classes_):
-            kmeans = KMeans(
-                n_clusters=int(num_of_clusters_for_class[i]),
-                init=self.init,
-                max_iter=self.max_iter,
-                tol=self.tol,
-                precompute_distances=self.precompute_distances,
-                n_init=self.n_init,
-                verbose=self.verbose,
-                random_state=self.random_state,
-                copy_x=self.copy_x,
-                n_jobs=self.n_jobs
-            ).fit(X[y == label])
+            kmeans.set_params(n_clusters=int(num_of_clusters_for_class[i]))
+            kmeans.fit(X[y == label])
             cluster_centers_.extend(kmeans.cluster_centers_)
             cluster_center_closeness[i] = kmeans.inertia_
 
         self.cluster_centers_ = np.array(cluster_centers_)
         self.inertia_ = np.sum(cluster_center_closeness)
+
         return self
-        # ################################################################################################################
-        # # Now use the cluster_center_closeness decide on how many clusters to get
-        #
-        # weighted_rand_generator = WeightedRandomGenerator(weights=cluster_center_closeness)
-        # n_clusters_for_label = np.repeat(1, repeats=n_classes)
-        # for idx in weighted_rand_generator.next():
-        #     n_clusters_for_label[idx] += 1
+
 
     def fit_predict(self, X, y):
         self.fit(X, y)
