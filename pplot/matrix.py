@@ -5,26 +5,39 @@ import pandas as pd
 import matplotlib.pylab as plt
 import numpy as np
 
+from sklearn.cluster import MeanShift
 
-def plot_simil_mat_with_labels(simil_mat, y, brightness=1.0, figsize=(10, 10)):
+
+def plot_simil_mat_with_labels(simil_mat, y, inner_class_ordering='mean_shift_clusters', brightness=1.0, figsize=(10, 10)):
     """
     A function that plots similarity matrices, grouping labels together and sorting by descending sum of similarities
     within a group.
     """
     simil_mat = simil_mat ** (1 / float(brightness))
     d = pd.DataFrame(simil_mat)
-    d['sum_simil'] = d.sum(axis=1)
     d['y'] = y
-    d = d.sort(['y', 'sum_simil'], ascending=False)
+
+    if inner_class_ordering == 'sum_simil':
+        d['order'] = d.sum(axis=1)
+    elif inner_class_ordering == 'mean_shift_clusters':
+        d['order'] = np.nan
+        for y_val in np.unique(y):
+            lidx = y == y_val
+            clus = MeanShift().fit(simil_mat[lidx][:, lidx])
+            d['order'].iloc[lidx] = clus.labels_
+    else:
+        raise ValueError("Unknown inner_class_ordering")
+
+    d = d.sort(['y', 'order'], ascending=False)
     y_vals = d['y']
-    d = d.drop(labels=['y', 'sum_simil'], axis=1)
+    d = d.drop(labels=['y', 'order'], axis=1)
 
     permi = d.index.values
     w = simil_mat[permi][:, permi]
 
     plt.figure(figsize=figsize);
     ax = plt.gca();
-    ax.matshow(w, cmap='gray');
+    ax.matshow(w, cmap='gray_r');
     ax.grid(b=False)
     ax.set_aspect('equal', 'box');
     mids = list()
