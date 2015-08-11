@@ -27,9 +27,9 @@ def df_scatter_plot(df, x=None, y=None, label=None, **kwargs):
         xvals = np.array(d[x])
         yvals = np.array(d[y])
         if colors:
-            ppl.scatter(ax, xvals, yvals, label=str(i), facecolor=colors[i], **kwargs)
+            ppl.scatter(ax, xvals, yvals, label=this_label, facecolor=colors[i], **kwargs)
         else:
-            ppl.scatter(ax, xvals, yvals, label=str(i), **kwargs)
+            ppl.scatter(ax, xvals, yvals, label=this_label, **kwargs)
 
     ppl.legend(ax)
 
