@@ -1,8 +1,11 @@
 __author__ = 'thor'
 
 import pandas as pd
+import numpy as np
+
 from collections import Counter, defaultdict
 from itertools import islice, chain, imap
+import matplotlib.pylab as plt
 
 
 class Markov(object):
@@ -32,6 +35,19 @@ class Markov(object):
         self.t_plus_1_name = t_plus_1_name
         self.cond_probs.index.name = t_plus_1_name
 
+    def plot_matrix_prod(self, n=1, display_transpose=False):
+        cond_prob_matrix = np.matrix(self.cond_probs.as_matrix())
+        cond_prob_matrix = cond_prob_matrix ** n
+        if display_transpose:
+            cond_prob_matrix = cond_prob_matrix.T
+        plt.matshow(cond_prob_matrix);
+        ax = plt.gca()
+        plt.xticks(range(len(self.labels)))
+        ax.set_xticklabels(self.labels, rotation=90)
+        plt.yticks(range(len(self.labels)))
+        ax.set_yticklabels(self.labels)
+        plt.grid('off');
+
     @staticmethod
     def from_sequences(seqs, **kwargs):
         initial_probs = Markov.seqs_to_initial_probs(seqs)
@@ -56,6 +72,20 @@ class Markov(object):
         pair_count_df = pair_count_df.set_index(['t', 't+1']).sort()
         pair_count_df = pair_count_df['count'].unstack('t')
         return pair_count_df
+
+    @staticmethod
+    def from_markov_counts(mc, states=None, t_name='t', t_plus_1_name='t+1', prior_pair_count=0.0):
+        initial_probs = pd.Series(mc.initial_counts).sort(inplace=False, ascending=False)
+        initial_probs /= np.sum(initial_probs)
+
+        cond_probs = [{t_name: k[0], t_plus_1_name: k[1], 'count': v} for k, v in mc.pair_counts.iteritems()]
+        cond_probs = pd.DataFrame(cond_probs)\
+            .set_index([t_name, t_plus_1_name])['count']\
+            .unstack(t_name)\
+            .fillna(0.0)
+        cond_probs += prior_pair_count
+        cond_probs = cond_probs.divide(cond_probs.sum(axis=0), axis='columns')
+        return Markov(cond_probs=cond_probs, initial_probs=initial_probs)
 
 
 class MarkovCounts(object):

@@ -26,6 +26,21 @@ def compute_shapley_values_from_coalition_values(coalition_values, normalize=Fal
     else:
         return shapley_values
 
+def compute_shapley_values_from_unit_valued_sequences(sequences, normalize=False):
+    dm = ShapleyDataModel()
+    dm.absorb_coalition_obs(sequences)
+    coalition_values = dm.coalition_values()
+
+    return compute_shapley_values_from_coalition_values(coalition_values, normalize=normalize)
+
+
+# def compute_shapley_values_from_valued_sequences(sequence_and_value_dict, normalize=False):
+#     dm = ShapleyDataModel()
+#     dm.absorb_sequence_into_coalition_obs(sequence_and_value_dict)
+#     coalition_values = dm.coalition_values()
+#
+#     return compute_shapley_values_from_coalition_values(coalition_values, normalize=normalize)
+
 
 def _normalize_dict_values(d):
     value_sum = float(np.sum(d.values()))
@@ -84,18 +99,37 @@ class ShapleyDataModel(object):
     def coalition_of(iter_of_items):
         return tuple(unique(iter_of_items))
 
-    def absorb_coalition(self, collection_of_items_of_single_coalition):
+    def absorb_sequence_into_coalition_obs(self, collection_of_items_of_single_coalition):
         """
         Updates the self.coalition_obs with the input coalition (a list of items)
         """
         self.coalition_obs.update([self.coalition_of(collection_of_items_of_single_coalition)])
+        return self
 
-    def absorb_coalition_obs(self, coalition_obs_dict):
+    def absorb_coalition(self, collection_of_items_of_single_coalition):
+        """
+        Updates the self.coalition_obs with the input coalition (a list of items)
+        """
+        raise DeprecationWarning(
+            "absorb_coalition is being deprecated. Use absorb_sequence_into_coalition_obs() instead")
+        self.coalition_obs.update([self.coalition_of(collection_of_items_of_single_coalition)])
+        return self
+
+    def absorb_coalition_obs(self, coalition_obs_data):
         """
         Updates the self.coalition_obs with the input dict of {coalition: obs_value}
         """
-        for coalition, value in coalition_obs_dict.iteritems():
-            self.absorb_coalition_and_value(coalition, value)
+        try:
+            for coalition, value in coalition_obs_data.iteritems():
+                self.absorb_coalition_and_value(coalition, value)
+        except AttributeError:
+            try:
+                for seq in coalition_obs_data:
+                    self.absorb_sequence_into_coalition_obs(seq)
+            except TypeError:
+                for seq in coalition_obs_data:
+                    self.absorb_coalition_and_value(seq['coalition'], seq['value'])
+        return self
         # coalition_obs_dict = \
         #     {self.coalition_of(coalition): value for coalition, value in coalition_obs_dict.iteritems()}
         # self.coalition_obs.update(coalition_obs_dict)
@@ -106,12 +140,16 @@ class ShapleyDataModel(object):
         Updates the self.coalition_obs with the input dict of coalition: obs_value
         """
         self.coalition_obs.update({self.coalition_of(coalition): value})
+        return self
 
-    def coalition_values(self, verbose=False):
+    def coalition_values(self, coalition_obs=None, verbose=False):
         """
         Computes the self.coalition_values attribute.
         To do this, we accumulate the counts of all subsets of each unique coalition.
         """
+        if coalition_obs is None:
+            coalition_obs = self.coalition_obs
+
         coalition_contributions = Counter(self.coalition_obs)
 
         if verbose:
@@ -119,10 +157,10 @@ class ShapleyDataModel(object):
 
         universe_set = set(self.mk_item_list())
 
-        for coalition, count in self.coalition_obs.iteritems():  # for every coalition
+        for coalition, count in coalition_obs.iteritems():  # for every coalition
             # ... get all non-empty strict subsets of this coalition, and assign the mother coalition count
             superset_counts = \
-                {sub_coalition: count for sub_coalition in all_superset_iterator(coalition, universe_set)}
+                {self.coalition_of(sub_coalition): count for sub_coalition in all_superset_iterator(coalition, universe_set)}
             # ... update the coalition_values counter with these counts
             coalition_contributions.update(superset_counts)
 
@@ -146,9 +184,12 @@ class ShapleyDataModel(object):
         coalition_sizes = sorted(_coalition_size_map.keys())
         # TODO: Finish, if necessary
 
-    def mk_item_list(self):
-        self.item_list = unique(concatenate(self.coalition_obs.keys()))
-        return self.item_list
+    def mk_item_list(self, coalition_obs=None):
+        if coalition_obs is None:
+            coalition_obs = self.coalition_obs
+        item_list = unique(concatenate(coalition_obs.keys()))
+        self.item_list = item_list
+        return item_list
 
 
 def _test_shapley_data_model():
