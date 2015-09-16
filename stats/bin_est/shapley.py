@@ -7,14 +7,67 @@ from collections import Counter, OrderedDict, defaultdict
 import string
 import random as rnd
 import itertools
-from ut.util.uiter import all_subsets_of
+from scipy.misc import factorial
+
+from ut.util.uiter import all_subsets_of, powerset
 
 from ut.stats.bin_est.set_est import Shapley as Shapley_1
 
 # from ut.daf.manip import rollin_col
 
 
-def compute_shapley_values_from_coalition_values(coalition_values, normalize=False):
+def compute_shapley_values_from_coalition_values(coalition, normalize=False, verbose=False):
+    return compute_shapley_values_from_coalition_values_using_formula(coalition, normalize=normalize, verbose=verbose)
+
+
+def compute_shapley_values_from_coalition_values_using_formula(coalition_values, normalize=False, verbose=False):
+    players = _universe_set_of_keys_of_dict(coalition_values)
+    n = len(players)
+    factorial_n = float(factorial(n))
+    if verbose:
+        print("Normalizing factor: {}".format(factorial_n))
+
+    def _shapley_unnormalized_weight(s):
+        return factorial(s) * factorial(n - s - 1)  # all possible permutations of players before and after
+
+    coalition_values = defaultdict(float, coalition_values)
+
+    shapley_values = dict()
+    for player in players:
+        if verbose:
+            print("\n-------------------- {} ----------------------".format(player))
+        shapley_values[player] = 0.0
+        for s in powerset(players - {player}):
+            shapley_values[player] += \
+                _shapley_unnormalized_weight(len(s)) \
+                * (coalition_values[tuple(unique(list(set(s).union({player}))))] - coalition_values[s])
+            if verbose:
+                weight = _shapley_unnormalized_weight(len(s))
+                s_with_player = coalition_values[tuple(unique(list(set(s).union({player}))))]
+                s_alone = coalition_values[s]
+                print("... contributed {} * ({} - {}) = {} \tto {} \t(running sum is {})"
+                      .format(weight,
+                              s_with_player,
+                              s_alone,
+                              weight * (s_with_player - s_alone),
+                              tuple(unique(list(set(s).union({player})))),
+                              shapley_values[player]
+                              )
+                      )
+        shapley_values[player] /= factorial_n  # normalize according to all possible permutations
+
+    if normalize:
+        return _normalize_dict_values(shapley_values)
+    else:
+        return shapley_values
+
+
+def _shapley_weight(s, n):
+    return (factorial(s) * factorial(n - s - 1)) / float(factorial(n))
+
+
+def compute_shapley_values_from_coalition_values_01(coalition_values, normalize=False):
+    _complete_missing_coalitions_with_zero_valued_coalitions_in_place(coalition_values)
     coalition_values = pd.DataFrame(index=coalition_values.keys(),
                                     data=coalition_values.values(),
                                     columns=['value'])
@@ -25,6 +78,7 @@ def compute_shapley_values_from_coalition_values(coalition_values, normalize=Fal
         return _normalize_dict_values(shapley_values)
     else:
         return shapley_values
+
 
 def compute_shapley_values_from_unit_valued_sequences(sequences, normalize=False):
     dm = ShapleyDataModel()
@@ -65,15 +119,35 @@ def all_superset_iterator(subset, universe_set):
     return itertools.imap(lambda x: tuple(subset.union(x)), all_subsets_or_eq_iterator(remaining_set))
 
 
+def _coalition_of(iter_of_items):
+    return tuple(unique(iter_of_items))
+
+
+def _universe_set_of_keys_of_dict(d):
+    return set(itertools.chain(*d.keys()))
+
+
+def _complete_missing_coalitions_with_zero_valued_coalitions_in_place(coalition_values, universe_set=None):
+    """
+    complete coalition_contributions with missing combinations (assigning 0.0 to them)
+    """
+    if universe_set is None:
+        universe_set = set(itertools.chain(*coalition_values.keys()))
+    superset = ShapleyDataModel.coalition_of(list(universe_set))
+    coalition_values[superset] = coalition_values.get(superset, 0.0)
+    for subset in itertools.imap(_coalition_of, all_proper_subsets_iterator(universe_set)):
+        coalition_values[subset] = coalition_values.get(subset, 0.0)
+
+
 class ShapleyDataModel(object):
     def __init__(self, data=None, data_type=None):
         """
         Inputs:
-            * item_seperator will be used to construct string hashes from lists.
-            You should choose a character that never shows up in the items, or you'll get problems.
-        Other attributes:
-            * coalition_obs is a Counter of coalitions
-            the coalition_obs, but all non-empty subsets of the latter.
+            * data: data used to make the coalition values.
+            * data_type: type of data, either:
+                - 'coalition_obs': data is the counter (a dict) of coalition_obs directly
+                - 'coalition_obs_collection': a coalition_obs dict to be added to the existing
+                - 'item_collections': an iterator of sequences to absorbe to make the coalition_obs
         """
         self.coalition_obs = Counter()
         self.item_list = []
@@ -93,17 +167,17 @@ class ShapleyDataModel(object):
                 self.absorb_coalition_obs(data)
             elif data_type == 'item_collections':
                 for d in data:
-                    self.absorb_coalition(d)
+                    self.absorb_sequence_into_coalition_obs(d)
 
     @staticmethod
     def coalition_of(iter_of_items):
         return tuple(unique(iter_of_items))
 
-    def absorb_sequence_into_coalition_obs(self, collection_of_items_of_single_coalition):
+    def absorb_sequence_into_coalition_obs(self, seq):
         """
         Updates the self.coalition_obs with the input coalition (a list of items)
         """
-        self.coalition_obs.update([self.coalition_of(collection_of_items_of_single_coalition)])
+        self.coalition_obs.update([self.coalition_of(seq)])
         return self
 
     def absorb_coalition(self, collection_of_items_of_single_coalition):
@@ -150,23 +224,27 @@ class ShapleyDataModel(object):
         if coalition_obs is None:
             coalition_obs = self.coalition_obs
 
-        coalition_contributions = Counter(self.coalition_obs)
+        coalition_contributions = Counter(coalition_obs)
 
         if verbose:
             print(coalition_contributions)
 
-        universe_set = set(self.mk_item_list())
+        universe_set = set(self.mk_item_list(coalition_obs=coalition_obs))
 
         for coalition, count in coalition_obs.iteritems():  # for every coalition
             # ... get all non-empty strict subsets of this coalition, and assign the mother coalition count
-            superset_counts = \
-                {self.coalition_of(sub_coalition): count for sub_coalition in all_superset_iterator(coalition, universe_set)}
+            superset_counts = {
+                self.coalition_of(sub_coalition): count
+                for sub_coalition in all_superset_iterator(coalition, universe_set)
+            }
             # ... update the coalition_values counter with these counts
             coalition_contributions.update(superset_counts)
 
             if verbose:
-                print("  after {} contributions:\n     {}" \
-                      .format(coalition, coalition_contributions))
+                print("  after {} contributions:\n     {}".format(coalition, coalition_contributions))
+
+        # # complete coalition_contributions with missing combinations (assigning 0.0 to them)
+        # _complete_missing_coalitions_with_zero_valued_coalitions_in_place(coalition_contributions)
 
         return coalition_contributions
 
@@ -198,10 +276,9 @@ def _test_shapley_data_model():
     dm = ShapleyDataModel()  # initialize the data model
 
     for coalition in list_of_coalitions:  # count the coalitions
-        dm.absorb_coalition(coalition)
+        dm.absorb_sequence_into_coalition_obs(coalition)
     assert dm.coalition_obs == Counter({('A', 'B', 'C'): 4, ('B', 'C'): 3, ('A',): 1, ('A', 'C'): 1}), \
         "Unexpected result for dm.coalition_obs"
-
 
     print("All good in _test_shapley_data_model")
 
