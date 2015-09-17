@@ -7,6 +7,7 @@ from collections import Counter, OrderedDict, defaultdict
 import string
 import random as rnd
 import itertools
+from itertools import imap
 from scipy.misc import factorial
 
 from ut.util.uiter import all_subsets_of, powerset
@@ -14,6 +15,9 @@ from ut.util.uiter import all_subsets_of, powerset
 from ut.stats.bin_est.set_est import Shapley as Shapley_1
 
 # from ut.daf.manip import rollin_col
+
+def _coalition_of(iter_of_items):
+    return tuple(unique(iter_of_items))
 
 
 def compute_shapley_values_from_coalition_values(coalition, normalize=False, verbose=False):
@@ -39,26 +43,27 @@ def compute_shapley_values_from_coalition_values_using_formula(coalition_values,
         return factorial(s) * factorial(n - s - 1)  # all possible permutations of players before and after
 
     coalition_values = defaultdict(float, coalition_values)
+    # print coalition_values
 
     shapley_values = dict()
     for player in players:
         if verbose:
             print("\n-------------------- {} ----------------------".format(player))
         shapley_values[player] = 0.0
-        for s in powerset(players - {player}):
+        for s in imap(_coalition_of, powerset(players - {player})):
             shapley_values[player] += \
                 _shapley_unnormalized_weight(len(s)) \
-                * (coalition_values[tuple(unique(list(set(s).union({player}))))] - coalition_values[s])
+                * (coalition_values[_coalition_of(list(set(s).union({player})))] - coalition_values[s])
             if verbose:
                 weight = _shapley_unnormalized_weight(len(s))
-                s_with_player = coalition_values[tuple(unique(list(set(s).union({player}))))]
+                s_with_player = coalition_values[_coalition_of(list(set(s).union({player})))]
                 s_alone = coalition_values[s]
                 print("... contributed {} * ({} - {}) = {} \tto {} \t(running sum is {})"
                       .format(weight,
                               s_with_player,
                               s_alone,
                               weight * (s_with_player - s_alone),
-                              tuple(unique(list(set(s).union({player})))),
+                              _coalition_of(list(set(s).union({player}))),
                               shapley_values[player]
                               )
                       )
@@ -74,7 +79,7 @@ def _shapley_weight(s, n):
     return (factorial(s) * factorial(n - s - 1)) / float(factorial(n))
 
 
-def compute_shapley_values_from_coalition_values_01(coalition_values, normalize=False):
+def compute_shapley_values_from_coalition_values_01(coalition_values, normalize=False, verbose=False):
     _complete_missing_coalitions_with_zero_valued_coalitions_in_place(coalition_values)
     coalition_values = pd.DataFrame(index=coalition_values.keys(),
                                     data=coalition_values.values(),
@@ -125,10 +130,6 @@ def all_superset_iterator(subset, universe_set):
     subset = set(subset)
     remaining_set = set(universe_set).difference(subset)
     return itertools.imap(lambda x: tuple(subset.union(x)), all_subsets_or_eq_iterator(remaining_set))
-
-
-def _coalition_of(iter_of_items):
-    return tuple(unique(iter_of_items))
 
 
 def _universe_set_of_keys_of_dict(d):
