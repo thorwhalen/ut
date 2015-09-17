@@ -17,10 +17,18 @@ from ut.stats.bin_est.set_est import Shapley as Shapley_1
 
 
 def compute_shapley_values_from_coalition_values(coalition, normalize=False, verbose=False):
-    return compute_shapley_values_from_coalition_values_using_formula(coalition, normalize=normalize, verbose=verbose)
+    return compute_shapley_values_from_coalition_values_01(coalition, normalize=normalize, verbose=verbose)
 
 
 def compute_shapley_values_from_coalition_values_using_formula(coalition_values, normalize=False, verbose=False):
+    """
+    Computes the Shapley values of a game specified by coalition values.
+    See https://en.wikipedia.org/wiki/Shapley_value.
+    :param coalition_values: The definition of the game (a dict of values of coalitions of players)
+    :param normalize: True or [False]: Whether to normalize the Shapley values so they sum to 1
+    :param verbose: True or [False]: Whether to print info while computing the Shapley values
+    :return: Shapley values of the game specified by coalition_values
+    """
     players = _universe_set_of_keys_of_dict(coalition_values)
     n = len(players)
     factorial_n = float(factorial(n))
@@ -218,7 +226,7 @@ class ShapleyDataModel(object):
 
     def coalition_values(self, coalition_obs=None, verbose=False):
         """
-        Computes the self.coalition_values attribute.
+        Computes the coalition_values from coalition_obs (counts or other values).
         To do this, we accumulate the counts of all subsets of each unique coalition.
         """
         if coalition_obs is None:
