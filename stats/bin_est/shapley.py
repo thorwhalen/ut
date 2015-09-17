@@ -1,6 +1,6 @@
 __author__ = 'thor'
 
-from numpy import *
+from numpy import unique, concatenate, sort
 import numpy as np
 import pandas as pd
 from collections import Counter, OrderedDict, defaultdict
@@ -17,7 +17,7 @@ from ut.stats.bin_est.set_est import Shapley as Shapley_1
 
 
 def compute_shapley_values_from_coalition_values(coalition, normalize=False, verbose=False):
-    return compute_shapley_values_from_coalition_values_01(coalition, normalize=normalize, verbose=verbose)
+    return compute_shapley_values_from_coalition_values_using_formula(coalition, normalize=normalize, verbose=verbose)
 
 
 def compute_shapley_values_from_coalition_values_using_formula(coalition_values, normalize=False, verbose=False):
