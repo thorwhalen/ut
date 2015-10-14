@@ -17,7 +17,6 @@ from ut.pdict.manip import rollout
 from ut.util.log import printProgress
 
 
-
 class ElasticCom(object):
 
     def __init__(self, index, doc_type, hosts='localhost:9200', **kwargs):

@@ -2,7 +2,94 @@ __author__ = 'thor'
 
 from numpy import *
 import sklearn as sk
+from scipy.optimize import minimize_scalar
+import pandas as pd
+import matplotlib.pyplot as plt
 
+
+class ProbAndRateAnalysis(object):
+    def __init__(self, actual, probs):
+        self.d = pd.DataFrame({'probs': probs, 'actual': actual}, columns=['probs', 'actual'])
+        self.d['actual'] = self.d['actual'] > 0
+        self.d.apply(random.shuffle, axis=0)
+        self.d = self.d.sort(['probs']).reset_index(drop=True)
+        self.num_of_points = len(self.d)
+        self.num_of_positives = self.d['actual'].sum()
+        self.profitable_ratio = float(self.num_of_positives) / self.num_of_points
+
+    def _decision_lidx(self, decision_thresh):
+        return array(self.d['probs'] >= decision_thresh)
+
+    def _decision_thresh_with_min_trials(self, min_trials):
+        min_func = lambda x: abs(self.trials_and_successes_at_decision_threshold(x)[0] - min_trials)
+        res = minimize_scalar(min_func, method='bounded', bounds=(0, 1.0))
+        return res['x']
+
+    def trials_and_successes_at_decision_threshold(self, decision_thresh):
+        lidx = self._decision_lidx(decision_thresh)
+        trials = float(sum(lidx))
+        successes = float(sum(self.d['actual'].iloc[lidx]))
+        return trials, successes
+
+    def trials_and_successes_at_decision_threshold_df(self, decision_thresh=None):
+        if decision_thresh is None:
+            decision_thresh = 300  # = min_trials
+        if isinstance(decision_thresh, int) and decision_thresh > 1:
+            min_trials = self._decision_thresh_with_min_trials(decision_thresh)
+            decision_thresh = linspace(0.0, min_trials, 101)
+
+        df = pd.DataFrame()
+        df['decision threshold'] = decision_thresh
+        df = pd.concat([df,
+                        pd.DataFrame(map(self.trials_and_successes_at_decision_threshold, decision_thresh),
+                                     columns=['trials', 'successes'])],
+                       axis=1)
+        df['rate'] = df['successes'] / df['trials']
+        return df
+
+    def plot_thresh_and_true_rate(self, decision_thresh=None):
+        t = self.trials_and_successes_at_decision_threshold_df(decision_thresh)
+        plt.plot(t['decision threshold'], t['rate'])
+        plt.plot(plt.xlim(), plt.xlim(), 'k:')
+        plt.xlabel('decision threshold')
+        plt.ylabel('rate for data whose prob is above that threshold')
+        plt.tight_layout()
+
+    def bootstrap_samples_df(self, n_samples=500, sample_size=None, replace=True):
+        if sample_size is None:
+            sample_size = int(10 / self.profitable_ratio)
+        return pd.DataFrame(data=map(lambda x: self.d.ix[random.choice(self.d.index, sample_size, replace)].mean(),
+                                     xrange(n_samples)),
+                            columns=self.d.columns)
+
+    def plot_bootstrap_scatter(self, n_samples=500, sample_size=None, replace=True, alpha=0.2):
+        df = self.bootstrap_samples_df(n_samples=n_samples, sample_size=sample_size, replace=replace)
+        df.plot(kind='scatter', x='probs', y='actual', alpha=alpha)
+        lim = max([plt.xlim(), plt.ylim()])
+        plt.plot(lim, lim, 'k:')
+        plt.axis('tight')
+
+    def plot_bootstrap_error_hist(self, bins=None, n_samples=500, sample_size=None, replace=True):
+        if bins is None:
+            bins = min([100, int(n_samples / 30)])
+        df = self.bootstrap_samples_df(n_samples=n_samples, sample_size=sample_size, replace=replace)
+        df = df['actual'] - df['probs']
+        df.plot(kind='hist', bins=50)
+
+    def prob_and_rate_bins_df(self, min_trials=None):
+        if min_trials is None:
+            min_trials = int(10 / self.profitable_ratio)
+        from sklearn import tree
+        clf = tree.DecisionTreeClassifier(min_samples_leaf=500)
+        X = reshape(self.d['probs'], (self.num_of_points, 1)).astype(float32)
+        y = reshape(self.d['actual'], (self.num_of_points, 1)).astype(float32)
+        clf.fit(X, y)
+        thresh = unique(clf.tree_.threshold)[1:]
+        df = pd.DataFrame(hstack((X, y)), columns=['probs', 'actual'])
+        return df.groupby(digitize(X[:, 0], thresh)).mean()
+
+    def plot_prob_and_rate_bins(self, min_trials=None):
+        self.prob_and_rate_bins_df(min_trials=min_trials).plot()
 
 
 class ZeroEstimator(sk.base.BaseEstimator):

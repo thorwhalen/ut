@@ -16,6 +16,7 @@ from ut.stats.bin_est.set_est import Shapley as Shapley_1
 
 # from ut.daf.manip import rollin_col
 
+
 def _coalition_of(iter_of_items):
     return tuple(unique(iter_of_items))
 

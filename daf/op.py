@@ -1,9 +1,19 @@
 __author__ = 'thor'
 
-# import pandas as pd
+import pandas as pd
 import ut.util.ulist as util_ulist
 import re
 import ut.pcoll.order_conserving as colloc
+
+
+def incremental_merge(left, right, **kwargs):
+    """
+    as pandas.merge, but can handle the case when left dataframe is empty or None
+    """
+    if left is None or left.shape != (0, 0):
+        return pd.merge(left, right, **kwargs)
+    else:
+        return right.copy()
 
 
 def index_aligned_inner_op(x, y, op=lambda x, y: x + y):

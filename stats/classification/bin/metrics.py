@@ -186,7 +186,7 @@ def sensitivity(cm):
     sensitivity or true positive rate (TPR), hit rate, recall
     TPR = TP / P = TP / (TP+FN)
     """
-    return cm[1][1] / float(cm[1][0] + cm[1][1])
+    return cm[1][1] / float(cm[1][1] + cm[1][0])
 
 
 def recall(cm):
