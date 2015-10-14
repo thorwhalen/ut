@@ -3,6 +3,7 @@ __author__ = 'thorwhalen'
 # from ut.datapath import datapath
 import pickle
 import os
+from ut.util.importing import get_environment_variable
 import pandas as pd
 import ut.pfile.to as file_to
 import ut.pfile.name as pfile_name
@@ -14,7 +15,7 @@ import ut.pstr.trans as pstr_trans
 import shutil
 
 try:
-    MS_DATA = os.environ['MS_DATA']
+    MS_DATA = get_environment_variable('MS_DATA')
 except KeyError:
     MS_DATA = ''
 

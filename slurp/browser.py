@@ -1,5 +1,6 @@
 import json
 import os
+from ut.util.importing import get_environment_variable
 import random
 from requests.auth import HTTPProxyAuth
 import urllib2
@@ -20,12 +21,14 @@ class Browser(object):
     USER_AGENTS = CONFIG["USER_AGENTS"]
     HEADERS = CONFIG["HEADERS"]
     try:
-        ANONYMIZER_AUTH = HTTPProxyAuth(os.environ['VEN_ANONYMIZER_LOGIN'], os.environ['VEN_ANONYMIZER_PASS'])
-        ANONYMIZER_PROXIES = {'http': os.environ['VEN_ANONYMIZER_PROX_HTTP']}#,'https': os.environ['VEN_ANONYMIZER_PROX_HTTPS']}
+        ANONYMIZER_AUTH = HTTPProxyAuth(get_environment_variable('VEN_ANONYMIZER_LOGIN'),
+                                        get_environment_variable('VEN_ANONYMIZER_PASS'))
+        ANONYMIZER_PROXIES = {'http': get_environment_variable('VEN_ANONYMIZER_PROX_HTTP')}#,'https': get_environment_variable('VEN_ANONYMIZER_PROX_HTTPS']}
     except KeyError:
         print("VEN_ANONYMIZER_LOGIN, VEN_ANONYMIZER_PASS, and/or VEN_ANONYMIZER_PROX_HTTP missing from environment")
     try:
-        PROXYMESH_AUTH = requests.auth.HTTPProxyAuth(os.environ['PROXYMESH_USER'], os.environ['PROXYMESH_PASS'])
+        PROXYMESH_AUTH = requests.auth.HTTPProxyAuth(get_environment_variable('PROXYMESH_USER'),
+                                                     get_environment_variable('PROXYMESH_PASS'))
         PROXYMESH_PROXIES = {'http': 'http://us.proxymesh.com:31280'}
     except KeyError:
         print("PROXYMESH_USER and/or PROXYMESH_PASS missing from environment")
@@ -134,8 +137,9 @@ class Browser(object):
     @classmethod
     def with_ven_anonymizer(cls):
         return Browser(
-            proxies={'http': os.environ['VEN_ANONYMIZER_PROX_HTTP']},
-            auth=HTTPProxyAuth(os.environ['VEN_ANONYMIZER_LOGIN'], os.environ['VEN_ANONYMIZER_PASS']))
+            proxies={'http': get_environment_variable('VEN_ANONYMIZER_PROX_HTTP')},
+            auth=HTTPProxyAuth(get_environment_variable('VEN_ANONYMIZER_LOGIN'),
+                               get_environment_variable('VEN_ANONYMIZER_PASS')))
 
     @classmethod
     def with_proxymesh(cls):

@@ -1,6 +1,7 @@
 __author__ = 'thor'
 
 import os
+from ut.util.importing import get_environment_variable
 import ut as ms
 import ut.dacc.mong.util
 import pandas as pd
@@ -41,7 +42,8 @@ class Amazon(object):
     # default['requests_kwargs'] = {}
     default['requests_kwargs'] = {
         'proxies': {'http': 'http://us.proxymesh.com:31280'},
-        'auth': requests.auth.HTTPProxyAuth(os.environ['PROXYMESH_USER'], os.environ['PROXYMESH_PASS'])
+        'auth': requests.auth.HTTPProxyAuth(get_environment_variable('PROXYMESH_USER'),
+                                            get_environment_variable('PROXYMESH_PASS'))
     }
 
     @classmethod

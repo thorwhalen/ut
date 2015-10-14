@@ -3,6 +3,7 @@ __author__ = 'thorwhalen'
 from ut.datapath import datapath
 import pickle
 import os
+from ut.util.importing import get_environment_variable
 import pandas as pd
 import ut.pfile.to as file_to
 import ut.pfile.name as pfile_name
@@ -11,7 +12,7 @@ from ut.pstr.trans import str_to_unicode_or_bust
 #from os import environ # does this load the whole array? Can we just take MS_DATA instead?
 
 try:
-    MS_DATA = os.environ['MS_DATA']
+    MS_DATA = get_environment_variable('MS_DATA')
 except KeyError:
     MS_DATA = ''
 

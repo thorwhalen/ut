@@ -1,6 +1,7 @@
 __author__ = 'thor'
 
 import os
+from ut.util.importing import get_environment_variable
 import oauth2
 import time
 import httplib2
@@ -34,8 +35,8 @@ service_default_req_args = {
 }
 
 default_yboss_attrs = {
-    'oauth_consumer_key': os.environ['MON_YB_KEY'],
-    'oauth_consumer_secret': os.environ['MON_YB_SECRET'],
+    'oauth_consumer_key': get_environment_variable('MON_YB_KEY'),
+    'oauth_consumer_secret': get_environment_variable('MON_YB_SECRET'),
     'default_service': 'limitedweb',
     'default_params': {},
     'default_save_folder': os.getcwd()
@@ -50,8 +51,8 @@ minor_cols = ['date', 'url', 'clickurl']
 class Yboss(object):
 
     default_yboss_attrs = {
-        'oauth_consumer_key': os.environ['MON_YB_KEY'],
-        'oauth_consumer_secret': os.environ['MON_YB_SECRET'],
+        'oauth_consumer_key': get_environment_variable('MON_YB_KEY'),
+        'oauth_consumer_secret': get_environment_variable('MON_YB_SECRET'),
         'default_service': 'limitedweb',
         'default_params': {},
         'default_save_folder': os.getcwd()

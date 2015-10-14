@@ -1,5 +1,5 @@
 import logging
-import os
+from ut.util.importing import get_environment_variable
 from adwords.awq import AWQ
 from adwords.connection import Connection
 from adwords.gmoney import GMoney
@@ -16,8 +16,8 @@ class KeywordOperationsBase(object):
         Pass in min and max (in Euros, NOT micros) based bid if you want to override the GMoney defaults
         store: storage that acts like an HDF5 store
         """
-        self.conn = Connection(password=os.environ['VEN_ADWORDS_PASSWORD'],
-                               developer_token=os.environ['VEN_ADWORDS_TOKEN'],
+        self.conn = Connection(password=get_environment_variable('VEN_ADWORDS_PASSWORD'),
+                               developer_token=get_environment_variable('VEN_ADWORDS_TOKEN'),
                                account_id=account_id)
         self.awq = AWQ(self.conn)
         self.gmoney = GMoney(min_money=min_money, max_money=max_money)

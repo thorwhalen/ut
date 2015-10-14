@@ -7,6 +7,8 @@ from datetime import datetime
 import pandas as pd
 from pandas import DataFrame
 import os
+from ut.util.importing import get_environment_variable
+
 import numpy as np
 from serialize.amazon_sender import AmazonSender
 from collections import OrderedDict
@@ -56,7 +58,7 @@ class Logger(object):
 
     @classmethod
     def most_recent_log(cls, base_folder=None):
-        logdir = base_folder or os.environ['DATA_LOG_FOLDER']
+        logdir = base_folder or get_environment_variable('DATA_LOG_FOLDER')
         logfiles = sorted([f for f in os.listdir(logdir) if f.endswith('.log')])
         most_recent_log = os.path.join(logdir, logfiles[-1])
         return most_recent_log
@@ -64,7 +66,7 @@ class Logger(object):
     @classmethod
     def move_logs_to_backup(cls, base_folder=None):
 
-        logdir = base_folder or os.environ['DATA_LOG_FOLDER']
+        logdir = base_folder or get_environment_variable('DATA_LOG_FOLDER')
         backup_folder = os.path.join(logdir, 'bak')
         if not os.path.exists(backup_folder):
             os.makedirs(backup_folder)
@@ -97,11 +99,11 @@ class Logger(object):
             if os.path.exists(file_name) and os.path.exists(file_name):
                 name_and_path = file_name
             else:
-                name_and_path = os.path.join(os.environ['DATA_LOG_FOLDER'], file_name)
+                name_and_path = os.path.join(get_environment_variable('DATA_LOG_FOLDER'), file_name)
 
         self.filename_and_path = name_and_path
 
-        generic_folder = os.path.join(os.environ['DATA_LOG_FOLDER'], 'generic')
+        generic_folder = os.path.join(get_environment_variable('DATA_LOG_FOLDER'), 'generic')
         if not os.path.exists(generic_folder):
             os.makedirs(generic_folder)
         generic_log_name_and_path = os.path.join(generic_folder, "generic.log")
@@ -221,7 +223,7 @@ class Logger(object):
 
     def _make_file_name_and_path(self, file_name, file_path, make_file_name_unique):
 
-        file_path = file_path or os.environ['DATA_LOG_FOLDER']
+        file_path = file_path or get_environment_variable('DATA_LOG_FOLDER')
 
         if make_file_name_unique:
             time_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")

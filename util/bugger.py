@@ -2,9 +2,10 @@ __author__ = 'thor'
 
 import ut.pfile.accessor as pfile_accessor
 import os
+from ut.util.importing import get_environment_variable
 import pdb
 
-PROJECT_PATH = os.environ['PY_PROJ_FOLDER']
+PROJECT_PATH = get_environment_variable('PY_PROJ_FOLDER')
 
 #import os
 #PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))

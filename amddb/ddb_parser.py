@@ -2,7 +2,7 @@ _author__ = 'mattjmorris'
 
 from boto.dynamodb2.table import Table
 import boto.dynamodb2
-import os
+from ut.util.importing import get_environment_variable
 from datetime import datetime
 from khan_utils.encoding import to_unicode_or_bust, to_utf8_or_bust
 
@@ -24,8 +24,9 @@ class DDBParser(object):
         Connection and Table are available to clients via self properties, in case clients wish to use those objects
         directly.
         """
-        access_key = access_key or os.environ['VEN_S3_ACCESS_KEY']
-        secret = secret or os.environ['VEN_S3_SECRET']
+
+        access_key = access_key or get_environment_variable('VEN_S3_ACCESS_KEY')
+        secret = secret or get_environment_variable('VEN_S3_SECRET')
         self.connection=boto.dynamodb2.connect_to_region(region_name='eu-west-1', aws_access_key_id=access_key, aws_secret_access_key=secret)
 
         self.failed_table = Table(failed_table_name, connection=self.connection)

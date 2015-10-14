@@ -4,6 +4,7 @@ from boto.exception import S3CopyError, S3ResponseError
 import tempfile
 import pickle
 import os
+from ut.util.importing import get_environment_variable
 # import ut.serialize.utils as serialize_utils
 
 # use case. I need to check all code that uses these methods, as well as the test notebook.
@@ -29,18 +30,18 @@ class S3(object):
 
         if access_key and not secret:
             if access_key == 'ut':
-                access_key = os.environ['VEN_AWS_ACCESS_KEY_ID']
-                secret = os.environ['VEN_AWS_SECRET_ACCESS_KEY']
+                access_key = get_environment_variable('VEN_AWS_ACCESS_KEY_ID')
+                secret = get_environment_variable('VEN_AWS_SECRET_ACCESS_KEY')
             elif access_key == 'mon':
-                access_key =  os.environ['MON_AWS_ACCESS_KEY_ID']
-                secret = os.environ['MON_AWS_SECRET_ACCESS_KEY']
+                access_key = get_environment_variable('MON_AWS_ACCESS_KEY_ID')
+                secret = get_environment_variable('MON_AWS_SECRET_ACCESS_KEY')
             else:
                 ValueError('I cannot recognize that access_key')
         else:  # if access_key is not given, take a default
             #access_key = access_key or os.environ['MON_AWS_ACCESS_KEY_ID']
             #secret = secret or os.environ['MON_AWS_SECRET_ACCESS_KEY']
-            access_key = access_key or os.environ['VEN_AWS_ACCESS_KEY_ID']
-            secret = secret or os.environ['VEN_AWS_SECRET_ACCESS_KEY']
+            access_key = access_key or get_environment_variable('VEN_AWS_ACCESS_KEY_ID')
+            secret = secret or get_environment_variable('VEN_AWS_SECRET_ACCESS_KEY')
 
         # note - this calls the setter
         self.base_folder = base_folder

@@ -6,6 +6,8 @@ import boto.s3
 import tempfile
 import pickle
 import os
+from ut.util.importing import get_environment_variable
+
 
 class S3(object):
     """
@@ -20,8 +22,8 @@ class S3(object):
         :type bucket_name: str
         """
         self.conn = boto.s3.connect_to_region('eu-west-1',
-                                              aws_access_key_id=os.environ['VEN_S3_SECRET'],
-                                              aws_secret_access_key=os.environ['VEN_S3_ACCESS_KEY']
+                                              aws_access_key_id=get_environment_variable('VEN_S3_SECRET'),
+                                              aws_secret_access_key=get_environment_variable('VEN_S3_ACCESS_KEY')
         )
         if bucket_name not in [b.name for b in self.conn.get_all_buckets()]:
             self.conn.create_bucket(bucket_name, location=Location.EU)

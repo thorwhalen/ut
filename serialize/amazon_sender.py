@@ -28,7 +28,7 @@ import types
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE
-import os
+from ut.util.importing import get_environment_variable
 from boto.ses import SESConnection
 
 
@@ -39,8 +39,8 @@ class AmazonSender(object):
     def __init__(self, to_addresses=None, sender=None, aws_key=None, aws_secret=None):
         self.sender = sender or 'Thor Stats <thor_stats@mscoms.com>'
         self.to_addresses = to_addresses or 'thor@mscoms.com'
-        self.aws_key = aws_key or os.environ['VEN_S3_ACCESS_KEY']
-        self.aws_secret = aws_secret or os.environ['VEN_S3_SECRET']
+        self.aws_key = aws_key or get_environment_variable('VEN_S3_ACCESS_KEY')
+        self.aws_secret = aws_secret or get_environment_variable('VEN_S3_SECRET')
 
     def send_email(self, subject='', text='', html=None, reply_addresses=None, sender_ascii=None):
         if not sender_ascii:
