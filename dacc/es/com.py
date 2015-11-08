@@ -28,7 +28,7 @@ class ElasticCom(object):
         kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
         return self.es.search(*args, **kwargs)
 
-    def source_scan_iterator(self, extractor=None, scroll='10m', *args, **kwargs):
+    def source_scan_iterator(self, extractor=None, *args, **kwargs):
         """
         Returns an iterator that yields the _source field of scan results one at a time
         """
@@ -36,6 +36,7 @@ class ElasticCom(object):
         kwargs['doc_type'] = kwargs.get('doc_type', self.doc_type)
         start = kwargs.pop('start', None)
         stop = kwargs.pop('stop', None)
+        scroll = kwargs.pop('scroll', '10m')
         scanner = scan(self.es, scroll=scroll, *args, **kwargs)
         if stop is not None:
             scanner = islice(scan(self.es, scroll=scroll, *args, **kwargs), start, stop)

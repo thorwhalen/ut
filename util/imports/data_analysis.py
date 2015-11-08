@@ -25,7 +25,7 @@ from ut.pcoll.num import numof_trues
 # from ut.util.pstore import MyStore
 from ut.util.log import printProgress
 
-from ut.daf.diagnosis import diag_df as diag_df
+from ut.daf.diagnosis import diag_df, pr_numof
 
 import ut.pplot.distrib
 
@@ -36,3 +36,6 @@ import ut.dacc.mong.util
 
 import ut.pdict.get
 import ut.pdict.manip
+
+from collections import Counter, defaultdict
+

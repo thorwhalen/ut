@@ -4,6 +4,7 @@ import pandas as pd
 from numpy import *
 from matplotlib.pyplot import *
 import numpy as np
+from collections import Counter
 # from numpy.random import rand
 # from numpy.random import permutation
 
@@ -188,7 +189,7 @@ class Pot(object):
 
     def sort_pts(self, var_list=None, **kwargs):
         var_list = var_list or self.vars()
-        self.tb = self.tb.sort(columns=var_list, **kwargs)
+        self.tb = self.tb.sort_values(by=var_list, **kwargs)
         return self
 
     def pval(self):
@@ -231,6 +232,10 @@ class Pot(object):
             x.tb['pval'] = rounded_pvals
             return x
 
+    def rect_perspective_df(self):
+        vars = self.vars()
+        assert len(self.vars()) == 2, "You can only get the rect_perspective_df of a pot with exactly two variables"
+        return self.tb.set_index([vars[0], vars[1]]).unstack(vars[1])['pval']
 
     ###########################################
     # Hidden UTILS
@@ -280,7 +285,7 @@ class Pot(object):
         return Pot(pd.DataFrame({varname: [0, 1], 'pval': [1 - prob, prob]}))
 
     @classmethod
-    def from_points_to_count(cls, pts):
+    def from_points_to_count(cls, pts, vars=None):
         """
         By "points" I mean a collection (through some data structure) of multi-dimensional coordinates.
         By default, all unique points will be grouped and the pval will be the cardinality of each group.
@@ -289,6 +294,15 @@ class Pot(object):
             # tb = group_and_count(pts)
             # tb = ch_col_names(tb, 'pval', 'count')
             return Pot(group_and_count(pts, count_col='pval'))
+        else:
+            counts = Counter(pts)
+            if vars is None:
+                example_key = counts.keys()[0]
+                vars = range(len(example_key))
+            return Pot(pd.DataFrame(
+                [dict(pval=v, **{kk: vv for kk, vv in zip(vars, k)}) for k, v in counts.iteritems()])
+            )
+
 
     @classmethod
     def from_count_df_to_count(cls, count_df, count_col='pval'):
@@ -372,12 +386,16 @@ class ProbPot(Pot):
         else:
             raise RuntimeError("In prob_of(): get_slice returned more than one value")
 
+    def given(self, conditional_vars):
+        return ProbPot(self.__div__(conditional_vars))
+
     def relative_risk(self, event_var, exposure_var, event_val=1, exposed_val=1):
         prob = self >> [event_var, exposure_var]
         prob.binarize({event_var: event_val, exposure_var: exposed_val})
         return (prob / {exposure_var: 1})[{event_var: 1}] \
                / (prob / {exposure_var: 0})[{event_var: 1}]
 
+    @staticmethod
     def plot_relrisk_matrix(relrisk):
         t = relrisk.copy()
         matrix_shape = (t['exposure'].nunique(), t['event'].nunique())

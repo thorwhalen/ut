@@ -1,3 +1,4 @@
+from __future__ import division
 __author__ = 'thorwhalen'
 """
 Includes various adwords elements diagnosis functions
@@ -10,7 +11,21 @@ from numpy import argmax
 import pandas as pd
 from ut.util.ulist import ascertain_list
 import ut.util.var as util_var
+from operator import eq, lt, le, gt, ge
 
+operator_strings = dict()
+operator_strings[eq] = 'are equal'
+operator_strings[lt] = 'are lower than'
+operator_strings[le] = 'are at most'
+operator_strings[gt] = 'are greater than'
+operator_strings[ge] = 'are at least'
+
+operator_sym = dict()
+operator_sym[eq] = '='
+operator_sym[lt] = '<'
+operator_sym[le] = '<='
+operator_sym[gt] = '>'
+operator_sym[ge] = '>='
 
 def diag_df(df):
     df = df.reset_index(drop=True)  # added this 150613 because problems with obj and str indices
@@ -44,6 +59,38 @@ def diag_df(df):
 
 def numof(logical_series):
     return len([x for x in logical_series if x])
+
+
+def pr_numof(data, column=None, op=ge, comp_val=0,
+             str_format="sparse",
+             op2str=None):
+    """
+
+    Examples of str_format:
+        str_format="{column} {op} {comp_val}:\t {k}\t/{n} ({perc:.2f}%)" (sparse)
+        str_format="{k}/{n} ({perc:.2f}%) {column} {op} {comp_val}"
+        str_format="{column} that {op} {comp_val}:\t{k} (out of {n}, so {perc:.2f}%)"
+        str_format="{k}/{n} ({perc:.2f}%) of {column} {op} {comp_val}"
+    """
+    if str_format == 'verbose':
+        str_format = "{column} that {op} {comp_val}:\t{k} (out of {n}, so {perc:.2f}%)"
+        op2str = op2str or operator_strings
+    elif str_format == 'sparse':
+        str_format = "{column} {op} {comp_val}:\t {k}\t/{n} ({perc:.2f}%)"
+        op2str = op2str or operator_sym
+    if op2str is None:
+        op2str = operator_sym
+    if column is not None:
+        data = data[column]
+    n = len(data)
+    k = sum(op(data, comp_val))
+    print(str_format.format(
+        k=k,
+        n=n,
+        perc=100. * k / n,
+        op=op2str[op],
+        column=column,
+        comp_val=comp_val))
 
 
 def cols_that_are_of_the_type(df, type_spec):
