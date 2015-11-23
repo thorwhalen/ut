@@ -54,6 +54,91 @@ def wp_iter_with_sliding_discrete_step(data_range,  # length of the interval we'
         raise StopIteration()
 
 
+# Indices into wp_key (for wp_iter_slide_to_next_event function)
+PAST_HORIZON_TIME = 0
+PAST_HORIZON_IDX = 1
+PRESENT_TIME = 2
+PRESENT_IDX = 3
+FUTURE_HORIZON_TIME = 4
+FUTURE_HORIZON_IDX = 5
+
+
+def wp_iter_slide_to_next_event(timestamp_seq, past_range, future_range=None, min_timestamp=None, max_timestamp=None):
+    """
+    A window pairs iterator that slides the (past,future) windows (through a sequence of events whose timestamps
+    are given by the input timestamp_seq) capturing the times when an event enters or leaves the windows
+    (thus allowing to extract all pairs of possible states in cases where states are completely defined by
+    the subsequence of events in the window, not their actual timestamps).
+     More precisely, the (past,future) windows are indexed by the triple (past_horizon, present, future_horizon) where
+        past_horizon is the beginning of past
+        present is both the end of past and the beginning of future
+        future_horizon is the end of future
+
+    past_horizon      past      present         future      future_horizon
+        [--------------------------[------------------------------[
+
+     The first XY window is set so that past_horizon is at min_timestamp (defaulted to the lowest date in df.
+     Then, at any point, the next window is chosen such that either of these conditions hold:
+        (1) Some event leaves past (meaning event_date < past_horizon
+        (2) Some event enters past (equivalent to leaving future) (meaning event_date < present)
+        (3) Some event enters future (meaning event_date < future_horizon)
+        (4) future_horizon reaches max_timestamp
+
+    min_timestamp and max_timestamp are defaulted to the min and max date of df.
+     The reason for being able to specify min_timestamp and max_timestamp is that the data of df might come from a
+     set of event sequences that have a specific observation range, and we'd like to take into account the
+     "no event" cases.
+
+    The iterator yields 4-tuples (past_horizon_idx, present_idx, future_horizon_idx, duration) where the first three
+    elements are indices of timestamp_seq and duration is the amount of time between the window pair associated to
+    this 4-tuple and the next window pair.
+
+    Note: With abuse of notation,
+            past_horizon <= past < present
+        and
+            present <= future < future_horizon
+    """
+    timestamp_seq = sorted(timestamp_seq)
+    timestamp_seq = timestamp_seq - timestamp_seq[0]
+    if future_range is None:
+        past_range = future_range
+    if min_timestamp is None:
+        min_timestamp = timestamp_seq[0]
+    if max_timestamp is None:
+        max_timestamp = timestamp_seq[-1]
+
+    def _first_index_greater_or_equal_to(thresh, start_idx):
+        for i, x in enumerate(timestamp_seq[start_idx:], start_idx):
+            if x >= thresh:
+                return i
+        return None
+
+    def _next_window(window_keys):
+        pass
+
+    # Initialize wp_key
+    wp_key = zeros(6)
+    wp_key[PAST_HORIZON_TIME] = timestamp_seq[0]
+    wp_key[PAST_HORIZON_IDX] = 0
+    wp_key[PRESENT_TIME] = wp_key[PAST_HORIZON_TIME] + past_range
+    wp_key[PRESENT_IDX] = _first_index_greater_or_equal_to(wp_key[PRESENT_TIME], wp_key[PAST_HORIZON_IDX])
+    wp_key[FUTURE_HORIZON_TIME] = wp_key[PRESENT_TIME] + future_range
+    wp_key[FUTURE_HORIZON_IDX] = _first_index_greater_or_equal_to(wp_key[FUTURE_HORIZON_TIME], wp_key[PRESENT_IDX])
+
+    past_horizon_time = timestamp_seq[0]
+    past_horizon_idx = 0
+
+    present_time = past_horizon_time + past_range
+    present_idx = _first_index_greater_or_equal_to(present_time, past_horizon_idx)
+
+    future_horizon_time = present_time + future_range
+    future_horizon_idx = _first_index_greater_or_equal_to(future_horizon_time, present_idx)
+
+    while future_horizon_idx is not None:
+        pass
+
+
+
 def _event_exists(arr):
     return int(any(arr))
 

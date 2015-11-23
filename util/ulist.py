@@ -4,11 +4,39 @@ import numpy as np
 import ut.util.var as util_var
 
 
+def first_non_zero(arr):
+    """
+    Return the index of the first element that is not zero, None, nan, or False
+    (basically, what ever makes "if element" True)
+    The other way to do this would be where(arr)[0][0], but in some cases (large array, few non zeros))
+    this function is quicker.
+    Note: If no element is "non zero", the function returns None
+    """
+    for i, a in enumerate(arr):
+        if a:
+            return i
+    return None
+
+
+def first_true_cond(cond, arr):
+    """
+    Return the index of the first element such that cond(element) returns True.
+    The other way to do this would be where(map(cond, arr))[0][0], of where(cond(arr))[0][0] if cond is vectorized,
+    but in some cases (large array, few cond(element) == True)) this function is quicker.
+    Note: If no element satisfies the condition, the function returns None
+    """
+    for i, a in enumerate(arr):
+        if cond(a):
+            return i
+    return None
+
+
 def get_first_item_contained_in_intersection_of(find_first_item_of, in_iterable, default=None):
     for item in in_iterable:
         if item in find_first_item_of:
             return item
     return default
+
 
 def ismember_lidx(A, B):
     # returns an A-length bitmap specifying what elements of A are in B
