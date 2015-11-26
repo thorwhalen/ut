@@ -12,6 +12,58 @@ import itertools
 #         for i in itertools.count(start, size):
 #             yield seq[i: i + size]
 
+from numpy import mod
+from datetime import datetime
+
+
+def print_iter_progress(iterator,
+                   print_progress_every=None,
+                   header_template="{hour:.0f}:{minute:.0f}:{second:.0f} - {iteration} iteration ",
+                   data_msg_intro_str="",
+                   data_to_string=None):
+    """
+    Wraps an iterator, allowing one to use the iterator as one would, but will print progress messages every
+    print_progress_every iterations.
+
+    header of print string can be specified through header_template
+    data information can be printed too through data_msg_intro_str and data_to_string (a function) specifications
+
+    Examples:
+
+    >>> for x in print_iter_progress(xrange(50), print_progress_every=10):
+    >>>     pass
+    19:39:59 - 0 iteration
+    19:39:59 - 10 iteration
+    19:39:59 - 20 iteration
+    19:39:59 - 30 iteration
+    19:39:59 - 40 iteration
+
+    >>> for x in print_iter_progress(xrange(50),
+    >>>                          print_progress_every=15,
+    >>>                          data_msg_intro_str="data times two is: {data_str}",
+    >>>                          data_to_string=lambda x: x * 2):
+    >>>     pass
+
+    19:43:42 - 0 iteration data times two is: 0
+    19:43:42 - 15 iteration data times two is: 30
+    19:43:42 - 30 iteration data times two is: 60
+    19:43:42 - 45 iteration data times two is: 90
+    """
+    if print_progress_every is None:
+        for x in iterator:
+            yield x
+    else:
+        print_template = header_template + data_msg_intro_str
+        for i, x in enumerate(iterator):
+            if mod(i, print_progress_every) == 0:
+                t = datetime.now().time()
+                if data_to_string is None:
+                    print(print_template.format(hour=t.hour, minute=t.minute, second=t.second, iteration=i))
+                else:
+                    print(print_template.format(hour=t.hour, minute=t.minute, second=t.second, iteration=i,
+                                                data_str=data_to_string(x)))
+            yield x
+
 
 def powerset(iterable):
     """

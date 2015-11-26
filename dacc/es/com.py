@@ -15,7 +15,7 @@ from itertools import imap, islice
 
 from ut.pdict.manip import rollout
 from ut.util.log import printProgress
-
+from ut.util.uiter import print_iter_progress
 
 class ElasticCom(object):
 
@@ -28,7 +28,7 @@ class ElasticCom(object):
         kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
         return self.es.search(*args, **kwargs)
 
-    def source_scan_iterator(self, extractor=None, *args, **kwargs):
+    def source_scan_iterator(self, extractor=None, print_progress_every=None, *args, **kwargs):
         """
         Returns an iterator that yields the _source field of scan results one at a time
         """
@@ -42,9 +42,17 @@ class ElasticCom(object):
             scanner = islice(scan(self.es, scroll=scroll, *args, **kwargs), start, stop)
 
         if extractor is None:
-            return imap(lambda x: x['_source'], scanner)
+            if print_progress_every is None:
+                return imap(lambda x: x['_source'], scanner)
+            else:
+                return print_iter_progress(imap(lambda x: x['_source'], scanner),
+                                           print_progress_every=print_progress_every)
         else:
-            return imap(lambda x: extractor(x['_source']), scanner)
+            if print_progress_every is None:
+                return imap(lambda x: extractor(x['_source']), scanner)
+            else:
+                return print_iter_progress(imap(lambda x: extractor(x['_source']), scanner),
+                                           print_progress_every=print_progress_every)
 
     def dict_of_source_data(self,
                             extractor=None,
