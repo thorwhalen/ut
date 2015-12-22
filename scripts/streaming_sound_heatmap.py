@@ -54,6 +54,7 @@ if __name__ == "__main__":
         account="generic3@otosense.com",
         sensitivity=1,
         stream_id='h9pmg5ux9z',
+        windows_minutes=1,
         debug=0
     )
     parser = argparse.ArgumentParser()
@@ -80,6 +81,7 @@ if __name__ == "__main__":
     sensitivity = args['sensitivity']
     debug = args['debug']
     stream_id = args['stream_id']
+    windows_minutes = args['windows_minutes']
 
     # Make instance of stream id object
     stream = plotly.graph_objs.Stream(
@@ -121,7 +123,8 @@ if __name__ == "__main__":
         i += 1
         # increment mat
         # mat = hstack([mat[:, 1:], rand(mat.shape[0], 1)])
-        data = _get_json_data(minutes=1, ip='54.85.63.111:8083',
+        data = _get_json_data(minutes=windows_minutes,
+                              ip='54.85.63.111:8083',
                               account=account,
                               datatype='raw_probabilities')
         mat = pd.DataFrame([x.get('data') for x in data])
