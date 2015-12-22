@@ -49,25 +49,38 @@ def get_raw_prob_df(minutes=5, ip='54.85.63.111:8083', account='pop10_home@otose
         return _get_raw_prob_df_from_json_data(data)
 
 
-
-
 if __name__ == "__main__":
     defaults = dict(
         account="generic3@otosense.com",
+        sensitivity=1,
+        stream_id='h9pmg5ux9z',
+        debug=0
     )
     parser = argparse.ArgumentParser()
     parser.add_argument("--account",
                         help="account to listen to (default={})".format(defaults['account']),
                         default=defaults['account'])
+    parser.add_argument("--sensitivity",
+                        help="all normalized probs will be ^(1/sensitivity) (default={})".format(
+                            defaults['sensitivity']),
+                        default=defaults['account'])
+    parser.add_argument("--stream_id",
+                        help="plotly stream_id (default={})".format(defaults['stream_id']),
+                        default=defaults['stream_id'])
+    parser.add_argument("--debug", type=int,
+                        help=" (default={})".format(defaults['debug']),
+                        default=defaults['debug'])
 
     args = parser.parse_args()
     args = vars(args)
 
     print args
 
+    sensitivity = args['sensitivity']
+    debug = args['debug']
 
     # Get stream id from stream id list
-    stream_id = 'h9pmg5ux9z'
+    stream_id = args['stream_id']
 
     # Make instance of stream id object
     stream = plotly.graph_objs.Stream(
@@ -86,13 +99,14 @@ if __name__ == "__main__":
     data = plotly.graph_objs.Data([trace1])
 
     # Add title to layout object
-    layout = plotly.graph_objs.Layout(title='Sound Monitor')
+    layout = plotly.graph_objs.Layout(title='Monitoring {}'.format(args['account']))
 
     # Make a figure object
     fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
     # (@) Send fig to Plotly, initialize streaming plot, open new tab
-    unique_url = py.plot(fig, filename='s7_first-stream')
+    unique_url = py.plot(fig, filename='s7_first-stream', auto_open=False)
+    print("Url: {}".format(unique_url))
 
     # (@) Make instance of the Stream link object,
     # with same stream id as Stream id object
@@ -103,21 +117,29 @@ if __name__ == "__main__":
 
     max_sound_probabilities = None
 
+    i = 0
     while True:
+        i += 1
         # increment mat
         # mat = hstack([mat[:, 1:], rand(mat.shape[0], 1)])
         data = _get_json_data(minutes=1, ip='54.85.63.111:8083',
                               account=args['account'],
                               datatype='raw_probabilities')
         mat = pd.DataFrame([x.get('data') for x in data])
-        sounds = list(mat.columns)
         if max_sound_probabilities is None:
             max_sound_probabilities = mat.max(axis=0)
         else:  # update max_sound_probabilities
             max_sound_probabilities = pd.DataFrame([max_sound_probabilities, mat.max(axis=0)]).max()
+
         mat /= max_sound_probabilities  # normalize according to max probability
 
+        if debug > 0:
+            print(i)
+            print(max_sound_probabilities)
+
+        sounds = list(mat.columns)
         mat = mat.T.as_matrix()
+
 
         # (@) write to Plotly stream!
         s.write(plotly.graph_objs.Heatmap(z=mat, y=sounds))
