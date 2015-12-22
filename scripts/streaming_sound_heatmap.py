@@ -68,8 +68,11 @@ if __name__ == "__main__":
     parser.add_argument("--stream_id", type=str,
                         help="plotly stream_id (default={})".format(defaults['stream_id']),
                         default=defaults['stream_id'])
+    parser.add_argument("--windows_minutes", type=int,
+                        help="minutes of sliding window (default={})".format(defaults['windows_minutes']),
+                        default=defaults['windows_minutes'])
     parser.add_argument("--debug", type=int,
-                        help=" (default={})".format(defaults['debug']),
+                        help="debug level (default={})".format(defaults['debug']),
                         default=defaults['debug'])
 
     args = parser.parse_args()
