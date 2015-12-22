@@ -57,14 +57,14 @@ if __name__ == "__main__":
         debug=0
     )
     parser = argparse.ArgumentParser()
-    parser.add_argument("--account",
+    parser.add_argument("--account", type=str,
                         help="account to listen to (default={})".format(defaults['account']),
                         default=defaults['account'])
     parser.add_argument("--sensitivity", type=int,
                         help="all normalized probs will be ^(1/sensitivity) (default={})".format(
                             defaults['sensitivity']),
-                        default=defaults['account'])
-    parser.add_argument("--stream_id",
+                        default=defaults['sensitivity'])
+    parser.add_argument("--stream_id", type=str,
                         help="plotly stream_id (default={})".format(defaults['stream_id']),
                         default=defaults['stream_id'])
     parser.add_argument("--debug", type=int,
