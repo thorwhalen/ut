@@ -2,6 +2,7 @@ __author__ = 'thor'
 
 import numpy as np
 from decimal import Decimal
+from numpy import random
 
 def rand_numbers_summing_to_one(n_numbers, granularity=0.01):
     n_choices = 1.0 / granularity
@@ -14,4 +15,12 @@ def rand_numbers_summing_to_one(n_numbers, granularity=0.01):
     return x
 
 
+def weighted_choice(choices):
+    r = random.uniform(0, sum(choices))
+    upto = 0
+    for i, w in enumerate(choices):
+        if upto + w >= r:
+            return i
+        upto += w
+    assert False, "Shouldn't get here"
 
