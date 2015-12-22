@@ -139,6 +139,7 @@ if __name__ == "__main__":
 
         sounds = list(mat.columns)
         mat = mat.T.as_matrix()
+        mat **= (1 / sensitivity)
 
 
         # (@) write to Plotly stream!
