@@ -60,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--account",
                         help="account to listen to (default={})".format(defaults['account']),
                         default=defaults['account'])
-    parser.add_argument("--sensitivity",
+    parser.add_argument("--sensitivity", type=int,
                         help="all normalized probs will be ^(1/sensitivity) (default={})".format(
                             defaults['sensitivity']),
                         default=defaults['account'])
