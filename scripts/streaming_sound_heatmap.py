@@ -76,10 +76,9 @@ if __name__ == "__main__":
 
     print args
 
+    account = args['account']
     sensitivity = args['sensitivity']
     debug = args['debug']
-
-    # Get stream id from stream id list
     stream_id = args['stream_id']
 
     # Make instance of stream id object
@@ -123,7 +122,7 @@ if __name__ == "__main__":
         # increment mat
         # mat = hstack([mat[:, 1:], rand(mat.shape[0], 1)])
         data = _get_json_data(minutes=1, ip='54.85.63.111:8083',
-                              account=args['account'],
+                              account=account,
                               datatype='raw_probabilities')
         mat = pd.DataFrame([x.get('data') for x in data])
         if max_sound_probabilities is None:
