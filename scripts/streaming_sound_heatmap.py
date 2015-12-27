@@ -14,16 +14,22 @@ import plotly.plotly as py
 import plotly.graph_objs
 
 
-
 # ip: '54.85.63.111:8083'
 # account: 'pop10_home@otosense.com', 'h4@otosense.com', 'shower@otosense.com'
 # datatypes: 'raw_probabilities, 'devices/status'
+def _get_request_url(minutes=5,
+                     ip='54.85.63.111:8083',
+                     account='generic3@otosense.com',
+                     datatype='raw_probabilities'):
+    return 'http://{ip}/api/account/{account}/{datatype}/interval/{minutes}'.format(
+        ip=ip, account=account, datatype=datatype, minutes=minutes)
+
+
 def _get_json_data(minutes=5,
                    ip='54.85.63.111:8083',
                    account='generic3@otosense.com',
                    datatype='raw_probabilities'):
-    request_string = 'http://{ip}/api/account/{account}/{datatype}/interval/{minutes}'.format(
-        ip=ip, account=account, datatype=datatype, minutes=minutes)
+    request_string = _get_request_url(minutes=minutes, ip=ip, account=account, datatype=datatype)
     response = requests.get(request_string)
     if response.ok:
         data = response.json().get('data')
@@ -43,7 +49,7 @@ def _get_raw_prob_df_from_json_data(data):
     return data
 
 
-def get_raw_prob_df(minutes=5, ip='54.85.63.111:8083', account='pop10_home@otosense.com'):
+def get_raw_prob_df(minutes=5, ip='54.85.63.111:8083', account='generic3@otosense.com'):
     data = _get_json_data(minutes=minutes, ip=ip, account=account)
     if data:
         return _get_raw_prob_df_from_json_data(data)
@@ -110,7 +116,8 @@ if __name__ == "__main__":
 
     # (@) Send fig to Plotly, initialize streaming plot, open new tab
     unique_url = py.plot(fig, filename='s7_first-stream', auto_open=False)
-    print("Url: {}".format(unique_url))
+    print("Json request REST url:\n\t{}".format(_get_request_url(minutes=windows_minutes, account=account)))
+    print("Stream image URL:\n\t{}".format(unique_url))
 
     # (@) Make instance of the Stream link object,
     # with same stream id as Stream id object
