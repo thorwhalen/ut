@@ -59,6 +59,7 @@ if __name__ == "__main__":
     defaults = dict(
         account="generic3@otosense.com",
         sensitivity=1,
+        median_multiplier=2,
         stream_id='h9pmg5ux9z',
         windows_minutes=1,
         debug=0
@@ -70,6 +71,10 @@ if __name__ == "__main__":
     parser.add_argument("--sensitivity", type=int,
                         help="all normalized probs will be ^(1/sensitivity) (default={})".format(
                             defaults['sensitivity']),
+                        default=defaults['sensitivity'])
+    parser.add_argument("--median_multiplier", type=int,
+                        help="A number to multiply the median of sound probs by. "
+                             "Result will be used as normalizing factor (default={})".format(defaults['median_multiplier']),
                         default=defaults['sensitivity'])
     parser.add_argument("--stream_id", type=str,
                         help="plotly stream_id (default={})".format(defaults['stream_id']),
@@ -91,6 +96,7 @@ if __name__ == "__main__":
     debug = args['debug']
     stream_id = args['stream_id']
     windows_minutes = args['windows_minutes']
+    median_multiplier = args['median_multiplier']
 
     # Make instance of stream id object
     stream = plotly.graph_objs.Stream(
@@ -139,9 +145,12 @@ if __name__ == "__main__":
                               datatype='raw_probabilities')
         mat = pd.DataFrame([x.get('data') for x in data])
         if max_sound_probabilities is None:
-            max_sound_probabilities = mat.max(axis=0)
+            max_sound_probabilities = mat.median(axis=0) * median_multiplier
+            # max_sound_probabilities = mat.max(axis=0)
         else:  # update max_sound_probabilities
-            max_sound_probabilities = pd.DataFrame([max_sound_probabilities, mat.max(axis=0)]).max()
+            max_sound_probabilities = \
+                pd.DataFrame([max_sound_probabilities, mat.median(axis=0) * median_multiplier]).max()
+            # max_sound_probabilities = pd.DataFrame([max_sound_probabilities, mat.max(axis=0)]).max()
 
         mat /= max_sound_probabilities  # normalize according to max probability
 
