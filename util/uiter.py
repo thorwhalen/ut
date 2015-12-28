@@ -14,6 +14,7 @@ import itertools
 
 from numpy import mod
 from datetime import datetime
+from itertools import islice, chain, imap, combinations
 
 
 def print_iter_progress(iterator,
@@ -65,12 +66,23 @@ def print_iter_progress(iterator,
             yield x
 
 
+def window(seq, n=2):
+    "Returns a sliding window (of width n) over data from the iterable"
+    "   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   "
+    it = iter(seq)
+    result = tuple(islice(it, n))
+    if len(result) == n:
+        yield result
+    for elem in it:
+        result = result[1:] + (elem,)
+        yield result
+
 def powerset(iterable):
     """
     powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
     """
     s = list(iterable)
-    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)+1))
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 
 def all_subsets_of(iterable, include_empty_set=True):
@@ -79,17 +91,17 @@ def all_subsets_of(iterable, include_empty_set=True):
     else:
         start = 1
     n = len(list(iterable))
-    return itertools.chain(*itertools.imap(lambda x: itertools.combinations(iterable, x), xrange(start, n+1)))
+    return chain(*imap(lambda x: combinations(iterable, x), xrange(start, n+1)))
 
 
 def take(n, iterable):
     "Return first n items of the iterable as a list"
-    return list(itertools.islice(iterable, n))
+    return list(islice(iterable, n))
 
 
 def tabulate(function, start=0):
     "Return function(0), function(1), ..."
-    return itertools.imap(function, itertools.count(start))
+    return imap(function, itertools.count(start))
 
 
 def consume(iterator, n):
@@ -100,17 +112,17 @@ def consume(iterator, n):
         itertools.collections.deque(iterator, maxlen=0)
     else:
         # advance to the empty slice starting at position n
-        next(itertools.islice(iterator, n, n), None)
+        next(islice(iterator, n, n), None)
 
 
 def nth(iterable, n, default=None):
     "Returns the nth item or a default value"
-    return next(itertools.islice(iterable, n, None), default)
+    return next(islice(iterable, n, None), default)
 
 
 def quantify(iterable, pred=bool):
     "Count how many times the predicate is true"
-    return sum(itertools.imap(pred, iterable))
+    return sum(imap(pred, iterable))
 
 
 def padnone(iterable):
@@ -118,21 +130,21 @@ def padnone(iterable):
 
     Useful for emulating the behavior of the built-in map() function.
     """
-    return itertools.chain(iterable, itertools.repeat(None))
+    return chain(iterable, itertools.repeat(None))
 
 
 def ncycles(iterable, n):
     "Returns the sequence elements n times"
-    return itertools.chain.from_iterable(itertools.repeat(tuple(iterable), n))
+    return chain.from_iterable(itertools.repeat(tuple(iterable), n))
 
 
 def dotproduct(vec1, vec2):
-    return sum(itertools.imap(itertools.operator.mul, vec1, vec2))
+    return sum(imap(itertools.operator.mul, vec1, vec2))
 
 
 def flatten(listOfLists):
     "Flatten one level of nesting"
-    return itertools.chain.from_iterable(listOfLists)
+    return chain.from_iterable(listOfLists)
 
 
 def repeatfunc(func, times=None, *args):
@@ -185,7 +197,7 @@ def roundrobin(*iterables):
 def powerset(iterable):
     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
     s = list(iterable)
-    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)+1))
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 
 def unique_everseen(iterable, key=None):
@@ -210,7 +222,7 @@ def unique_justseen(iterable, key=None):
     "List unique elements, preserving order. Remember only the element just seen."
     # unique_justseen('AAAABBBCCDAABBB') --> A B C D A B
     # unique_justseen('ABBCcAD', string.lower) --> A B C A D
-    return itertools.imap(next, itertools.imap(itertools.itemgetter(1), itertools.groupby(iterable, key)))
+    return imap(next, imap(itertools.itemgetter(1), itertools.groupby(iterable, key)))
 
 
 def iter_except(func, exception, first=None):
@@ -252,7 +264,7 @@ def random_permutation(iterable, r=None):
 
 
 def random_combination(iterable, r):
-    "Random selection from itertools.combinations(iterable, r)"
+    "Random selection from combinations(iterable, r)"
     pool = tuple(iterable)
     n = len(pool)
     indices = sorted(itertools.random.sample(xrange(n), r))
@@ -260,7 +272,7 @@ def random_combination(iterable, r):
 
 
 def random_combination_with_replacement(iterable, r):
-    "Random selection from itertools.combinations_with_replacement(iterable, r)"
+    "Random selection from combinations_with_replacement(iterable, r)"
     pool = tuple(iterable)
     n = len(pool)
     indices = sorted(itertools.random.randrange(n) for i in xrange(r))
@@ -275,6 +287,6 @@ def tee_lookahead(t, i):
        have enough values.
 
     """
-    for value in itertools.islice(t.__copy__(), i, None):
+    for value in islice(t.__copy__(), i, None):
         return value
     raise IndexError(i)
