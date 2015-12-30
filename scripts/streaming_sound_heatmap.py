@@ -14,6 +14,10 @@ import plotly.plotly as py
 import plotly.graph_objs
 
 
+def winner_normalizer(raw_probs):
+    return raw_probs / raw_probs.max()
+
+
 # ip: '54.85.63.111:8083'
 # account: 'pop10_home@otosense.com', 'h4@otosense.com', 'shower@otosense.com'
 # datatypes: 'raw_probabilities, 'devices/status'
@@ -144,15 +148,18 @@ if __name__ == "__main__":
                               account=account,
                               datatype='raw_probabilities')
         mat = pd.DataFrame([x.get('data') for x in data])
-        if max_sound_probabilities is None:
-            max_sound_probabilities = mat.median(axis=0) * median_multiplier
-            # max_sound_probabilities = mat.max(axis=0)
-        else:  # update max_sound_probabilities
-            max_sound_probabilities = \
-                pd.DataFrame([max_sound_probabilities, mat.median(axis=0) * median_multiplier]).max()
-            # max_sound_probabilities = pd.DataFrame([max_sound_probabilities, mat.max(axis=0)]).max()
 
-        mat /= max_sound_probabilities  # normalize according to max probability
+        # if max_sound_probabilities is None:
+        #     max_sound_probabilities = mat.median(axis=0) * median_multiplier
+        #     # max_sound_probabilities = mat.max(axis=0)
+        # else:  # update max_sound_probabilities
+        #     max_sound_probabilities = \
+        #         pd.DataFrame([max_sound_probabilities, mat.median(axis=0) * median_multiplier]).max()
+        #     # max_sound_probabilities = pd.DataFrame([max_sound_probabilities, mat.max(axis=0)]).max()
+        #
+        # mat /= max_sound_probabilities  # normalize according to max probability
+
+        mat = (mat.T / mat.T.max()).T
 
         if debug > 0:
             print(i)

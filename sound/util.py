@@ -189,6 +189,7 @@ def wav_file_framerate(file_pointer_or_path):
 
 def wf_and_sr_from_filepath(filepath, **kwargs):
     kwargs = dict({'always_2d': False}, **kwargs)
+    must_ensure_mono = kwargs.get('ensure_mono', False)
 
     if 'offset_s' in kwargs.keys() or 'duration' in kwargs.keys():
         sample_rate = wave.Wave_read(filepath).getframerate()
@@ -200,7 +201,7 @@ def wf_and_sr_from_filepath(filepath, **kwargs):
 
     kwargs = filter_kwargs_to_func_arguments(sf.read, kwargs)
     wf, sr = sf.read(filepath, **kwargs)
-    if kwargs.get('ensure_mono'):
+    if must_ensure_mono:
         wf = ensure_mono(wf)
     return wf, sr
 
@@ -309,7 +310,7 @@ class Sound(object):
         return Sound(wf=self.wf.copy(), sr=self.sr, name=self.name)
 
     def mix_in(self, sound, weight=1):
-        self.wf = weighted_mean([self.wf, 1], [sound.y, weight])
+        self.wf = weighted_mean([self.wf, 1], [sound.wf, weight])
 
     def display_sound(self, **kwargs):
         print("{}".format(self.name))
@@ -335,3 +336,11 @@ class Sound(object):
         plt.colorbar(format='%+02.0f dB')
         # Make the figure layout compact
         plt.tight_layout()
+
+    def crop_with_idx(self, first_idx, last_idx):
+        cropped_sound = self.copy()
+        cropped_sound.wf = cropped_sound.wf[first_idx:(last_idx + 1)]
+        return cropped_sound
+
+    def crop_with_seconds(self, first_second, last_second):
+        return self.crop_with_idx(round(first_second * self.sr), round(last_second * self.sr))

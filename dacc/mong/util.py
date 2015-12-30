@@ -4,7 +4,7 @@ import pymongo as mg
 import os
 import re
 import pandas as pd
-from numpy import inf
+from numpy import inf, random
 import subprocess
 from datetime import datetime
 
@@ -28,6 +28,40 @@ s3_backup_bucket_name = 'mongo-db-bak'
 #     AWS_SECRET_ACCESS_KEY = os.environ['VEN_AWS_SECRET_ACCESS_KEY']
 # except KeyError:
 #     pass
+
+
+def get_random_doc(collection, *args, **kwargs):
+    c = collection.find(*args, **kwargs)
+    count = c.count()
+    if count == 0:
+        raise RuntimeError("No documents with specified conditions were found!")
+    else:
+        return c.limit(-1).skip(random.randint(0, count)).next()
+
+
+def mk_find_in_field_logical_query(field, query):
+    """
+    Allows one to create "find in field" query of any logical complexity (since AND, OR, and NOT are supported).
+
+    field is the field to consider
+
+    query can be a string, a tuple, or a list, and can be nested:
+        if query is a string, it is is considered to be "must be equal to this"
+            if the string starts with "-", it is considered to be "must NOT equal to this"
+        if query is a tuple, take the conjunction (AND) of the tuple's elements
+        if query is a list, take the disjunction (OR) of the list's elements
+    """
+    if isinstance(query, basestring):
+        if query[0] == '-':
+            return {field: {'$not': {'$eq': query[1:]}}}
+        else:
+            return {field: query}
+    elif isinstance(query, tuple):
+        return {'$and': map(lambda q: mk_find_in_field_logical_query(field, q), query)}
+    elif isinstance(query, list):
+        return {'$or': map(lambda q: mk_find_in_field_logical_query(field, q), query)}
+    else:
+        raise TypeError("query must be a string, tuple, or list")
 
 
 def copy_collection_from_remote_to_local(remote_client, remote_db, remote_collection,
