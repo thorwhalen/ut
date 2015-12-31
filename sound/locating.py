@@ -31,7 +31,7 @@ def _get_wf_and_sr_from_sound(sound):
 
 def silence_interval_indices(sound,
                              min_length_of_silence_interval,
-                             max_abs_wf_percentile_for_silence=1.0):
+                             max_abs_wf_threshold_func_for_silence=lambda wf: 0.01 * percentile(wf, 99)):
     """
     Returns a list of pairs indicating where "long" intervals of silence happen in the sound.
 
@@ -53,13 +53,15 @@ def silence_interval_indices(sound,
         (3) Often silence can be part of, and even defining, the sound itself. One beep of an alarm is just a beep. It's
             the beep-pause-beep pattern that defines the (or more precisely, that type of) alarm.
         That's why we provide the min_length_of_silence_interval: So that you can play around with the definition of
-         silence according to your needs. Regarding (1), we also provide you with the max_abs_wf_percentile_for_silence.
+         silence according to your needs. Regarding (1), we also provide you with the
+         max_abs_wf_threshold_func_for_silence argument, which is a function to be applied to abs(wf) to get a threshold
+         of abs(wf) under which the point will be considered as a silent point.
          The wave form values that will be candidates for inclusion in silence intervals are those whose absolute values
-         are smaller than max_abs_wf_percentile_for_silence percent of the other absolute values.
+         are smaller than max_abs_wf_threshold_func_for_silence(wf).
     """
     wf, sr = _get_wf_and_sr_from_sound(sound)
 
-    max_abs_wf_for_silence = percentile(abs(wf), max_abs_wf_percentile_for_silence)
+    max_abs_wf_for_silence = max_abs_wf_threshold_func_for_silence(abs(wf))
     if sr is not None:
         min_length_of_silence_interval = round(sr * min_length_of_silence_interval)
     silence_bitmap = abs(wf) <= max_abs_wf_for_silence
@@ -122,7 +124,7 @@ def _non_silence_interval_indices_from_silence_intervals(array_length, silence_i
 
 def non_silence_interval_indices(sound,
                                  min_length_of_silence_interval,
-                                 max_abs_wf_percentile_for_silence=1.0,
+                                 max_abs_wf_threshold_func_for_silence=lambda wf: 0.01 * percentile(wf, 99),
                                  min_interval_length=None):
     """
     Returns the interval borders of the wave form that correspond to sound not interrupted by periods of significant
@@ -131,7 +133,6 @@ def non_silence_interval_indices(sound,
     """
 
     wf, sr = _get_wf_and_sr_from_sound(sound)
-    max_abs_wf_for_silence = percentile(abs(wf), max_abs_wf_percentile_for_silence)
     min_interval_length = min_interval_length or 2
     if sr is not None:
         min_length_of_silence_interval = round(sr * min_length_of_silence_interval)
@@ -142,7 +143,8 @@ def non_silence_interval_indices(sound,
 
     non_silence_intervals = _non_silence_interval_indices_from_silence_intervals(
         array_length=len(wf),
-        silence_intervals=silence_interval_indices(wf, min_length_of_silence_interval, max_abs_wf_for_silence),
+        silence_intervals=silence_interval_indices(wf, min_length_of_silence_interval,
+                                                   max_abs_wf_threshold_func_for_silence),
         min_interval_length=min_interval_length
     )
 

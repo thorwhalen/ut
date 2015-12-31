@@ -1,5 +1,8 @@
+from __future__ import division
 __author__ = 'thor'
 
+
+from numpy import *
 import os
 import re
 import librosa
@@ -9,7 +12,9 @@ import contextlib
 
 from IPython.display import Audio
 import matplotlib.pyplot as plt
-import numpy as np
+# import numpy as np
+from scipy.signal import resample as scipy_signal_resample
+
 # from functools import partial
 
 from ut.util.log import printProgress
@@ -41,11 +46,34 @@ def sound_file_info_dict(filepath):
     return d
 
 
+def is_mono(wf):
+    return len(shape(wf)) == 1
+
+
 def ensure_mono(wf):
-    if len(np.shape(wf)) == 2:
-        return wf[:, 0]
-    else:
+    if is_mono(wf):
         return wf
+    else:
+        return mean(wf, axis=1)
+        # return wf[:, 0]
+
+
+def resample_wf(wf, sr, new_sr):
+    return scipy_signal_resample(wf, num=round(len(wf) * new_sr / sr))
+
+
+def suffix_with_silence(wf, num_silence_pts):
+    if is_mono(wf):
+        return hstack([wf, zeros(num_silence_pts)])
+    else:
+        return vstack([wf, zeros((num_silence_pts, 2))])
+
+
+def prefix_with_silence(wf, num_silence_pts):
+    if is_mono(wf):
+        return hstack([zeros(num_silence_pts), wf])
+    else:
+        return vstack([zeros((num_silence_pts, 2)), wf])
 
 
 def stereo_to_mono_and_extreme_silence_cropping(source, target, subtype=None, print_progress=False):
@@ -100,6 +128,7 @@ def wf_and_sr(*args, **kwargs):
 
 def hear_sound(*args, **kwargs):
     wf, sr = wf_and_sr(*args, **kwargs)
+    wf[random.randint(len(wf))] *= 1.001  # hack to avoid having exactly the same sound twice (creates an Audio bug!!)
     try:
         return Audio(data=wf, rate=sr, autoplay=kwargs.get('autoplay', False))
     except ValueError:
@@ -112,7 +141,7 @@ def hear_sound(*args, **kwargs):
 
 def plot_wf(*args, **kwargs):
     wf, sr = wf_and_sr(*args, **kwargs)
-    plt.plot(np.linspace(start=0, stop=len(wf)/float(sr), num=len(wf)), wf)
+    plt.plot(linspace(start=0, stop=len(wf)/float(sr), num=len(wf)), wf)
 
 
 def display_sound(*args, **kwargs):
@@ -149,28 +178,9 @@ def get_consecutive_zeros_locations(wf, sr, thresh_consecutive_zeros_seconds=0.1
 
 def crop_head_and_tail_silence(wf):
     assert len(wf.shape) == 1, "The silence crop is only implemented for mono sounds"
-    first_non_zero = np.argmax(wf != 0)
-    last_non_zero = len(wf) - np.argmin(np.flipud(wf == 0))
+    first_non_zero = argmax(wf != 0)
+    last_non_zero = len(wf) - argmin(flipud(wf == 0))
     return wf[first_non_zero:last_non_zero]
-
-
-# def wf_and_sr_of_middle_seconds(filepath, sample_seconds=5.0, pad=False):
-    # if sound_seconds is None:
-    #     wf, sr = wf_and_sr_from_filepath(filepath)
-    #     sound_seconds = duration_of_wf_and_sr(wf, sr)
-    # mid_sound = sound_seconds * 0.5
-    # if sample_seconds >= sound_seconds:
-    #     return wf_and_sr_from_filepath(filepath,
-    #                                    offset=mid_sound - sample_seconds * 0.5,
-    #                                    duration=sound_seconds)
-    # else:
-    #     if pad:
-    #         if 'sr' not in locals():
-    #             wf, sr = wf_and_sr_from_filepath(filepath)
-    #         pad_size = n_wf_points_from_duration_and_sr(duration=(sound_seconds - sample_seconds) / 2.0, sr=sr)
-    #         wf = np.concatinate((np.zeros(pad_size), wf, np.zeros(pad_size)))
-    #     else:
-    #         return wf_and_sr_from_filepath(filepath)
 
 
 def is_wav_file(filepath):
@@ -265,10 +275,16 @@ def mk_transformed_copies_of_sound_files(source_path_iterator,
 
 class Sound(object):
     def __init__(self, wf, sr, name=''):
-        self.wf = wf
+        self.wf = wf.copy()
         self.sr = sr
         self.name = name
         self.info = {}
+
+    def copy(self):
+        return Sound(wf=self.wf.copy(), sr=self.sr, name=self.name)
+
+    ####################################################################################################################
+    # CREATION
 
     @classmethod
     def from_file(cls, filepath, name=None, **kwargs):
@@ -298,24 +314,150 @@ class Sound(object):
 
         return sound
 
+
+    @classmethod
+    def from_sound_iterator(cls,
+                            sound_iterator,
+                            name='from_sound_iterator',
+                            pre_normalization_function=lambda wf: wf / percentile(abs(wf), 95)):
+        """
+        Mix all sounds specified in the sound_iterator.
+
+        A sound iterator yields either of these formats:
+            * a wave form
+            * a Sound object
+            * a {sound, offset_s, weight} dict indicating
+                offset_s (default 0 seconds): where the sound should be inserted
+                weight (default 1): a weight, relative to the other sounds in the iterator, indicating whether the
+                "volume" should be increased or decreased before mixing the sound
+
+        Note: All wave forms are normalized before being multiplied by the given weight. The normalization function is
+        given by the pre_normalization_function argument (default is no normalization)
+
+        Note: It is assumed that all sounds in the sound_iterator have the same sample rate
+        """
+
+        def _mk_sound_mix_spec(sound_mix_spec):
+            sound_mix_spec_default = dict(sound=None, offset_s=0, weight=1)
+            if isinstance(sound_mix_spec, ndarray):
+                sound_mix_spec = dict(sound_mix_spec_default, sound=Sound(wf=sound_mix_spec, sr=None))
+            elif hasattr(sound_mix_spec, 'wf'):
+                sound_mix_spec = dict(sound_mix_spec_default, sound=sound_mix_spec)
+            else:
+                sound_mix_spec = dict(sound_mix_spec_default, **sound_mix_spec)
+            sound_mix_spec['sound'] = sound_mix_spec['sound'].copy()  # to make sure the user doesn't overwrite it
+            sound_mix_spec['sound'].wf = ensure_mono(sound_mix_spec['sound'].wf)
+            return sound_mix_spec
+
+        if isinstance(sound_iterator, dict):
+            sound_iterator = sound_iterator.values()
+        sound_iterator = iter(sound_iterator)
+        # compute the weight factor. All input weights will be multiplied by this factor to avoid last sounds having
+        # more volume than the previous ones
+
+        # take the first sound as the sound to begin (and accumulate) with. As a result, the sr will be taken from there
+        sound_mix_spec = _mk_sound_mix_spec(sound_iterator.next())
+        result_sound = sound_mix_spec['sound'].copy()
+        result_sound.name = name
+        result_sound.info = {}  # we don't want to keep the first sound's info around
+        sounds_mixed_so_far = 1
+        try:
+            while True:
+                sound_mix_spec = _mk_sound_mix_spec(sound_iterator.next())
+                new_sound_sr = sound_mix_spec['sound'].sr
+                assert new_sound_sr is None or new_sound_sr == result_sound.sr, \
+                    "All sample rates must be the same to mix sounds: \n" \
+                    "   The first sound had sample rate {}, and the {}th one had sample rate{}".format(
+                        result_sound.sr, sounds_mixed_so_far + 1, new_sound_sr
+                    )
+                # divide weight by number of sounds mixed so far, to avoid last sounds having more volume
+                # than the previous ones
+                weight = sound_mix_spec['weight'] / sounds_mixed_so_far
+                # print(weight)
+                # offset the new sound
+                offset_length = ceil(sound_mix_spec.get('offset_s', 0) * new_sound_sr)
+                sound_mix_spec['sound'].wf = prefix_with_silence(sound_mix_spec['sound'].wf, offset_length)
+
+                # finally, mix these sounds
+                # print(pre_normalization_function(range(100)))
+                result_sound.mix_in(sound_mix_spec['sound'],
+                                    weight=weight,
+                                    pre_normalization_function=pre_normalization_function)
+
+                # increment the counter
+                sounds_mixed_so_far += 1
+
+        except StopIteration:
+            pass
+
+        return result_sound
+
     def save_to_wav(self, filepath=None, samplerate=None, **kwargs):
         samplerate = samplerate or self.sr
         filepath = filepath or (self.name + '.wav')
         sf.write(self.wf, file=filepath, samplerate=samplerate, **kwargs)
 
+    ####################################################################################################################
+    # TRANSFORMATIONS
+
+    def ensure_mono(self):
+        self.wf = ensure_mono(self.wf)
+
+    def resample(self, new_sr, inplace=False):
+        new_wf = resample_wf(self.wf, self.sr, new_sr)
+        if not inplace:
+            return Sound(wf=new_wf, sr=new_sr, name=self.name)
+        else:
+            self.wf = new_wf
+            self.sr = new_sr
+
+    def crop_with_idx(self, first_idx, last_idx):
+        cropped_sound = self.copy()
+        cropped_sound.wf = cropped_sound.wf[first_idx:(last_idx + 1)]
+        return cropped_sound
+
+    def crop_with_seconds(self, first_second, last_second):
+        return self.crop_with_idx(round(first_second * self.sr), round(last_second * self.sr))
+
+    def mix_in(self,
+               sound,
+               weight=1,
+               pre_normalization_function=lambda wf: wf / percentile(abs(wf), 95)):
+
+        # resample sound to match self, if necessary
+        if sound.sr != self.sr:
+            sound = sound.resample(new_sr=self.sr)
+        new_wf = sound.wf.copy()
+
+        # suffix the shortest sound with silence to match lengths
+        existing_sound_length = len(self.wf)
+        new_sound_length = len(new_wf)
+        length_difference = existing_sound_length - new_sound_length
+        if length_difference > 0:
+            new_wf = suffix_with_silence(new_wf, length_difference)
+        elif length_difference < 0:
+            self.wf = suffix_with_silence(self.wf, -length_difference)
+
+        # mix the new wf into self.wf
+        # print(pre_normalization_function(arange(100)))
+        self.wf = weighted_mean([pre_normalization_function(self.wf), 1],
+                                [pre_normalization_function(new_wf), weight])
+
+    ####################################################################################################################
+    # DISPLAY FUNCTIONS
+
     def plot_wf(self):
-        plot_wf(wf=self.wf, sr=self.sr)
+        plot_wf(wf=self.wf.copy(), sr=self.sr, alpha=0.8)
 
-    def copy(self):
-        return Sound(wf=self.wf.copy(), sr=self.sr, name=self.name)
-
-    def mix_in(self, sound, weight=1):
-        self.wf = weighted_mean([self.wf, 1], [sound.wf, weight])
+    def hear_sound(self, **kwargs):
+        print("{}".format(self.name))
+        wf = ensure_mono(self.wf)
+        wf[random.randint(len(wf))] *= 1.001  # hack to avoid having exactly the same sound twice (creates an Audio bug)
+        return Audio(data=wf, rate=self.sr, **kwargs)
 
     def display_sound(self, **kwargs):
-        print("{}".format(self.name))
         self.plot_wf()
-        return Audio(data=ensure_mono(self.wf), rate=self.sr, **kwargs)
+        return self.hear_sound(**kwargs)
 
     def melspectrogram(self, mel_kwargs={}):
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
@@ -323,9 +465,9 @@ class Sound(object):
         mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
         S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
         # Convert to log scale (dB). We'll use the peak power as reference.
-        log_S = librosa.logamplitude(S, ref_power=np.max)
+        log_S = librosa.logamplitude(S, ref_power=max)
         # Make a new figure
-        plt.figure(figsize=(12,4))
+        plt.figure(figsize=(12, 4))
         # Display the spectrogram on a mel scale
         # sample rate and hop length parameters are used to render the time axis
         librosa.display.specshow(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'],
@@ -336,11 +478,3 @@ class Sound(object):
         plt.colorbar(format='%+02.0f dB')
         # Make the figure layout compact
         plt.tight_layout()
-
-    def crop_with_idx(self, first_idx, last_idx):
-        cropped_sound = self.copy()
-        cropped_sound.wf = cropped_sound.wf[first_idx:(last_idx + 1)]
-        return cropped_sound
-
-    def crop_with_seconds(self, first_second, last_second):
-        return self.crop_with_idx(round(first_second * self.sr), round(last_second * self.sr))
