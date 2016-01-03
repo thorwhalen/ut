@@ -11,7 +11,7 @@ except ImportError as e:
     print(e)
 
 
-def multiple_dfs_to_multiple_sheets(df_list, xls_filepath, sheet_list=None):
+def multiple_dfs_to_multiple_sheets(df_list, xls_filepath, sheet_list=None, **kwargs):
     """
     Writes multiple dataframes in different excel sheets.
     Input:
@@ -25,7 +25,9 @@ def multiple_dfs_to_multiple_sheets(df_list, xls_filepath, sheet_list=None):
     """
     if sheet_list is None:
         if isinstance(df_list, dict):
-            df_list, sheet_list = zip(df_list.values(), df_list.keys())
+            # df_list, sheet_list = zip(df_list.values(), df_list.keys())
+            df_list, sheet_list = df_list.values(), df_list.keys()
+
         elif isinstance(df_list[0], tuple):
             sheet_list = map(lambda x: x[0], df_list)
             df_list = map(lambda x: x[1], df_list)
@@ -39,7 +41,7 @@ def multiple_dfs_to_multiple_sheets(df_list, xls_filepath, sheet_list=None):
 
     writer = ExcelWriter(xls_filepath)
     for df, sheet_name in zip(df_list, sheet_list):
-        df.to_excel(writer, sheet_name)
+        df.to_excel(writer, sheet_name, **kwargs)
 
     writer.save()
 

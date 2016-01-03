@@ -13,6 +13,7 @@ import argparse
 import plotly.plotly as py
 import plotly.graph_objs
 
+from requests.exceptions import ConnectionError
 
 def winner_normalizer(raw_probs):
     return raw_probs / raw_probs.max()
@@ -32,9 +33,16 @@ def _get_request_url(minutes=5,
 def _get_json_data(minutes=5,
                    ip='54.85.63.111:8083',
                    account='generic3@otosense.com',
-                   datatype='raw_probabilities'):
+                   datatype='raw_probabilities',
+                   num_of_connection_tries=20):
     request_string = _get_request_url(minutes=minutes, ip=ip, account=account, datatype=datatype)
-    response = requests.get(request_string)
+    for i in range(num_of_connection_tries):
+        try:
+            response = requests.get(request_string)
+            break
+        except ConnectionError:
+            pass  # just try again
+
     if response.ok:
         data = response.json().get('data')
         return data

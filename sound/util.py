@@ -23,6 +23,20 @@ from ut.util.pfunc import filter_kwargs_to_func_arguments
 wav_text_info_exp = re.compile("^.*WAVEbextZ\x03\x00\x00([^\x00]+)")
 
 
+def complete_sref(sref):
+    """
+    Complete sref dict with missing fields, if any
+    """
+    sref = dict({'offset_s': 0.0}, **sref)
+    if 'duration' not in sref.keys():
+        if is_wav_file(sref['filepath']):
+            sref['duration'] = get_duration_of_wav_file(sref['filepath'])
+        else:
+            sound = Sound.from_file(sref['filepath'])
+            sref['duration'] = duration_of_wf_and_sr(sound.wf, sound.sr) - sref['offset_s']
+    return sref
+
+
 def sound_file_info_dict(filepath):
     filename = os.path.basename(filepath)
     (shortname, extension) = os.path.splitext(filename)
@@ -46,6 +60,11 @@ def sound_file_info_dict(filepath):
     return d
 
 
+def get_duration_of_wav_file(filepath):
+    with contextlib.closing(wave.open(filepath, 'r')) as f:
+        return f.getnframes() / f.getframerate()
+
+
 def is_mono(wf):
     return len(shape(wf)) == 1
 
@@ -59,7 +78,8 @@ def ensure_mono(wf):
 
 
 def resample_wf(wf, sr, new_sr):
-    return scipy_signal_resample(wf, num=round(len(wf) * new_sr / sr))
+    # return round(len(wf) * new_sr / sr)
+    return scipy_signal_resample(wf, num=int(round(len(wf) * new_sr / sr)))
 
 
 def suffix_with_silence(wf, num_silence_pts):
@@ -198,19 +218,25 @@ def wav_file_framerate(file_pointer_or_path):
 
 
 def wf_and_sr_from_filepath(filepath, **kwargs):
-    kwargs = dict({'always_2d': False}, **kwargs)
-    must_ensure_mono = kwargs.get('ensure_mono', False)
 
-    if 'offset_s' in kwargs.keys() or 'duration' in kwargs.keys():
-        sample_rate = wave.Wave_read(filepath).getframerate()
-        start = int(round(kwargs.pop('offset_s', 0) * sample_rate))
-        kwargs['start'] = start
-        duration = kwargs.pop('duration', None)
-        if duration is not None:
-            kwargs['stop'] = int(start + round(duration * sample_rate))
+    must_ensure_mono = kwargs.pop('ensure_mono', True)
 
-    kwargs = filter_kwargs_to_func_arguments(sf.read, kwargs)
-    wf, sr = sf.read(filepath, **kwargs)
+    if is_wav_file(filepath):
+        kwargs = dict({'always_2d': False}, **kwargs)
+        if 'offset_s' in kwargs.keys() or 'duration' in kwargs.keys():
+            sample_rate = wave.Wave_read(filepath).getframerate()
+            start = int(round(kwargs.pop('offset_s', 0) * sample_rate))
+            kwargs['start'] = start
+            duration = kwargs.pop('duration', None)
+            if duration is not None:
+                kwargs['stop'] = int(start + round(duration * sample_rate))
+
+        kwargs = filter_kwargs_to_func_arguments(sf.read, kwargs)
+        wf, sr = sf.read(filepath, **kwargs)
+    else:
+        kwargs['offset'] = kwargs.pop('offset_s', 0.0)
+        wf, sr = librosa.load(filepath, **kwargs)
+
     if must_ensure_mono:
         wf = ensure_mono(wf)
     return wf, sr
@@ -290,9 +316,12 @@ class Sound(object):
     def from_file(cls, filepath, name=None, **kwargs):
         file_name, extension = os.path.splitext((os.path.basename(filepath)))
         name = name or file_name
-        kwargs = dict({'always_2d': False}, **kwargs)
+        # kwargs = dict({'always_2d': False, 'ensure_mono': True}, **kwargs)
 
         wf, sr = wf_and_sr_from_filepath(filepath, **kwargs)
+
+        if name is None:
+            name = filepath
 
         sound = Sound(wf=wf, sr=sr, name=name)
 
@@ -314,19 +343,31 @@ class Sound(object):
 
         return sound
 
+    @classmethod
+    def from_sref(cls, sref):
+        wf, sr = wf_and_sr_from_filepath(**complete_sref(sref))
+        # filepath = sref['filepath']
+        # sample_rate = wave.Wave_read(sref['filepath']).getframerate()
+        # start = int(round(sref.get('offset_s', 0) * sample_rate))
+        # duration = sref.get('duration', None)
+        # kwargs = {}
+        # if duration is not None:
+        #     kwargs = {'stop': int(start + round(duration * sample_rate))}
+        # wf, sr = sf.read(filepath, always_2d=False, start=start, **kwargs)
+        return Sound(wf, sr, name=sref.get('name', sref['filepath']))
 
     @classmethod
-    def from_sound_iterator(cls,
-                            sound_iterator,
-                            name='from_sound_iterator',
+    def from_sound_mix_spec(cls,
+                            sound_mix_spec,
+                            name='from_sound_mix_spec',
                             pre_normalization_function=lambda wf: wf / percentile(abs(wf), 95)):
         """
-        Mix all sounds specified in the sound_iterator.
+        Mix all sounds specified in the sound_mix_spec.
 
-        A sound iterator yields either of these formats:
+        A sound_mix_spec is an iterator that yields either of these formats:
             * a wave form
             * a Sound object
-            * a {sound, offset_s, weight} dict indicating
+            * (This is the complete specification) a {sound, offset_s, weight} dict indicating
                 offset_s (default 0 seconds): where the sound should be inserted
                 weight (default 1): a weight, relative to the other sounds in the iterator, indicating whether the
                 "volume" should be increased or decreased before mixing the sound
@@ -334,53 +375,78 @@ class Sound(object):
         Note: All wave forms are normalized before being multiplied by the given weight. The normalization function is
         given by the pre_normalization_function argument (default is no normalization)
 
-        Note: It is assumed that all sounds in the sound_iterator have the same sample rate
+        Note: If some of the sounds in the sound_mix_spec have different sample rates, they will be resampled to the
+        sample rate of the first sound encountered. This process requires (not so fast) fast fourrier transform,
+        so better have the same sample rate.
         """
 
-        def _mk_sound_mix_spec(sound_mix_spec):
+        def _mk_sound_mix_spec(_sound_mix_spec):
             sound_mix_spec_default = dict(sound=None, offset_s=0, weight=1)
-            if isinstance(sound_mix_spec, ndarray):
-                sound_mix_spec = dict(sound_mix_spec_default, sound=Sound(wf=sound_mix_spec, sr=None))
-            elif hasattr(sound_mix_spec, 'wf'):
-                sound_mix_spec = dict(sound_mix_spec_default, sound=sound_mix_spec)
+            _sound_mix_spec = _sound_mix_spec.copy()
+            if isinstance(_sound_mix_spec, dict):  # if sound_mix_spec is a dict...
+                if 'filepath' in _sound_mix_spec.keys():  # ... and it has a 'filepath' key...
+                    sref = _sound_mix_spec  # ... assume it's an sref...
+                    sound = Sound.from_sref(sref) # ... and get the sound from it, and make an actual sound_mix_spec
+                    _sound_mix_spec = dict(sound_mix_spec_default, sound=sound)
+                else:  # If it's not an sref...
+                    sound = _sound_mix_spec['sound']  # ... assume it has a sound key
+                    if isinstance(sound, dict):  # and if that "sound" is an sref, replace it by a actual sound object
+                        _sound_mix_spec['sound'] = Sound.from_sref(_sound_mix_spec['sound'])
+                        _sound_mix_spec = dict(sound_mix_spec_default, **_sound_mix_spec)
+            elif isinstance(_sound_mix_spec, ndarray):
+                _sound_mix_spec = dict(sound_mix_spec_default, sound=Sound(wf=_sound_mix_spec, sr=None))
+            elif hasattr(_sound_mix_spec, 'wf'):
+                _sound_mix_spec = dict(sound_mix_spec_default, sound=_sound_mix_spec)
             else:
-                sound_mix_spec = dict(sound_mix_spec_default, **sound_mix_spec)
-            sound_mix_spec['sound'] = sound_mix_spec['sound'].copy()  # to make sure the user doesn't overwrite it
-            sound_mix_spec['sound'].wf = ensure_mono(sound_mix_spec['sound'].wf)
-            return sound_mix_spec
+                _sound_mix_spec = dict(sound_mix_spec_default, **_sound_mix_spec)
+            _sound_mix_spec['sound'] = _sound_mix_spec['sound'].copy()  # to make sure the we don't overwrite it in manip
+            _sound_mix_spec['sound'].wf = ensure_mono(_sound_mix_spec['sound'].wf)
+            # print(sound_mix_spec)
+            return _sound_mix_spec
 
-        if isinstance(sound_iterator, dict):
-            sound_iterator = sound_iterator.values()
-        sound_iterator = iter(sound_iterator)
+        # if the sound_iterator is a dict, take its values (ignore the keys)
+        if isinstance(sound_mix_spec, dict):
+            sound_mix_spec = sound_mix_spec.values()
+        sound_mix_spec = iter(sound_mix_spec)
         # compute the weight factor. All input weights will be multiplied by this factor to avoid last sounds having
         # more volume than the previous ones
 
         # take the first sound as the sound to begin (and accumulate) with. As a result, the sr will be taken from there
-        sound_mix_spec = _mk_sound_mix_spec(sound_iterator.next())
-        result_sound = sound_mix_spec['sound'].copy()
+        spec = _mk_sound_mix_spec(sound_mix_spec.next())
+        result_sound = spec['sound']
+        result_sound_sr = result_sound.sr  # will be the final sr, and all other sounds will be resampled to it
         result_sound.name = name
         result_sound.info = {}  # we don't want to keep the first sound's info around
+        # offset the sound by required amount
+        offset_length = ceil(spec.get('offset_s', 0) * result_sound_sr)
+        result_sound.wf = prefix_with_silence(result_sound.wf, offset_length)
+
+        # all subsequent weights should be multiplied by a weight_factor,
+        # since the accumulating sound is considered to be of unit weight in the Sound.mix_in() method:
+        weight_factor = 1 / spec.get('weight', 1.0)
+        # initialize sound counter
         sounds_mixed_so_far = 1
         try:
             while True:
-                sound_mix_spec = _mk_sound_mix_spec(sound_iterator.next())
-                new_sound_sr = sound_mix_spec['sound'].sr
-                assert new_sound_sr is None or new_sound_sr == result_sound.sr, \
-                    "All sample rates must be the same to mix sounds: \n" \
-                    "   The first sound had sample rate {}, and the {}th one had sample rate{}".format(
-                        result_sound.sr, sounds_mixed_so_far + 1, new_sound_sr
-                    )
+                spec = _mk_sound_mix_spec(sound_mix_spec.next())
+
+                # resample sound to match self, if necessary
+                #    (mix_in() method does it, but better do it before,
+                #       because we're probably going to prefix this sound with silence, so it'll be longer)
+                if spec['sound'].sr != result_sound.sr:
+                    spec['sound'] = spec['sound'].resample(new_sr=result_sound.sr)
+
                 # divide weight by number of sounds mixed so far, to avoid last sounds having more volume
                 # than the previous ones
-                weight = sound_mix_spec['weight'] / sounds_mixed_so_far
+                weight = weight_factor * spec['weight'] / sounds_mixed_so_far
                 # print(weight)
                 # offset the new sound
-                offset_length = ceil(sound_mix_spec.get('offset_s', 0) * new_sound_sr)
-                sound_mix_spec['sound'].wf = prefix_with_silence(sound_mix_spec['sound'].wf, offset_length)
+                # print sound_mix_spec['sound_tag'], sound_mix_spec.get('offset_s')
+                offset_length = ceil(spec.get('offset_s', 0) * result_sound_sr)
+                spec['sound'].wf = prefix_with_silence(spec['sound'].wf, offset_length)
 
                 # finally, mix these sounds
-                # print(pre_normalization_function(range(100)))
-                result_sound.mix_in(sound_mix_spec['sound'],
+                result_sound.mix_in(spec['sound'],
                                     weight=weight,
                                     pre_normalization_function=pre_normalization_function)
 
@@ -478,3 +544,8 @@ class Sound(object):
         plt.colorbar(format='%+02.0f dB')
         # Make the figure layout compact
         plt.tight_layout()
+
+    ####################################################################################################################
+    # MISC
+    def duration(self):
+        return duration_of_wf_and_sr(self.wf, self.sr)

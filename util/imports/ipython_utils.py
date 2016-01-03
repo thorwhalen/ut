@@ -49,7 +49,6 @@ class PPR(object):
     def pprint(cls, x):
         cls.pretty_printer.pprint(x)
 
-
     @classmethod
     def pjson(cls, x):
         print json.dumps(x, indent=cls.indent)
