@@ -163,6 +163,9 @@ class Pot(object):
         else:
             TypeError('Unknown item type')
 
+    def __truediv__(self, item):
+        return self.__div__(item)
+
     def assimilate(self, pot):
         """
         Assimilate information given by input pot (returning the result).

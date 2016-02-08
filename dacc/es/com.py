@@ -19,7 +19,7 @@ from ut.util.uiter import print_iter_progress
 
 class ElasticCom(object):
 
-    def __init__(self, index, doc_type, hosts='localhost:9200', **kwargs):
+    def __init__(self, index, doc_type=None, hosts='localhost:9200', **kwargs):
         self.index = index
         self.doc_type = doc_type
         self.es = Elasticsearch(hosts=hosts, **kwargs)
@@ -27,6 +27,37 @@ class ElasticCom(object):
     def search(self, *args, **kwargs):
         kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
         return self.es.search(*args, **kwargs)
+
+    def scan_extractor(self, query=None, extractor=None, get_item=None, print_progress_every=None, *args, **kwargs):
+        """
+        Returns an iterator that yields the _source field of scan results one at a time
+        """
+        kwargs['index'] = kwargs.get('index', self.index)
+        kwargs['doc_type'] = kwargs.get('doc_type', self.doc_type)
+        start = kwargs.pop('start', None)
+        stop = kwargs.pop('stop', None)
+        scroll = kwargs.pop('scroll', '10m')
+        scanner = scan(self.es, query=query, scroll=scroll, *args, **kwargs)
+        if stop is not None:
+            scanner = islice(scan(self.es, query=query, scroll=scroll, *args, **kwargs), start, stop)
+
+        if get_item is None:
+            get_item = '_source'
+        # elif isinstance(get_item, basestring):
+        #     get_item = lambda x:
+
+        if extractor is None:
+            if print_progress_every is None:
+                return imap(lambda x: x[get_item], scanner)
+            else:
+                return print_iter_progress(imap(lambda x: x[get_item], scanner),
+                                           print_progress_every=print_progress_every)
+        else:
+            if print_progress_every is None:
+                return imap(lambda x: extractor(x[get_item]), scanner)
+            else:
+                return print_iter_progress(imap(lambda x: extractor(x[get_item]), scanner),
+                                           print_progress_every=print_progress_every)
 
     def source_scan_iterator(self, extractor=None, print_progress_every=None, *args, **kwargs):
         """

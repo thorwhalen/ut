@@ -15,7 +15,7 @@ import itertools
 from numpy import mod
 from datetime import datetime
 from itertools import islice, chain, imap, combinations
-
+from operator import itemgetter
 
 def print_iter_progress(iterator,
                    print_progress_every=None,
@@ -202,9 +202,14 @@ def powerset(iterable):
 
 
 def unique_everseen(iterable, key=None):
-    "List unique elements, preserving order. Remember all elements ever seen."
-    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
-    # unique_everseen('ABBCcAD', string.lower) --> A B C D
+    """
+    List unique elements, preserving order. Remember all elements ever seen.
+    >>> list(unique_everseen('AAAABBBCCDAABBB'))
+    ['A', 'B', 'C', 'D']
+    >>> import string
+    >>> list(unique_everseen('ABBCcAD', string.lower))
+    ['A', 'B', 'C', 'D']
+    """
     seen = set()
     seen_add = seen.add
     if key is None:
@@ -220,10 +225,15 @@ def unique_everseen(iterable, key=None):
 
 
 def unique_justseen(iterable, key=None):
-    "List unique elements, preserving order. Remember only the element just seen."
-    # unique_justseen('AAAABBBCCDAABBB') --> A B C D A B
-    # unique_justseen('ABBCcAD', string.lower) --> A B C A D
-    return imap(next, imap(itertools.itemgetter(1), itertools.groupby(iterable, key)))
+    """
+    List unique elements, preserving order. Remember only the element just seen.
+    >>> list(unique_justseen('AAAABBBCCDAABBB'))
+    ['A', 'B', 'C', 'D', 'A', 'B']
+    >>> import string
+    >>> list(unique_justseen('ABBCcAD', string.lower))
+    ['A', 'B', 'C', 'A', 'D']
+    """
+    return imap(next, imap(itemgetter(1), itertools.groupby(iterable, key)))
 
 
 def iter_except(func, exception, first=None):
