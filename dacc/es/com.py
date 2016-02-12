@@ -158,10 +158,16 @@ class ElasticCom(object):
 
         return df
 
+    def get_doc_types(self):
+        mapping = self.es.indices.get_mapping(index=self.index)
+        return mapping[self.index]['mappings'].keys()
+
     def get_fields_mapping_info(self):
         mapping = self.es.indices.get_mapping(index=self.index, doc_type=self.doc_type)
-        mapping = mapping[self.index]['mappings'][self.doc_type]['properties']
-        return mapping
+        if self.doc_type is None:
+            return mapping[self.index]['mappings']
+        else:
+            return mapping[self.index]['mappings'][self.doc_type]['properties']
 
     def insert(self, d, overwrite=False, **kwargs):
         doc_id = str(d.pop('_id'))

@@ -16,4 +16,7 @@ class RDD(object):
     def array(self):
         return sto.np_array(self.rdd)
 
+    def iterate(self):
+        return self.rdd.toLocalIterator()
+
 
