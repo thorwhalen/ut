@@ -11,11 +11,14 @@ from collections import defaultdict
 
 from pymongo import MongoClient
 import pandas as pd
-from itertools import imap, islice
+from itertools import imap, islice, chain
 
 from ut.pdict.manip import rollout
 from ut.util.log import printProgress
 from ut.util.uiter import print_iter_progress
+import ut.dacc.es.queries as es_queries
+import ut.dacc.es.get as es_get
+
 
 class ElasticCom(object):
 
@@ -24,44 +27,80 @@ class ElasticCom(object):
         self.doc_type = doc_type
         self.es = Elasticsearch(hosts=hosts, **kwargs)
 
+    def count(self, *args, **kwargs):
+        kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
+        return self.es.count(*args, **kwargs)['count']
+
     def search(self, *args, **kwargs):
         kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
         return self.es.search(*args, **kwargs)
 
-    def scan_extractor(self, query=None, extractor=None, get_item=None, print_progress_every=None, *args, **kwargs):
+    def sample_with_arithmetic_seq(self, sample_size, initial_idx=None, **kwargs):
         """
-        Returns an iterator that yields the _source field of scan results one at a time
+        Selects docs indexed by an arithmetic sequence (initial_idx + i * step) where step is chosen in order to make
+        the coverage of the arithmetic sequence maximal.
+        """
+        ndocs = self.count()
+        step = int((ndocs - initial_idx) / sample_size)
+        initial_idx = initial_idx or int((ndocs - sample_size * step) / 2)  # choose initial_idx (if not given) so it ~=end
+        end = initial_idx + sample_size * step
+        return islice(self.scan_extractor(**kwargs), initial_idx, end, step)
+
+    def sample_based_on_random_field_val(self, n_rand_picks=10, rand_field='timestamp',
+                                        rand_batch_size=1, *args, **kwargs):
+        UserWarning("sample_based_on_random_field_val has not been verified and may have bugs")
+        min_random_field_val, max_random_field_val = es_get.min_and_max_of_field(self, field=rand_field)
+        range = max_random_field_val - min_random_field_val
+
+        body = kwargs.get('body', {})
+
+        def mk_rand_body():
+            gte = min_random_field_val + np.random.rand() * range
+            gte_body = es_queries.field_gte(field=rand_field, gte=gte)
+            body['query'] = gte_body['query']
+            # print(body)
+            return body
+
+        return chain(*imap(lambda x: self.search_and_export_to_dict(body=mk_rand_body(),
+                                                                   size=rand_batch_size,
+                                                                   *args, **kwargs),
+                          xrange(n_rand_picks)))
+
+    def scan_extractor(self, query=None, extractor=None, get_item='_source', print_progress_every=None, *args, **kwargs):
+        """
+        Returns an iterator that yields a function (the extractor) of the get_item field of scan results one at a time.
         """
         kwargs['index'] = kwargs.get('index', self.index)
         kwargs['doc_type'] = kwargs.get('doc_type', self.doc_type)
         start = kwargs.pop('start', None)
         stop = kwargs.pop('stop', None)
         scroll = kwargs.pop('scroll', '10m')
-        scanner = scan(self.es, query=query, scroll=scroll, *args, **kwargs)
-        if stop is not None:
-            scanner = islice(scan(self.es, query=query, scroll=scroll, *args, **kwargs), start, stop)
 
-        if get_item is None:
-            get_item = '_source'
-        # elif isinstance(get_item, basestring):
-        #     get_item = lambda x:
+        if start is not None or stop is not None:
+            start = start or 0
+            scanner = islice(scan(self.es, query=query, scroll=scroll, *args, **kwargs), start, stop)
+        else:
+            scanner = scan(self.es, query=query, scroll=scroll, *args, **kwargs)
 
         if extractor is None:
-            if print_progress_every is None:
-                return imap(lambda x: x[get_item], scanner)
+            if get_item is None:
+                extractor_ = lambda x: x
             else:
-                return print_iter_progress(imap(lambda x: x[get_item], scanner),
-                                           print_progress_every=print_progress_every)
+                extractor_ = lambda x: x[get_item]
         else:
-            if print_progress_every is None:
-                return imap(lambda x: extractor(x[get_item]), scanner)
+            if get_item is None:
+                extractor_ = lambda x: extractor(x)
             else:
-                return print_iter_progress(imap(lambda x: extractor(x[get_item]), scanner),
-                                           print_progress_every=print_progress_every)
+                extractor_ = lambda x: extractor(x[get_item])
+
+        if print_progress_every is None:
+            return imap(extractor_, scanner)
+        else:
+            return print_iter_progress(imap(extractor_, scanner), print_progress_every=print_progress_every)
 
     def source_scan_iterator(self, extractor=None, print_progress_every=None, *args, **kwargs):
         """
-        Returns an iterator that yields the _source field of scan results one at a time
+        Returns an iterator that yields a function (the extractor) of the _source field of scan results one at a time.
         """
         kwargs['index'] = kwargs.get('index', self.index)
         kwargs['doc_type'] = kwargs.get('doc_type', self.doc_type)

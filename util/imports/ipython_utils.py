@@ -77,7 +77,7 @@ def ppr(x):
 
 def see_linked_header(text, level=0, link_to_sections=None, indent_size=3):
     if link_to_sections is None:
-        if level <= 1:
+        if level <= 3:
             link_to_sections = True
         else:
             link_to_sections = False
