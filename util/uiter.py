@@ -17,9 +17,10 @@ from datetime import datetime
 from itertools import islice, chain, imap, combinations
 from operator import itemgetter
 
+
 def print_iter_progress(iterator,
                    print_progress_every=None,
-                   header_template="{hour:.0f}:{minute:.0f}:{second:.0f} - {iteration} iteration ",
+                   header_template="{hour:.0f}:{minute:.0f}:{second:.0f} - iteration {iteration}",
                    data_msg_intro_str="",
                    data_to_string=None):
     """
@@ -29,26 +30,27 @@ def print_iter_progress(iterator,
     header of print string can be specified through header_template
     data information can be printed too through data_msg_intro_str and data_to_string (a function) specifications
 
-    Examples:
+    Examples (but the doctest won't work, since time will be different):
 
     >>> for x in print_iter_progress(xrange(50), print_progress_every=10):
-    >>>     pass
-    19:39:59 - 0 iteration
-    19:39:59 - 10 iteration
-    19:39:59 - 20 iteration
-    19:39:59 - 30 iteration
-    19:39:59 - 40 iteration
+    ...     pass
+    ...
+    9:30:5 - iteration 0
+    9:30:5 - iteration 10
+    9:30:5 - iteration 20
+    9:30:5 - iteration 30
+    9:30:5 - iteration 40
 
     >>> for x in print_iter_progress(xrange(50),
-    >>>                          print_progress_every=15,
-    >>>                          data_msg_intro_str="data times two is: {data_str}",
-    >>>                          data_to_string=lambda x: x * 2):
-    >>>     pass
-
-    19:43:42 - 0 iteration data times two is: 0
-    19:43:42 - 15 iteration data times two is: 30
-    19:43:42 - 30 iteration data times two is: 60
-    19:43:42 - 45 iteration data times two is: 90
+    ...     print_progress_every=15,
+    ...     data_msg_intro_str="data times two is: {data_str}",
+    ...     data_to_string=lambda x: x * 2):
+    ...     pass
+    ...
+    9:30:55 - iteration 0data times two is: 0
+    9:30:55 - iteration 15data times two is: 30
+    9:30:55 - iteration 30data times two is: 60
+    9:30:55 - iteration 45data times two is: 90
     """
     if print_progress_every is None:
         for x in iterator:
