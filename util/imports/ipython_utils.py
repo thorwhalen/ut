@@ -2,6 +2,7 @@ __author__ = 'thor'
 
 
 print '''
+Remember to use these useful utils:
     printProgress
     numof_trues
     ppr
@@ -12,6 +13,7 @@ import re
 import pandas as pd
 import numpy as np
 from numpy import *
+from collections import Counter, defaultdict
 
 import ut.daf.ch
 import ut.daf.manip

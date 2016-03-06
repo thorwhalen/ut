@@ -4,6 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
+
 def force_axis_to_contain(axis=None, num=0):
     """
     changes axis limits so that it will contain num
@@ -48,8 +49,6 @@ def _to_percent(y, position=None):
         return s + r'$\%$'
     else:
         return s + '%'
-
-
 
 
 def _get_axis_axis(axis=None, axis_obj=None):

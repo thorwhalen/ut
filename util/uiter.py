@@ -1,3 +1,4 @@
+from __future__ import division
 import itertools
 
 # These are itertools recipes taken from https://docs.python.org/2/library/itertools.html#recipes
@@ -16,6 +17,7 @@ from numpy import mod
 from datetime import datetime
 from itertools import islice, chain, imap, combinations
 from operator import itemgetter
+import operator
 
 
 def print_iter_progress(iterator,
@@ -66,6 +68,18 @@ def print_iter_progress(iterator,
                     print(print_template.format(hour=t.hour, minute=t.minute, second=t.second, iteration=i,
                                                 data_str=data_to_string(x)))
             yield x
+
+
+def accumulate(iterable, func=operator.add):
+    'Return running totals'
+    # accumulate([1,2,3,4,5]) --> 1 3 6 10 15
+    # accumulate([1,2,3,4,5], operator.mul) --> 1 2 6 24 120
+    it = iter(iterable)
+    total = next(it)
+    yield total
+    for element in it:
+        total = func(total, element)
+        yield total
 
 
 def window(seq, n=2):
