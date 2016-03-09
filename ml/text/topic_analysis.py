@@ -23,10 +23,13 @@ class TopicExplorer(object):
             self.word_preprocessor = lambda x: x
         else:
             self.word_preprocessor = word_preprocessor
+
+        # some features might have empty names: Replace them with replace_empty_feature_with
         if replace_empty_feature_with is not None:
             lidx = array(self.feature_names) == ''
             if any(lidx):
                 self.feature_names[lidx] = replace_empty_feature_with
+
         self.topic_model = topic_model
         self.wordcloud_params = wordcloud_params
         self.word_art_params = word_art_params
@@ -35,7 +38,7 @@ class TopicExplorer(object):
         topic_components = self.topic_model.components_
         if topic_weight_normalization is not None:
             if isinstance(topic_weight_normalization, basestring):
-                if topic_weight_normalization == 'tf_gfidf':
+                if topic_weight_normalization == 'tf_normal':
 
                     def topic_weight_normalization(topic_components):
                         topic_components /= topic_components.sum(axis=1)[:, None]
@@ -60,10 +63,10 @@ class TopicExplorer(object):
         for h in h_list:
             self.topic_color.append("hsl({}, 100%, 50%)".format(h))
 
-    def topic_weights(self, urls):
-        if isinstance(urls, basestring):
-            urls = [urls]
-        return self.topic_model.transform(self.url_vectorizer.transform(urls))
+    def topic_weights(self, text_collection):
+        if isinstance(text_collection, basestring):
+            urls = [text_collection]
+        return self.topic_model.transform(self.url_vectorizer.transform(text_collection))
 
     def topic_word_art(self, topic_idx=None, n_words=20, save_file=None, color_func=None,
                        random_state=1, fig_row_size=16, **kwargs):

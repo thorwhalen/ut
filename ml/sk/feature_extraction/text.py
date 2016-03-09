@@ -17,6 +17,7 @@ word_inclusion_pattern = re.compile("\w+")
 path_inclusion_pattern = re.compile("[^/]+")
 url_extension_pattern = re.compile("\.\w+$")
 
+
 class TreeTokenizer(BaseEstimator, TransformerMixin):
     """
     A tokenizer that is the result of multiple different tokenizers that might either all be applied to the
