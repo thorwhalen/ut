@@ -27,6 +27,10 @@ class ElasticCom(object):
         self.doc_type = doc_type
         self.es = Elasticsearch(hosts=hosts, **kwargs)
 
+    @property
+    def _index_and_doc_type(self):
+        return {'index': self.index, 'doc_type': self.doc_type}
+
     def count(self, *args, **kwargs):
         kwargs = dict({'index': self.index, 'doc_type': self.doc_type}, **kwargs)
         return self.es.count(*args, **kwargs)['count']

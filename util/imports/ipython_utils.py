@@ -1,5 +1,5 @@
+from __future__ import division
 __author__ = 'thor'
-
 
 print '''
 Remember to use these useful utils:

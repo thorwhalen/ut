@@ -1,5 +1,5 @@
+from __future__ import division
 __author__ = 'thor'
-
 
 print '''
     disp_html (but careful! save before use)
