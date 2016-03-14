@@ -1,10 +1,68 @@
 __author__ = 'thor'
 
+from numpy import *
 import numpy as np
 import librosa
+from sklearn.base import BaseEstimator, TransformerMixin
+
 from ut.sound.util import Sound
-from numpy import *
 import matplotlib.pyplot as plt
+
+from sklearn.decomposition import IncrementalPCA
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+
+class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
+    """
+    Transforms sound waves to eigen decomposition of the log of the melspectrogram minus the log of the amplitude sums
+    (the columns of the melspectrogram) enhanced with the differential of the log of the amplitude array.
+
+    The idea is to normalize the melspectrogram columns by the amplitude, so to reduce non-meaningful spectrogram
+    variation, but keeping the sequence of amplitude around (because in itself, it carries a lot of meaning).
+
+    An (incremental) decomposition of the matrix formed from the normalized log10 melspectrogram will be fit,
+    and the fit will also learn the mean and variance of the diff of the amplitude sequence (which also carries meaning)
+    """
+    def __init__(self, spectr_decomp=IncrementalPCA(),
+                 amp_diff_scaler=StandardScaler(),
+                 mel_kwargs={'n_fft': 2048, 'hop_length': 512, 'n_mels': 128},
+                 min_amp=1e-10):
+        self.spectr_decomp = spectr_decomp
+        self.amp_diff_scaler = amp_diff_scaler
+        self.mel_kwargs = mel_kwargs
+        self.min_amp = min_amp
+        self.log10_min_amp = log10(min_amp)
+
+    def melspectrogram(self, wf, sr):
+        return librosa.feature.melspectrogram(wf, sr=sr, **self.mel_kwargs)
+
+    def deamplituded_mel(self, mel_spectrogram):
+        mel_spectrogram = np.maximum(mel_spectrogram, self.min_amp)
+        amplitude_seq = log10(np.sum(mel_spectrogram, axis=0))
+        return log10(mel_spectrogram) - amplitude_seq, diff(amplitude_seq)
+
+    def partial_fit(self, X, y=None):
+        _deamplituded_mel, diff_amplitude_seq = self.deamplituded_mel(X)
+        self.spectr_decomp.partial_fit(_deamplituded_mel.T)
+        self.amp_diff_scaler.partial_fit(diff_amplitude_seq.reshape(-1, 1))
+        return self
+
+    def wf_partial_fit(self, wf, sr):
+        return self.partial_fit(self.melspectrogram(wf, sr))
+
+    def transform(self, X):
+        _deamplituded_mel, diff_amplitude_seq = self.deamplituded_mel(X)
+        return np.hstack(
+            (
+                self.amp_diff_scaler.transform(np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1)))),
+                self.spectr_decomp.transform(_deamplituded_mel.T)
+            )
+        )
+
+    def wf_transform(self, wf, sr):
+        return self.transform(self.melspectrogram(wf, sr))
+
+
 
 
 class EigenSound(object):

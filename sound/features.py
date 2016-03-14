@@ -24,3 +24,4 @@ def _moving_sum(a, window_size):
     ret = cumsum(a, dtype=float)
     ret[window_size:] = ret[window_size:] - ret[:-window_size]
     return ret[window_size - 1:]
+

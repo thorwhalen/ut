@@ -3,6 +3,7 @@ __author__ = 'thor'
 
 
 from numpy import *
+import numpy as np
 import os
 import re
 import librosa
@@ -531,7 +532,7 @@ class Sound(object):
         mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
         S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
         # Convert to log scale (dB). We'll use the peak power as reference.
-        log_S = librosa.logamplitude(S, ref_power=max)
+        log_S = librosa.logamplitude(S, ref_power=np.max)
         # Make a new figure
         plt.figure(figsize=(12, 4))
         # Display the spectrogram on a mel scale
@@ -544,6 +545,16 @@ class Sound(object):
         plt.colorbar(format='%+02.0f dB')
         # Make the figure layout compact
         plt.tight_layout()
+
+    def specshow(self, data, hop_length=512, x_axis=None, y_axis=None,
+                 n_xticks=5, n_yticks=5, fmin=None, fmax=None, bins_per_octave=12,
+                 tmin=16, tmax=240, freq_fmt='Hz', time_fmt=None, **kwargs):
+
+        return librosa.display.specshow(
+            data, sr=self.sr, hop_length=hop_length, x_axis=x_axis, y_axis=y_axis,
+            n_xticks=n_xticks, n_yticks=n_yticks, fmin=fmin, fmax=fmax, bins_per_octave=bins_per_octave,
+            tmin=tmin, tmax=tmax, freq_fmt=freq_fmt, time_fmt=time_fmt, **kwargs
+        )
 
     ####################################################################################################################
     # MISC
