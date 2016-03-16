@@ -526,29 +526,34 @@ class Sound(object):
         self.plot_wf()
         return self.hear_sound(**kwargs)
 
-    def melspectrogram(self, mel_kwargs={}):
+    def melspectrogram(self, mel_kwargs={}, plot_it=True):
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         # We use a small hop length of 64 here so that the frames line up with the beat tracker example below.
         mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
         S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
         # Convert to log scale (dB). We'll use the peak power as reference.
         log_S = librosa.logamplitude(S, ref_power=np.max)
-        # Make a new figure
-        plt.figure(figsize=(12, 4))
-        # Display the spectrogram on a mel scale
-        # sample rate and hop length parameters are used to render the time axis
-        librosa.display.specshow(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'],
-                                 x_axis='time', y_axis='mel')
-        # Put a descriptive title on the plot
-        plt.title('mel power spectrogram of "%s"' % self.name)
-        # draw a color bar
-        plt.colorbar(format='%+02.0f dB')
-        # Make the figure layout compact
-        plt.tight_layout()
+        if plot_it:
+            # Make a new figure
+            plt.figure(figsize=(12, 4))
+            # Display the spectrogram on a mel scale
+            # sample rate and hop length parameters are used to render the time axis
+            librosa.display.specshow(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'],
+                                     x_axis='time', y_axis='mel')
+            # Put a descriptive title on the plot
+            plt.title('mel power spectrogram of "%s"' % self.name)
+            # draw a color bar
+            plt.colorbar(format='%+02.0f dB')
+            # Make the figure layout compact
+            plt.tight_layout()
+        return log_S
 
-    def specshow(self, data, hop_length=512, x_axis=None, y_axis=None,
+    def specshow(self, data=None, hop_length=512, x_axis=None, y_axis=None,
                  n_xticks=5, n_yticks=5, fmin=None, fmax=None, bins_per_octave=12,
                  tmin=16, tmax=240, freq_fmt='Hz', time_fmt=None, **kwargs):
+
+        if data is None:
+            data = self.melspectrogram(plot_it=False)
 
         return librosa.display.specshow(
             data, sr=self.sr, hop_length=hop_length, x_axis=x_axis, y_axis=y_axis,
@@ -560,3 +565,9 @@ class Sound(object):
     # MISC
     def duration(self):
         return duration_of_wf_and_sr(self.wf, self.sr)
+
+    def wf_sr_dict(self):
+        return {'wf': self.wf, 'sr': self.sr}
+
+    def wf_sr_tuple(self):
+        return self.wf, self.sr

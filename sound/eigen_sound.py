@@ -53,15 +53,44 @@ class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
     def transform(self, X):
         _deamplituded_mel, diff_amplitude_seq = self.deamplituded_mel(X)
         return np.hstack(
-            (
+        (
                 self.amp_diff_scaler.transform(np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1)))),
                 self.spectr_decomp.transform(_deamplituded_mel.T)
             )
         )
 
+    def transform_as_dict(self, X):
+        _deamplituded_mel, diff_amplitude_seq = self.deamplituded_mel(X)
+        return {
+            'scaled_amp_diff': self.amp_diff_scaler.transform(
+                np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1)))),
+            'eigen': self.spectr_decomp.transform(_deamplituded_mel.T)
+        }
+
     def wf_transform(self, wf, sr):
         return self.transform(self.melspectrogram(wf, sr))
 
+    def wf_transform_as_dict(self, wf, sr):
+        return self.transform_as_dict(self.melspectrogram(wf, sr))
+
+    def plot_transform_for_wf(self, wf, sr, **kwargs):
+        kwargs.setdefault('aspect', 'auto')
+        kwargs.setdefault('origin', 'lower')
+        kwargs.setdefault('interpolation', 'nearest')
+
+        fp = self.wf_transform_as_dict(wf, sr)
+        eigens = fp['eigen'].T
+        kwargs.setdefault('cmap', plt.get_cmap('coolwarm'))
+
+        fig, ax1 = plt.subplots()
+
+        plt.imshow(eigens, axes=ax1, **kwargs)
+        plt.yticks([])
+
+        ax2 = ax1.twinx()
+        ax2.plot(cumsum(fp['scaled_amp_diff']), 'k-')
+        plt.yticks([])
+        plt.axis('tight')
 
 
 
