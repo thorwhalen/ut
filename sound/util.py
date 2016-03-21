@@ -28,7 +28,7 @@ def complete_sref(sref):
     """
     Complete sref dict with missing fields, if any
     """
-    sref = dict({'offset_s': 0.0}, **sref)
+    sref = dict({'offset_s': 0.0}, **sref)  # takes care of making a copy (so doesn't overwrite sref)
     if 'duration' not in sref.keys():
         if is_wav_file(sref['filepath']):
             sref['duration'] = get_duration_of_wav_file(sref['filepath'])

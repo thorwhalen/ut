@@ -16,18 +16,11 @@ def printProgress(message='', args=[]):
     """
     args = ascertain_list(args)
     print(hms_message(message.format(*args)))
-    # t = datetime.now().time()
-    # print("{:.0f}:{:.0f}:{:.0f} - {}".format(t.hour, t.minute, t.second, message.format(*args)))
-    # print "%02.0f:%02.0f:%02.0f " % (t.hour, t.minute, t.second) + message.format(*args)
-
-    #def printProgress(message,args):
-    #    print "".format([message,pstr(datetime.now().time())]+args)
 
 
 def hms_message(msg=''):
     t = datetime.now().time()
-    return "{:.0f}:{:.0f}:{:.0f} - {}".format(t.hour, t.minute, t.second, msg)
-    # return "{:02}:{:02}:{:02} - {}".format(t.hour, t.minute, t.second, msg)
+    return "{:02.0f}:{:02.0f}:{:02.0f} - {}".format(t.hour, t.minute, t.second, msg)
 
 
 def get_a_logger(**kwargs):

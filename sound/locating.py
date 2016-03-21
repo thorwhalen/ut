@@ -61,7 +61,11 @@ def silence_interval_indices(sound,
     """
     wf, sr = _get_wf_and_sr_from_sound(sound)
 
-    max_abs_wf_for_silence = max_abs_wf_threshold_func_for_silence(abs(wf))
+    if callable(max_abs_wf_threshold_func_for_silence):
+        max_abs_wf_for_silence = max_abs_wf_threshold_func_for_silence(abs(wf))
+    else:
+        max_abs_wf_for_silence = max_abs_wf_threshold_func_for_silence
+
     if sr is not None:
         min_length_of_silence_interval = round(sr * min_length_of_silence_interval)
     silence_bitmap = abs(wf) <= max_abs_wf_for_silence
