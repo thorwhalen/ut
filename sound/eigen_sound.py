@@ -52,10 +52,16 @@ class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         _deamplituded_mel, diff_amplitude_seq = self.deamplituded_mel(X)
+        t = np.hstack(
+            (
+                self.spectr_decomp.transform(_deamplituded_mel.T),
+                self.amp_diff_scaler.transform(np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1))))
+            )
+        )
         return np.hstack(
             (
-                self.amp_diff_scaler.transform(np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1)))),
-                self.spectr_decomp.transform(_deamplituded_mel.T)
+                self.spectr_decomp.transform(_deamplituded_mel.T),
+                self.amp_diff_scaler.transform(np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1))))
             )
         )
 

@@ -1,6 +1,7 @@
 __author__ = 'thor'
 
 import pymongo as mg
+from pymongo import MongoClient
 import os
 import re
 import pandas as pd
@@ -15,6 +16,8 @@ from ut.serialize.s3 import S3
 from ut.pfile.to import ungzip
 from ut.util.log import printProgress
 
+
+
 s3_backup_bucket_name = 'mongo-db-bak'
 
 # import boto
@@ -28,6 +31,22 @@ s3_backup_bucket_name = 'mongo-db-bak'
 #     AWS_SECRET_ACCESS_KEY = os.environ['VEN_AWS_SECRET_ACCESS_KEY']
 # except KeyError:
 #     pass
+
+
+def get_db_and_collection_and_create_if_doesnt_exist(db, collection, mongo_client=None):
+    if mongo_client is None:
+        mongo_client = MongoClient()
+
+    try:
+        mongo_client.create_database(db)
+    except Exception as e:
+        print(e)
+
+    try:
+        mongo_client[db].create_collection(collection)
+    except Exception as e:
+        print(e)
+    return mongo_client[db][collection]
 
 
 def get_random_doc(collection, *args, **kwargs):

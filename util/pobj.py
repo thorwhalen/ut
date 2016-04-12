@@ -32,6 +32,7 @@ def set_attributes(obj, attr_dict=dict(), default_attr_dict=None):
     # return obj
     return obj
 
+
 def has_attributes(obj, attr_list):
     attr_list = util_ulist.ascertain_list(attr_list)
     return all([x in obj.__dict__.keys() for x in attr_list])
@@ -39,6 +40,7 @@ def has_attributes(obj, attr_list):
 
 def has_callable_attr(obj, attr):
     return hasattr(obj, attr) and hasattr(getattr(obj, attr), '__call__')
+
 
 def has_non_callable_attr(obj, attr):
     return hasattr(obj, attr) and not hasattr(getattr(obj, attr), '__call__')
