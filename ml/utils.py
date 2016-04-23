@@ -18,3 +18,16 @@ def get_model_attributes(model, model_name_as_dict_root=True, ignore_list=[]):
         else:
             return states
 
+
+def get_model_attributes_dict_for_json(model, model_name_as_dict_root=True, ignore_list=[]):
+    if isinstance(model, (list, tuple, dict, float, int)):
+        return model
+    elif isinstance(model, np.ndarray):
+        return model.tolist()
+    else:
+        states = {k: get_model_attributes_dict_for_json(model.__getattribute__(k))
+                  for k in set(trailing_underscore_attributes(model)).difference(ignore_list)}
+        if model_name_as_dict_root:
+            return {model.__class__.__name__: states}
+        else:
+            return states

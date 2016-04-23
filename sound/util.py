@@ -61,6 +61,11 @@ def sound_file_info_dict(filepath):
     return d
 
 
+def get_frame_rate_of_wav_file(filepath):
+    with contextlib.closing(wave.open(filepath, 'r')) as f:
+        return f.getframerate()
+
+
 def get_duration_of_wav_file(filepath):
     with contextlib.closing(wave.open(filepath, 'r')) as f:
         return f.getnframes() / f.getframerate()

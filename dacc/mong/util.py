@@ -2,6 +2,8 @@ __author__ = 'thor'
 
 import pymongo as mg
 from pymongo import MongoClient
+from pymongo.errors import CursorNotFound
+
 import os
 import re
 import pandas as pd
@@ -31,6 +33,33 @@ s3_backup_bucket_name = 'mongo-db-bak'
 #     AWS_SECRET_ACCESS_KEY = os.environ['VEN_AWS_SECRET_ACCESS_KEY']
 # except KeyError:
 #     pass
+
+
+def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process, start_i=0):
+    """
+    Iterates cursor, calling doc_process at every step, and recreates the cursor and restarts the loop if
+    there's a CursorNotFound error.
+    cursor_creator(skip) is a function that returns a cursor that skips skip docs.
+
+    Initially, the cursor is created calling cursor_creator(skip=0), and the loop keeps track of the number of docs
+    it processed. If a CursorNotFound error is raised at step i, the cursor is recreated calling
+    cursor_creator(skip=i), and the loop is restarted.
+
+    This is useful for situations where the cursor may "timeout" during voluminous processes.
+    """
+    while True:
+        it = cursor_creator(skip=start_i)
+        try:
+            for i, doc in enumerate(it, start_i):
+                doc_process(doc)
+            break
+        except CursorNotFound:
+            start_i = i
+        except KeyboardInterrupt:
+            break
+        except StopIteration:
+            break
+
 
 
 def get_db_and_collection_and_create_if_doesnt_exist(db, collection, mongo_client=None):

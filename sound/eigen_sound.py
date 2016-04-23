@@ -5,6 +5,7 @@ import numpy as np
 import librosa
 from sklearn.base import BaseEstimator, TransformerMixin
 
+from ut.sound.util import resample_wf
 from ut.sound.util import Sound
 import matplotlib.pyplot as plt
 
@@ -26,15 +27,19 @@ class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
     def __init__(self, spectr_decomp=IncrementalPCA(),
                  amp_diff_scaler=StandardScaler(),
                  mel_kwargs={'n_fft': 2048, 'hop_length': 512, 'n_mels': 128},
+                 common_sr=44100,
                  min_amp=1e-10):
         self.spectr_decomp = spectr_decomp
         self.amp_diff_scaler = amp_diff_scaler
         self.mel_kwargs = mel_kwargs
+        self.common_sr = common_sr
         self.min_amp = min_amp
         self.log10_min_amp = log10(min_amp)
 
     def melspectrogram(self, wf, sr):
-        return librosa.feature.melspectrogram(wf, sr=sr, **self.mel_kwargs)
+        if sr != self.common_sr:
+            wf = resample_wf(wf, sr, new_sr=self.common_sr)
+        return librosa.feature.melspectrogram(wf, sr=self.common_sr, **self.mel_kwargs)
 
     def deamplituded_mel(self, mel_spectrogram):
         mel_spectrogram = np.maximum(mel_spectrogram, self.min_amp)
