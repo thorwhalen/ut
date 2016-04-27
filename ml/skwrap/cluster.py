@@ -6,7 +6,7 @@ from numpy import *
 from sklearn.cluster import SpectralClustering as sk_SpectralClustering
 from sklearn.cluster import MiniBatchKMeans as MiniBatchKMeans_sk
 from numpy import vstack
-
+from sklearn.cluster import KMeans
 from ut.ml.utils import get_model_attributes
 
 class SpectralClustering(sk_SpectralClustering):
@@ -50,6 +50,7 @@ class MiniBatchKMeans(MiniBatchKMeans_sk):
                                               batch_size=batch_size, verbose=verbose, compute_labels=compute_labels,
                                               random_state=random_state, tol=tol, max_no_improvement=max_no_improvement,
                                               init_size=init_size, n_init=n_init, reassignment_ratio=reassignment_ratio)
+        self.verbose = verbose
         self.X_cumul = X_cumul
 
     def partial_fit(self, X, y=None):
@@ -72,12 +73,30 @@ class MiniBatchKMeans(MiniBatchKMeans_sk):
             self.n_data_points_fitted_ += len(X)
             self.X_cumul = None
 
+    def sort_model_params_according_to_decreasing_counts(self):
+        permi = argsort(self.counts_)[::-1][:len(self.counts_)]
+        self.counts_ = self.counts_[permi]
+        self.cluster_centers_ = self.cluster_centers_[permi, :]
+
+    def get_kmeans_object(self):
+        kmeans_obj = KMeans()
+        kmeans_obj.cluster_centers_ = self.cluster_centers_
+        if hasattr(kmeans_obj, 'count_'):
+            kmeans_obj.count_ = kmeans.count_
+        kmeans_obj.inverse_transform = lambda cluster_idx: kmeans_obj.cluster_centers_[cluster_idx, :]
+        return kmeans_obj
+
     def __getstate__(self):
-        return get_model_attributes(self, model_name_as_dict_root=False, ignore_list=['random_state_'])
+        state = get_model_attributes(self, model_name_as_dict_root=False, ignore_list=['random_state_'])
+        if hasattr(self, 'verbose'):
+            state['verbose'] = self.verbose
+        return state
 
     def __setstate__(self, state):
         for k, v in state.iteritems():
             self.__setattr__(k, v)
+        if hasattr(self, 'verbose'):
+            self.__setattr__('verbose', self.verbose)
 
 
 

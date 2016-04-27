@@ -305,6 +305,23 @@ def mk_transformed_copies_of_sound_files(source_path_iterator,
                 raise e
 
 
+def plot_melspectrogram(spect_mat, sr=44100, hop_length=512, name=None):
+    # Make a new figure
+    plt.figure(figsize=(12, 4))
+    # Display the spectrogram on a mel scale
+    # sample rate and hop length parameters are used to render the time axis
+    librosa.display.specshow(spect_mat, sr=sr, hop_length=hop_length, x_axis='time', y_axis='mel')
+    # Put a descriptive title on the plot
+    if name is not None:
+        plt.title('mel power spectrogram of "{}"'.format(name))
+    else:
+        plt.title('mel power spectrogram')
+    # draw a color bar
+    plt.colorbar(format='%+02.0f dB')
+    # Make the figure layout compact
+    plt.tight_layout()
+
+
 class Sound(object):
     def __init__(self, wf, sr, name=''):
         self.wf = wf.copy()
@@ -539,18 +556,7 @@ class Sound(object):
         # Convert to log scale (dB). We'll use the peak power as reference.
         log_S = librosa.logamplitude(S, ref_power=np.max)
         if plot_it:
-            # Make a new figure
-            plt.figure(figsize=(12, 4))
-            # Display the spectrogram on a mel scale
-            # sample rate and hop length parameters are used to render the time axis
-            librosa.display.specshow(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'],
-                                     x_axis='time', y_axis='mel')
-            # Put a descriptive title on the plot
-            plt.title('mel power spectrogram of "%s"' % self.name)
-            # draw a color bar
-            plt.colorbar(format='%+02.0f dB')
-            # Make the figure layout compact
-            plt.tight_layout()
+            plot_melspectrogram(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'], name=self.name)
         return log_S
 
     def specshow(self, data=None, hop_length=512, x_axis=None, y_axis=None,
