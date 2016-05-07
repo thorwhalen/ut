@@ -548,6 +548,10 @@ class Sound(object):
         self.plot_wf()
         return self.hear_sound(**kwargs)
 
+    def display(self, **kwargs):
+        self.melspectrogram()
+        return self.hear_sound(**kwargs)
+
     def melspectrogram(self, mel_kwargs={}, plot_it=True):
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         # We use a small hop length of 64 here so that the frames line up with the beat tracker example below.

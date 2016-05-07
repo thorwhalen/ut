@@ -3,6 +3,7 @@ __author__ = 'thor'
 
 print '''
 Remember to use these useful utils:
+    pickle_dump, pickle_load
     printProgress
     numof_trues
     ppr
@@ -34,7 +35,7 @@ import ut.pplot.distrib
 
 from pprint import PrettyPrinter
 import json
-
+from ut.util.pstore import pickle_dump, pickle_load
 
 class PPR(object):
     indent = 2

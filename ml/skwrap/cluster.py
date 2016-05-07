@@ -5,9 +5,12 @@ from numpy import *
 
 from sklearn.cluster import SpectralClustering as sk_SpectralClustering
 from sklearn.cluster import MiniBatchKMeans as MiniBatchKMeans_sk
+from sklearn.neighbors import NearestNeighbors
+
 from numpy import vstack
 from sklearn.cluster import KMeans
 from ut.ml.utils import get_model_attributes
+
 
 class SpectralClustering(sk_SpectralClustering):
     def __init__(self,
@@ -90,6 +93,8 @@ class MiniBatchKMeans(MiniBatchKMeans_sk):
         state = get_model_attributes(self, model_name_as_dict_root=False, ignore_list=['random_state_'])
         if hasattr(self, 'verbose'):
             state['verbose'] = self.verbose
+        if hasattr(self, 'verbose'):
+            state['batch_size'] = self.batch_size
         return state
 
     def __setstate__(self, state):
@@ -97,6 +102,41 @@ class MiniBatchKMeans(MiniBatchKMeans_sk):
             self.__setattr__(k, v)
         if hasattr(self, 'verbose'):
             self.__setattr__('verbose', self.verbose)
+        if hasattr(self, 'batch_size'):
+            self.__setattr__('batch_size', self.batch_size)
+
+class MiniBatchKMeansTransformer(MiniBatchKMeans):
+    def __init__(self, n_clusters=8, init='k-means++', max_iter=100, batch_size=100, verbose=0, compute_labels=False,
+                 random_state=None, tol=0.0, max_no_improvement=10, init_size=None, n_init=3, reassignment_ratio=0.01,
+                 X_cumul=None):
+        super(self.__class__, self).__init__(n_clusters=n_clusters, init=init, max_iter=max_iter,
+                                              batch_size=batch_size, verbose=verbose, compute_labels=compute_labels,
+                                              random_state=random_state, tol=tol, max_no_improvement=max_no_improvement,
+                                              init_size=init_size, n_init=n_init, reassignment_ratio=reassignment_ratio,
+                                             X_cumul=None)
+
+    def transform(self, X):
+        return super(self.__class__, self).predict(X)
+
+    def centroid_distances(self, X, y=None):
+        return super(self.__class__, self).transform(X, y)
 
 
+class MiniBatchKMeansTransformerWithKnn(MiniBatchKMeans):
+    def __init__(self, n_clusters=8, init='k-means++', max_iter=100, batch_size=100, verbose=0, compute_labels=False,
+                 random_state=None, tol=0.0, max_no_improvement=10, init_size=None, n_init=3, reassignment_ratio=0.01,
+                 X_cumul=None):
+        super(self.__class__, self).__init__(n_clusters=n_clusters, init=init, max_iter=max_iter,
+                                             batch_size=batch_size, verbose=verbose, compute_labels=compute_labels,
+                                             random_state=random_state, tol=tol, max_no_improvement=max_no_improvement,
+                                             init_size=init_size, n_init=n_init, reassignment_ratio=reassignment_ratio,
+                                             X_cumul=None)
+        self.knn = None
 
+    def transform(self, X):
+        if self.knn is None:
+            self.knn = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(self.cluster_centers_)
+        return reshape(self.knn.kneighbors(X)[1], (len(X),))
+
+    def centroid_distances(self, X, y=None):
+        return super(self.__class__, self).transform(X, y)

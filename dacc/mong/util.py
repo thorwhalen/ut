@@ -7,7 +7,7 @@ from pymongo.errors import CursorNotFound
 import os
 import re
 import pandas as pd
-from numpy import inf, random
+from numpy import inf, random, int64, int32, ndarray
 import subprocess
 from datetime import datetime
 
@@ -35,7 +35,34 @@ s3_backup_bucket_name = 'mongo-db-bak'
 #     pass
 
 
-def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process, start_i=0):
+def convert_dict_for_mongo(d):
+    n = {}
+    for k, v in d.items():
+        if isinstance(k, unicode):
+            for i in ['utf-8', 'iso-8859-1']:
+                try:
+                    k = k.encode(i)
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    continue
+        if isinstance(v, (int64, int32)):
+            v = int(v)
+        elif isinstance(v, ndarray):
+            if v.dtype == int32 or v.dtype == int64:
+                v = list(v.astype(int))
+            else:
+                v = list(v)
+        elif isinstance(v, unicode):
+            for i in ['utf-8', 'iso-8859-1']:
+                try:
+                    v = v.encode(i)
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    continue
+        n[k] = v
+    return n
+
+
+def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process, start_i=0,
+                                                    print_progress_fun=None):
     """
     Iterates cursor, calling doc_process at every step, and recreates the cursor and restarts the loop if
     there's a CursorNotFound error.
@@ -46,11 +73,16 @@ def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process,
     cursor_creator(skip=i), and the loop is restarted.
 
     This is useful for situations where the cursor may "timeout" during voluminous processes.
+
+    print_progress_fun(i, doc) (optional) is a function that will be called at every iteration,
+    BEFORE doc_process is called, usually to print or log something about the progress.
     """
     while True:
         it = cursor_creator(skip=start_i)
         try:
             for i, doc in enumerate(it, start_i):
+                if print_progress_fun is not None:
+                    print_progress_fun(i, doc)
                 doc_process(doc)
             break
         except CursorNotFound:

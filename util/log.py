@@ -19,8 +19,8 @@ def printProgress(message='', args=[]):
 
 
 def hms_message(msg=''):
-    t = datetime.now().time()
-    return "{:02.0f}:{:02.0f}:{:02.0f} - {}".format(t.hour, t.minute, t.second, msg)
+    t = datetime.now()
+    return "({:02.0f}){:02.0f}:{:02.0f}:{:02.0f} - {}".format(t.day, t.hour, t.minute, t.second, msg)
 
 
 def get_a_logger(**kwargs):

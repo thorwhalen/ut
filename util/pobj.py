@@ -6,6 +6,7 @@ from optparse import OptionParser
 import inspect
 
 
+
 def methods_of(obj_or_class):
     if type(obj_or_class) == type:
         t = inspect.getmembers(obj_or_class, predicate=inspect.ismethod)

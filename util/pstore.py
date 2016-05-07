@@ -1,4 +1,4 @@
-__author__ = 'thorwhalen'
+from __future__ import division
 
 import pandas as pd
 import numpy as np
@@ -10,8 +10,46 @@ import re
 import ut.daf.get as daf_get
 import ut.daf.manip as daf_manip
 from pprint import PrettyPrinter
+import cPickle
+import dill
+import inspect
+
+__author__ = 'thorwhalen'
 
 str_to_rep_by_nan = 'x9y7z1'  # hopefully this string never shows up
+
+
+def pickle_dump(obj, filepath=None, protocol=None):
+
+    # make up a name for obj if filepath isn't given...
+    if filepath is None:
+        stack = inspect.stack()
+        try:
+            locals_ = stack[1][0].f_locals
+        finally:
+            del stack
+        candidates = list()
+        for k, v in list(locals_.iteritems()):
+            if v is obj:
+                candidates.append(k)
+        if candidates:
+            # sort the candidates and take the last one (to avoid ipython cache (things like _40, _234, etc.)
+            filepath = sorted(candidates)[-1] + '.p'
+        else:  # still didn't find a name for the variable
+            filepath = 'pickle.p'
+
+    print("Saving object to {}".format(filepath))
+    try:
+        return cPickle.dump(obj, open(filepath, 'w'), protocol=protocol or 0)
+    except (ValueError, TypeError):
+        return dill.dump(obj, open(filepath, 'w'), protocol=protocol)
+
+
+def pickle_load(filepath):
+    try:
+        return cPickle.load(open(filepath, 'r'))
+    except (ValueError, AttributeError):
+        return dill.load(open(filepath, 'r'))
 
 
 def store_names(store):
