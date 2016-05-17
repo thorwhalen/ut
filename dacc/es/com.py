@@ -234,6 +234,9 @@ class ElasticCom(object):
     def import_mongo_collection(self, mongo_db, mongo_collection, **kwargs):
         return self.import_from_mongo_cursor(MongoClient()[mongo_db][mongo_collection].find(**kwargs))
 
+    def head(self, n_entres=5):
+        return self.search_and_export_to_dict(size=n_entres)
+
 
 def es_types_to_main_types(mapping):
     fields_with_type = defaultdict(list)
