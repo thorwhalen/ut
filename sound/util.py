@@ -2,7 +2,8 @@ from __future__ import division
 __author__ = 'thor'
 
 
-from numpy import *
+from numpy import hstack, vstack, zeros, shape, mean, random, linspace
+from numpy import argmax, argmin, flipud, percentile, ndarray, ceil
 import numpy as np
 import os
 import re

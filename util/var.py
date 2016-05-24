@@ -1,6 +1,12 @@
 __author__ = 'thorwhalen'
 
 import numpy as np
+from os import getcwd
+from os.path import join
+
+
+def full_filepath(rel_path):
+    return join(getcwd(), rel_path)
 
 
 def print_info(x, max_depth=30, print_contents=False, depth=0, tab=''):
