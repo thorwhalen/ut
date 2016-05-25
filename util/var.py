@@ -3,6 +3,78 @@ __author__ = 'thorwhalen'
 import numpy as np
 from os import getcwd
 from os.path import join
+from numpy import mod
+import json
+
+def mk_arg_val_dict_from_sys_argv(sys_argv,
+                                  convert_values_to_number_if_possible=False,
+                                  convert_braced_strings_to_json=False):
+    """
+    Transform the list given by sys.argv (which parses the tokens of the command line) into a dict whose
+    keys are the strings of the arguments prefixed with -, and the values are the arguments that follow
+    (until the next "-" argument or the end of the argv list.
+
+    Note that the value of a key argument will be a list if and only if there's more than one non-key argument follwing
+    it.
+
+    For example:
+    >>> sys_argv = ['some_python_file.py', '-first', '1', \
+                    '-second', 'foo', 'bar',\
+                    '-js', '{"aa":3,"bb":null}']
+    >>> mk_arg_val_dict_from_sys_argv(sys_argv, True, True) == {'first': 1, \
+                                                                'second': ['foo', 'bar'], \
+                                                                'js': {'aa': 3, 'bb': None}}
+    True
+    """
+    sys_argv = sys_argv[1:]
+    narg = len(sys_argv)
+    arg_val_dict = {}
+
+    if narg == 0:
+        return arg_val_dict
+    else:
+        assert sys_argv[0].startswith('-'), "The list must start with a key arg (prefixed with '-')"
+        current_key_arg = None
+        for arg in sys_argv:
+            if arg.startswith('-'):
+                if current_key_arg is not None:
+                    # add key and value(s) to the arg_val_dict
+                    if len(current_value_list) == 0:
+                        arg_val_dict[current_key_arg] = True
+                    elif len(current_value_list) == 1:
+                        arg_val_dict[current_key_arg] = current_value_list[0]
+                    else:
+                        arg_val_dict[current_key_arg] = current_value_list
+                # and reinitialize key and value
+                current_key_arg = arg[1:]
+                current_value_list = []
+            else:
+                if convert_braced_strings_to_json and arg.startswith('{'):
+                    arg = json.loads(arg)
+                elif convert_values_to_number_if_possible:
+                    arg = convert_to_number_if_possible(arg)
+                current_value_list.append(arg)
+
+        # add key and value(s) to the arg_val_dict
+        if len(current_value_list) == 0:
+            arg_val_dict[current_key_arg] = True
+        elif len(current_value_list) == 1:
+            arg_val_dict[current_key_arg] = current_value_list[0]
+        else:
+            arg_val_dict[current_key_arg] = current_value_list
+
+        return arg_val_dict
+
+
+def convert_to_number_if_possible(x):
+    try:
+        x = float(x)
+        if x == int(x):
+            x = int(x)
+        return x
+    except ValueError:
+        return x
+
 
 
 def full_filepath(rel_path):
