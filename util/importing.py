@@ -5,6 +5,7 @@ from warnings import warn
 import importlib
 import os
 
+
 def get_environment_variable(var, ignore=True):
     try:
         return environ[var]

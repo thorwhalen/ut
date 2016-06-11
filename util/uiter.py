@@ -19,10 +19,9 @@ from itertools import islice, chain, imap, combinations
 from operator import itemgetter
 import operator
 
-
 def print_iter_progress(iterator,
                    print_progress_every=None,
-                   header_template="{hour:.0f}:{minute:.0f}:{second:.0f} - iteration {iteration}",
+                   header_template="{hour:02.0f}:{minute:02.0f}:{second:02.0f} - iteration {iteration}",
                    data_msg_intro_str="",
                    data_to_string=None):
     """

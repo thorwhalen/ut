@@ -34,6 +34,17 @@ s3_backup_bucket_name = 'mongo-db-bak'
 # except KeyError:
 #     pass
 
+def imap_with_error_handling(apply_fun, error_fun, except_errors=(Exception,), iterator=None):
+    """
+    imap_with_error_handling(
+    """
+    assert iterator is not None, "You're iterator was None!"
+    for i, x in enumerate(iterator):
+        try:
+            yield apply_fun
+        except Exception as error:
+            error_fun(x=x, error=error, i=i)
+
 
 def convert_dict_for_mongo(d):
     n = {}
@@ -62,7 +73,7 @@ def convert_dict_for_mongo(d):
 
 
 def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process, start_i=0,
-                                                    print_progress_fun=None):
+                                                    print_progress_fun=None, on_error=None):
     """
     Iterates cursor, calling doc_process at every step, and recreates the cursor and restarts the loop if
     there's a CursorNotFound error.
@@ -82,8 +93,22 @@ def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process,
         try:
             for i, doc in enumerate(it, start_i):
                 if print_progress_fun is not None:
-                    print_progress_fun(i, doc)
-                doc_process(doc)
+                    try:
+                        print_progress_fun(i, doc)
+                    except (CursorNotFound, KeyboardInterrupt, StopIteration) as e:
+                        raise e
+                    # except Exception as e:
+                    #     if on_error is not None:
+                    #         on_error(doc=doc, error=e, i=i)
+                    #     else:
+                    #         raise e
+                try:
+                    doc_process(doc)
+                except Exception as e:
+                    if on_error is not None:
+                        on_error(obj=doc, error=e, i=i)
+                    else:
+                        raise e
             break
         except CursorNotFound:
             start_i = i
