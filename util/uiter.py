@@ -19,6 +19,29 @@ from itertools import islice, chain, imap, combinations
 from operator import itemgetter
 import operator
 
+from random import random
+
+
+def random_subset(iterator, K):
+    """
+    Uses reservoir sampling to get a sample from an iterator without knowing how many points there are
+    in advance.
+    """
+    result = []
+    N = 0
+
+    for item in iterator:
+        N += 1
+        if N <= K:
+            result.append(item)
+        else:
+            s = int(random() * N)
+            if s < K:
+                result[s] = item
+
+    return result
+
+
 def print_iter_progress(iterator,
                    print_progress_every=None,
                    header_template="{hour:02.0f}:{minute:02.0f}:{second:02.0f} - iteration {iteration}",

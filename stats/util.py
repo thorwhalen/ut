@@ -27,5 +27,15 @@ def normalize_to_one(arr):
     return arr / float(sum(arr))
 
 
+def point_closest_to_centroid(X, centroid=None):
+    """
+    X is a n x m ndarray of n points in m dimensions.
+    point_closest_to_centroid(X, centroid) returns the point of X (a row of X) that is closest to the given
+    centroid point. If centroid is not given, the actual centroid, X.mean(axis=1), is taken.
+    """
+    if centroid is None:
+        centroid = X.mean(axis=1)
+
+
 
 
