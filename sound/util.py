@@ -7,7 +7,11 @@ from numpy import argmax, argmin, flipud, percentile, ndarray, ceil
 import numpy as np
 import os
 import re
-import librosa
+# import librosa
+from librosa import load as librosa_load
+from librosa.feature import melspectrogram as librosa_feature_melspectrogram
+from librosa import logamplitude as librosa_logamplitude
+from librosa.display import specshow as librosa_display_specshow
 import soundfile as sf
 import wave
 import contextlib
@@ -242,7 +246,7 @@ def wf_and_sr_from_filepath(filepath, **kwargs):
         wf, sr = sf.read(filepath, **kwargs)
     else:
         kwargs['offset'] = kwargs.pop('offset_s', 0.0)
-        wf, sr = librosa.load(filepath, **kwargs)
+        wf, sr = librosa_load(filepath, **kwargs)
 
     if must_ensure_mono:
         wf = ensure_mono(wf)
@@ -311,7 +315,7 @@ def plot_melspectrogram(spect_mat, sr=44100, hop_length=512, name=None):
     plt.figure(figsize=(12, 4))
     # Display the spectrogram on a mel scale
     # sample rate and hop length parameters are used to render the time axis
-    librosa.display.specshow(spect_mat, sr=sr, hop_length=hop_length, x_axis='time', y_axis='mel')
+    librosa_display_specshow(spect_mat, sr=sr, hop_length=hop_length, x_axis='time', y_axis='mel')
     # Put a descriptive title on the plot
     if name is not None:
         plt.title('mel power spectrogram of "{}"'.format(name))
@@ -557,9 +561,9 @@ class Sound(object):
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         # We use a small hop length of 64 here so that the frames line up with the beat tracker example below.
         mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
-        S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
+        S = librosa_feature_melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
         # Convert to log scale (dB). We'll use the peak power as reference.
-        log_S = librosa.logamplitude(S, ref_power=np.max)
+        log_S = librosa_logamplitude(S, ref_power=np.max)
         if plot_it:
             plot_melspectrogram(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'], name=self.name)
         return log_S
@@ -571,7 +575,7 @@ class Sound(object):
         if data is None:
             data = self.melspectrogram(plot_it=False)
 
-        return librosa.display.specshow(
+        return librosa_display_specshow(
             data, sr=self.sr, hop_length=hop_length, x_axis=x_axis, y_axis=y_axis,
             n_xticks=n_xticks, n_yticks=n_yticks, fmin=fmin, fmax=fmax, bins_per_octave=bins_per_octave,
             tmin=tmin, tmax=tmax, freq_fmt=freq_fmt, time_fmt=time_fmt, **kwargs
