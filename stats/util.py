@@ -1,6 +1,7 @@
 __author__ = 'thor'
 
-from numpy import *
+from numpy import zeros, argmin, array
+from scipy.spatial.distance import cdist
 
 
 def _df_picker(df, x_cols, y_col):
@@ -34,7 +35,8 @@ def point_closest_to_centroid(X, centroid=None):
     centroid point. If centroid is not given, the actual centroid, X.mean(axis=1), is taken.
     """
     if centroid is None:
-        centroid = X.mean(axis=1)
+        centroid = X.mean(axis=0)
+    return X[argmin(cdist(X, [centroid])[:, 0])]
 
 
 
