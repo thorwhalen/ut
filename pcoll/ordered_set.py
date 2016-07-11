@@ -1,5 +1,8 @@
 import collections
 
+__doc__ = "Python recipe: http://code.activestate.com/recipes/576694/"
+
+
 class OrderedSet(collections.MutableSet):
 
     def __init__(self, iterable=None):
