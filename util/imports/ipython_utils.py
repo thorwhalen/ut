@@ -21,7 +21,7 @@ import ut.daf.manip
 import ut.daf.gr
 import ut.daf.to
 import ut.util.pstore
-import ut.pfile.accessor
+# import ut.pfile.accessor
 
 from datetime import datetime
 

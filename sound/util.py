@@ -540,7 +540,8 @@ class Sound(object):
         plot_wf(wf=self.wf.copy(), sr=self.sr, alpha=0.8)
 
     def hear_sound(self, **kwargs):
-        print("{}".format(self.name))
+        if kwargs.pop('print_name', True):
+            print("{}".format(self.name))
         wf = ensure_mono(self.wf)
         wf[random.randint(len(wf))] *= 1.001  # hack to avoid having exactly the same sound twice (creates an Audio bug)
         return Audio(data=wf, rate=self.sr, **kwargs)
