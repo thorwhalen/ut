@@ -196,18 +196,22 @@ def rand(nrows=9, ncols=None, values_spec=None, columnTypes=None, columns=None):
             new_values_idx = np.random.randint(0, n_values, nrows)
             new_values = map(values_spec[i].__getitem__, new_values_idx)
         else:
-            if columnTypes[i] == 'int':
+            if columnTypes[i] == 'int' or columnTypes[i] == int:
                 new_values = np.random.randint(1, values_spec[i]+1, nrows)
-            elif columnTypes[i] == 'float':
+            elif columnTypes[i] == 'float' or columnTypes[i] == float:
                 new_values = np.random.rand(nrows)*(values_spec[i]-1)
             elif columnTypes[i] == 'char':
                 assert values_spec[i] <= 26, "can only get a max of 26 distinct chars at this point"
                 letter_idx = np.random.randint(0, values_spec[i]-1, nrows)
                 new_values = [string.lowercase[:10][x] for x in letter_idx]
-            elif columnTypes[i] == 'string':
-                new_values = [''.join(random.choice(string.lowercase) for i in range(3)) for i in range(nrows)]
+            elif columnTypes[i] in [str, unicode, basestring, 'str', 'string']:
+                word_bag = np.array([''.join(random.choice(string.lowercase) for i in range(3))
+                                  for i in range(values_spec[i])])
+                new_values = word_bag[np.random.randint(0, values_spec[i], nrows)]
+                # new_values = [''.join(random.choice(string.lowercase) for i in range(3)) for i in range(nrows)]
             else:
-                raise ValueError("columnTypes must be 'float','int', 'string', or 'char'")
+                raise ValueError("columnTypes must be 'float','int', 'char', 'string', 'str', "
+                                 "float, int, str, unicode, or basestring")
         values_list.append(list(new_values))
     df = pd.DataFrame(values_list).transpose()
     df.columns = columns
