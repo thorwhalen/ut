@@ -4,18 +4,23 @@ from ut.util.ulist import ascertain_list
 import logging
 from datetime import datetime
 import json
+from sys import stdout
 
 default_log_filepath = 'default_log.log'
 
 
-def printProgress(message='', args=[]):
+def printProgress(message='', args=[], refresh=False):
     """
     input: message, and possibly args (to be placed in the message string, sprintf-style
     output: Displays the time (HH:MM:SS), and the message
     use: To be able to track processes (and the time they take)
     """
     args = ascertain_list(args)
-    print(hms_message(message.format(*args)))
+    if refresh:
+        stdout.write('\r' + hms_message(message.format(*args)))
+        stdout.flush()
+    else:
+        print(hms_message(message.format(*args)))
 
 
 def hms_message(msg=''):
