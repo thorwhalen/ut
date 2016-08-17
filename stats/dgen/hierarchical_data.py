@@ -61,14 +61,11 @@ def make_hblobs(n_samples=100,
                                               cluster_std=min_dist * _cluster_std,
                                               center_box=center_box, shuffle=shuffle, random_state=random_state)
 
-        if len(level_centers) == n_samples:
-            return level_centers, y
-        else:
-            min_dist = cdist(level_centers, level_centers)[triu_indices(len(level_centers), k=1)].min()
+        min_dist = cdist(level_centers, level_centers)[triu_indices(len(level_centers), k=1)].min()
 
-            return make_blobs(n_samples=n_samples, n_features=n_features, centers=level_centers,
-                              cluster_std=min_dist * cluster_std[-1],
-                              center_box=center_box, shuffle=shuffle, random_state=random_state)
+        return make_blobs(n_samples=n_samples, n_features=n_features, centers=level_centers,
+                          cluster_std=min_dist * cluster_std[-1],
+                          center_box=center_box, shuffle=shuffle, random_state=random_state)
 
     else:
         return make_blobs(n_samples, n_features, centers, cluster_std, center_box, shuffle, random_state)
