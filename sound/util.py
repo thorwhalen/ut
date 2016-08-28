@@ -380,6 +380,17 @@ class Sound(object):
         # wf, sr = sf.read(filepath, always_2d=False, start=start, **kwargs)
         return Sound(wf, sr, name=sref.get('name', sref['filepath']))
 
+
+    @classmethod
+    def from_sound_iter(cls, sound_iter):
+        wf = []
+        for sound in sound_iter:
+            if len(wf) == 0:
+                sr = sound.sr
+            wf.extend(list(sound.wf))
+
+        return cls(wf=np.array(wf), sr=sr)
+
     @classmethod
     def from_sound_mix_spec(cls,
                             sound_mix_spec,
