@@ -150,7 +150,8 @@ def gather_col_values(df,
                       gathered_col_name='gathered_cols',
                       keep_cols_that_were_gathered=False,
                       remove_empty_values=True):
-    cols_to_gather = cols_to_gather or df.columns
+    if cols_to_gather is None:
+        cols_to_gather = df.columns
     df = df.copy()
     if remove_empty_values == False:
         df[gathered_col_name] = [list(x[1:]) for x in df[cols_to_gather].itertuples()]
