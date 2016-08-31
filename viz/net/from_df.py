@@ -1,26 +1,36 @@
 from __future__ import division
 
 import networkx as nx
-from matplotlib.pylab import figure
+from matplotlib.pylab import figure, tight_layout, subplots
+
 
 __author__ = 'thor'
 
 
-def mk_bipartite_graph_from_df(df, cols=None, draw=True):
+def mk_partite_graph_from_df(df, cols=None, draw=True, figsize=(10, 20), **kwargs):
+
+    kwargs = dict({"alpha": 0.2, "with_labels": True}, **kwargs)
     if cols is None:
-        cols = df.columns[:2]
+        cols = df.columns
+    elif isinstance(cols, int):
+        cols = df.columns[:cols]
 
     B = nx.Graph()
-    df = df[cols].dropna()
-    b0 = df.groupby(cols[0]).size().sort_values(ascending=True).index.values
-    b1 = df.groupby(cols[1]).size().sort_values(ascending=True).index.values
-    B.add_nodes_from(b0, bipartite=0)  # Add the node attribute "bipartite"
-    B.add_nodes_from(b1, bipartite=1)
-    B.add_edges_from(list(df.to_records(index=False)))
+    df = df[cols].dropna().drop_duplicates()
+
+    partite_set = list()
+    for i, col in enumerate(cols):
+        this_partite_set = df.groupby(col).size().sort_values(ascending=True).index.values
+        partite_set.append(this_partite_set)
+        B.add_nodes_from(this_partite_set, bipartite=i)
+
+    for i in range(len(cols) - 1):
+        B.add_edges_from(list(df.iloc[:, [i, i + 1]].to_records(index=False)))
 
     if draw:
         pos = {}
-        pos.update((node, (1, index / len(b0))) for index, node in enumerate(b0))
-        pos.update((node, (2, index / len(b1))) for index, node in enumerate(b1))
-        figure(figsize=(10, 20))
-        nx.draw(B, pos=pos, with_labels=True, alpha=0.2)
+        for i, this_partite_set in enumerate(partite_set):
+            pos.update((node, (i, index / len(this_partite_set))) for index, node in enumerate(this_partite_set))
+
+        figure(figsize=figsize)
+        nx.draw(B, pos=pos, **kwargs)
