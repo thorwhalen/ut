@@ -52,6 +52,11 @@ def recursively_update_with(a, b):
     b = {1: 11, 2:{'b': 'bb', 'c': 'cc'}, 3: 33}
     recursively_update_with(a, b)
     assert a == {0: 0, 1: 11, 2: {'a': 'a', 'b': 'bb', 'c': 'cc'}, 3: 33}
+
+>>> a = {0: 0, 1: 1, 2:{'a': 'a', 'b': 'b'}}
+>>> b = {1: 11, 2:{'b': 'bb', 'c': 'cc'}, 3: 33}
+>>> recursively_update_with(a, b)
+>>> assert a == {0: 0, 1: 11, 2: {'a': 'a', 'b': 'bb', 'c': 'cc'}, 3: 33}
     """
 
     for key in b:
