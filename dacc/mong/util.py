@@ -17,7 +17,8 @@ from ut.daf.manip import rollout_cols
 from ut.serialize.s3 import S3
 from ut.pfile.to import ungzip
 from ut.util.log import printProgress
-
+from ut.pdict.manip import recursively_update_with
+import types
 
 
 s3_backup_bucket_name = 'mongo-db-bak'
@@ -33,6 +34,41 @@ s3_backup_bucket_name = 'mongo-db-bak'
 #     AWS_SECRET_ACCESS_KEY = os.environ['VEN_AWS_SECRET_ACCESS_KEY']
 # except KeyError:
 #     pass
+
+def _integrate_filt(filt, *args, **kwargs):
+    if len(args) > 0:
+        if 'spec' in kwargs:
+            raise TypeError("got multiple values for keyword argument 'spec' (one in args, one in kwargs")
+        kwargs['spec'] = args[0]
+        args = args[1:]
+    else:
+        kwargs['spec'] = kwargs.get('spec', {})
+
+    if 'spec' in kwargs:
+        recursively_update_with(kwargs['spec'], filt)
+
+    return args, kwargs
+
+
+def add_filt_find(mgc, filt={}):
+    """
+    add two methods to a pymongo.collection.Collection object:
+        filt_find and filt_find_one
+    that will simply call the collection's find and find_one, but with spec modified by filt (a dict)
+    """
+    def filt_find(mgc, *args, **kwargs):
+        args, kwargs = _integrate_filt(filt, *args, **kwargs)
+        return mgc.find(*args, **kwargs)
+
+    def filt_find_one(mgc, *args, **kwargs):
+        args, kwargs = _integrate_filt(filt, *args, **kwargs)
+        return mgc.find_one(*args, **kwargs)
+
+    mgc.filt_find = types.MethodType(filt_find, mgc)
+    mgc.filt_find_one = types.MethodType(filt_find_one, mgc)
+
+    return mgc
+
 
 def imap_with_error_handling(apply_fun, error_fun, except_errors=(Exception,), iterator=None):
     """
