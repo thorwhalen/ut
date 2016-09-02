@@ -56,12 +56,17 @@ def add_filt_find(mgc, filt={}):
         filt_find and filt_find_one
     that will simply call the collection's find and find_one, but with spec modified by filt (a dict)
     """
+
     def filt_find(mgc, *args, **kwargs):
         args, kwargs = _integrate_filt(filt, *args, **kwargs)
         return mgc.find(*args, **kwargs)
 
     def filt_find_one(mgc, *args, **kwargs):
-        args, kwargs = _integrate_filt(filt, *args, **kwargs)
+        if len(args) > 0:
+            if isinstance(args[0], dict):
+                args[0] = dict(filt, **args[0])
+        else:
+            args = tuple([dict(kwargs.get('spec_or_id', {}), **filt)])
         return mgc.find_one(*args, **kwargs)
 
     mgc.filt_find = types.MethodType(filt_find, mgc)
