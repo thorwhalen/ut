@@ -170,7 +170,7 @@ def rollin_col(df, col_to_rollin):
     """
     cols = df.columns
     if isinstance(col_to_rollin, basestring):
-        grouby_cols = list(set(df.columns) - set([col_to_rollin]))
+        grouby_cols = list(set(df.columns) - {col_to_rollin})
     else:
         grouby_cols = list(set(df.columns) - set(col_to_rollin))
     try:
