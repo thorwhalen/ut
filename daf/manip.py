@@ -165,18 +165,26 @@ def gather_col_values(df,
 
 def rollin_col(df, col_to_rollin):
     """
-    A sort of inverse of rollout_cols but with one column
-    Groups by those columns that are not in col_to_rollin and gathers the values of col_to_rollin in a list
+    A sort of inverse of rollout_cols but with one column.
+    Groups by those columns that are not in col_to_rollin and gathers the values of col_to_rollin in a list.
     """
-    cols = df.columns
+    # cols = df.columns
     if isinstance(col_to_rollin, basestring):
         grouby_cols = list(set(df.columns) - {col_to_rollin})
     else:
         grouby_cols = list(set(df.columns) - set(col_to_rollin))
-    try:
-        return df.groupby(grouby_cols).agg(lambda x: [x[col_to_rollin].tolist()]).reset_index(drop=False)[cols]
-    except Exception:
-        return df.groupby(grouby_cols).agg(lambda x: [x[col_to_rollin]])[cols] # older version
+        col_to_rollin = col_to_rollin[0]
+
+    # new code
+    df_rolled = df.groupby(grouby_cols).aggregate(lambda x: tuple(x))
+    df_rolled[col_to_rollin] = df_rolled[col_to_rollin].map(list)
+    return df_rolled
+
+    # # The code below stopped working (pandas changed without back compatibility)
+    # try:
+    #     return df.groupby(grouby_cols).agg(lambda x: [x[col_to_rollin].tolist()]).reset_index(drop=False)[cols]
+    # except Exception:
+    #     return df.groupby(grouby_cols).agg(lambda x: [x[col_to_rollin]])[cols] # older version
 
 
 def rollout_cols(df, cols_to_rollout=None):
