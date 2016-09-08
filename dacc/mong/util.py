@@ -90,26 +90,31 @@ def imap_with_error_handling(apply_fun, error_fun, except_errors=(Exception,), i
 def convert_dict_for_mongo(d):
     n = {}
     for k, v in d.items():
-        if isinstance(k, unicode):
-            for i in ['utf-8', 'iso-8859-1']:
-                try:
-                    k = k.encode(i)
-                except (UnicodeEncodeError, UnicodeDecodeError):
-                    continue
-        if isinstance(v, (int64, int32)):
-            v = int(v)
-        elif isinstance(v, ndarray):
-            if v.dtype == int32 or v.dtype == int64:
-                v = list(v.astype(int))
-            else:
-                v = list(v)
-        elif isinstance(v, unicode):
-            for i in ['utf-8', 'iso-8859-1']:
-                try:
-                    v = v.encode(i)
-                except (UnicodeEncodeError, UnicodeDecodeError):
-                    continue
-        n[k] = v
+        if isinstance(v, dict):
+            n[k] = convert_dict_for_mongo(v)
+        else:
+            if isinstance(k, unicode):
+                for i in ['utf-8', 'iso-8859-1']:
+                    try:
+                        k = k.encode(i)
+                    except (UnicodeEncodeError, UnicodeDecodeError):
+                        continue
+            if isinstance(v, (int64, int32)):
+                v = int(v)
+            elif isinstance(v, ndarray):
+                if v.dtype == int32 or v.dtype == int64:
+                    v = list(v.astype(int))
+                else:
+                    v = list(v)
+            elif isinstance(v, unicode):
+                for i in ['utf-8', 'iso-8859-1']:
+                    try:
+                        v = v.encode(i)
+                    except (UnicodeEncodeError, UnicodeDecodeError):
+                        continue
+            elif hasattr(v, 'isoformat'):
+                v = v.isoformat()
+            n[k] = v
     return n
 
 
