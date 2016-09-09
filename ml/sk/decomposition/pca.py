@@ -23,7 +23,7 @@ class WeightedPCA(PCA):
 >>> X, y = make_blobs(100, 5, 4)
 >>> w = ones(len(X))
 >>> compare_model_attributes(model_1.fit(X), model_2.fit(X))
-all fitted attributes where close
+all fitted attributes were close
 >>>
 >>> X, y = make_blobs(100, 5, 4)
 >>> w = ones(len(X))
@@ -31,7 +31,7 @@ all fitted attributes where close
 >>> XX = vstack((X, X))
 >>> wX = (X, 2 * ones(len(X)))
 >>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
-all fitted attributes where close
+all fitted attributes were close
 >>>
 >>> X, y = make_blobs(100, 5, 4)
 >>> w = ones(len(X))
@@ -39,11 +39,11 @@ all fitted attributes where close
 >>> XX = vstack((X, X[-2:, :], X[-1, :]))
 >>> wX = (X, hstack((ones(len(X)-2), [2, 3])))
 >>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
-all fitted attributes where close
+all fitted attributes were close
 >>>
 >>> w = random.randint(1, 5, len(X))
->>> compare_model_attributes(model_1.fit(repeat_rows(X, w)), model_2.fit(X, w))
-all fitted attributes where close
+>>> compare_model_attributes(model_1.fit(repeat_rows(X, w)), model_2.fit((X, w)))
+all fitted attributes were close
     """
     def _fit(self, X):
         X, w = weighted_data(X)
