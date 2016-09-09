@@ -41,16 +41,20 @@ def compare_model_attributes(model_1, model_2, rtol=1e-05, atol=1e-08, equal_nan
     compare_model_attributes(model_1, model_2) is a convenience function to test if the model attributes
     (the attributes that are created and populated by the fit method of an sklearn model) of both models are the same
     (or, really, close enough (using numpy's allclose function)).
+
+    It doesn't return anything, it just prints messages saying what attributes were not close enough to equal,
+    or an "all fitted attributes were close" message if all was good.
     """
-    try:
-        for attr in model_1.__dict__.keys():
-            if attr.endswith('_') and attr in model_2.__dict__:
+    for attr in model_1.__dict__.keys():
+        if attr.endswith('_') and attr in model_2.__dict__:
+            try:
                 assert allclose(getattr(model_1, attr), getattr(model_2, attr),
                                 rtol=rtol, atol=atol, equal_nan=equal_nan), \
                     '{} of {} and {} not close'.format(attr, model_1.__class__, model_2.__class__)
-        print("all fitted attributes where close")
-    except AssertionError as e:
-        print(e)
+            except AttributeError as e:
+                print("!!! {}".format(e))
+    print("all fitted attributes were close")
+
 
 
 def repeat_rows(X, row_repetition=None):
