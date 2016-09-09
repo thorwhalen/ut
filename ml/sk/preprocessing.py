@@ -4,6 +4,7 @@ __author__ = 'thor'
 
 import numpy as np
 from ut.ml.sk.utils.validation import weighted_data
+from numpy import allclose
 
 from statsmodels.stats.weightstats import DescrStatsW
 from sklearn.preprocessing import StandardScaler
@@ -13,6 +14,44 @@ from sklearn.preprocessing.data import (DEPRECATION_MSG_1D, FLOAT_DTYPES, check_
 
 
 class WeightedStandardScaler(StandardScaler):
+    """
+    A version of sklearn.preprocessing.StandardScaler that works with weighted data.
+
+>>> from sklearn.datasets import make_blobs
+>>> from ut.ml.sk.preprocessing import WeightedStandardScaler
+>>> from sklearn.preprocessing import StandardScaler
+>>> from numpy import ones, vstack, hstack, random
+>>> from ut.ml.sk.utils.validation import compare_model_attributes, repeat_rows
+>>>
+>>> model_1 = StandardScaler()
+>>> model_2 = WeightedStandardScaler()
+>>>
+>>> X, y = make_blobs(100, 5, 4)
+>>> w = ones(len(X))
+>>> compare_model_attributes(model_1.fit(X), model_2.fit(X))
+all fitted attributes where close
+>>>
+>>> X, y = make_blobs(100, 5, 4)
+>>> w = ones(len(X))
+>>>
+>>> XX = vstack((X, X))
+>>> wX = (X, 2 * ones(len(X)))
+>>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
+all fitted attributes where close
+>>>
+>>> X, y = make_blobs(100, 5, 4)
+>>> w = ones(len(X))
+>>>
+>>> XX = vstack((X, X[-2:, :], X[-1, :]))
+>>> wX = (X, hstack((ones(len(X)-2), [2, 3])))
+>>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
+all fitted attributes where close
+>>>
+>>> w = random.randint(1, 5, len(X))
+>>> compare_model_attributes(model_1.fit(repeat_rows(X, w)), model_2.fit(X, w))
+all fitted attributes where close
+>>>
+    """
     def fit(self, X, y=None):
         """Compute the mean and std to be used for later scaling.
 
@@ -115,3 +154,21 @@ class WeightedStandardScaler(StandardScaler):
         #     self.scale_ = None
         #
         # return self
+
+
+
+def compare_unweighted_to_weighted(X, wX):
+    ss = StandardScaler()
+    wss = WeightedStandardScaler()
+
+    ss.fit(X)
+    wss.fit(wX)
+    try:
+        assert allclose(ss.mean_, wss.mean_), 'mean_ not close'
+        assert allclose(ss.var_, wss.var_), 'var_ not close'
+        assert allclose(ss.scale_, wss.scale_), 'scale_ not close'
+        print("all okay")
+    except AssertionError as e:
+        print(e)
+
+    return ss, wss
