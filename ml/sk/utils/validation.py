@@ -72,4 +72,4 @@ def repeat_rows(X, row_repetition=None):
         row_repetition = random.rand(1, 5, len(X))
     row_repetition = array(row_repetition).astype(int)
     return vstack(map(lambda row_and_weight: tile(row_and_weight[0], (row_and_weight[1], 1)),
-                      zip(X[:5], row_repetition)))
+                      zip(X, row_repetition)))
