@@ -56,7 +56,6 @@ def compare_model_attributes(model_1, model_2, rtol=1e-05, atol=1e-08, equal_nan
     print("all fitted attributes were close")
 
 
-
 def repeat_rows(X, row_repetition=None):
     """
     XX = repeated_rows(X, w) takes a data matrix X and an array w of len(X) elements (same number of rows as X).
