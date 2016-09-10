@@ -36,7 +36,7 @@ def weighted_data(X):
     return X, w
 
 
-def compare_model_attributes(model_1, model_2, rtol=1e-05, atol=1e-08, equal_nan=False):
+def compare_model_attributes(model_1, model_2, exclude_attr=None, only_attr=None, rtol=1e-05, atol=1e-08, equal_nan=False):
     """
     compare_model_attributes(model_1, model_2) is a convenience function to test if the model attributes
     (the attributes that are created and populated by the fit method of an sklearn model) of both models are the same
@@ -45,15 +45,31 @@ def compare_model_attributes(model_1, model_2, rtol=1e-05, atol=1e-08, equal_nan
     It doesn't return anything, it just prints messages saying what attributes were not close enough to equal,
     or an "all fitted attributes were close" message if all was good.
     """
-    for attr in model_1.__dict__.keys():
-        if attr.endswith('_') and attr in model_2.__dict__:
-            try:
-                assert allclose(getattr(model_1, attr), getattr(model_2, attr),
-                                rtol=rtol, atol=atol, equal_nan=equal_nan), \
-                    '{} of {} and {} not close'.format(attr, model_1.__class__, model_2.__class__)
-            except AttributeError as e:
-                print("!!! {}".format(e))
-    print("all fitted attributes were close")
+    if only_attr is not None:
+        if isinstance(only_attr, basestring):
+            only_attr = [only_attr]
+        model_attributes_to_check = only_attr
+    else:
+        model_attributes_to_check = \
+            {attr for attr in model_1.__dict__.keys() if attr.endswith('_') and attr in model_2.__dict__}
+    if exclude_attr is not None:
+        if isinstance(exclude_attr, basestring):
+            exclude_attr = [exclude_attr]
+        model_attributes_to_check = {attr for attr in model_attributes_to_check if attr not in exclude_attr}
+
+    not_close_attribs = list()
+    for attr in model_attributes_to_check:
+        try:
+            assert allclose(getattr(model_1, attr), getattr(model_2, attr),
+                            rtol=rtol, atol=atol, equal_nan=equal_nan), \
+                '{} of {} and {} not close'.format(attr, model_1.__class__, model_2.__class__)
+        except AssertionError as e:
+            not_close_attribs.append(attr)
+    if len(not_close_attribs) > 0:
+        print("Fitted attributes whose values weren't close enough:")
+        print("  " + "\n  ".join(not_close_attribs))
+    else:
+        print("all fitted attributes were close")
 
 
 def repeat_rows(X, row_repetition=None):
