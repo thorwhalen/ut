@@ -18,49 +18,49 @@ from sklearn.utils.validation import check_array
 
 __author__ = 'thor'
 
-
-class WeightedPCA(WPCA):
-    """
-    Weighted version of sklearn.decomposition.pca.PCA
->>> from sklearn.decomposition.pca import PCA
->>> from ut.ml.sk.decomposition.pca import WeightedPCA
->>> from sklearn.datasets import make_blobs
->>> from ut.ml.sk.preprocessing import WeightedStandardScaler
->>> from numpy import ones, vstack, hstack, random
->>> from ut.ml.sk.utils.validation import compare_model_attributes, repeat_rows
->>>
->>> model_1 = PCA()
->>> model_2 = WeightedPCA()
->>>
->>> X, y = make_blobs(100, 5, 4)
->>> w = ones(len(X))
->>> compare_model_attributes(model_1.fit(X), model_2.fit(X))
-all fitted attributes were close
->>>
->>> X, y = make_blobs(100, 5, 4)
->>> w = ones(len(X))
->>>
->>> XX = vstack((X, X))
->>> wX = (X, 2 * ones(len(X)))
->>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
-all fitted attributes were close
->>>
->>> X, y = make_blobs(100, 5, 4)
->>> w = ones(len(X))
->>>
->>> XX = vstack((X, X[-2:, :], X[-1, :]))
->>> wX = (X, hstack((ones(len(X)-2), [2, 3])))
->>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
-all fitted attributes were close
->>>
->>> w = random.randint(1, 5, len(X))
->>> compare_model_attributes(model_1.fit(repeat_rows(X, w)), model_2.fit((X, w)))
-all fitted attributes were close
-    """
-    def fit(self, X, y=None):
-        X, w = weighted_data(X)
-        return super(self.__class__, self).fit(X, weights=tile(reshape(w, (len(w), 1)), X.shape[1]))
-
+#
+# class WeightedPCA(WPCA):
+#     """
+#     Weighted version of sklearn.decomposition.pca.PCA
+# >>> from sklearn.decomposition.pca import PCA
+# >>> from ut.ml.sk.decomposition.pca import WeightedPCA
+# >>> from sklearn.datasets import make_blobs
+# >>> from ut.ml.sk.preprocessing import WeightedStandardScaler
+# >>> from numpy import ones, vstack, hstack, random
+# >>> from ut.ml.sk.utils.validation import compare_model_attributes, repeat_rows
+# >>>
+# >>> model_1 = PCA()
+# >>> model_2 = WeightedPCA()
+# >>>
+# >>> X, y = make_blobs(100, 5, 4)
+# >>> w = ones(len(X))
+# >>> compare_model_attributes(model_1.fit(X), model_2.fit(X))
+# all fitted attributes were close
+# >>>
+# >>> X, y = make_blobs(100, 5, 4)
+# >>> w = ones(len(X))
+# >>>
+# >>> XX = vstack((X, X))
+# >>> wX = (X, 2 * ones(len(X)))
+# >>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
+# all fitted attributes were close
+# >>>
+# >>> X, y = make_blobs(100, 5, 4)
+# >>> w = ones(len(X))
+# >>>
+# >>> XX = vstack((X, X[-2:, :], X[-1, :]))
+# >>> wX = (X, hstack((ones(len(X)-2), [2, 3])))
+# >>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
+# all fitted attributes were close
+# >>>
+# >>> w = random.randint(1, 5, len(X))
+# >>> compare_model_attributes(model_1.fit(repeat_rows(X, w)), model_2.fit((X, w)))
+# all fitted attributes were close
+#     """
+#     def fit(self, X, y=None):
+#         X, w = weighted_data(X)
+#         return super(self.__class__, self).fit(X, weights=tile(reshape(w, (len(w), 1)), X.shape[1]))
+#
 
 class MyWeightedPCA(PCA):
     def _fit(self, X):
@@ -73,9 +73,7 @@ class MyWeightedPCA(PCA):
         # Center data
         # self.mean_ = average(X, axis=0, weights=w)
         # X -= self.mean_
-        # U, S, V = linalg.svd((X.T * reshape(sqrt(w), (1, len(X)))).T, full_matrices=True)
-        U, S, V = linalg.svd((X.T * reshape(sqrt(w), (1, len(X)))).T, full_matrices=False)
-        # ww = tile(reshape(w, (len(w), 1)), X.shape[1])
+        U, S, V = linalg.svd((X.T * reshape(sqrt(w), (1, len(X)))).T, full_matrices=True)
         explained_variance_ = (S ** 2) / n_samples_weighted
         explained_variance_ratio_ = (explained_variance_ /
                                      explained_variance_.sum())
