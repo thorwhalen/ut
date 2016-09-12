@@ -1,6 +1,6 @@
 from __future__ import division
 
-from numpy import reshape, ones, allclose, tile, random, vstack, array
+from numpy import reshape, ones, allclose, tile, random, vstack, array, isnan
 
 __author__ = 'thor'
 
@@ -36,7 +36,14 @@ def weighted_data(X):
     return X, w
 
 
-def compare_model_attributes(model_1, model_2, exclude_attr=None, only_attr=None, rtol=1e-05, atol=1e-08, equal_nan=False):
+def abs_ratio_close(a, b, rtol=1e-05, atol=1e-08):
+    t = abs(a / b)
+    t = t[~isnan(t)]
+    return allclose(t, 1., rtol=rtol, atol=atol)
+
+
+def compare_model_attributes(model_1, model_2, exclude_attr=None, only_attr=None, msg_prefix="",
+                             close_enough_fun=allclose):
     """
     compare_model_attributes(model_1, model_2) is a convenience function to test if the model attributes
     (the attributes that are created and populated by the fit method of an sklearn model) of both models are the same
@@ -60,16 +67,15 @@ def compare_model_attributes(model_1, model_2, exclude_attr=None, only_attr=None
     not_close_attribs = list()
     for attr in model_attributes_to_check:
         try:
-            assert allclose(getattr(model_1, attr), getattr(model_2, attr),
-                            rtol=rtol, atol=atol, equal_nan=equal_nan), \
-                '{} of {} and {} not close'.format(attr, model_1.__class__, model_2.__class__)
+            assert close_enough_fun(getattr(model_1, attr), getattr(model_2, attr)), \
+                msg_prefix + '{} of {} and {} not close'.format(attr, model_1.__class__, model_2.__class__)
         except AssertionError as e:
             not_close_attribs.append(attr)
     if len(not_close_attribs) > 0:
-        print("Fitted attributes whose values weren't close enough:")
+        print(msg_prefix + "Fitted attributes whose values weren't close enough:")
         print("  " + "\n  ".join(not_close_attribs))
     else:
-        print("all fitted attributes were close")
+        print(msg_prefix + "all fitted attributes were close")
 
 
 def repeat_rows(X, row_repetition=None):
