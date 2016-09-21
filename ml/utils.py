@@ -5,7 +5,8 @@ from json import JSONEncoder, dump, dumps
 from datetime import datetime
 
 # default_as_is_types = (list, np.ndarray, tuple, dict, float, int)
-default_as_is_types = (list, np.ndarray, tuple, dict, float, int, basestring, np.matrixlib.defmatrix.matrix)
+default_as_is_types = (list, np.ndarray, tuple, dict, float, int, set, np.int32,
+                       basestring, np.matrixlib.defmatrix.matrix)
 
 
 def trailing_underscore_attributes(obj):
@@ -13,7 +14,7 @@ def trailing_underscore_attributes(obj):
 
 
 def get_model_attributes(model, model_name_as_dict_root=True, ignore_list=[], as_is_types=default_as_is_types):
-    if isinstance(model, (list, np.ndarray, tuple, dict, float, int)):
+    if isinstance(model, as_is_types):
         return model
     else:
         states = {k: get_model_attributes(model.__getattribute__(k))
@@ -24,8 +25,9 @@ def get_model_attributes(model, model_name_as_dict_root=True, ignore_list=[], as
             return states
 
 
-def get_model_attributes_dict_for_json(model, model_name_as_dict_root=True, ignore_list=[]):
-    if isinstance(model, (list, tuple, dict, float, int)):
+def get_model_attributes_dict_for_json(model, model_name_as_dict_root=True, ignore_list=[],
+                                       as_is_types=default_as_is_types):
+    if isinstance(model, as_is_types):
         return model
     elif isinstance(model, np.ndarray):
         return model.tolist()
@@ -69,5 +71,7 @@ class NumpyAwareJSONEncoder(JSONEncoder):
         except TypeError:
             if isinstance(obj, np.matrixlib.defmatrix.matrix):
                 return list(np.array(obj))
+            elif isinstance(obj, np.int32):
+                return int(obj)
             else:
                 return list(obj)
