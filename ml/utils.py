@@ -3,6 +3,7 @@ __author__ = 'thor'
 import numpy as np
 from json import JSONEncoder, dump, dumps
 from datetime import datetime
+import pickle
 
 # default_as_is_types = (list, np.ndarray, tuple, dict, float, int)
 default_as_is_types = (list, np.ndarray, tuple, dict, float, int, set, np.int32,
@@ -11,6 +12,10 @@ default_as_is_types = (list, np.ndarray, tuple, dict, float, int, set, np.int32,
 
 def trailing_underscore_attributes(obj):
     return [k for k in obj.__dict__ if k[-1] == '_']
+
+
+def trailing_underscore_attributes_with_include_and_exclude(obj, include=(), exclude=()):
+    return [k for k in obj.__dict__ if k in include or (k[-1] == '_' and k not in exclude)]
 
 
 def get_model_attributes(model,
@@ -28,19 +33,32 @@ def get_model_attributes(model,
     :param version: String to include in the "version" field of the json
     :return: Nothing if dumping to json file, or the json string if argument filepath=None
     """
-    if isinstance(model, as_is_types):
+    if isinstance(model, as_is_types):  # if model is in as_is_types list, just return it
         return model
+    elif not hasattr(model, '__dict__'):
+        states = pickle.dumps(model)
     else:
-        attribute_set = set(trailing_underscore_attributes(model)).union(include).difference(exclude)
+        # getting the list of attributes to save
+        if isinstance(include, basestring) and include == 'all':
+            if len(exclude) > 0:
+                attribute_set = [k for k in model.__dict__ if k not in exclude]
+            else:
+                attribute_set = model.__dict__
+        else:
+            attribute_set = trailing_underscore_attributes_with_include_and_exclude(model, include, exclude)
+        # attribute_set = set(trailing_underscore_attributes(model)).union(include).difference(exclude)
+
+        # recursion on the values that are not in as_is_types
         states = {k: get_model_attributes(model.__getattribute__(k),
                                           include,
                                           exclude,
                                           model_name_as_dict_root,
                                           as_is_types) for k in attribute_set}
-        if model_name_as_dict_root:
-            return {model.__class__.__name__: states}
-        else:
-            return states
+    # wrap in model name
+    if model_name_as_dict_root:
+        return {model.__class__.__name__: states}
+    else:
+        return states
 
 
 def get_model_attributes_dict_for_json(model,
