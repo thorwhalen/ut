@@ -50,6 +50,11 @@ def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
     from scipy.stats import gaussian_kde
     # from pyqt_fit import kde
 
+    if isinstance(df, np.ndarray):
+        df = pd.DataFrame(df)
+    if isinstance(factor, np.ndarray):
+        factor = pd.Series(factor)
+
     if isinstance(factor, basestring):
         factor_name = factor  # save off the name
         factor = df[factor]  # extract column

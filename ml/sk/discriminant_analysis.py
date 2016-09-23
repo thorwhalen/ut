@@ -9,6 +9,7 @@ from sklearn.lda import LDA
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 from numpy import array
 
+
 __author__ = 'thor'
 
 
