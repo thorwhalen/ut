@@ -4,10 +4,14 @@ import numpy as np
 from json import JSONEncoder, dump, dumps
 from datetime import datetime
 import pickle
+from scipy.sparse import issparse
+import dill
+from copy import deepcopy
+from types import NoneType
 
 # default_as_is_types = (list, np.ndarray, tuple, dict, float, int)
 default_as_is_types = (list, np.ndarray, tuple, dict, float, int, set, np.int32,
-                       basestring, np.matrixlib.defmatrix.matrix)
+                       basestring, np.matrixlib.defmatrix.matrix, NoneType)
 
 
 def trailing_underscore_attributes(obj):
@@ -35,21 +39,27 @@ def get_model_attributes(model,
     """
     if isinstance(model, as_is_types):  # if model is in as_is_types list, just return it
         return model
-    elif not hasattr(model, '__dict__'):
+    elif not hasattr(model, '__dict__') or len(model.__dict__) == 0:
         states = pickle.dumps(model)
     else:
         # getting the list of attributes to save
-        if isinstance(include, basestring) and include == 'all':
-            if len(exclude) > 0:
-                attribute_set = [k for k in model.__dict__ if k not in exclude]
-            else:
-                attribute_set = model.__dict__
+        if isinstance(include, basestring):
+            if include == 'all':
+                if len(exclude) > 0:
+                    attribute_set = [k for k in model.__dict__ if k not in exclude]
+                else:
+                    attribute_set = model.__dict__
+            elif include == 'all_but_double_underscore':
+                if len(exclude) > 0:
+                    attribute_set = [k for k in model.__dict__ if k not in exclude and not k.startswith('__')]
+                else:
+                    attribute_set = model.__dict__
         else:
             attribute_set = trailing_underscore_attributes_with_include_and_exclude(model, include, exclude)
         # attribute_set = set(trailing_underscore_attributes(model)).union(include).difference(exclude)
 
         # recursion on the values that are not in as_is_types
-        states = {k: get_model_attributes(model.__getattribute__(k),
+        states = {k: get_model_attributes(getattr(model, k),  #model.__getattribute__(k),
                                           include,
                                           exclude,
                                           model_name_as_dict_root,
@@ -118,21 +128,28 @@ def export_model_params_to_json(model,
         return model_params
 
 
-def import_model_from_spec(spec, objects={}.copy(),
+def import_model_from_spec(spec,
+                           objects={}.copy(),
                            type_conversions=(),
                            field_conversions={}.copy(),
                            force_dict_wrap=False):
     if isinstance(spec, dict):
         model_dict_imported = dict()
         for k, v in spec.iteritems():
+            # print k
             if k in objects:
-                obj = objects[k]()
+                obj = objects[k]
+                if isinstance(obj, type):
+                    obj = objects[k]()
+                else:
+                    obj = deepcopy(obj)
+
                 for kk, vv in v.iteritems():
                     setattr(obj, kk,
                             import_model_from_spec(vv, objects, type_conversions, field_conversions, force_dict_wrap))
                 model_dict_imported[k] = obj
             elif k in field_conversions:
-                v = field_conversions[k](v)
+                # print k
                 model_dict_imported[k] = field_conversions[k](v)
             else:
                 model_dict_imported[k] = import_model_from_spec(v, objects, type_conversions, field_conversions,
@@ -142,11 +159,16 @@ def import_model_from_spec(spec, objects={}.copy(),
         else:
             return model_dict_imported
     else:
+        if spec == 'kd_tree':
+            print spec
         if type_conversions:
             for _type, converter in type_conversions:
                 if isinstance(spec, _type):
                     return converter(spec)
-        return spec
+        if isinstance(spec, basestring) and spec.startswith('cdill.dill'):
+            return dill.loads(spec)
+        else:
+            return spec
 
 
 
@@ -157,7 +179,65 @@ class NumpyAwareJSONEncoder(JSONEncoder):
         except TypeError as e:
             if isinstance(obj, np.matrixlib.defmatrix.matrix):
                 return list(np.array(obj))
-            elif isinstance(obj, np.int32):
+            elif isinstance(obj, (np.int32, np.int64)):
                 return int(obj)
+            elif isinstance(obj, (np.float32, np.float64)):
+                return float(obj)
+            elif hasattr(obj, 'tolist') and callable(obj.tolist):
+                return obj.tolist()
+            elif hasattr(obj, 'to_list') and callable(obj.to_list):
+                return obj.to_list()
+            elif issparse(obj):
+                tt = obj.tocoo()
+                ttt = tt.nonzero()
+                return map(zip(ttt[0], ttt[1], tt.data))
             else:
                 return list(obj)
+
+
+# if __name__ == "__main__":
+#     from ut.ml import utils as mlutils
+#     import pickle
+#     import json
+#     from oto.models.centroid_smoothing import CentroidSmoothing
+#     from sklearn.cluster import SpectralClustering, AgglomerativeClustering
+#     from sklearn.neighbors import KNeighborsClassifier
+#     from sklearn.preprocessing import StandardScaler
+#     from sklearn.decomposition import PCA
+#     # from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+#     from sklearn.lda import LDA
+#     from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
+#     from numpy import array, allclose, random
+#
+#     from ut.ml.sk.discriminant_analysis import FLDA, FldaLite
+#
+#     model = pickle.load(open('/D/Dropbox/dev/py/notebooks/soto/cs_flda.p', 'r'))
+#     json_str = mlutils.export_model_params_to_json(model, include='all')
+#     model_spec = json.loads(json_str)
+#
+#     print model
+#
+#     obj = mlutils.import_model_from_spec(model_spec,
+#                                          objects={'CentroidSmoothing': CentroidSmoothing,
+#                                                   'LinearDiscriminantAnalysis': LDA,
+#                                                   'LDA': LDA,
+#                                                   'FLDA': FLDA,
+#                                                   'FldaLite': FldaLite,
+#                                                   'StandardScaler': StandardScaler,
+#                                                   'SpectralClustering': SpectralClustering,
+#                                                   'KNeighborsClassifier': KNeighborsClassifier,
+#                                                   'CountVectorizer': CountVectorizer(input='content',
+#                                                                                      tokenizer=lambda x: x,
+#                                                                                      lowercase=False),
+#                                                   'TfidfTransformer': TfidfTransformer,
+#                                                   'PCA': PCA},
+#                                          field_conversions={'KDTree': pickle.loads,
+#                                                             'tokenizer': lambda x: lambda xx: xx,
+#                                                             'function': pickle.loads},
+#                                          type_conversions=[(list, array)]
+#                                          )
+#
+#     t = random.rand(10, 26)
+#     p1 = model.predict_proba(t)
+#     p2 = obj.predict_proba(t)
+#     allclose(p1, p2)
