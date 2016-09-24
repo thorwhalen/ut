@@ -2,7 +2,9 @@ from __future__ import division
 
 from sklearn.decomposition.pca import PCA, _infer_dimension_
 from ut.ml.sk.utils.validation import weighted_data
-from wpca import WPCA
+# from wpca import WPCA
+from ut.ml.sk.decomposition.wpca import WPCA
+
 from numpy import reshape, tile
 
 from numpy import reshape, sqrt, average
@@ -60,6 +62,13 @@ all fitted attributes were close
     def fit(self, X, y=None):
         X, w = weighted_data(X)
         return super(self.__class__, self).fit(X, weights=tile(reshape(w, (len(w), 1)), X.shape[1]))
+
+    def transform(self, X):
+        X, w = weighted_data(X)
+        return super(self.__class__, self).transform(X)
+
+    def fit_transform(self, X, y=None):
+        return self.fit(X).transform(X)
 
 
 class MyWeightedPCA(PCA):
