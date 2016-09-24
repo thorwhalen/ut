@@ -11,6 +11,8 @@ from numpy import reshape, sqrt, average
 
 import numpy as np
 from scipy import linalg
+from sklearn.decomposition.pca import PCA
+from ut.ml.utils import trailing_underscore_attributes, get_model_attributes
 # from scipy.special import gammaln
 
 from sklearn.utils.validation import as_float_array
@@ -28,15 +30,23 @@ class WeightedPCA(WPCA):
 >>> from ut.ml.sk.decomposition.pca import WeightedPCA
 >>> from sklearn.datasets import make_blobs
 >>> from ut.ml.sk.preprocessing import WeightedStandardScaler
->>> from numpy import ones, vstack, hstack, random
+>>> from numpy import ones, vstack, hstack, random, allclose, sort, abs, isnan
 >>> from ut.ml.sk.utils.validation import compare_model_attributes, repeat_rows
+>>>
+>>> def abs_ratio_close_when_sorted(a, b):
+...     a = sort(abs(a), axis=0)
+...     b = sort(abs(b), axis=0)
+...     t = a / b
+...     t = t[~isnan(t)]
+...     return allclose(t, 1.)
 >>>
 >>> model_1 = PCA()
 >>> model_2 = WeightedPCA()
 >>>
 >>> X, y = make_blobs(100, 5, 4)
 >>> w = ones(len(X))
->>> compare_model_attributes(model_1.fit(X), model_2.fit(X))
+>>> compare_model_attributes(model_1.fit(X), model_2.fit(X), only_attr='components_', \
+                         close_enough_fun=abs_ratio_close_when_sorted)
 all fitted attributes were close
 >>>
 >>> X, y = make_blobs(100, 5, 4)
@@ -44,7 +54,8 @@ all fitted attributes were close
 >>>
 >>> XX = vstack((X, X))
 >>> wX = (X, 2 * ones(len(X)))
->>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
+>>> compare_model_attributes(model_1.fit(X), model_2.fit(X), only_attr='components_', \
+                         close_enough_fun=abs_ratio_close_when_sorted)
 all fitted attributes were close
 >>>
 >>> X, y = make_blobs(100, 5, 4)
@@ -52,12 +63,18 @@ all fitted attributes were close
 >>>
 >>> XX = vstack((X, X[-2:, :], X[-1, :]))
 >>> wX = (X, hstack((ones(len(X)-2), [2, 3])))
->>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX))
+>>> compare_model_attributes(model_1.fit(XX), model_2.fit(wX), only_attr='components_', \
+                                close_enough_fun=abs_ratio_close_when_sorted)
 all fitted attributes were close
->>>
 >>> w = random.randint(1, 5, len(X))
->>> compare_model_attributes(model_1.fit(repeat_rows(X, w)), model_2.fit((X, w)))
+>>> compare_model_attributes(model_1.fit(repeat_rows(X, w)), model_2.fit((X, w)), only_attr='components_', \
+                                close_enough_fun=abs_ratio_close_when_sorted)
 all fitted attributes were close
+>>> t = model_1.fit(repeat_rows(X, w))
+>>> model_2 = model_2.fit((X, w)).to_pca()
+>>> assert allclose(abs(model_1.transform(X) / model_2.transform(X)), 1), "transformation of X not close"
+>>> XX = random.rand(3, X.shape[1])
+>>> assert allclose(abs(model_1.transform(XX) / model_2.transform(XX)), 1), "transformation of X not close"
     """
     def fit(self, X, y=None):
         X, w = weighted_data(X)
@@ -69,6 +86,12 @@ all fitted attributes were close
 
     def fit_transform(self, X, y=None):
         return self.fit(X).transform(X)
+
+    def to_pca(self):
+        pca = PCA(n_components=self.n_components)
+        for attr in trailing_underscore_attributes(self):
+            setattr(pca, attr, getattr(self, attr))
+        return pca
 
 
 class MyWeightedPCA(PCA):
