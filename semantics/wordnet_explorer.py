@@ -10,9 +10,12 @@ from nltk.corpus import wordnet as wn
 
 
 def print_word_definitions(word):
-    print '\n'.join(['%d: %s (%s)'
-                      % (i, x.definition, x.name) for i, x in enumerate(wn.synsets(word))])
+    print word_definitions_string(word)
 
+
+def word_definitions_string(word):
+    return '\n'.join(['%d: %s (%s)'
+                     % (i, x.definition(), x.name()) for i, x in enumerate(wn.synsets(word))])
 
 def print_word_lemmas(word):
     t = Counter([l.name for s in wn.synsets(word) for l in s.lemmas])

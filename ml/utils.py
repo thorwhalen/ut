@@ -12,7 +12,8 @@ from types import NoneType
 # default_as_is_types = (list, np.ndarray, tuple, dict, float, int)
 default_as_is_types = (list, np.ndarray, tuple, dict, float, int, set, np.int32,
                        basestring, np.matrixlib.defmatrix.matrix, NoneType)
-
+# default_as_is_types = (list, tuple, dict, float, int, set, np.int32,
+#                        basestring, NoneType)
 
 def trailing_underscore_attributes(obj):
     return [k for k in obj.__dict__ if k[-1] == '_']
