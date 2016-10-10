@@ -35,6 +35,11 @@ s3_backup_bucket_name = 'mongo-db-bak'
 # except KeyError:
 #     pass
 
+
+def mg_collection_string(mgc):
+    return mgc.database.name + '/' + mgc.name
+
+
 def _integrate_filt(filt, *args, **kwargs):
     if len(args) > 0:
         if 'spec' in kwargs:
