@@ -19,7 +19,7 @@ from ut.pfile.to import ungzip
 from ut.util.log import printProgress
 from ut.pdict.manip import recursively_update_with
 import types
-
+import numpy.matrixlib.defmatrix.matrix
 
 s3_backup_bucket_name = 'mongo-db-bak'
 
@@ -106,11 +106,11 @@ def convert_dict_for_mongo(d):
                         continue
             if isinstance(v, (int64, int32)):
                 v = int(v)
-            elif isinstance(v, ndarray):
+            elif isinstance(v, (ndarray, numpy.matrixlib.defmatrix.matrix)):
                 if v.dtype == int32 or v.dtype == int64:
-                    v = list(v.astype(int))
+                    v = v.astype(int).tolist()
                 else:
-                    v = list(v)
+                    v = v.tolist()
             elif isinstance(v, unicode):
                 for i in ['utf-8', 'iso-8859-1']:
                     try:
