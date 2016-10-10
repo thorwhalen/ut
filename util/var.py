@@ -66,6 +66,17 @@ def mk_arg_val_dict_from_sys_argv(sys_argv,
         return arg_val_dict
 
 
+def to_bool(x):
+    if isinstance(x, basestring):
+        if x.lower() == 'true':
+            return True
+        elif x.lower() == 'false':
+            return False
+        elif x.isdigit():
+            return bool(int(x))
+    else:
+        return bool(x)
+
 def convert_to_number_if_possible(x):
     try:
         x = float(x)
@@ -74,7 +85,6 @@ def convert_to_number_if_possible(x):
         return x
     except ValueError:
         return x
-
 
 
 def full_filepath(rel_path):
