@@ -7,7 +7,7 @@ from pymongo.errors import CursorNotFound
 import os
 import re
 import pandas as pd
-from numpy import inf, random, int64, int32, ndarray
+from numpy import inf, random, int64, int32, ndarray, float64, float32
 import subprocess
 from datetime import datetime
 
@@ -19,7 +19,7 @@ from ut.pfile.to import ungzip
 from ut.util.log import printProgress
 from ut.pdict.manip import recursively_update_with
 import types
-import numpy.matrixlib.defmatrix.matrix
+import numpy as np
 
 s3_backup_bucket_name = 'mongo-db-bak'
 
@@ -106,9 +106,13 @@ def convert_dict_for_mongo(d):
                         continue
             if isinstance(v, (int64, int32)):
                 v = int(v)
-            elif isinstance(v, (ndarray, numpy.matrixlib.defmatrix.matrix)):
+            elif isinstance(v, (float64, float32)):
+                v = float(v)
+            elif isinstance(v, (ndarray, np.matrixlib.defmatrix.matrix)):
                 if v.dtype == int32 or v.dtype == int64:
                     v = v.astype(int).tolist()
+                elif v.dtype == float32 or v.dtype == float64:
+                    v = v.astype(float).tolist()
                 else:
                     v = v.tolist()
             elif isinstance(v, unicode):
