@@ -172,6 +172,26 @@ def import_model_from_spec(spec,
             return spec
 
 
+def json_friendly_dict(obj):
+    if isinstance(obj, dict):
+        return {k: json_friendly_dict(v) for k, v in obj.iteritems()}
+    elif hasattr(obj, 'tolist') and callable(obj.tolist):
+        return obj.tolist()
+    elif hasattr(obj, 'to_list') and callable(obj.to_list):
+        return obj.to_list()
+    elif isinstance(obj, np.matrixlib.defmatrix.matrix):
+        return list(np.array(obj))
+    elif isinstance(obj, (np.int32, np.int64)):
+        return int(obj)
+    elif isinstance(obj, (np.float32, np.float64)):
+        return float(obj)
+    elif issparse(obj):
+        tt = obj.tocoo()
+        ttt = tt.nonzero()
+        return zip(ttt[0], ttt[1], tt.data)
+    else:
+        return obj
+
 
 class NumpyAwareJSONEncoder(JSONEncoder):
     def default(self, obj):
