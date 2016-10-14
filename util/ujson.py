@@ -1,0 +1,14 @@
+from __future__ import division
+
+import json
+
+__author__ = 'thor'
+
+
+
+def get_dict_of_error_object(error_object):
+    return {'error': str(error_object.__class__), 'message': error_object.args[0]}
+
+
+def get_json_of_error_object(error_object):
+    return json.dumps(get_dict_of_error_object(error_object))
