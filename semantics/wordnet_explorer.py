@@ -77,10 +77,10 @@ class HyponymTree(iTree):
         self.set_default_node_2_str('name')
 
     def __str__(self):
-        return self.value.name
+        return self.value.name()
 
     def __repr__(self):
-        return self.value.name
+        return self.value.name()
 
     def print_lemmas(self, tab=''):
         print tab + _lemma_names_str(self.value)
