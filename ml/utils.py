@@ -82,12 +82,12 @@ def get_model_attributes_dict_for_json(model,
     elif isinstance(model, np.ndarray):
         return model.tolist()
     else:
-        return get_model_attributes(model,
+        return json_friendly_dict(get_model_attributes(model,
                                     include,
                                     exclude,
                                     model_name_as_dict_root,
                                     as_is_types
-                                    )
+                                    ))
 
 
 def export_model_params_to_json(model,
