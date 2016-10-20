@@ -6,6 +6,16 @@ from collections import namedtuple
 from collections import Counter
 
 
+def table_str_with_key_and_value_columns(d, key_col_name='key', val_col_name='val'):
+    max_key_size = max(map(len, map(str, d.keys())))
+    max_val_size = max(map(len, map(str, d.values())))
+    format_str = '{:<' + str(max_key_size) + '} {:<' + str(max_val_size) + '}\n'
+    s = format_str.format(key_col_name, val_col_name)
+    for k, v in d.iteritems():
+        s += format_str.format(k, v)
+    return s
+
+
 def namedtuple(d):
     return namedtuple('blah', d.keys())(**d)
 
