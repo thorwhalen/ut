@@ -21,8 +21,23 @@ from scipy.signal import resample as scipy_signal_resample
 
 from ut.util.log import printProgress
 from ut.util.pfunc import filter_kwargs_to_func_arguments
+import subprocess
 
 wav_text_info_exp = re.compile("^.*WAVEbextZ\x03\x00\x00([^\x00]+)")
+
+
+
+def convert_to_wav(source_file, target_file=None, sample_rate=44100, print_stats=False):
+    if target_file is None:
+        folder, filename = os.path.split(source_file)
+        extension_less_filename, ext = os.path.splitext(filename)
+        target_file = os.path.join(folder, extension_less_filename + '.wav')
+    if print_stats:
+        return subprocess.call(['ffmpeg', '-i', source_file, '-ar', str(sample_rate), target_file])
+    else:
+        return subprocess.call(['ffmpeg', '-nostats', '-i', source_file, '-ar', str(sample_rate), target_file])
+
+
 
 
 def complete_sref(sref):
