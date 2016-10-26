@@ -15,11 +15,22 @@ import itertools
 
 from numpy import mod
 from datetime import datetime
-from itertools import islice, chain, imap, combinations
+from itertools import islice, chain, imap, combinations, izip_longest
 from operator import itemgetter
 import operator
 
 from random import random
+
+
+def batch(iterable, n=1):
+    current_batch = []
+    for item in iterable:
+        current_batch.append(item)
+        if len(current_batch) == n:
+            yield current_batch
+            current_batch = []
+    if current_batch:
+        yield current_batch
 
 
 def random_subset(iterator, K):
@@ -211,12 +222,9 @@ def grouper(iterable, n, fillvalue=None):
 
 
 def grouper_no_fill(iterable, n):  # untested
-    sentinal = object()
-    for g in grouper(iterable, n, sentinal):
-        if g[-1] != sentinal:
-            yield g
-        else:
-            yield g[:g.index(sentinal)]
+    "grouper_no_fill('ABCDEFG', 3) --> ABC DEF G"
+    args = [iter(iterable)] * n
+    return imap(lambda x: filter(None, x), izip_longest(fillvalue=None, *args))
 
 
 def roundrobin(*iterables):
