@@ -8,6 +8,14 @@ import pandas as pd
 multiple_spaces_exp = re.compile('\s\s*')
 
 
+def indent_string_block(s, indent=2):
+    """
+    Indents all the lines of s by indent number of spaces
+    """
+    indent_str = ' ' * indent
+    return indent_str + s.replace('\n', '\n' + indent_str)
+
+
 def str_to_unicode_or_bust(obj, encoding='utf-8'):
     if isinstance(obj, basestring):
         if not isinstance(obj, unicode):
