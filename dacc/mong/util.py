@@ -20,6 +20,7 @@ from ut.util.log import printProgress
 import numpy as np
 from ut.pdict.manip import recursively_update_with
 from ut.util.pobj import inject_method
+from pymongo.collection import Collection
 
 s3_backup_bucket_name = 'mongo-db-bak'
 
@@ -36,42 +37,6 @@ s3_backup_bucket_name = 'mongo-db-bak'
 #     pass
 
 
-def _integrate_filt(filt, *args, **kwargs):
-    if len(args) > 0:
-        if 'spec' in kwargs:
-            raise TypeError("got multiple values for keyword argument 'spec' (one in args, one in kwargs")
-        args = list(args)
-        kwargs['spec'] = args.pop(0)
-        args = tuple(args)
-
-    if len(kwargs) != 0:
-        if 'spec' in kwargs:
-            recursively_update_with(kwargs['spec'], filt)
-        else:
-            kwargs['spec'] = filt
-    else:
-        kwargs = {'spec': filt}
-
-    return args, kwargs
-
-
-def filtered_mgc(self, filt):
-    filt = filt.copy()
-
-    def __getattribute__(self, name):
-        attr = object.__getattribute__(self, name)
-        if hasattr(attr, '__call__'):
-
-            def newfunc(*args, **kwargs):
-                args, kwargs = _integrate_filt(filt, *args, **kwargs)
-                result = attr(*args, **kwargs)
-                return result
-
-            return newfunc
-        else:
-            return attr
-
-    return inject_method(self, __getattribute__, '__getattribute__')
 
 
 def mg_collection_string(mgc):
@@ -357,3 +322,110 @@ def _get_db_and_collection_from_filename(filename, db=None, collection=None):
         else:
             db_coll_re = re.compile('mongo_{db}_(.*?)___'.format(db=db))
             return db, db_coll_re.findall(filename)[0]
+
+# def _integrate_filt(filt, *args, **kwargs):
+#
+#     if len(args) > 0:
+#         if 'spec' in kwargs:
+#             raise TypeError("got multiple values for keyword argument 'spec' (one in args, one in kwargs")
+#         args = list(args)
+#         kwargs['spec'] = args.pop(0)
+#         args = tuple(args)
+#
+#     if 'spec' in kwargs:
+#         recursively_update_with(kwargs['spec'], filt)
+#     else:
+#         kwargs['spec'] = filt
+#
+#     return args, kwargs
+#
+#
+# class FilteredCollection(Collection):
+#     def __init__(self, filt=None):
+#         if filt is None:
+#             filt = {}
+#         self.filt = filt.copy()
+#
+#     def _integrate_filt(self, *args, **kwargs):
+#
+#         if len(args) > 0:
+#             if 'spec' in kwargs:
+#                 raise TypeError("got multiple values for keyword argument 'spec' (one in args, one in kwargs")
+#             args = list(args)
+#             kwargs['spec'] = args.pop(0)
+#             args = tuple(args)
+#
+#         if 'spec' in kwargs:
+#             recursively_update_with(kwargs['spec'], self.filt)
+#         else:
+#             kwargs['spec'] = self.filt
+#
+#         return args, kwargs
+#
+#     def find(self, *args, **kwargs):
+#         args, kwargs = self._integrate_filt(*args, **kwargs)
+#         return super(FilteredCollection, self).find(*args, **kwargs)
+#
+#     def find_one(self, *args, **kwargs):
+#         args, kwargs = self._integrate_filt(*args, **kwargs)
+#         return super(FilteredCollection, self).find_one(*args, **kwargs)
+#
+#     def count(self):
+#         return super(FilteredCollection, self).find(self.filt).count()
+#
+#     # def __getattribute__(self, name):
+#     #     attr = super(FilteredCollection, self).__getattribute__(name)
+#     #     if hasattr(attr, '__call__'):
+#     #
+#     #         def newfunc(*args, **kwargs):
+#     #             args, kwargs = self._integrate_filt(*args, **kwargs)
+#     #             result = attr(*args, **kwargs)
+#     #             return result
+#     #
+#     #         return newfunc
+#     #     else:
+#     #         return attr
+#
+#
+# def filtered_mgc(self, filt):
+#     filt = filt.copy()
+#
+#     def find(self, *args, **kwargs):
+#         args, kwargs = _integrate_filt(filt, *args, **kwargs)
+#         return object.__getattribute__(self, 'find')(*args, **kwargs)
+#
+#     def __getattribute__(self, name):
+#         if name == 'find':
+#             def newfunc(*args, **kwargs):
+#                 args, kwargs = _integrate_filt(filt, *args, **kwargs)
+#                 result = object.__getattribute__(self, name)(*args, **kwargs)
+#                 return result
+#             return newfunc
+#         elif name == 'find_one':
+#             def newfunc(*args, **kwargs):
+#                 args, kwargs = _integrate_filt(filt, *args, **kwargs)
+#                 result = object.__getattribute__(self, name)(*args, **kwargs)
+#                 return result
+#             return newfunc
+#         elif name == 'count':
+#             def newfunc(*args, **kwargs):
+#                 args, kwargs = _integrate_filt(filt, *args, **kwargs)
+#                 result = object.__getattribute__(self, name)(*args, **kwargs)
+#                 return result
+#
+#             return newfunc
+#         else:
+#             return object.__getattribute__(self, name)
+#         #
+#         # attr = self.__getattr__(name)
+#         # if hasattr(attr, '__call__'):
+#         #     def newfunc(*args, **kwargs):
+#         #         args, kwargs = _integrate_filt(filt, *args, **kwargs)
+#         #         result = object.__getattribute__(self, name)(*args, **kwargs)
+#         #         return result
+#         #
+#         #     return newfunc
+#         # else:
+#         #     return attr
+#
+#     return inject_method(self, __getattribute__, '__getattribute__')
