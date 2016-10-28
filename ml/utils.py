@@ -8,6 +8,31 @@ from scipy.sparse import issparse
 import dill
 from copy import deepcopy
 from types import NoneType
+from sklearn.base import TransformerMixin
+from sklearn.linear_model import LinearRegression
+
+
+class ExtrapolateTransformation(TransformerMixin):
+    """A wrapper that endows a TransformerMixin that has no transform method with one."""
+    def __init__(self, transformer, extrapolator=LinearRegression()):
+        self.transformer = transformer
+        self.extrapolator = extrapolator
+
+    def fit(self, X, y=None):
+        transformed_X = self.transformer.fit_transform(X, y)
+
+        if isinstance(self.extrapolator, type):
+            self.extrapolator = self.extrapolator()
+        self.extrapolator.fit(X, transformed_X)
+
+        return self
+
+    def transform(self, X):
+        return self.extrapolator.predict(X)
+
+    def fit_transform(self, X, y=None):
+        return self.fit(X, y).transform(X)
+
 
 # default_as_is_types = (list, np.ndarray, tuple, dict, float, int)
 default_as_is_types = (list, np.ndarray, tuple, dict, float, int, set, np.int32,
