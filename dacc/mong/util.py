@@ -340,38 +340,54 @@ def _get_db_and_collection_from_filename(filename, db=None, collection=None):
 #     return args, kwargs
 #
 #
-# class FilteredCollection(Collection):
-#     def __init__(self, filt=None):
-#         if filt is None:
-#             filt = {}
-#         self.filt = filt.copy()
-#
-#     def _integrate_filt(self, *args, **kwargs):
-#
-#         if len(args) > 0:
-#             if 'spec' in kwargs:
-#                 raise TypeError("got multiple values for keyword argument 'spec' (one in args, one in kwargs")
-#             args = list(args)
-#             kwargs['spec'] = args.pop(0)
-#             args = tuple(args)
-#
-#         if 'spec' in kwargs:
-#             recursively_update_with(kwargs['spec'], self.filt)
-#         else:
-#             kwargs['spec'] = self.filt
-#
-#         return args, kwargs
-#
-#     def find(self, *args, **kwargs):
-#         args, kwargs = self._integrate_filt(*args, **kwargs)
-#         return super(FilteredCollection, self).find(*args, **kwargs)
-#
-#     def find_one(self, *args, **kwargs):
-#         args, kwargs = self._integrate_filt(*args, **kwargs)
-#         return super(FilteredCollection, self).find_one(*args, **kwargs)
-#
-#     def count(self):
-#         return super(FilteredCollection, self).find(self.filt).count()
+class FilteredCollection(Collection):
+    def __init__(self, mgc, filt=None):
+        self.mgc = mgc
+        if filt is None:
+            filt = {}
+        self.filt = filt.copy()
+
+    def _integrate_filt(self, *args, **kwargs):
+
+        if len(args) > 0:
+            if 'spec' in kwargs:
+                raise TypeError("got multiple values for keyword argument 'spec' (one in args, one in kwargs")
+            args = list(args)
+            kwargs['spec'] = args.pop(0)
+            args = tuple(args)
+
+        if 'spec' in kwargs:
+            recursively_update_with(kwargs['spec'], self.filt)
+        else:
+            kwargs['spec'] = self.filt
+
+        return args, kwargs
+
+    def find(self, *args, **kwargs):
+        """
+        Filtered version of pymongo collection find.
+        """
+        args, kwargs = self._integrate_filt(*args, **kwargs)
+        return self.mgc.find(*args, **kwargs)
+
+    def find_one(self, *args, **kwargs):
+        """
+        Filtered version of pymongo collection find_one.
+        """
+        args, kwargs = self._integrate_filt(*args, **kwargs)
+        return self.mgc.find_one(*args, **kwargs)
+
+    def count(self):
+        """
+        Filtered version of pymongo collection count.
+        """
+        return self.mgc.find(self.filt).count()
+
+    def __getattr__(self, item):
+        """
+        Forward all other things to self.mgc
+        """
+        return self.mgc.__getattr__(item)
 #
 #     # def __getattribute__(self, name):
 #     #     attr = super(FilteredCollection, self).__getattribute__(name)
