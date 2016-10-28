@@ -8,15 +8,13 @@ import types
 function_type = type(lambda x: x)
 
 
-def inject_method(self, method):
-    if isinstance(method, list):
-        for _method in method:
-            self = inject_method(self, _method)
-    else:
-        assert isinstance(method, function_type), "Your method wasn't even a function, come on!"
-        setattr(self,
-                method,
-                types.MethodType(method, self))
+def inject_method(self, method_function, method_name=None):
+    if method_name is None:
+        method_name = method_function.__name__
+    assert isinstance(method_function, function_type), "Your method wasn't even a function, come on!"
+    setattr(self,
+            method_name,
+            types.MethodType(method_function, self))
     return self
 
 
