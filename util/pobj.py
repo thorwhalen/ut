@@ -4,7 +4,20 @@ import ut.pdict.get as pdict_get
 import ut.util.ulist as util_ulist
 from optparse import OptionParser
 import inspect
+import types
+function_type = type(lambda x: x)
 
+
+def inject_method(self, method):
+    if isinstance(method, list):
+        for _method in method:
+            self = inject_method(self, _method)
+    else:
+        assert isinstance(method, function_type), "Your method wasn't even a function, come on!"
+        setattr(self,
+                method,
+                types.MethodType(method, self))
+    return self
 
 
 def methods_of(obj_or_class):
