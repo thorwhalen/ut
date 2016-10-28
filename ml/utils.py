@@ -10,6 +10,7 @@ from copy import deepcopy
 from types import NoneType
 from sklearn.base import TransformerMixin
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelEncoder
 
 
 class ExtrapolateTransformation(TransformerMixin):
@@ -19,7 +20,11 @@ class ExtrapolateTransformation(TransformerMixin):
         self.extrapolator = extrapolator
 
     def fit(self, X, y=None):
-        transformed_X = self.transformer.fit_transform(X, y)
+        try:
+            transformed_X = self.transformer.fit_transform(X, y)
+        except ValueError:
+            y = LabelEncoder().fit_transform(y)
+            transformed_X = self.transformer.fit_transform(X, y)
 
         if isinstance(self.extrapolator, type):
             self.extrapolator = self.extrapolator()
@@ -32,6 +37,9 @@ class ExtrapolateTransformation(TransformerMixin):
 
     def fit_transform(self, X, y=None):
         return self.fit(X, y).transform(X)
+
+    def __getattr__(self, item):
+        return self.transformer.__getattribute__(item)
 
 
 # default_as_is_types = (list, np.ndarray, tuple, dict, float, int)
