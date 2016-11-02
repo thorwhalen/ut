@@ -2,9 +2,9 @@ __author__ = 'thorwhalen'
 
 import itertools
 import re
-from collections import namedtuple
+from collections import namedtuple as _namedtuple
 from collections import Counter
-
+from warnings import warn
 
 def table_str_with_key_and_value_columns(d, key_col_name='key', val_col_name='val'):
     max_key_size = max(map(len, map(str, d.keys())))
@@ -16,8 +16,8 @@ def table_str_with_key_and_value_columns(d, key_col_name='key', val_col_name='va
     return s
 
 
-def namedtuple(d):
-    return namedtuple('blah', d.keys())(**d)
+def namedtuple(d, name='namedtuple'):
+    return _namedtuple('blah', d.keys())(**d)
 
 
 class hashabledict(dict):
@@ -29,16 +29,57 @@ def count_dicts(d):
     return Counter(map(hashabledict, d))
 
 
-class Struct:
-    def __init__(self, obj):
-        for k, v in obj.iteritems():
-            if isinstance(v, dict):
-                setattr(self, k, Struct(v))
-            else:
-                setattr(self, k, v)
+# class Struct:
+#     def __init__(self, obj):
+#         for k, v in obj.iteritems():
+#             if not isinstance(k, basestring):
+#                 warn("One of a dicts keys ({}) was not a string and will be converted to be one".format(k))
+#                 k = str(k)
+#             if isinstance(v, dict):
+#                 setattr(self, k, Struct(v))
+#             else:
+#                 setattr(self, k, v)
+#
+#     def __getitem__(self, val):
+#         return self.__dict__[val]
+#
+#     def __repr__(self):
+#         return '{%s}' % str(', '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.iteritems()))
 
-    def __getitem__(self, val):
-        return self.__dict__[val]
+
+class Struct(dict):
+    def __init__(self, *args, **kwargs):
+        super(Struct, self).__init__(*args, **kwargs)
+        for arg in args:
+            if isinstance(arg, dict):
+                for k, v in arg.iteritems():
+                    if not isinstance(v, dict):
+                        self[k] = v
+                    else:
+                        self[k] = Struct(v)
+        if kwargs:
+            for k, v in kwargs.iteritems():
+                if not isinstance(v, dict):
+                    self[k] = v
+                else:
+                    self[k] = Struct(v)
+
+    def __getitem__(self, value):
+        return self.get(value)
+
+    def __setattr__(self, key, value):
+        self.__setitem__(key, value)
+
+    def __setitem__(self, key, value):
+        super(Struct, self).__setitem__(key, value)
+        self.__dict__.update({key: value})
+
+    def __delattr__(self, item):
+        self.__delitem__(item)
+
+    def __delitem__(self, key):
+        super(Struct, self).__delitem__(key)
+        del self.__dict__[key]
 
     def __repr__(self):
         return '{%s}' % str(', '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.iteritems()))
