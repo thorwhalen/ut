@@ -6,6 +6,7 @@ from collections import namedtuple as _namedtuple
 from collections import Counter
 from warnings import warn
 
+
 def table_str_with_key_and_value_columns(d, key_col_name='key', val_col_name='val'):
     max_key_size = max(map(len, map(str, d.keys())))
     max_val_size = max(map(len, map(str, d.values())))

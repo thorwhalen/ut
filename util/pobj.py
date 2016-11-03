@@ -5,16 +5,25 @@ import ut.util.ulist as util_ulist
 from optparse import OptionParser
 import inspect
 import types
-function_type = type(lambda x: x)
+function_type = type(lambda x: x)  # using this instead of callable() because classes are callable, for instance
 
 
 def inject_method(self, method_function, method_name=None):
-    if method_name is None:
-        method_name = method_function.__name__
-    assert isinstance(method_function, function_type), "Your method wasn't even a function, come on!"
-    setattr(self,
-            method_name,
-            types.MethodType(method_function, self))
+    if isinstance(method_function, function_type):
+        if method_name is None:
+            method_name = method_function.__name__
+        setattr(self,
+                method_name,
+                types.MethodType(method_function, self))
+    else:
+        if isinstance(method_function, dict):
+            method_function = [(func, func_name) for func_name, func in method_function.iteritems()]
+        for method in method_function:
+            if isinstance(method, tuple) and len(method) == 2:
+                self = inject_method(self, method[0], method[1])
+            else:
+                self = inject_method(self, method)
+
     return self
 
 
