@@ -1,8 +1,40 @@
 from __future__ import division
 
-from numpy import reshape, ones, allclose, tile, random, vstack, array, isnan
+from numpy import reshape, ones, allclose, tile, random, vstack, array, isnan, all, any
+import re
+from sklearn.utils.validation import NotFittedError, check_is_fitted
 
 __author__ = 'thor'
+
+
+fitted_attribute_pattern = re.compile('.*_$')
+
+
+def is_fitted(model, attributes=None, all_or_any=all):
+    """
+    Returns True if the model is fitted, and False otherwise.
+
+    How does the function know the model is fitted?
+
+    If no attributes are given (the default), it will check for the
+    existence of any attribute ending with an underscore. This is a bit of a risky non-explicit check, but can be
+    useful. Use a more explicit check if needed.
+
+    If attributes is not None, the model, attributes, and all_or_any arguments will be passed on to
+    sklearn.utils.validation.check_is_fitted and return True if no NotFittedError was raised, and False if not.
+    """
+    if attributes is None:
+        # return True if and only if model has at least one attribute ending with an underscore
+        for attr in model.__dict__.keys():
+            if fitted_attribute_pattern.match(attr):
+                return True
+            return False
+    else:
+        try:
+            check_is_fitted(model, attributes, all_or_any=all_or_any)
+            return True
+        except NotFittedError:
+            return False
 
 
 def weighted_data(X):
