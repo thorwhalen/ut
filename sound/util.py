@@ -587,6 +587,7 @@ class Sound(object):
         return self.hear_sound(**kwargs)
 
     def melspectrogram(self, mel_kwargs={}, plot_it=False):
+        mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
         log_S = self.melspectr_matrix(**mel_kwargs)
         if plot_it:
             plot_melspectrogram(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'], name=self.name)
