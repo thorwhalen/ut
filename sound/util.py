@@ -559,6 +559,12 @@ class Sound(object):
         self.wf = weighted_mean([pre_normalization_function(self.wf), 1],
                                 [pre_normalization_function(new_wf), weight])
 
+    def melspectr_matrix(self, **mel_kwargs):
+        mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
+        S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
+        # Convert to log scale (dB). We'll use the peak power as reference.
+        return librosa.logamplitude(S, ref_power=np.max)
+
     ####################################################################################################################
     # DISPLAY FUNCTIONS
 
@@ -577,16 +583,11 @@ class Sound(object):
         return self.hear_sound(**kwargs)
 
     def display(self, **kwargs):
-        self.melspectrogram()
+        self.melspectrogram(plot_it=True)
         return self.hear_sound(**kwargs)
 
-    def melspectrogram(self, mel_kwargs={}, plot_it=True):
-        # Let's make and display a mel-scaled power (energy-squared) spectrogram
-        # We use a small hop length of 64 here so that the frames line up with the beat tracker example below.
-        mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
-        S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
-        # Convert to log scale (dB). We'll use the peak power as reference.
-        log_S = librosa.logamplitude(S, ref_power=np.max)
+    def melspectrogram(self, mel_kwargs={}, plot_it=False):
+        log_S = self.melspectr_matrix(**mel_kwargs)
         if plot_it:
             plot_melspectrogram(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'], name=self.name)
         return log_S
