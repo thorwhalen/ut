@@ -600,7 +600,7 @@ class Sound(object):
     def melspectrogram(self, mel_kwargs=None, plot_it=False):
         if mel_kwargs is None:
             mel_kwargs = {}
-        mel_kwargs = dict({'n_fft': 2048, 'hop_length': 512, 'n_mels': 128}, mel_kwargs)
+        mel_kwargs = dict({'n_fft': 2048, 'hop_length': 512, 'n_mels': 128}, **mel_kwargs)
         log_S = self.melspectr_matrix(**mel_kwargs)
         if plot_it:
             plot_melspectrogram(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'], name=self.name)
