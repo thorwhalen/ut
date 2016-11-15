@@ -23,11 +23,13 @@ from ut.util.log import printProgress
 from ut.util.pfunc import filter_kwargs_to_func_arguments
 import subprocess
 
+default_sr = 44100
+
 wav_text_info_exp = re.compile("^.*WAVEbextZ\x03\x00\x00([^\x00]+)")
 
 
 
-def convert_to_wav(source_file, target_file=None, sample_rate=44100, print_stats=False):
+def convert_to_wav(source_file, target_file=None, sample_rate=default_sr, print_stats=False):
     if target_file is None:
         folder, filename = os.path.split(source_file)
         extension_less_filename, ext = os.path.splitext(filename)
@@ -321,7 +323,7 @@ def mk_transformed_copies_of_sound_files(source_path_iterator,
                 raise e
 
 
-def plot_melspectrogram(spect_mat, sr=44100, hop_length=512, name=None):
+def plot_melspectrogram(spect_mat, sr=default_sr, hop_length=512, name=None):
     # Make a new figure
     plt.figure(figsize=(12, 4))
     # Display the spectrogram on a mel scale
@@ -339,7 +341,9 @@ def plot_melspectrogram(spect_mat, sr=44100, hop_length=512, name=None):
 
 
 class Sound(object):
-    def __init__(self, wf, sr, name=''):
+    def __init__(self, wf=None, sr=default_sr, name=''):
+        if wf is None:
+            wf = np.array([])
         self.wf = wf.copy()
         self.sr = sr
         self.name = name
@@ -375,7 +379,7 @@ class Sound(object):
                     sound.info['duration'] = float(duration)
                 if duration is not None or offset_s is not None:
                     offset_s = offset_s or 0
-                    sound.info['frames'] = int((duration - offset_s) * 48000)
+                    sound.info['frames'] = int((duration - offset_s) * default_sr)
                     sound.info.pop('size')
             except Exception:
                 pass
@@ -559,8 +563,15 @@ class Sound(object):
         self.wf = weighted_mean([pre_normalization_function(self.wf), 1],
                                 [pre_normalization_function(new_wf), weight])
 
+    def append(self, sound, glue=0.0):
+        assert sound.sr == self.sr, "you can only append sounds if they have the same sample rate at this point"
+        if isinstance(glue, (float, int)):
+            n_samples = int(glue * self.sr)
+            glue = zeros(n_samples)
+        self.wf = hstack((self.wf, glue))
+
     def melspectr_matrix(self, **mel_kwargs):
-        mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
+        mel_kwargs = dict({'n_fft': 2048, 'hop_length': 512, 'n_mels': 128}, **mel_kwargs)
         S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
         # Convert to log scale (dB). We'll use the peak power as reference.
         return librosa.logamplitude(S, ref_power=np.max)
@@ -586,8 +597,10 @@ class Sound(object):
         self.melspectrogram(plot_it=True)
         return self.hear_sound(**kwargs)
 
-    def melspectrogram(self, mel_kwargs={}, plot_it=False):
-        mel_kwargs = dict(mel_kwargs, **{'n_fft': 2048, 'hop_length': 512, 'n_mels': 128})
+    def melspectrogram(self, mel_kwargs=None, plot_it=False):
+        if mel_kwargs is None:
+            mel_kwargs = {}
+        mel_kwargs = dict({'n_fft': 2048, 'hop_length': 512, 'n_mels': 128}, mel_kwargs)
         log_S = self.melspectr_matrix(**mel_kwargs)
         if plot_it:
             plot_melspectrogram(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'], name=self.name)
