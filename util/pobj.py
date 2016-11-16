@@ -4,8 +4,18 @@ import ut.pdict.get as pdict_get
 import ut.util.ulist as util_ulist
 from optparse import OptionParser
 import inspect
+import cPickle
+import zlib
 import types
 function_type = type(lambda x: x)  # using this instead of callable() because classes are callable, for instance
+
+
+def zpickle_dumps(obj):
+    return zlib.compress(cPickle.dumps(obj))
+
+
+def zpickle_loads(zpickle_string):
+    return cPickle.loads(zlib.decompress(zpickle_string))
 
 
 def inject_method(self, method_function, method_name=None):
