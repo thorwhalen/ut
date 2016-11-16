@@ -14,6 +14,12 @@ from ut.daf.manip import recursive_update
 from ut.util.ulist import sort_as
 from ut.daf.resources.disp_templates import inline_html_table_template
 
+from collections import OrderedDict
+
+
+def sr_to_ordered_dict(sr):
+    return OrderedDict(sr.iteritems())
+
 
 def map_strings_to_their_mp5s(df, cols_to_map):
     if isinstance(cols_to_map, basestring):
