@@ -1,5 +1,13 @@
 __author__ = 'thor'
 
+from collections import defaultdict
+
+
+class keydefaultdict(defaultdict):
+    def __missing__(self, key):
+        ret = self[key] = self.default_factory(key)
+        return ret
+
 
 class DictDefaultDict(dict):
     def __init__(self, default_dict):
