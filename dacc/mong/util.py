@@ -136,7 +136,6 @@ def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process,
             break
 
 
-
 def get_db_and_collection_and_create_if_doesnt_exist(db, collection, mongo_client=None):
     if mongo_client is None:
         mongo_client = MongoClient()
@@ -151,6 +150,23 @@ def get_db_and_collection_and_create_if_doesnt_exist(db, collection, mongo_clien
     except Exception as e:
         print(e)
     return mongo_client[db][collection]
+
+
+def random_selection_iter_from_cursor(cursor, n_selections):
+    total = cursor.count()
+    if n_selections >= total:
+        return cursor
+    else:
+        choice_idx = iter(sorted(random.choice(total, n_selections, replace=False)))
+
+        def selection_iterator():
+            current_choice_idx = choice_idx.next()
+            for i, doc in enumerate(cursor):
+                if i == current_choice_idx:
+                    yield doc
+                    current_choice_idx = choice_idx.next()
+
+        return selection_iterator()
 
 
 def get_random_doc(collection, *args, **kwargs):
