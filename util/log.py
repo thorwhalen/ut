@@ -9,13 +9,18 @@ from sys import stdout
 default_log_filepath = 'default_log.log'
 
 
-def printProgress(message='', args=[], refresh=False):
+def printProgress(message='', args=None, refresh=False):
     """
     input: message, and possibly args (to be placed in the message string, sprintf-style
     output: Displays the time (HH:MM:SS), and the message
     use: To be able to track processes (and the time they take)
     """
-    args = ascertain_list(args)
+    if args is None:
+        args = list()
+    else:
+        args = ascertain_list(args)
+    if len(args):
+        message = message.replace("{", "{{").replace("}", "}}")
     if refresh:
         stdout.write('\r' + hms_message(message.format(*args)))
         stdout.flush()
