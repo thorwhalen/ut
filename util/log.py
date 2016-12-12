@@ -19,7 +19,7 @@ def printProgress(message='', args=None, refresh=False):
         args = list()
     else:
         args = ascertain_list(args)
-    if len(args):
+    if len(args) == 0:
         message = message.replace("{", "{{").replace("}", "}}")
     if refresh:
         stdout.write('\r' + hms_message(message.format(*args)))
