@@ -16,6 +16,16 @@ minute_as_day = 1 / day_minutes
 day_seconds = float(24 * 3600)
 second_as_day = 1 / day_seconds
 
+epoch = dt.utcfromtimestamp(0)
+
 
 def utcnow_timestamp():
-    return (dt.utcnow() - dt.utcfromtimestamp(0)).total_seconds()
+    return (dt.utcnow() - epoch).total_seconds()
+
+
+def datetime_to_unix_time_ms(date):
+    return (date - epoch).total_seconds() * 1000.0
+
+
+def unix_time_ms_to_datetime(ts):
+    return dt.fromtimestamp(ts / 1000.0)
