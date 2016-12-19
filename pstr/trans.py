@@ -77,10 +77,12 @@ def to_unicode_or_bust(obj, encoding='utf-8'):
 #         UnicodeError("to_unicode_or_bust failed with %s" % obj)
 
 
-# input: string or list (of strings)
-# output: string of ascii char correspondents
-#   (replacing, for example, accentuated letters with non-accentuated versions of the latter)
 def toascii(s):
+    '''
+    :param s: string or list (of strings)
+    :return: string of ascii char correspondents
+    (replacing, for example, accentuated letters with non-accentuated versions of the latter)
+    '''
     if isinstance(s, basestring):
         if not isinstance(s, unicode): # transform to unicode if it's not already so
             s = unicode(s, encoding='utf-8')
