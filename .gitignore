@@ -1,6 +1,7 @@
 *.py[cod]
 
 *.idea
+*.idea/*
 .idea/*.*
 .idea/modules.xml
 .idea/workspace.xml
