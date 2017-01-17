@@ -7,6 +7,7 @@ from datetime import datetime
 from sys import stdout
 
 default_log_filepath = 'default_log.log'
+a_bunch_of_space = '                                                      '
 
 
 def printProgress(message='', args=None, refresh=False):
@@ -23,6 +24,7 @@ def printProgress(message='', args=None, refresh=False):
         message = message.replace("{", "{{").replace("}", "}}")
     if refresh:
         stdout.write('\r' + hms_message(message.format(*args)))
+        stdout.write(a_bunch_of_space)
         stdout.flush()
     else:
         print(hms_message(message.format(*args)))
