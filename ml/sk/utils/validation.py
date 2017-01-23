@@ -3,11 +3,23 @@ from __future__ import division
 from numpy import reshape, ones, allclose, tile, random, vstack, array, isnan, all, any
 import re
 from sklearn.utils.validation import NotFittedError, check_is_fitted
+from sklearn.exceptions import NotFittedError
 
 __author__ = 'thor'
 
 
 fitted_attribute_pattern = re.compile('.*_$')
+
+
+def is_fitted_for_nfeats(model, nfeats):
+    try:
+        if hasattr(model, 'predict'):
+            model.predict(random.rand(3,nfeats))
+        elif hasattr(model, 'transform'):
+            model.transform(random.rand(3,nfeats))
+        return True
+    except NotFittedError as e:
+        return False
 
 
 def is_fitted(model, attributes=None, all_or_any=all):

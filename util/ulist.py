@@ -3,6 +3,20 @@ __author__ = 'thorwhalen'
 import numpy as np
 import ut.util.var as util_var
 
+from heapq import heappushpop, heappush
+
+
+class KeepMaxK(list):
+    def __init__(self, k):
+        super(KeepMaxK, self).__init__()
+        self.k = k
+
+    def push(self, item):
+        if len(self) >= self.k:
+            heappushpop(self, item)
+        else:
+            heappush(self, item)
+
 
 def first_non_zero(arr):
     """
