@@ -4,6 +4,7 @@ import numpy as np
 import ut.util.var as util_var
 
 from heapq import heappushpop, heappush
+from numpy import array, argsort
 
 
 class KeepMaxK(list):
@@ -16,6 +17,21 @@ class KeepMaxK(list):
             heappushpop(self, item)
         else:
             heappush(self, item)
+
+
+class KeepMaxUnikK(object):
+    def __init__(self, k):
+        self.min_val_items = KeepMaxK(k)
+        self.item_set = set()
+
+    def push(self, item, val):
+        if item not in self.item_set:
+            self.item_set.add(item)
+            self.min_val_items.push((val, item))
+
+    def items_sorted(self):
+        dists, items = zip(*self.min_val_items)
+        return array(items)[argsort(dists)]
 
 
 def first_non_zero(arr):
