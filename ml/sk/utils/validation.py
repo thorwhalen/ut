@@ -14,9 +14,9 @@ fitted_attribute_pattern = re.compile('.*_$')
 def is_fitted_for_nfeats(model, nfeats):
     try:
         if hasattr(model, 'predict'):
-            model.predict(random.rand(3,nfeats))
+            model.predict(random.rand(3, nfeats))
         elif hasattr(model, 'transform'):
-            model.transform(random.rand(3,nfeats))
+            model.transform(random.rand(3, nfeats))
         return True
     except NotFittedError as e:
         return False
