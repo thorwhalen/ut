@@ -26,7 +26,7 @@ def cosine(sr1, sr2):
     return (
         (sr1*sr2).dropna().sum()
             / (np.linalg.norm(sr1.values)*np.linalg.norm(sr2.values))
-    )[0]
+    )
 
 
 def termcount_to_termtf(termcount):
