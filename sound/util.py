@@ -536,6 +536,8 @@ class Sound(object):
         cropped_sound.wf = cropped_sound.wf[first_idx:(last_idx + 1)]
         return cropped_sound
 
+    # def __getitem__
+
     def crop_with_seconds(self, first_second, last_second):
         return self.crop_with_idx(int(round(first_second * self.sr)), int(round(last_second * self.sr)))
 
