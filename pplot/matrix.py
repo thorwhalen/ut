@@ -6,6 +6,9 @@ import matplotlib.pylab as plt
 import numpy as np
 
 from sklearn.cluster import MeanShift
+import scipy.cluster.hierarchy as sch
+
+import seaborn as sns
 
 
 def plot_simil_mat_with_labels(simil_mat, y, inner_class_ordering='mean_shift_clusters', brightness=1.0, figsize=(10, 10)):
@@ -56,3 +59,27 @@ def plot_simil_mat_with_labels(simil_mat, y, inner_class_ordering='mean_shift_cl
     _ = ax.set_xticklabels(unik_y_vals, rotation=90)
 
     return y_vals.as_matrix()
+
+
+def hierarchical_cluster_sorted_heatmap(df, only_return_sorted_df=False, seaborn_heatmap_kwargs=None):
+    """
+    A function to plot a square df (i.e. same indices and columns) that contains distances/similarities as it's values,
+    as a heatmap whose indices and columns are sorted according to a hierarchical clustering
+    (based on the distances listed in the df).
+    :param df: The distance (or similarity) square matrix
+    :param only_return_sorted_df: Default False. Set to True to return the df instead of the heatmap
+    :param seaborn_heatmap_kwargs: the arguments to use in seaborn.heatmap (default is dict(cbar=False))
+    :return: whatever sns.heatmap returns, or the sorted df if only_return_sorted_df=True
+    """
+    df = df.iloc[df.index.values, df.index.values]  # to make sure df is an index aligned square df
+    Y = sch.linkage(np.array(df), method='centroid')
+    Z = sch.dendrogram(Y, orientation='right', no_plot=True)
+    index = np.array(Z['leaves'])
+    df = df.iloc[index, index]
+    if only_return_sorted_df:
+        return df
+    else:
+        if seaborn_heatmap_kwargs is None:
+            seaborn_heatmap_kwargs = {}
+        seaborn_heatmap_kwargs = dict({"cbar": False}, **seaborn_heatmap_kwargs)
+        return sns.heatmap(df, **seaborn_heatmap_kwargs)
