@@ -27,7 +27,7 @@ default_sr = 44100
 
 wav_text_info_exp = re.compile("^.*WAVEbextZ\x03\x00\x00([^\x00]+)")
 
-
+TMP_FILE = 'ut_sound_util_tmp_file.wav'
 
 def convert_to_wav(source_file, target_file=None, sample_rate=default_sr, print_stats=False):
     if target_file is None:
@@ -102,6 +102,7 @@ def ensure_mono(wf):
 
 
 def resample_wf(wf, sr, new_sr):
+
     # return round(len(wf) * new_sr / sr)
     return scipy_signal_resample(wf, num=int(round(len(wf) * new_sr / sr)))
 
