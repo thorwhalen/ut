@@ -29,6 +29,7 @@ wav_text_info_exp = re.compile("^.*WAVEbextZ\x03\x00\x00([^\x00]+)")
 
 TMP_FILE = 'ut_sound_util_tmp_file.wav'
 
+
 def convert_to_wav(source_file, target_file=None, sample_rate=default_sr, print_stats=False):
     if target_file is None:
         folder, filename = os.path.split(source_file)
@@ -102,6 +103,10 @@ def ensure_mono(wf):
 
 
 def resample_wf(wf, sr, new_sr):
+    # TODO: Replace using sox
+    # tfm = sox.Transformer()
+    # tfm.set_output_format(rate=44100)
+    # tfm.build('Sample-01.wav', 'test.wav')
 
     # return round(len(wf) * new_sr / sr)
     return scipy_signal_resample(wf, num=int(round(len(wf) * new_sr / sr)))

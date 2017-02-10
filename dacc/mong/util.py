@@ -38,6 +38,24 @@ s3_backup_bucket_name = 'mongo-db-bak'
 
 
 
+def missing_indices(mgc, required_indices_keys):
+    if isinstance(required_indices_keys, dict):  # assume it's the direct output of a collection.index_information()
+        # get the keys of required_indices_keys
+        required_indices_keys = keys_of_index_information(required_indices_keys)
+
+    mgc_index_info = set(map(tuple, keys_of_index_information(mgc.index_information())))
+
+    missing_keys = list()
+    for k in required_indices_keys:
+        if tuple(k) not in mgc_index_info:
+            missing_keys.append(k)
+
+    return missing_keys
+
+
+def keys_of_index_information(index_information):
+    return [x['key'] for x in index_information.values()]
+
 
 def mg_collection_string(mgc):
     return mgc.database.name + '/' + mgc.name
