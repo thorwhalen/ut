@@ -7,7 +7,7 @@ from datetime import datetime
 from sys import stdout
 
 default_log_filepath = 'default_log.log'
-a_bunch_of_space = '                                                      '
+a_bunch_of_space = ' ' * 99
 
 
 def printProgress(message='', args=None, refresh=False):

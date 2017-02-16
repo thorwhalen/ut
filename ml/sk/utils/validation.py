@@ -37,8 +37,11 @@ def is_fitted(model, attributes=None, all_or_any=all):
     """
     if attributes is None:
         # return True if and only if model has at least one attribute ending with an underscore
-        for attr in model.__dict__.keys():
+        # print(model.__dict__.keys())
+        for attr in model.__dict__:
+            # print(attr)
             if fitted_attribute_pattern.match(attr):
+                # print("ba")
                 return True
             return False
     else:

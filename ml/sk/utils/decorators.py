@@ -9,6 +9,38 @@ __author__ = 'thor'
 non_methods_set = set(dir(sys.modules[__name__]))
 
 
+def cumul_before_partial_fit(self, min_data_len):
+    if not isinstance(min_data_len, (int, float)):
+        if isinstance(min_data_len, basestring):
+            if min_data_len in self.__dict__:
+                min_data_len = self.__dict__[min_data_len]
+            else:
+                raise AttributeError("Your {} doesn't have attribute {}".format(
+                    self.__class__, min_data_len
+                ))
+        elif callable(min_data_len):
+            min_data_len = min_data_len(self)
+        else:
+            raise ValueError("Couldn't figure out the min_data_len")
+
+    original_partial_fit = self.partial_fit
+    cumul = list()
+    got_enough_data = [False]
+
+    def _cumul_before_partial_fit(X, *args, **kwargs):
+        if got_enough_data[0]:
+            original_partial_fit(X, *args, **kwargs)
+        else:
+            cumul.extend(map(list, X))
+            if len(cumul) >= min_data_len:
+                got_enough_data[0] = True
+                original_partial_fit(array(cumul), *args, **kwargs)
+
+    self.partial_fit = _cumul_before_partial_fit
+
+    return self
+
+
 def predict_proba_with_labels(self, X):
     """ returns a list of dicts of {label: predict_proba_score} entries """
     if ndim(X) == 1:

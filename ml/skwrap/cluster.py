@@ -85,12 +85,12 @@ class MiniBatchKMeans(MiniBatchKMeans_sk):
         kmeans_obj = KMeans()
         kmeans_obj.cluster_centers_ = self.cluster_centers_
         if hasattr(kmeans_obj, 'count_'):
-            kmeans_obj.count_ = kmeans.count_
+            kmeans_obj.count_ = kmeans_obj.count_
         kmeans_obj.inverse_transform = lambda cluster_idx: kmeans_obj.cluster_centers_[cluster_idx, :]
         return kmeans_obj
 
     def __getstate__(self):
-        state = get_model_attributes(self, model_name_as_dict_root=False, ignore_list=['random_state_'])
+        state = get_model_attributes(self, model_name_as_dict_root=False, exclude=('random_state_',))
         if hasattr(self, 'verbose'):
             state['verbose'] = self.verbose
         if hasattr(self, 'verbose'):
