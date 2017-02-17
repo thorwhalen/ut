@@ -2,6 +2,7 @@ from __future__ import division
 
 from numpy import array, ndim, argsort
 import sys
+from ut.util.pobj import inject_method
 
 __author__ = 'thor'
 
@@ -10,6 +11,7 @@ non_methods_set = set(dir(sys.modules[__name__]))
 
 
 def cumul_before_partial_fit(self, min_data_len):
+    raise DeprecationWarning("Don't use. Dangerous.")
     if not isinstance(min_data_len, (int, float)):
         if isinstance(min_data_len, basestring):
             if min_data_len in self.__dict__:
@@ -36,6 +38,7 @@ def cumul_before_partial_fit(self, min_data_len):
                 got_enough_data[0] = True
                 original_partial_fit(array(cumul), *args, **kwargs)
 
+    # self = inject_method(self, _cumul_before_partial_fit, 'partial_fit')
     self.partial_fit = _cumul_before_partial_fit
 
     return self
