@@ -7,6 +7,24 @@ from collections import Counter
 from warnings import warn
 
 
+def kv_tuple_list(d):
+    """
+    Transforms a dict into a list of (key, val) tuples.
+    This tuple_list can recover the original dict by doing dict(tuple_list)
+    :param d: dict {a: aa, b: bb, etc.}
+    :return: list of tuples [(a, aa), (b, bb), etc.]
+
+    Example:
+    >>> n = 100
+    >>> d = {k: v for k, v in zip(range(n), range(n))}
+    >>> assert dict(kv_tuple_list(d)) == d
+    >>> from numpy.random import rand
+    >>> d = {k: v for k, v in zip(rand(n), rand(n))}
+    >>> assert dict(kv_tuple_list(d)) == d
+    """
+    return [(k, v) for k, v in d.iteritems()]
+
+
 def table_str_with_key_and_value_columns(d, key_col_name='key', val_col_name='val'):
     max_key_size = max(map(len, map(str, d.keys())))
     max_val_size = max(map(len, map(str, d.values())))
