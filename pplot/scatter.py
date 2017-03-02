@@ -82,7 +82,7 @@ def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
     columns = list(df.columns)
     for rc in xrange(len(columns)):
         for group in classes:
-            y = df[factor == group].icol(rc).values
+            y = df[factor == group].iloc[:, rc].values
             gkde = gaussian_kde(y)
             ind = np.linspace(y.min(), y.max(), 1000)
             # if columns[rc] in log_axes:

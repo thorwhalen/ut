@@ -54,7 +54,7 @@ def predict_proba_with_labels(self, X):
         return map(lambda row: dict(zip(self.classes_, row)), array(pred))
 
 
-def predict_proba_of_label(self, X, label):
+def predict_proba_of_label(self, X, label, normalize_preds=False):
     """
     If X is a single (ndim==1) feature vector, returns the probability of a given label according to the
     (predict_proba method of)
@@ -65,9 +65,13 @@ def predict_proba_of_label(self, X, label):
     if any(label_lidx):
         if ndim(X) == 1:
             pred = self.predict_proba(X.reshape(1, -1))
+            if normalize_preds:
+                pred = (pred.T / pred.sum(axis=1).T).T  # added later on: Normalizing the preds (untested for ndim(X)==1)
             return array(pred)[0, label_lidx][0]
         else:
             pred = self.predict_proba(X)
+            if normalize_preds:
+                pred = (pred.T / pred.sum(axis=1).T).T  # added later on: Normalizing the preds
             return array(pred[:, label_lidx]).reshape(-1)
     else:
         raise LookupError("The label {} wasn't found in the model")
@@ -89,6 +93,7 @@ def label_prob_argsort(self, X, label):
     >>> label = clf.classes_[0]
     >>> permutation_idx = label_prob_argsort(clf, X, label)
     >>> sorted_predict_proba_matrix = clf.predict_proba(X)[permutation_idx, :]
+    >>> sorted_predict_proba_matrix = sorted_predict_proba_matrix / sorted_predict_proba_matrix.sum(axis=1)[:, None]
     >>> assert all(diff(sorted_predict_proba_matrix[:, clf.classes_ == label].reshape(-1)) <= 0)
     """
     return argsort(predict_proba_of_label(self, X, label))[::-1]
