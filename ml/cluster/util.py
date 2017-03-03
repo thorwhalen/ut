@@ -3,7 +3,56 @@ from __future__ import division
 __author__ = 'thor'
 
 from collections import Counter
-from numpy import array
+from numpy import array, argsort, ones
+from sklearn.cluster import KMeans
+from sklearn.neighbors import NearestNeighbors
+from scipy import sparse
+from scipy.spatial.distance import cdist
+from ut.ml.cluster.w_kmeans import KMeansWeighted
+import pandas as pd
+
+
+def reduce_weighted_pts(X, weights=None, reduce_to_npts=None):
+    if reduce_to_npts is not None and reduce_to_npts < len(X):
+        if weights is None:
+            km = KMeans(n_clusters=reduce_to_npts).fit(X)
+            clusters = km.predict(X)
+            cluster_weights = pd.Series(Counter(clusters)).sort_index()
+            return km.cluster_centers_, array(cluster_weights)
+        else:
+            wkm = KMeansWeighted(n_clusters=reduce_to_npts).fit(X, weights)
+            clusters = wkm.predict(X)
+            cluster_weights = pd.DataFrame({'clusters': clusters, 'weights': weights})
+            cluster_weights = cluster_weights.groupby('clusters').sum().sort_index()
+            return wkm.cluster_centers_, array(cluster_weights['weights'])
+    else:
+        return X, weights
+
+
+# def reduce_weighted_pts(X, weights=None, reduce_to_npts=None, search_n_neighbors=4, metric='euclidean'):
+#     raise NotImplementedError("not finished implementing this")
+#     if weights is None:
+#         weights = ones(len(X))
+#     if reduce_to_npts is not None and reduce_to_npts < len(X):
+#         knn = NearestNeighbors(n_neighbors=search_n_neighbors, metric=metric)
+#         g = sparse.triu(knn.fit(X).kneighbors_graph(X, mode='distance'), k=1).tocsr()
+#         # g = knn.fit(X).kneighbors_graph(X, mode='distance')
+#
+#         idx1, idx2 = g.nonzero()  # get the nonzero pairs
+#
+#         weighted_distance = \
+#             array(map(lambda i1, i2: cdist(X[[i1], :], X[[i2], :], metric=metric)[0][0],
+#                       idx1, idx2))
+#         weighted_distance = weights[idx1] * weights[idx2] * weighted_distance
+#
+#         permi = argsort(array(weighted_distance))  # get the pemutation that sorts by weighted_distance
+#         # reduce until
+#         # keep the reduce_to_npts weight_distance smallest pairs (reduce the
+#         idx1 = idx1[permi][0]
+#         idx2 = idx2[permi][0]
+#
+#     else:
+#         return X, weights
 
 
 def order_clus_idx_and_centers_by_decreasing_frequencies(clus_idx, clus_centers):
