@@ -5,59 +5,13 @@ from sklearn.neighbors import KNeighborsClassifier
 
 from sklearn.base import ClusterMixin
 
-from numpy import max, array, unique, ones
+from numpy import max, array
 from scipy.spatial.distance import cdist
 import itertools
-from collections import defaultdict
 
-from ut.ml.cluster.supervised import _choose_distribution_according_to_weights
-
-
-def y_idx_dict(y):
-    y_idx = defaultdict(list)
-    map(lambda i, y_item: y_idx[y_item].append(i), *zip(*enumerate(y)))
-    return y_idx
-
-
-def kmeans_per_y_dict(X, y):
-    y_idx = y_idx_dict(y)
-    kmeans_for_y = dict()
-    for yy, idx in y_idx.iteritems():
-        kmeans_for_y[yy] = KMeans(n_clusters=1).fit(X[idx, :])
-    return kmeans_for_y
-
-
-# def choose_n_clusters_per_y_according_to_kmeans_intertia(X, y, min_n_samples_per_unik_y=1):
-#     kmeans_for_y = kmeans_per_y_dict(X, y)
-#
-#     y_idx = y_idx_dict(y)
-#     y_count_ = {k: len(v) for k, v in y_idx.iteritems()}
-#     weights = y_count_.values()
-#
-#     min_n_samples_per_unik_y = min(min(weights), min_n_samples_per_unik_y)
-#
-#     n_unik_ys_ = len(weights)
-#     if n_splits is None:
-#         n_splits = min_n_samples_per_unik_y * n_unik_ys_
-#     n_splits = max(n_splits, min_n_samples_per_unik_y * len(weights))
-#
-#     n_to_choose_from_each_unique_y = \
-#         _choose_distribution_according_to_weights(array(weights) - min_n_samples_per_unik_y,
-#                                                   n_splits - min_n_samples_per_unik_y * n_unik_ys_) \
-#         + min_n_samples_per_unik_y * ones(n_unik_ys_)
-#     n_to_choose_from_y_ = {k: int(v) for k, v in zip(y_count_.keys(), n_to_choose_from_each_unique_y)}
 
 class DataBasedLabeling(ClusterMixin):
     pass
-
-
-class ClassClusteringDataBasedLabeling(ClusterMixin):
-    def __init__(self, n_labels=None):
-        self.n_labels = n_labels
-
-    def fit(self, X, y):
-        kmeans_for_y = kmeans_per_y_dict(X, y)
-
 
 
 class KnnClusterDataBasedLabeling(DataBasedLabeling):
@@ -142,6 +96,3 @@ class BiDistanceDataBasedLabeling(DataBasedLabeling):
     def fit_predict(self, X, y):
         self.fit(X, y)
         return self.clusterer_.labels_
-
-
-

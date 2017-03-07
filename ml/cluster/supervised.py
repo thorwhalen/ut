@@ -1,15 +1,106 @@
 __author__ = 'thor'
 
-from sklearn.base import BaseEstimator, ClusterMixin, TransformerMixin
-from sklearn.cluster import KMeans
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.cluster.k_means_ import _labels_inertia
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils.extmath import row_norms
 
 import numpy as np
-from collections import Counter
 import bisect
+
+from sklearn.cluster import KMeans
+from sklearn.neighbors import NearestNeighbors
+
+from sklearn.base import ClusterMixin
+
+from numpy import max, array, unique, ones, nan
+from collections import defaultdict, Counter
+import pandas as pd
+
+
+
+def y_idx_dict(y):
+    y_idx = defaultdict(list)
+    map(lambda i, y_item: y_idx[y_item].append(i), *zip(*enumerate(y)))
+    return y_idx
+
+
+def kmeans_per_y_dict(X, y, y_idx=None):
+    if y_idx is None:
+        y_idx = y_idx_dict(y)
+    kmeans_for_y = dict()
+    for yy, idx in y_idx.iteritems():
+        kmeans_for_y[yy] = KMeans(n_clusters=1).fit(X[idx, :])
+    return kmeans_for_y
+
+
+class SupervisedKMeans(ClusterMixin):
+    """
+
+    """
+    def __init__(self, n_clusters=8):
+        self.n_clusters = n_clusters
+
+    def fit(self, X, y):
+        y_count = pd.Series(Counter(y)).sort_values(ascending=False)
+        if len(y_count) > self.n_clusters:
+            # if there's more unique ys than the requested labels, only take the most frequent ones for the fit
+            hi_count_ys = y_count.iloc[:self.n_clusters].index.values
+            is_a_hi_count_y_lidx = array(pd.Series(y).isin(hi_count_ys))
+            XX = X[is_a_hi_count_y_lidx, :]
+            yy = y[is_a_hi_count_y_lidx]
+        else:
+            XX = X
+            yy = y
+
+        y_idx = y_idx_dict(yy)
+        n_ys = len(y_idx)
+        kmeans_for_y = kmeans_per_y_dict(XX, yy, y_idx)
+        inertias_for_y = {y: km.inertia_ for y, km in kmeans_for_y.iteritems()}
+        y_n_clusters_for_y = ones(n_ys) \
+                             + _choose_distribution_according_to_weights(weights=inertias_for_y.values(),
+                                                                         total_int_to_distribute=self.n_clusters - n_ys)
+        y_n_clusters_for_y = y_n_clusters_for_y.astype(int)
+        y_n_clusters_for_y = {y: x for y, x in zip(inertias_for_y.keys(), y_n_clusters_for_y)}
+
+        centroids_ = list()
+        km = dict()
+        for this_y, idx in y_idx.iteritems():
+            km[this_y] = dict()
+            km[this_y]['km'] = KMeans(n_clusters=y_n_clusters_for_y[this_y]).fit(XX[idx, :])
+            km[this_y]['idx_offset'] = len(centroids_)
+            centroids_.extend(list(km[this_y]['km'].cluster_centers_))
+
+        self.cluster_centers_ = centroids_
+        self.knn_ = NearestNeighbors(n_neighbors=1).fit(array(centroids_))
+        self.km_for_y_ = km
+
+        return self
+
+    def predict(self, X, y=None):
+        if y is None:
+            return self.knn_.kneighbors(X, return_distance=False)[:, 0]
+        else:
+            y = array(y)
+            cluster_idx = nan * ones(len(X))
+            for yy in unique(y):
+                lidx = y == yy
+                if yy in self.km_for_y_:
+                    cluster_idx[lidx] = self.km_for_y_[yy]['km'].predict(X[lidx, :]) + self.km_for_y_[yy]['idx_offset']
+                else:
+                    cluster_idx[lidx] = self.knn_.kneighbors(X[lidx, :], return_distance=False)[:, 0]
+            return cluster_idx
+
+    def fit_predict(self, X, y=None):
+        return self.fit(X, y).predict(X, y)
+
+    def set_params(self, **kwargs):
+        for k, v in kwargs.iteritems():
+            setattr(self, k, v)
+
+    def get_params(self):
+        return self.__dict__
 
 
 class SeperateClassKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
@@ -130,7 +221,7 @@ class SeperateClassKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
         """
         check_is_fitted(self, 'cluster_centers_')
 
-        X = self._check_test_data(X)
+        # X = self._check_test_data(X)
         x_squared_norms = row_norms(X, squared=True)
         return _labels_inertia(X, x_squared_norms, self.cluster_centers_)[0]
 
@@ -195,4 +286,3 @@ class WeightedRandomGenerator(object):
 
     def __call__(self):
         return self.next()
-

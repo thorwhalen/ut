@@ -10,7 +10,7 @@ from collections import defaultdict, Counter
 DEBUG_LEVEL = 0
 
 def wp_iter_with_sliding_discrete_step(data_range,  # length of the interval we'll retrieve the windows from
-                                       x_range=1,  # length of the y window
+                                       x_range=1,  # length of the x window
                                        y_range=1,  # length of the y window
                                        offset=0  # the offset from the end of the x window (0 when y window starts immediately after)
                                        ):

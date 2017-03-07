@@ -10,9 +10,17 @@ import prettyplotlib as ppl
 default_colors = ['#e41a1c', '#377eb8', '#4eae4b', '#994fa1', '#ff8101', '#fdfc33', '#a8572c', '#f482be', '#999999']
 
 
-def df_scatter_plot(df, x=None, y=None, label=None, **kwargs):
+def df_scatter_plot(df=None, x=None, y=None, label=None, **kwargs):
 
-    if label is None:
+    if df is None:
+        if y is None and x is not None:
+            x, y = x[:, 0], x[:, 1]
+        assert x is not None and y is not None and label is not None, "you need to specify x, y, and label"
+        df = pd.DataFrame({'x': x, 'y': y, 'label': label})
+        label = 'label'
+        x = 'x'
+        y = 'y'
+    elif label is None:
         if len(df.columns) != 3:
             raise ValueError("I can't (or rather won't) guess the label if there's not exactly 3 columns. "
                              "You need to specify it")
@@ -27,11 +35,11 @@ def df_scatter_plot(df, x=None, y=None, label=None, **kwargs):
         xvals = np.array(d[x])
         yvals = np.array(d[y])
         if colors:
-            ppl.scatter(ax, xvals, yvals, label=this_label, facecolor=colors[i], **kwargs)
+            mpl_plt.scatter(ax, xvals, yvals, label=this_label, facecolor=colors[i], **kwargs)
         else:
-            ppl.scatter(ax, xvals, yvals, label=this_label, **kwargs)
+            mpl_plt.scatter(ax, xvals, yvals, label=this_label, **kwargs)
 
-    ppl.legend(ax)
+    mpl_plt.legend(ax)
 
 
 def factor_scatter_matrix(df, factor, color_map=None, **kwargs):

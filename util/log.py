@@ -7,10 +7,10 @@ from datetime import datetime
 from sys import stdout
 
 default_log_filepath = 'default_log.log'
-a_bunch_of_space = ' ' * 99
+# a_bunch_of_space = ' ' * 99
 
 
-def printProgress(message='', args=None, refresh=False, refresh_suffix=a_bunch_of_space):
+def printProgress(message='', args=None, refresh=False, refresh_suffix=None):
     """
     input: message, and possibly args (to be placed in the message string, sprintf-style
     output: Displays the time (HH:MM:SS), and the message
@@ -24,7 +24,8 @@ def printProgress(message='', args=None, refresh=False, refresh_suffix=a_bunch_o
         message = message.replace("{", "{{").replace("}", "}}")
     if refresh:
         stdout.write('\r' + hms_message(message.format(*args)))
-        stdout.write(a_bunch_of_space)
+        if refresh_suffix is not None:
+            stdout.write(refresh_suffix)
         stdout.flush()
     else:
         print(hms_message(message.format(*args)))

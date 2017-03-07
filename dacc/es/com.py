@@ -10,6 +10,8 @@ from elasticsearch.helpers import scan
 from collections import defaultdict
 
 from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.database import Database
 import pandas as pd
 from itertools import imap, islice, chain
 
@@ -21,7 +23,6 @@ import ut.dacc.es.get as es_get
 
 
 class ElasticCom(object):
-
     def __init__(self, index, doc_type=None, hosts='localhost:9200', **kwargs):
         self.index = index
         self.doc_type = doc_type
@@ -46,12 +47,13 @@ class ElasticCom(object):
         """
         ndocs = self.count()
         step = int((ndocs - initial_idx) / sample_size)
-        initial_idx = initial_idx or int((ndocs - sample_size * step) / 2)  # choose initial_idx (if not given) so it ~=end
+        initial_idx = initial_idx or int(
+            (ndocs - sample_size * step) / 2)  # choose initial_idx (if not given) so it ~=end
         end = initial_idx + sample_size * step
         return islice(self.scan_extractor(**kwargs), initial_idx, end, step)
 
     def sample_based_on_random_field_val(self, n_rand_picks=10, rand_field='timestamp',
-                                        rand_batch_size=1, *args, **kwargs):
+                                         rand_batch_size=1, *args, **kwargs):
         UserWarning("sample_based_on_random_field_val has not been verified and may have bugs")
         min_random_field_val, max_random_field_val = es_get.min_and_max_of_field(self, field=rand_field)
         range = max_random_field_val - min_random_field_val
@@ -66,11 +68,12 @@ class ElasticCom(object):
             return body
 
         return chain(*imap(lambda x: self.search_and_export_to_dict(body=mk_rand_body(),
-                                                                   size=rand_batch_size,
-                                                                   *args, **kwargs),
-                          xrange(n_rand_picks)))
+                                                                    size=rand_batch_size,
+                                                                    *args, **kwargs),
+                           xrange(n_rand_picks)))
 
-    def scan_extractor(self, query=None, extractor=None, get_item='_source', print_progress_every=None, *args, **kwargs):
+    def scan_extractor(self, query=None, extractor=None, get_item='_source', print_progress_every=None, *args,
+                       **kwargs):
         """
         Returns an iterator that yields a function (the extractor) of the get_item field of scan results one at a time.
         """
@@ -79,6 +82,11 @@ class ElasticCom(object):
         start = kwargs.pop('start', None)
         stop = kwargs.pop('stop', None)
         scroll = kwargs.pop('scroll', '10m')
+
+        # if stop is not None and 'size' in kwargs:
+        #     if start is None:
+        #         start = 0
+        #     stop = kwargs.get('size') + start
 
         if start is not None or stop is not None:
             start = start or 0
@@ -216,7 +224,7 @@ class ElasticCom(object):
         doc_id = str(d.pop('_id'))
         self.es.create(index=self.index, doc_type=self.doc_type, body=d, id=doc_id, **kwargs)
 
-    def import_from_mongo_cursor(self, cursor):
+    def import_from_mongo_cursor(self, cursor, doc_func=None):
         def action_gen():
             for doc in cursor:
                 op_dict = {
@@ -225,14 +233,32 @@ class ElasticCom(object):
                     '_id': to_utf8_or_bust(doc['_id'])
                 }
                 doc.pop('_id')
-                op_dict['_source'] = doc
+                if doc_func is None:
+                    op_dict['_source'] = doc
+                else:
+                    op_dict['_source'] = doc_func(doc)
                 yield op_dict
 
         res = elasticsearch.helpers.bulk(self.es, action_gen())
         return res
 
-    def import_mongo_collection(self, mongo_db, mongo_collection, **kwargs):
-        return self.import_from_mongo_cursor(MongoClient()[mongo_db][mongo_collection].find(**kwargs))
+    def import_mongo_collection(self, mongo_db=None, mongo_collection=None, doc_func=None, **kwargs):
+        if mongo_db is not None:
+            if isinstance(mongo_db, basestring):
+                mongo_db = MongoClient()[mongo_db]
+        else:  # mongo_db is None
+            if mongo_collection is None:
+                raise ValueError(
+                    "You can't have both mongo_db and mongo_collection be None. I need SOMETHING to go by!")
+
+        if isinstance(mongo_db, Collection):
+            mgc = mongo_db
+        elif isinstance(mongo_collection, Collection):
+            mgc = mongo_collection
+        else:
+            mgc = mongo_db[mongo_collection]
+
+        return self.import_from_mongo_cursor(mgc.find(**kwargs), doc_func=doc_func)
 
     def head(self, n_entres=5):
         return self.search_and_export_to_dict(size=n_entres)
@@ -297,6 +323,7 @@ def stringify_when_necessary(d, fields_to_stringify):
     d.update({k: str(d[k]) for k in fields_to_stringify})
     return d
 
+
 # closure for displaying status of operation
 def show_status(current_count, total_count):
     percent_complete = current_count * 100 / total_count
@@ -305,10 +332,10 @@ def show_status(current_count, total_count):
 
 
 
-# NOTES:
+    # NOTES:
 
-# Deleting an index:
-#   es_client.indices.delete(index = index_name, ignore=[400, 404])
+    # Deleting an index:
+    #   es_client.indices.delete(index = index_name, ignore=[400, 404])
 
-# Creating an index:
-#   es_client.indices.create(index = index_name)
+    # Creating an index:
+    #   es_client.indices.create(index = index_name)
