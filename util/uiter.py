@@ -22,6 +22,29 @@ import operator
 from random import random
 
 
+def grouper(iterable, n=1, fillvalue='drop'):
+    """
+    Returns an iterable that feeds tuples of size n corresponding to chunks of the input iterable.
+
+    :param iterable: Input iterable
+    :param n: chunk (batch) size
+    :param fillvalue: The element to use to fill the last chunk, or 'drop' to keep only elements of the iterable,
+    meaning that the last tuple grouper will feed will be of size < n
+    :return: An iterable that feeds you chunks of size n of the input iterable
+
+    >>> list(grouper('ABCDEFG', 3, 'x'))
+    [('A', 'B', 'C'), ('D', 'E', 'F'), ('G', 'x', 'x')]
+    >>> list(grouper('ABCDEFG', 3, 'drop'))
+    [('A', 'B', 'C'), ('D', 'E', 'F'), ('G',)]
+    """
+    args = [iter(iterable)] * n
+    if fillvalue == 'drop':
+        return imap(lambda x: filter(None, x), izip_longest(fillvalue=None, *args))
+    else:
+        return izip_longest(fillvalue=fillvalue, *args)
+
+
+
 def batch(iterable, n=1, return_tail=True):
     current_batch = []
     for item in iterable:
@@ -213,12 +236,6 @@ def pairwise(iterable):
     next(b, None)
     return itertools.izip(a, b)
 
-
-def grouper(iterable, n, fillvalue=None):
-    "Collect data into fixed-length chunks or blocks"
-    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
-    args = [iter(iterable)] * n
-    return itertools.izip_longest(fillvalue=fillvalue, *args)
 
 
 def grouper_no_fill(iterable, n):  # untested

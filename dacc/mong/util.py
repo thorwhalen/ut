@@ -21,6 +21,7 @@ import numpy as np
 from ut.pdict.manip import recursively_update_with
 from ut.util.pobj import inject_method
 from pymongo.collection import Collection
+from pymongo.errors import BulkWriteError
 
 s3_backup_bucket_name = 'mongo-db-bak'
 
@@ -36,6 +37,48 @@ s3_backup_bucket_name = 'mongo-db-bak'
 # except KeyError:
 #     pass
 
+
+def bulk_update_collection(mgc, operations, verbose=0):
+    """
+    Has the effect of doing:
+    for op in operations:
+        mgc.update(spec=op['spec'], document=op['document'])
+    but uses bulk operations to do it faster.
+
+    :param mgc: the mongo collection to update
+    :param operations: a list of {spec: spec, document: document} dicts defining the updates.
+    :param verbose: whether to print info before and after the bulk update
+    :return: None
+    """
+    bulk_mgc = mgc.initialize_unordered_bulk_op()
+
+    for operation in operations:
+        bulk_mgc.find(operation.get('spec')).update(operation.get('document'))
+
+    if verbose > 0:
+        print('Starting bulk update {}'.format(datetime.now()))
+
+    result = bulk_mgc.execute()
+
+    if verbose > 0:
+        print('Stoping bulk update {}'.format(datetime.now()))
+        print('Update result {}'.format(result))
+
+
+
+def copy_missing_indices_from(source_mgc, target_mgc):
+    source_index = source_mgc.index_information()
+    target_index = target_mgc.index_information()
+
+    for k, v in source_index.iteritems():
+        if k not in target_index:
+            cumul = []
+            for field, val in v['key']:
+                if isinstance(val, float):
+                    cumul.append((field, int(val)))
+                else:
+                    cumul.append((field, val))
+            target_mgc.create_index(cumul)
 
 
 def missing_indices(mgc, required_indices_keys):

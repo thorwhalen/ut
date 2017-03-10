@@ -9,7 +9,7 @@ from numpy import array, argsort
 
 class KeepMaxK(list):
     def __init__(self, k):
-        super(KeepMaxK, self).__init__()
+        super(self.__class__, self).__init__()
         self.k = k
 
     def push(self, item):
@@ -32,6 +32,34 @@ class KeepMaxUnikK(object):
     def items_sorted(self):
         dists, items = zip(*self.min_val_items)
         return array(items)[argsort(dists)]
+
+
+class KeepMinK(list):
+    """
+    Does what KeepMaxK does, but with min.
+    NOTE: Only works with items that are pairs. This is because handling the more general case makes the push two
+    times slower (overhead due to handling various cases).
+    If you try to push items that are not list-like, it will raise a TypeError.
+    If you push items that have only one element, it will raise an IndexError.
+    If you push items that have more than 2 elements, only the first two will be taken into account.
+    """
+    def __init__(self, k):
+        super(self.__class__, self).__init__()
+        self.k = k
+
+    def push(self, item):
+        # try:
+        #     item = [-item[0]] + list(item[1:])
+        # except TypeError:
+        #     item = -item
+
+        if len(self) >= self.k:
+            heappushpop(self, (-item[0], item[1]))
+        else:
+            heappush(self, (-item[0], item[1]))
+
+    def get_list(self):
+        return map(lambda item: (-item[0], item[1]), self)
 
 
 def first_non_zero(arr):
