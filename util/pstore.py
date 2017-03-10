@@ -13,10 +13,30 @@ from pprint import PrettyPrinter
 import cPickle
 import dill
 import inspect
+import gzip
 
 __author__ = 'thorwhalen'
 
 str_to_rep_by_nan = 'x9y7z1'  # hopefully this string never shows up
+
+
+def gz_pickle_dump(object, filename, protocol=-1):
+    """Save an object to a compressed disk file.
+       Works well with huge objects.
+    """
+    fp = gzip.GzipFile(filename, 'wb')
+    cPickle.dump(object, fp, protocol)
+    fp.close()
+
+
+def gz_pickle_load(filename):
+    """Loads a compressed object from disk
+    """
+    fp = gzip.GzipFile(filename, 'rb')
+    object = cPickle.load(fp)
+    fp.close()
+
+    return object
 
 
 def pickle_dump(obj, filepath=None, protocol=None):
