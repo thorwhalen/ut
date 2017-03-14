@@ -16,10 +16,13 @@ import itertools
 from numpy import mod
 from datetime import datetime
 from itertools import islice, chain, imap, combinations, izip_longest
-from operator import itemgetter
+from operator import itemgetter, is_not
 import operator
+from functools import partial
 
 from random import random
+
+is_not_none = partial(is_not, None)
 
 
 def grouper(iterable, n=1, fillvalue='drop'):
@@ -39,7 +42,7 @@ def grouper(iterable, n=1, fillvalue='drop'):
     """
     args = [iter(iterable)] * n
     if fillvalue == 'drop':
-        return imap(lambda x: filter(None, x), izip_longest(fillvalue=None, *args))
+        return imap(lambda x: [xx for xx in x if xx is not None], izip_longest(fillvalue=None, *args))
     else:
         return izip_longest(fillvalue=fillvalue, *args)
 
