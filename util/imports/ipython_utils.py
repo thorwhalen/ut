@@ -4,16 +4,16 @@ __author__ = 'thor'
 print '''
 Remember to use these useful utils:
     pickle_dump, pickle_load
-    printProgress
+    print_progress
     numof_trues
     ppr
 '''
 
+from numpy import *
 import os
 import re
 import pandas as pd
 import numpy as np
-from numpy import *
 from collections import Counter, defaultdict
 
 import ut.daf.ch
@@ -27,7 +27,7 @@ from datetime import datetime
 
 from ut.pcoll.num import numof_trues
 # from ut.util.pstore import MyStore
-from ut.util.log import printProgress
+from ut.util.log import printProgress, print_progress
 
 from ut.daf.diagnosis import diag_df as diag_df
 

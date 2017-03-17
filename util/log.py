@@ -10,6 +10,23 @@ default_log_filepath = 'default_log.log'
 # a_bunch_of_space = ' ' * 99
 
 
+def print_progress(msg, refresh=None, display_time=True):
+    """
+    input: message, and possibly args (to be placed in the message string, sprintf-style
+    output: Displays the time (HH:MM:SS), and the message
+    use: To be able to track processes (and the time they take)
+    """
+    if display_time:
+        msg = hms_message(msg)
+    if refresh is not None:
+        stdout.write('\r' + msg)
+        stdout.write(refresh)
+        stdout.flush()
+    else:
+        print(msg)
+
+
+
 def printProgress(message='', args=None, refresh=False, refresh_suffix=None):
     """
     input: message, and possibly args (to be placed in the message string, sprintf-style
