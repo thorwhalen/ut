@@ -37,6 +37,8 @@ from pprint import PrettyPrinter
 import json
 from ut.util.pstore import pickle_dump, pickle_load
 
+from ut.pplot.matrix import heatmap
+
 class PPR(object):
     indent = 2
     pretty_printer = PrettyPrinter(indent=indent)

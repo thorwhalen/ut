@@ -41,3 +41,4 @@ from collections import Counter, defaultdict
 import itertools
 
 
+from ut.pplot.matrix import heatmap

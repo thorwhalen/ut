@@ -3,15 +3,62 @@ __author__ = 'thor'
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as mpl_plt
+from sklearn.decomposition import PCA
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.manifold import TSNE
 import prettyplotlib as ppl
 
 # Get "Set2" colors from ColorBrewer (all colorbrewer scales: http://bl.ocks.org/mbostock/5577023)
 
 default_colors = ['#e41a1c', '#377eb8', '#4eae4b', '#994fa1', '#ff8101', '#fdfc33', '#a8572c', '#f482be', '#999999']
 
+default_color_blind_colors = ['#b84c7d', '#59b96f', '#7f62b8', '#adb342', '#b94c3f', '#43c9b0', '#c17e36', '#738a39']
+
+
+def plot_with_label_color(X, y, shuffle=False, decompose=None, y_to_color=default_color_blind_colors, **kwargs):
+    if decompose is not None:
+        if decompose == True:
+            if len(X) < 1500:
+                decompose = 'tsne'
+            else:
+                decompose = 'pca'
+        if decompose == 'pca':
+            decompose = Pipeline(steps=[('scale', StandardScaler()),
+                                        ('decompose', PCA(n_components=2, whiten=True))])
+        elif decompose == 'tsne':
+            if len(X) > 1500:
+                print("TSNE would be too slow with thatm much data: Taking a random 1500 pts...")
+                idx = np.random.choice(len(X), size=1500, replace=False)
+                X = X[idx, :]
+                y = y[idx]
+            decompose = Pipeline(steps=[('scale', StandardScaler()),
+                                        ('decompose', TSNE(n_components=2))])
+        X = decompose.fit_transform(X)
+
+    if isinstance(y[0], basestring):
+        y = LabelEncoder().fit_transform(y)
+
+    if len(np.unique(y)) <= len(y_to_color):
+        kwargs['alpha'] = kwargs.get('alpha', 0.5)
+        if shuffle:
+            permi = np.random.permutation(len(X))
+            X = X[permi, :]
+            y = y[permi]
+            for i in xrange(len(X)):
+                mpl_plt.plot(X[i, 0], X[i, 1], 'o', color=y_to_color[y[i]], **kwargs)
+        else:
+            for yy in np.unique(y):
+                lidx = y == yy
+                mpl_plt.plot(X[lidx, 0], X[lidx, 1], 'o', color=y_to_color[yy], alpha=0.5)
+    else:
+        kwargs['alpha'] = kwargs.get('alpha', 0.4)
+        mpl_plt.scatter(X[:, 0], X[:, 1], c=y, **kwargs)
+
+    return decompose
+
 
 def df_scatter_plot(df=None, x=None, y=None, label=None, **kwargs):
-
     if df is None:
         if y is None and x is not None:
             x, y = x[:, 0], x[:, 1]
@@ -100,10 +147,10 @@ def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
             #     kde_ind = gkde.evaluate(ind)
             axarr[rc][rc].plot(ind, gkde.evaluate(ind), c=color_map[group])
 
-    # for r in xrange(len(columns)):
-    #     for c in xrange(len(columns)):
-    #
-    #         a = axarr[r][c]
+            # for r in xrange(len(columns)):
+            #     for c in xrange(len(columns)):
+            #
+            #         a = axarr[r][c]
             # if columns[r] in log_axes:
             #     # print "%d,%d: %s" % columns[r]
             #     a.set_yscale('symlog')

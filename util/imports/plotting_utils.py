@@ -9,3 +9,5 @@ import ut.pplot.ch
 import ut.pplot.scatter
 
 import ut.pplot.distrib
+
+from ut.pplot.matrix import heatmap

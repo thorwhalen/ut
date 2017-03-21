@@ -11,6 +11,27 @@ import scipy.cluster.hierarchy as sch
 import seaborn as sns
 
 
+def heatmap(X, figsize=None, cmap=None, **kwargs):
+    if figsize is None:
+        x_size, y_size = X.shape
+        if x_size >= y_size:
+            figsize = (6, min(18, 3 * x_size / y_size))
+        else:
+            figsize = (min(18, 3 * y_size / x_size), 6)
+
+    if cmap is None:
+        if X.min() < 0:
+            cmap = 'RdBu_r'
+        else:
+            cmap = 'hot'
+
+    kwargs['cmap'] = cmap
+    kwargs = dict(kwargs, interpolation='nearest', aspect='auto')
+
+    plt.figure(figsize=figsize)
+    return plt.imshow(X, **kwargs)
+
+
 def plot_simil_mat_with_labels(simil_mat, y, inner_class_ordering='mean_shift_clusters', brightness=1.0, figsize=(10, 10)):
     """
     A function that plots similarity matrices, grouping labels together and sorting by descending sum of similarities
