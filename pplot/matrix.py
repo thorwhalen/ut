@@ -15,9 +15,9 @@ def heatmap(X, figsize=None, cmap=None, **kwargs):
     if figsize is None:
         x_size, y_size = X.shape
         if x_size >= y_size:
-            figsize = (6, min(18, 3 * x_size / y_size))
+            figsize = (6, min(18, 6 * x_size / y_size))
         else:
-            figsize = (min(18, 3 * y_size / x_size), 6)
+            figsize = (min(18, 6 * y_size / x_size), 6)
 
     if cmap is None:
         if X.min() < 0:

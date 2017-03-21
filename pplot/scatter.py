@@ -15,11 +15,13 @@ default_colors = ['#e41a1c', '#377eb8', '#4eae4b', '#994fa1', '#ff8101', '#fdfc3
 
 default_color_blind_colors = ['#b84c7d', '#59b96f', '#7f62b8', '#adb342', '#b94c3f', '#43c9b0', '#c17e36', '#738a39']
 
+MAX_PTS_FOR_TSNE = 1500
+
 
 def plot_with_label_color(X, y, shuffle=False, decompose=None, y_to_color=default_color_blind_colors, **kwargs):
     if decompose is not None:
         if decompose == True:
-            if len(X) < 1500:
+            if len(X) < MAX_PTS_FOR_TSNE:
                 decompose = 'tsne'
             else:
                 decompose = 'pca'
@@ -27,9 +29,10 @@ def plot_with_label_color(X, y, shuffle=False, decompose=None, y_to_color=defaul
             decompose = Pipeline(steps=[('scale', StandardScaler()),
                                         ('decompose', PCA(n_components=2, whiten=True))])
         elif decompose == 'tsne':
-            if len(X) > 1500:
-                print("TSNE would be too slow with thatm much data: Taking a random 1500 pts...")
-                idx = np.random.choice(len(X), size=1500, replace=False)
+            if len(X) > MAX_PTS_FOR_TSNE:
+                print("TSNE would be too slow with thatm much data: Taking a set of {} random pts...".format(
+                    MAX_PTS_FOR_TSNE))
+                idx = np.random.choice(len(X), size=MAX_PTS_FOR_TSNE, replace=False)
                 X = X[idx, :]
                 y = y[idx]
             decompose = Pipeline(steps=[('scale', StandardScaler()),
