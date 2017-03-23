@@ -25,19 +25,22 @@ def plot_with_label_color(X, y, shuffle=False, decompose=None, y_to_color=defaul
                 decompose = 'tsne'
             else:
                 decompose = 'pca'
-        if decompose == 'pca':
-            decompose = Pipeline(steps=[('scale', StandardScaler()),
-                                        ('decompose', PCA(n_components=2, whiten=True))])
-        elif decompose == 'tsne':
-            if len(X) > MAX_PTS_FOR_TSNE:
-                print("TSNE would be too slow with thatm much data: Taking a set of {} random pts...".format(
-                    MAX_PTS_FOR_TSNE))
-                idx = np.random.choice(len(X), size=MAX_PTS_FOR_TSNE, replace=False)
-                X = X[idx, :]
-                y = y[idx]
-            decompose = Pipeline(steps=[('scale', StandardScaler()),
-                                        ('decompose', TSNE(n_components=2))])
-        X = decompose.fit_transform(X)
+        if isinstance(decompose, basestring):
+            if decompose == 'pca':
+                decompose = Pipeline(steps=[('scale', StandardScaler()),
+                                            ('decompose', PCA(n_components=2, whiten=True))])
+            elif decompose == 'tsne':
+                if len(X) > MAX_PTS_FOR_TSNE:
+                    print("TSNE would be too slow with thatm much data: Taking a set of {} random pts...".format(
+                        MAX_PTS_FOR_TSNE))
+                    idx = np.random.choice(len(X), size=MAX_PTS_FOR_TSNE, replace=False)
+                    X = X[idx, :]
+                    y = y[idx]
+                decompose = Pipeline(steps=[('scale', StandardScaler()),
+                                            ('decompose', TSNE(n_components=2))])
+            X = decompose.fit_transform(X)
+        else:
+            X = decompose(X)
 
     if isinstance(y[0], basestring):
         y = LabelEncoder().fit_transform(y)
