@@ -27,7 +27,7 @@ def key_if_exists_else_return_none(d, key):
 def mk_fixed_coordinates_value_getter(get_key_list):
     return \
         lambda the_dict: \
-            reduce(lambda x, y: x.__getitem__(y), get_key_list, the_dict)
+            reduce(lambda x, y: x.get(y, {}), get_key_list, the_dict) or None
 
 
 def head(d, num_of_elements=5, start_at=0):
