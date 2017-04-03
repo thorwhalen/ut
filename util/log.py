@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 __author__ = 'thorwhalen'
 
 from ut.util.ulist import ascertain_list
@@ -18,10 +20,11 @@ def print_progress(msg, refresh=None, display_time=True):
     """
     if display_time:
         msg = hms_message(msg)
-    if refresh is not None:
-        stdout.write('\r' + msg)
-        stdout.write(refresh)
-        stdout.flush()
+    if refresh is not False:
+        print(msg, end='\r')
+        # stdout.write('\r' + msg)
+        # stdout.write(refresh)
+        # stdout.flush()
     else:
         print(msg)
 
