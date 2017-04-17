@@ -39,6 +39,12 @@ def utc_ms_to_local_datetime(ts):
     return dt.fromtimestamp(ts / second_ms)
 
 
+#################### Display
+
+def seconds_to_mmss_str(s):
+    return "{:.0f}m{:02.0f}s".format(s / 60, s % 60)
+
+
 #################### Deprecated
 
 def unix_time_ms_to_datetime(ts):

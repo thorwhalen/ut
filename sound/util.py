@@ -363,6 +363,15 @@ class Sound(object):
 
     @classmethod
     def from_file(cls, filepath, name=None, **kwargs):
+        """
+        Construct sound object from sound file
+        :param filepath: filepath of the sound file
+        :param name: name to give this sound (will default to file name)
+        :param kwargs: additional options, such as:
+            * offset_s and duration (to retrieve only a segment of sound). Works with .wav file only
+            * ensure_mono (if present and True (the default), will convert to mono)
+        :return:
+        """
         file_name, extension = os.path.splitext((os.path.basename(filepath)))
         name = name or file_name
         # kwargs = dict({'always_2d': False, 'ensure_mono': True}, **kwargs)
