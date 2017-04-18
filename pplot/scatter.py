@@ -56,7 +56,7 @@ def plot_with_label_color(X, y, shuffle=False, decompose=None, y_to_color=defaul
         else:
             for yy in np.unique(y):
                 lidx = y == yy
-                mpl_plt.plot(X[lidx, 0], X[lidx, 1], 'o', color=y_to_color[yy], alpha=0.5)
+                mpl_plt.plot(X[lidx, 0], X[lidx, 1], 'o', color=y_to_color[yy], **kwargs)
     else:
         kwargs['alpha'] = kwargs.get('alpha', 0.4)
         mpl_plt.scatter(X[:, 0], X[:, 1], c=y, **kwargs)
