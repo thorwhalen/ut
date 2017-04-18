@@ -8,6 +8,15 @@ from itertools import izip, ifilter, starmap
 __author__ = 'thor'
 
 
+def just_print_exceptions(func):
+    def new_func(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(e)
+    return new_func
+
+
 def inject_param_initialization(inFunction):
     """
     This function allows to reduce code for initialization of parameters of a method through the @-notation
