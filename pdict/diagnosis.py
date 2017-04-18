@@ -62,7 +62,8 @@ def example_dict_from_dict_list(dict_list, recursive=False):
         new_keys = list(set(keys_remaining_to_find).intersection(this_dict.keys()))
         if not new_keys: continue
         new_dict = {k: this_dict[k] for k in new_keys if
-                    this_dict[k] or this_dict[k] == 0 or this_dict[k] == True}  # keep only keys with non-empty and non-none value
+                    this_dict[k] or this_dict[k] == 0 or this_dict[
+                        k] == True}  # keep only keys with non-empty and non-none value
         example_dict = dict(example_dict, **{k: v for k, v in new_dict.items()})
         keys_remaining_to_find = keys_remaining_to_find.difference(new_keys)
         if not keys_remaining_to_find: break  # if there's no more keys to be found, you can quit
@@ -102,16 +103,22 @@ def dict_list_has_key_df(dict_list, index_names=None, use_0_1=False):
 def dict_of_types_of_dict_values(x, recursive=False):
     if isinstance(x, list):  # if x is a list of dicts
         x = example_dict_from_dict_list(x, recursive=True)
-    if recursive == False:
+    if not recursive:
         return {k: typeof(x[k]) for k in x.keys()}
     else:
+        if isinstance(recursive, bool):
+            next_recursive = recursive
+        else:
+            next_recursive = recursive - 1
         dict_of_types = dict()
         for k in x.keys():
             if isinstance(x[k], dict):
-                dict_of_types = dict(dict_of_types, **{k: {'dict': dict_of_types_of_dict_values(x[k], recursive=True)}})
+                dict_of_types = dict(dict_of_types,
+                                     **{k: {'dict': dict_of_types_of_dict_values(x[k], recursive=next_recursive)}})
             elif is_list_of_dicts(x[k]):
                 dict_of_types = dict(dict_of_types,
-                                     **{k: {'list of dict': dict_of_types_of_dict_values(x[k], recursive=True)}})
+                                     **{k: {
+                                         'list of dict': dict_of_types_of_dict_values(x[k], recursive=next_recursive)}})
             else:
                 dict_of_types = dict(dict_of_types, **{k: typeof(x[k])})
         return dict_of_types
