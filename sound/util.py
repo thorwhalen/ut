@@ -402,6 +402,25 @@ class Sound(object):
         return sound
 
     @classmethod
+    def from_(cls, sound):
+        if isinstance(sound, tuple) and len(sound) == 2:  # then it's a (wf, sr) tuple
+            return Sound(sound[0], sound[1])
+        elif isinstance(sound, basestring) and os.path.isfile(sound):
+            return Sound.from_file(sound)
+        elif isinstance(sound, dict):
+            if 'wf' in sound and 'sr' in sound:
+                return Sound(sound['wf'], sound['sr'])
+            else:
+                return Sound.from_sref(sound)
+        elif hasattr(sound, 'wf') and hasattr(sound, 'sr'):
+            return Sound(sound.wf, sound.sr)
+        else:
+            try:
+                return Sound.from_sound_iter(sound)
+            except:
+                raise TypeError("Couldn't figure out how that format represents sound")
+
+    @classmethod
     def from_sref(cls, sref):
         wf, sr = wf_and_sr_from_filepath(**complete_sref(sref))
         # filepath = sref['filepath']
