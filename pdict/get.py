@@ -3,6 +3,7 @@ __author__ = 'thorwhalen'
 import ut.util.ulist as ulist
 from numpy import isnan
 
+
 # def recursive_list_of_keys(d, key=None):
 #     """
 #     recursive list of lists of dict keys:
@@ -19,9 +20,10 @@ from numpy import isnan
 #         return d
 
 
-def key_if_exists_else_return_none(d, key):
-    DeprecationWarning('You should really call this one liner directly!!')
-    return d.get(key, None)
+def get_value_in_key_path(d, key_path):
+    if isinstance(key_path, basestring):
+        key_path = key_path.split('.')
+    return reduce(lambda d, key: d[key], key_path, d)
 
 
 def mk_fixed_coordinates_value_getter(get_key_list):
@@ -30,11 +32,16 @@ def mk_fixed_coordinates_value_getter(get_key_list):
             reduce(lambda x, y: x.get(y, {}), get_key_list, the_dict) or None
 
 
+def key_if_exists_else_return_none(d, key):
+    DeprecationWarning('You should really call this one liner directly!!')
+    return d.get(key, None)
+
+
 def head(d, num_of_elements=5, start_at=0):
     """
     get the "first" few (num) elements of a dict
     """
-    return {k: d[k] for k in d.keys()[start_at:min(len(d), start_at+num_of_elements)]}
+    return {k: d[k] for k in d.keys()[start_at:min(len(d), start_at + num_of_elements)]}
 
 
 def tail(d, num_of_elements=5):
