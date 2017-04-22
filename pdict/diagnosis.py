@@ -5,6 +5,43 @@ import numpy as np
 import pandas as pd
 
 
+def are_equal_on_common_keys(dict1, dict2):
+    for k in dict1:
+        if k in dict2:
+            v1 = dict1[k]
+            v2 = dict2[k]
+            if isinstance(v1, dict):
+                if isinstance(v2, dict):
+                    if not are_equal_on_common_keys(v1, v2):
+                        return False
+                else:
+                    return False
+            else:
+                if v1 != v2:
+                    return False
+    return True  # if you've never returned (with False), you're True (your dicts are equal)
+
+
+def first_difference_on_common_keys(dict1, dict2, key_path_so_far=None):
+    if key_path_so_far is None:
+        key_path_so_far = list()
+    for k in dict1:
+        if k in dict2:
+            v1 = dict1[k]
+            v2 = dict2[k]
+            if isinstance(v1, dict):
+                if isinstance(v2, dict):
+                    diff = first_difference_on_common_keys(v1, v2, key_path_so_far + [k])
+                    if len(diff) > 0:
+                        return diff
+                else:
+                    return key_path_so_far + [k]
+            else:
+                if v1 != v2:
+                    return key_path_so_far + [k]
+    return list()  # if you've never returned (with False), you're True (your dicts are equal)
+
+
 def typeof(x):
     if isinstance(x, list):
         if len(x) > 0:
