@@ -1,6 +1,7 @@
 from __future__ import division
 
 from datetime import datetime as dt
+from dateutil import tz
 
 __author__ = 'thor'
 
@@ -37,6 +38,18 @@ def utc_ms_to_utc_datetime(ts):
 
 def utc_ms_to_local_datetime(ts):
     return dt.fromtimestamp(ts / second_ms)
+
+
+def utc_to_local(utc_date):
+    from_zone = tz.tzutc()
+    to_zone = tz.tzlocal()
+    return utc_date.replace(tzinfo=from_zone).astimezone(to_zone)
+
+
+def local_to_utc(local_date):
+    from_zone = tz.tzlocal()
+    to_zone = tz.tzutc()
+    return local_date.replace(tzinfo=from_zone).astimezone(to_zone)
 
 
 #################### Display

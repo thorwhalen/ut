@@ -362,7 +362,7 @@ class Sound(object):
     # CREATION
 
     @classmethod
-    def from_file(cls, filepath, name=None, **kwargs):
+    def from_file(cls, filepath, name=None, get_wav_info=False, **kwargs):
         """
         Construct sound object from sound file
         :param filepath: filepath of the sound file
@@ -383,7 +383,7 @@ class Sound(object):
 
         sound = Sound(wf=wf, sr=sr, name=name)
 
-        if extension == '.wav':
+        if get_wav_info and extension == '.wav':
             try:
                 sound.info = sound_file_info_dict(filepath)
                 offset_s = kwargs.get('offset_s', None)

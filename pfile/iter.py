@@ -59,7 +59,7 @@ def recursive_file_walk_iterator_with_name_filter(root_folder, filt='', return_f
             for entry in recursive_file_walk_iterator_with_name_filter(full_path, filt, return_full_path):
                 yield entry
         else:
-            if os.path.isfile(name):
+            if os.path.isfile(full_path):
                 if filt(name):
                     if return_full_path:
                         yield full_path
