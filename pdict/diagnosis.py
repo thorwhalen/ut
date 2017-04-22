@@ -6,6 +6,12 @@ import pandas as pd
 
 
 def are_equal_on_common_keys(dict1, dict2):
+    """
+    Return True if and only if all (nested) values of the dicts are the same for the keys (paths) they share
+    :param dict1:
+    :param dict2:
+    :return:
+    """
     for k in dict1:
         if k in dict2:
             v1 = dict1[k]
@@ -23,6 +29,14 @@ def are_equal_on_common_keys(dict1, dict2):
 
 
 def first_difference_on_common_keys(dict1, dict2, key_path_so_far=None):
+    """
+    Returns an empty list if dicts are equal (in the are_equal_on_common_keys sense).
+    If not, returns the first dict path where they differ.
+    :param dict1:
+    :param dict2:
+    :param key_path_so_far:
+    :return:
+    """
     if key_path_so_far is None:
         key_path_so_far = list()
     for k in dict1:

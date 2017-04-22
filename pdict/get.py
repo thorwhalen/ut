@@ -2,7 +2,8 @@ __author__ = 'thorwhalen'
 
 import ut.util.ulist as ulist
 from numpy import isnan
-
+from functools import reduce  # forward compatibility for Python 3
+import operator
 
 # def recursive_list_of_keys(d, key=None):
 #     """
@@ -21,9 +22,28 @@ from numpy import isnan
 
 
 def get_value_in_key_path(d, key_path):
+    """
+    getting with a key list or "."-separated string
+    :param d: dict
+    :param key_path: list or "."-separated string of keys
+    :return:
+    """
     if isinstance(key_path, basestring):
         key_path = key_path.split('.')
-    return reduce(lambda d, key: d[key], key_path, d)
+    return reduce(operator.getitem, key_path, d)
+
+
+def set_value_in_key_path(d, key_path, val):
+    """
+    setting with a key list or "."-separated string
+    :param d: dict
+    :param key_path: list or "."-separated string of keys
+    :param val: value to assign
+    :return:
+    """
+    if isinstance(key_path, basestring):
+        key_path = key_path.split('.')
+    get_value_in_key_path(d, key_path[:-1])[key_path[-1]] = val
 
 
 def mk_fixed_coordinates_value_getter(get_key_list):
