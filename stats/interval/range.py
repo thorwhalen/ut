@@ -1,6 +1,7 @@
 from __future__ import division
 
-from numpy import inf, random, array
+from numpy import inf, random, array, ravel, amin, amax, ndim, vectorize
+from ut.ml.util.feature_analysis import plot_feat_ranges
 
 
 class Range(object):
@@ -32,6 +33,12 @@ class Range(object):
                 ('Given %s %s must be number or ' \
                  'interval' % (n, type(n)))
 
+    def min(self):
+        return self.m
+
+    def max(self):
+        return self.m
+
     def _limits(self, other):
         other = Range.n2i(other)
         return self.m, self.M, other.m, other.M
@@ -58,15 +65,18 @@ class Range(object):
         return Range(min(a * c, a * d, b * c, b * d),
                      max(a * c, a * d, b * c, b * d))
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         a, b, c, d = self._limits(other)
-        # [c,d] cannot contain zero:
-        if c * d <= 0:
-            raise ValueError \
-                ('Interval %s cannot be inverted because ' \
-                 'it contains zero')
+        # # [c,d] cannot contain zero:
+        # if c * d <= 0:
+        # raise ValueError \
+        #     ('Interval %s cannot be inverted because ' \
+        #      'it contains zero')
         return Range(min(a / c, a / d, b / c, b / d),
                      max(a / c, a / d, b / c, b / d))
+
+    def __div__(self, other):
+        return self.__truediv__(other)
 
     def __radd__(self, other):
         other = Range.n2i(other)
@@ -106,14 +116,37 @@ class Range(object):
     def __neq__(self, other):
         return not self.__eq__(other)
 
-    def __float__(self):
+    def __lt__(self, other):
+        return self.M < other.m
+
+    def __le__(self, other):
+        return self.M <= other.m
+
+    def __gt__(self, other):
+        return self.m > other.M
+
+    def __ge__(self, other):
+        return self.m >= other.M
+
+    def abs(self):
+        abs_m = abs(self.m)
+        abs_M = abs(self.M)
+        if abs_m < abs_M:
+            return Range(lower=abs_m, upper=abs_M)
+        else:
+            return Range(lower=abs_M, upper=abs_m)
+
+    # def __float__(self):
+    #     return 0.5 * (self.m + self.M)
+
+    def center(self):
         return 0.5 * (self.m + self.M)
 
     def width_in_percent(self):
         """
         Return the width of the interval as percentage around the mean.
         """
-        I = float(self)
+        I = self.center()
         w2 = I - self.m
         p2 = w2 / I * 100
         return 2 * p2
@@ -130,7 +163,7 @@ class Range(object):
 
     def min_dist_to_interval(self, c):
         """
-        Return closest point in I to c.
+        Return closest point to c.
         """
         min_int = self.m
         max_int = self.M
@@ -145,7 +178,7 @@ class Range(object):
 
     def max_dist_to_interval(self, c):
         """
-        Returns the furthest point in I to c.
+        Returns the furthest point to c.
         """
         min_int = self.m
         max_int = self.M
@@ -160,6 +193,40 @@ class Range(object):
             farthest = min_int
 
         return farthest
+
+    def is_healthy(self):
+        return self.m <= self.M
+
+    def __iter__(self):
+        yield self.m
+        yield self.M
+
+    @classmethod
+    def plot(cls, array_of_ranges, **kwargs):
+        plot_feat_ranges(map(tuple, ravel(array_of_ranges)), **kwargs)
+
+    @classmethod
+    def from_array(cls, a, axis=None):
+        if ndim(a) == 1 or axis is None:
+            return cls(amin(a), amax(a))
+        else:
+            return array(map(cls, ravel(amin(a, axis=axis)), ravel(amax(a, axis=axis))))
+
+    @classmethod
+    def lower_bound_array(cls, range_array):
+        return vectorize(lambda x: x.m)(range_array)
+
+    @classmethod
+    def upper_bound_array(cls, range_array):
+        return vectorize(lambda x: x.M)(range_array)
+
+    @classmethod
+    def amin(cls, range_array, axis=None):
+        return amin(cls.lower_bound_array(range_array), axis=axis)
+
+    @classmethod
+    def amax(cls, range_array, axis=None):
+        return amax(cls.upper_bound_array(range_array), axis=axis)
 
     @classmethod
     def rand(cls, m=0, M=10, kind=int):
