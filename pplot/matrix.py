@@ -11,7 +11,79 @@ import scipy.cluster.hierarchy as sch
 import seaborn as sns
 
 
-def heatmap(X, figsize=None, cmap=None, **kwargs):
+def xy_boxplot(X, y=None, col_labels=None, grid_size=None):
+    if y is None:
+        n_cols = X.shape[1]
+        plt.boxplot(X)
+        if col_labels is not None:
+            assert n_cols == len(col_labels), "the number of items in col_labels should be equal to the num of cols"
+            plt.xticks(range(1, n_cols + 1), col_labels)
+    else:
+        unik_ys = np.unique(y)
+        n_unik_ys = len(unik_ys)
+        if grid_size is None:
+            grid_size = (int(np.ceil(np.sqrt(n_unik_ys))), int(np.floor(np.sqrt(n_unik_ys))))
+        for i, yy in enumerate(unik_ys, 1):
+            lidx = y == yy
+            XX = X[lidx, :]
+            plt.subplot(grid_size[0], grid_size[1], i)
+            xy_boxplot(XX, col_labels=col_labels)
+            plt.gca().set_title(yy)
+
+
+def vlines_of_matrix(X, y=None, col_labels=None, padding=0.05,
+                     y_lim=None, col_label_rotation=0, ax=None, figsize=None, alpha=1):
+    if y is None:
+        if figsize is not None:
+            plt.figure(figsize=figsize)
+        if ax is None:
+            ax = plt.gca()
+        n_items, n_cols = X.shape
+        if col_labels is not None:
+            assert len(
+                col_labels) == n_cols, "number of col_labels didn't match the number of columns in the input matrix"
+
+        for i in xrange(n_cols):
+            ax.vlines(np.linspace(i + padding, i + 1 - padding, n_items), 0, np.ravel(X[:, i]), colors='k', alpha=alpha)
+            ax.hlines(0, i + padding, i + 1 - padding, colors='b', alpha=1)
+
+        if y_lim is not None:
+            ax.y_lim = plt.ylim(y_lim)
+        else:
+            ax.y_lim = plt.ylim()
+
+        if col_labels is not None:
+            plt.xticks(np.arange(n_cols) + 0.5, col_labels, rotation=col_label_rotation);
+        else:
+            plt.xticks([])
+
+        ax.set_facecolor('w')
+        plt.grid('off', axis='x')
+    else:
+        item_labels = np.unique(y)
+        n_item_labels = len(item_labels)
+
+        f, ax_list = plt.subplots(n_item_labels, sharex=True, sharey=True)
+        if figsize is not None:
+            if isinstance(figsize, (float, int)):
+                figsize = (figsize, figsize)
+            f.set_figwidth(figsize[0])
+            f.set_figheight(figsize[1])
+
+        for i, item_label in enumerate(item_labels):
+            ax = ax_list[i]
+            lidx = y == item_label
+            x = X[lidx, :]
+            vlines_of_matrix(x, col_labels=col_labels, y_lim=(0, 1), ax=ax, alpha=alpha)
+            plt.yticks([])
+            ax.set_ylabel(item_label)
+
+
+def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, **kwargs):
+    n_items, n_cols = X.shape
+    if col_labels is not None:
+        assert len(col_labels) == n_cols, "col_labels length should be the same as the number of columns in the matrix"
+
     if figsize is None:
         x_size, y_size = X.shape
         if x_size >= y_size:
@@ -23,16 +95,60 @@ def heatmap(X, figsize=None, cmap=None, **kwargs):
         if X.min() < 0:
             cmap = 'RdBu_r'
         else:
-            cmap = 'hot'
+            cmap = 'hot_r'
 
     kwargs['cmap'] = cmap
     kwargs = dict(kwargs, interpolation='nearest', aspect='auto')
 
     plt.figure(figsize=figsize)
-    return plt.imshow(X, **kwargs)
+    plt.imshow(X, **kwargs)
+    plt.grid(None)
+
+    if y is not None:
+        y = np.array(y)
+        assert all(sorted(y) == y), "This will only work if your row_labels are sorted"
+
+        unik_ys, unik_ys_idx = np.unique(y, return_index=True)
+        for u, i in zip(unik_ys, unik_ys_idx):
+            plt.hlines(i - 0.5, 0 - 0.5, n_cols - 0.5, colors='b', linestyles='dotted', alpha=0.5)
+        plt.hlines(n_items - 0.5, 0 - 0.5, n_cols - 0.5, colors='b', linestyles='dotted', alpha=0.5)
+        plt.yticks(unik_ys_idx + np.diff(np.hstack((unik_ys_idx, n_items))) / 2, unik_ys)
+
+        if col_labels is not None:
+            assert len(
+                col_labels) == n_cols, "col_labels length should be the same as the number of columns in the matrix"
+            plt.xticks(range(len(col_labels)), col_labels);
+        else:
+            plt.xticks([])
+        plt.gca().xaxis.set_tick_params(labeltop='on')
 
 
-def plot_simil_mat_with_labels(simil_mat, y, inner_class_ordering='mean_shift_clusters', brightness=1.0, figsize=(10, 10)):
+def labeled_heatmap(X, y=None, col_labels=None):
+    n_items, n_cols = X.shape
+    if col_labels is not None:
+        assert len(col_labels) == n_cols, "col_labels length should be the same as the number of columns in the matrix"
+
+    heatmap(X, cmap='hot_r')
+    plt.grid(None)
+
+    assert all(sorted(y) == y), "This will only work if your row_labels are sorted"
+
+    unik_ys, unik_ys_idx = np.unique(y, return_index=True)
+    for u, i in zip(unik_ys, unik_ys_idx):
+        plt.hlines(i - 0.5, 0 - 0.5, n_cols - 0.5, colors='b', linestyles='dotted', alpha=0.5)
+    plt.hlines(n_items - 0.5, 0 - 0.5, n_cols - 0.5, colors='b', linestyles='dotted', alpha=0.5)
+    plt.yticks(unik_ys_idx + np.diff(np.hstack((unik_ys_idx, n_items))) / 2, unik_ys)
+
+    if col_labels is not None:
+        assert len(col_labels) == n_cols, "col_labels length should be the same as the number of columns in the matrix"
+        plt.xticks(range(len(col_labels)), col_labels);
+    else:
+        plt.xticks([])
+    plt.gca().xaxis.set_tick_params(labeltop='on');
+
+
+def plot_simil_mat_with_labels(simil_mat, y, inner_class_ordering='mean_shift_clusters', brightness=1.0,
+                               figsize=(10, 10)):
     """
     A function that plots similarity matrices, grouping labels together and sorting by descending sum of similarities
     within a group.
@@ -67,11 +183,12 @@ def plot_simil_mat_with_labels(simil_mat, y, inner_class_ordering='mean_shift_cl
     mids = list()
     unik_y_vals = np.unique(y_vals)
     for y_val in unik_y_vals:
-        idx = np.where(y_vals==y_val)[0]
+        idx = np.where(y_vals == y_val)[0]
         pt = idx[0] - 0.5
         s = idx[-1] - idx[0] + 1
         mids.append(pt + s / 2)
-        ax.add_patch(patches.Rectangle(xy=(pt, pt), width=s, height=s, fill=False, linewidth=2, color='blue', alpha=0.5));
+        ax.add_patch(
+            patches.Rectangle(xy=(pt, pt), width=s, height=s, fill=False, linewidth=2, color='blue', alpha=0.5));
     # plt.setp(ax.get_xticklabels(), visible=False);
     ax.xaxis.set_major_locator(plt.NullLocator())
     _ = ax.set_yticks(list(mids));
