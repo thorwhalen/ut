@@ -3,6 +3,24 @@ __author__ = 'thorwhalen'
 import pprint
 import numpy as np
 import pandas as pd
+import json
+
+
+def json_size_of_fields(d):
+    """
+    Get the json-size of the values of a dict.
+    :param d: dict to diagnose
+    :return: dict with the same first level fields as the input dict, but with:
+        * an integer representing the length of the json.dumps string of the dict's field value
+        * None if there was a problem json-izing the value
+    """
+    diag = dict()
+    for k, v in d.iteritems():
+        try:
+            diag[k] = len(json.dumps(v))
+        except:
+            diag[k] = None
+    return diag
 
 
 def are_equal_on_common_keys(dict1, dict2):
