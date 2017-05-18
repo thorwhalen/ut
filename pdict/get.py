@@ -5,6 +5,7 @@ from numpy import isnan
 from functools import reduce  # forward compatibility for Python 3
 import operator
 
+
 # def recursive_list_of_keys(d, key=None):
 #     """
 #     recursive list of lists of dict keys:
