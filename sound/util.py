@@ -143,7 +143,7 @@ def stereo_to_mono_and_extreme_silence_cropping(source, target, subtype=None, pr
         wf, sr = wf_and_sr(source)
         wf = ensure_mono(wf)
         wf = crop_head_and_tail_silence(wf)
-        sf.write(data=wf, file=target, samplerate=sr, subtype=subtype)
+        sf.write(target, wf, samplerate=sr, subtype=subtype)
 
 
 def get_wav_text_info(filespec):
@@ -313,7 +313,7 @@ def mk_transformed_copies_of_sound_files(source_path_iterator,
 
     if save_fun is None:
         def save_fun(wf, sr, filepath):
-            sf.write(data=wf, file=filepath, samplerate=sr)
+            sf.write(file=filepath, data=wf, samplerate=sr)
 
     for source_path in source_path_iterator:
         try:
@@ -549,7 +549,7 @@ class Sound(object):
     def save_to_wav(self, filepath=None, samplerate=None, **kwargs):
         samplerate = samplerate or self.sr
         filepath = filepath or (self.name + '.wav')
-        sf.write(self.wf, file=filepath, samplerate=samplerate, **kwargs)
+        sf.write(filepath, self.wf, samplerate=samplerate, **kwargs)
 
     ####################################################################################################################
     # TRANSFORMATIONS
