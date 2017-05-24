@@ -604,7 +604,7 @@ class Sound(object):
         if isinstance(glue, (float, int)):
             n_samples = int(glue * self.sr)
             glue = zeros(n_samples)
-        self.wf = hstack((self.wf, glue))
+        self.wf = hstack((self.wf, glue, sound.wf))
 
     def melspectr_matrix(self, **mel_kwargs):
         mel_kwargs = dict({'n_fft': 2048, 'hop_length': 512, 'n_mels': 128}, **mel_kwargs)
