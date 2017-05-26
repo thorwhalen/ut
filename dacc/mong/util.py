@@ -25,17 +25,23 @@ from pymongo.errors import BulkWriteError
 
 s3_backup_bucket_name = 'mongo-db-bak'
 
-# import boto
-# import boto.s3
-#
-#
 
-# # Fill these in or put them as environment variables - you get them when you sign up for S3
-# try:
-#     AWS_ACCESS_KEY_ID = os.environ['VEN_AWS_ACCESS_KEY_ID']
-#     AWS_SECRET_ACCESS_KEY = os.environ['VEN_AWS_SECRET_ACCESS_KEY']
-# except KeyError:
-#     pass
+def restart_find_cursor(cursor, docs_retrieved_so_far=None):
+    if docs_retrieved_so_far is None:
+        docs_retrieved_so_far = cursor._Cursor__retrieved
+    kwargs = dict(spec=cursor._Cursor__query_spec(),
+                  fields=cursor._Cursor__fields,
+                  skip=cursor._Cursor__skip + docs_retrieved_so_far)
+    if cursor._Cursor__limit:
+        new_limit = max(0, cursor._Cursor__limit - docs_retrieved_so_far)
+        if new_limit > 0:
+            kwargs = dict(kwargs, limit=new_limit)
+        else:  # in this particular case, we should return an empty cursor. This is my hack for that.
+            new_cursor = cursor._Cursor__collection.find(**kwargs).limit(1)
+            new_cursor.next()
+            return new_cursor
+
+    return cursor._Cursor__collection.find(**kwargs)
 
 
 def bulk_update_collection(mgc, operations, verbose=0):
@@ -63,7 +69,6 @@ def bulk_update_collection(mgc, operations, verbose=0):
     if verbose > 0:
         print('Stoping bulk update {}'.format(datetime.now()))
         print('Update result {}'.format(result))
-
 
 
 def copy_missing_indices_from(source_mgc, target_mgc):
@@ -176,11 +181,11 @@ def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process,
                         print_progress_fun(i, doc)
                     except (CursorNotFound, KeyboardInterrupt, StopIteration) as e:
                         raise e
-                    # except Exception as e:
-                    #     if on_error is not None:
-                    #         on_error(doc=doc, error=e, i=i)
-                    #     else:
-                    #         raise e
+                        # except Exception as e:
+                        #     if on_error is not None:
+                        #         on_error(doc=doc, error=e, i=i)
+                        #     else:
+                        #         raise e
                 try:
                     doc_process(doc)
                 except Exception as e:
@@ -341,7 +346,7 @@ def mongorestore(mongodump_file, db, collection, extra_options='', print_the_com
 
 def backup_to_s3(db, collection, extra_options='', bucket_name=s3_backup_bucket_name, folder=None):
     zip_filename = 'mongo_{db}_{collection}___{date}.bson.gz'.format(db=db, collection=collection,
-                                                              date=datetime.now().strftime('%Y-%m-%d-%H%M'))
+                                                                     date=datetime.now().strftime('%Y-%m-%d-%H%M'))
     extra_options = extra_options + ' --out -'
     command = 'mongodump --db {db} --collection {collection} {extra_options} | gzip > {zip_filename}'.format(
         db=db, collection=collection, extra_options=extra_options, zip_filename=zip_filename
@@ -352,8 +357,8 @@ def backup_to_s3(db, collection, extra_options='', bucket_name=s3_backup_bucket_
     p.wait()
 
     print "uploading file to s3://{bucket_name}{folder}/{zip_filename}".format(
-            bucket_name=bucket_name, folder=('/' + folder) if folder else '', zip_filename=zip_filename
-        )
+        bucket_name=bucket_name, folder=('/' + folder) if folder else '', zip_filename=zip_filename
+    )
     s3 = S3(bucket_name=bucket_name)
     s3.dumpf(zip_filename, zip_filename, folder=folder)
     print "removing {zip_filename}".format(zip_filename=zip_filename)
@@ -362,11 +367,10 @@ def backup_to_s3(db, collection, extra_options='', bucket_name=s3_backup_bucket_
 
 def restore_from_s3_dump(s3_zip_filename, db=None, collection=None, extra_options='',
                          bucket_name=s3_backup_bucket_name, folder=None, print_the_command=True):
-
     db, collection = _get_db_and_collection_from_filename(s3_zip_filename, db=db, collection=collection)
 
     print "copy s3://{bucket_name}{folder}/{zip_filename} to local {zip_filename}".format(
-            bucket_name=bucket_name, folder=('/' + folder) if folder else '', zip_filename=s3_zip_filename
+        bucket_name=bucket_name, folder=('/' + folder) if folder else '', zip_filename=s3_zip_filename
     )
     s3 = S3(bucket_name=bucket_name)
     s3.loadf(key_name=s3_zip_filename, local_file_name=s3_zip_filename, folder=folder, bucket_name=bucket_name)
@@ -399,6 +403,7 @@ def _get_db_and_collection_from_filename(filename, db=None, collection=None):
         else:
             db_coll_re = re.compile('mongo_{db}_(.*?)___'.format(db=db))
             return db, db_coll_re.findall(filename)[0]
+
 
 # def _integrate_filt(filt, *args, **kwargs):
 #
@@ -465,6 +470,7 @@ class FilteredCollection(Collection):
         Forward all other things to self.mgc
         """
         return self.mgc.__getattr__(item)
+
 #
 #     # def __getattribute__(self, name):
 #     #     attr = super(FilteredCollection, self).__getattribute__(name)
