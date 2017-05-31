@@ -8,12 +8,48 @@ from itertools import izip, ifilter, starmap
 __author__ = 'thor'
 
 
+def lazyprop(fn):
+    """
+    Instead of having to implement the "if hasattr blah blah" code for lazy loading, just write the function that
+    returns the value and decorate it with lazyprop! See example below.
+
+    :param fn: The @property method (function) to implement lazy loading on
+    :return: a decorated lazy loading property
+
+    >>> class Test(object):
+    ...     @lazyprop
+    ...     def a(self):
+    ...         print 'generating "a"'
+    ...         return range(5)
+    >>> t = Test()
+    >>> t.__dict__
+    {}
+    >>> t.a
+    generating "a"
+    [0, 1, 2, 3, 4]
+    >>> t.__dict__
+    {'_lazy_a': [0, 1, 2, 3, 4]}
+    >>> t.a
+    [0, 1, 2, 3, 4]
+    """
+    attr_name = '_lazy_' + fn.__name__
+
+    @property
+    def _lazyprop(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+
+    return _lazyprop
+
+
 def just_print_exceptions(func):
     def new_func(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as e:
             print(e)
+
     return new_func
 
 
