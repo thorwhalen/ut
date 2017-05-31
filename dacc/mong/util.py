@@ -26,6 +26,18 @@ from pymongo.errors import BulkWriteError
 s3_backup_bucket_name = 'mongo-db-bak'
 
 
+def autorefresh_cursor(cursor):
+    def refresh_when_cursor_not_found(cursor):
+        while True:
+            try:
+                yield cursor.next()
+            except CursorNotFound:
+                cursor = restart_find_cursor(cursor)
+                yield cursor.next()
+
+    return refresh_when_cursor_not_found(cursor)
+
+
 def restart_find_cursor(cursor, docs_retrieved_so_far=None):
     if docs_retrieved_so_far is None:
         docs_retrieved_so_far = cursor._Cursor__retrieved
