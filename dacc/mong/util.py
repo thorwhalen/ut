@@ -26,7 +26,7 @@ from pymongo.errors import BulkWriteError
 s3_backup_bucket_name = 'mongo-db-bak'
 
 
-def autorefresh_cursor(cursor):
+def autorefresh_cursor_iterator(cursor):
     def refresh_when_cursor_not_found(cursor):
         while True:
             try:
