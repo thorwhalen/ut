@@ -13,6 +13,8 @@ def lazyprop(fn):
     Instead of having to implement the "if hasattr blah blah" code for lazy loading, just write the function that
     returns the value and decorate it with lazyprop! See example below.
 
+    Taken from https://github.com/sorin/lazyprop.
+
     :param fn: The @property method (function) to implement lazy loading on
     :return: a decorated lazy loading property
 
@@ -31,6 +33,10 @@ def lazyprop(fn):
     {'_lazy_a': [0, 1, 2, 3, 4]}
     >>> t.a
     [0, 1, 2, 3, 4]
+    >>> del t.a
+    >>> t.a
+    generating "a"
+    [0, 1, 2, 3, 4]
     """
     attr_name = '_lazy_' + fn.__name__
 
@@ -39,6 +45,15 @@ def lazyprop(fn):
         if not hasattr(self, attr_name):
             setattr(self, attr_name, fn(self))
         return getattr(self, attr_name)
+
+    @_lazyprop.deleter
+    def _lazyprop(self):
+        if hasattr(self, attr_name):
+            delattr(self, attr_name)
+
+    @_lazyprop.setter
+    def _lazyprop(self, value):
+        setattr(self, attr_name, value)
 
     return _lazyprop
 
