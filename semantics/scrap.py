@@ -1,43 +1,59 @@
 __author__ = 'thor'
 
+from ut.util.decorators import autoargs
 
-from __future__ import print_function
-from time import time
+class A(object):
+    @autoargs()
+    def __init__(self, foo, path, debug=False):
+        pass
+a = A('rhubarb', 'pie', debug=True)
+assert(a.foo == 'rhubarb')
+assert(a.path == 'pie')
+assert(a.debug == True)
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.decomposition import NMF
-from sklearn.datasets import fetch_20newsgroups
+class B(object):
+    @autoargs()
+    def __init__(self, foo, path, debug=False, *args):
+        pass
+a = B('rhubarb', 'pie', True, 100, 101)
+assert(a.foo == 'rhubarb')
+assert(a.path == 'pie')
+assert(a.debug == True)
+assert(a.args == (100, 101))
 
-n_samples = 2000
-n_features = 1000
-n_topics = 10
-n_top_words = 20
+class C(object):
+    @autoargs()
+    def __init__(self, foo, path, debug=False, *args, **kw):
+        pass
+a = C('rhubarb', 'pie', True, 100, 101, verbose=True)
+assert(a.foo == 'rhubarb')
+assert(a.path == 'pie')
+assert(a.debug == True)
+assert(a.verbose == True)
+assert(a.args == (100, 101))
 
-# Load the 20 newsgroups dataset and vectorize it. We use a few heuristics
-# to filter out useless terms early on: the posts are stripped of headers,
-# footers and quoted replies, and common English words, words occurring in
-# only one document or in at least 95% of the documents are removed.
 
-t0 = time()
-print("Loading dataset and extracting TF-IDF features...")
-dataset = fetch_20newsgroups(shuffle=True, random_state=1,
-                             remove=('headers', 'footers', 'quotes'))
+class C(object):
+    @autoargs('bar', 'baz', 'verbose')
+    def __init__(self, foo, bar, baz, verbose=False):
+        pass
+a = C('rhubarb', 'pie', 1)
+assert(a.bar == 'pie')
+assert(a.baz == 1)
+assert(a.verbose == False)
+try:
+    getattr(a, 'foo')
+except AttributeError:
+    print("Yep, that's what's expected!")
 
-vectorizer = TfidfVectorizer(max_df=0.95, min_df=2, max_features=n_features,
-                             stop_words='english')
-tfidf = vectorizer.fit_transform(dataset.data[:n_samples])
-print("done in %0.3fs." % (time() - t0))
 
-# Fit the NMF model
-print("Fitting the NMF model with n_samples=%d and n_features=%d..."
-      % (n_samples, n_features))
-nmf = NMF(n_components=n_topics, random_state=1).fit(tfidf)
-print("done in %0.3fs." % (time() - t0))
-
-feature_names = vectorizer.get_feature_names()
-
-for topic_idx, topic in enumerate(nmf.components_):
-    print("Topic #%d:" % topic_idx)
-    print(" ".join([feature_names[i]
-                    for i in topic.argsort()[:-n_top_words - 1:-1]]))
-    print()
+class C(object):
+    @autoargs(exclude=('bar', 'baz', 'verbose'))
+    def __init__(self, foo, bar, baz, verbose=False):
+        pass
+a = C('rhubarb', 'pie', 1)
+assert(a.foo == 'rhubarb')
+try:
+    getattr(a, 'bar')
+except AttributeError:
+    print("Yep, that's what's expected!")

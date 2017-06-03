@@ -4,8 +4,106 @@ from functools import update_wrapper
 from functools import wraps
 from inspect import getargspec, isfunction
 from itertools import izip, ifilter, starmap
+import inspect
+import functools
 
 __author__ = 'thor'
+
+def autoargs(*include,**kwargs):
+    """
+    Automatically assign __init__ arguments.
+    Courtesy of the answer of: https://stackoverflow.com/questions/3652851/what-is-the-best-way-to-do-automatic-attribute-assignment-in-python-and-is-it-a
+    :param include: arguments to include
+    :param kwargs: other kwargs to include (a 'exclude' key will have the effect of excluding the valued list from
+        being auto-assigned.
+    :return: a wrapped __init__ function.
+    >>> from ut.util.decorators import autoargs
+    ...
+    ... class A(object):
+    ...     @autoargs()
+    ...     def __init__(self, foo, path, debug=False):
+    ...         pass
+    ... a = A('rhubarb', 'pie', debug=True)
+    ... assert(a.foo == 'rhubarb')
+    ... assert(a.path == 'pie')
+    ... assert(a.debug == True)
+    ...
+    ... class B(object):
+    ...     @autoargs()
+    ...     def __init__(self, foo, path, debug=False, *args):
+    ...         pass
+    ... a = B('rhubarb', 'pie', True, 100, 101)
+    ... assert(a.foo == 'rhubarb')
+    ... assert(a.path == 'pie')
+    ... assert(a.debug == True)
+    ... assert(a.args == (100, 101))
+    ...
+    >>> class C(object):
+    ...     @autoargs()
+    ...     def __init__(self, foo, path, debug=False, *args, **kw):
+    ...         pass
+    ... a = C('rhubarb', 'pie', True, 100, 101, verbose=True)
+    ... assert(a.foo == 'rhubarb')
+    ... assert(a.path == 'pie')
+    ... assert(a.debug == True)
+    ... assert(a.verbose == True)
+    ... assert(a.args == (100, 101))
+    ...
+    ...
+    ... class C(object):
+    ...     @autoargs('bar', 'baz', 'verbose')
+    ...     def __init__(self, foo, bar, baz, verbose=False):
+    ...         pass
+    ... a = C('rhubarb', 'pie', 1)
+    ... assert(a.bar == 'pie')
+    ... assert(a.baz == 1)
+    ... assert(a.verbose == False)
+    ... try:
+    ...     getattr(a, 'foo')
+    ... except AttributeError:
+    ...     print("Yep, that's what's expected!")
+    ...
+    ...
+    ... class C(object):
+    ...     @autoargs(exclude=('bar', 'baz', 'verbose'))
+    ...     def __init__(self, foo, bar, baz, verbose=False):
+    ...         pass
+    ... a = C('rhubarb', 'pie', 1)
+    ... assert(a.foo == 'rhubarb')
+    ... try:
+    ...     getattr(a, 'bar')
+    ... except AttributeError:
+    ...     print("Yep, that's what's expected!")
+    ...
+    Yep, that's what's expected!
+    Yep, that's what's expected!
+    """
+    def _autoargs(func):
+        attrs,varargs,varkw,defaults=inspect.getargspec(func)
+        def sieve(attr):
+            if kwargs and attr in kwargs['exclude']: return False
+            if not include or attr in include: return True
+            else: return False
+        @functools.wraps(func)
+        def wrapper(self,*args,**kwargs):
+            # handle default values
+            for attr,val in zip(reversed(attrs),reversed(defaults)):
+                if sieve(attr): setattr(self, attr, val)
+            # handle positional arguments
+            positional_attrs=attrs[1:]
+            for attr,val in zip(positional_attrs,args):
+                if sieve(attr): setattr(self, attr, val)
+            # handle varargs
+            if varargs:
+                remaining_args=args[len(positional_attrs):]
+                if sieve(varargs): setattr(self, varargs, remaining_args)
+            # handle varkw
+            if kwargs:
+                for attr,val in kwargs.iteritems():
+                    if sieve(attr): setattr(self,attr,val)
+            return func(self,*args,**kwargs)
+        return wrapper
+    return _autoargs
 
 
 def lazyprop(fn):
@@ -148,3 +246,5 @@ def autoassign(*names, **kwargs):
         return decorated
 
     return f and decorator(f) or decorator
+
+
