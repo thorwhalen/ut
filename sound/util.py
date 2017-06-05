@@ -566,8 +566,14 @@ class Sound(object):
             self.sr = new_sr
 
     def crop_with_idx(self, first_idx, last_idx):
+        """
+        Crop with frame indices.
+        :param first_idx: First frame index (starting with 0, like with lists)
+        :param last_idx: Last frame index. Like with list indices again. If frame n is actually the (n+1)th frame...
+        :return:
+        """
         cropped_sound = self.copy()
-        cropped_sound.wf = cropped_sound.wf[first_idx:(last_idx + 1)]
+        cropped_sound.wf = cropped_sound.wf[first_idx:last_idx]
         return cropped_sound
 
     # def __getitem__
