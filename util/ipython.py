@@ -4,6 +4,7 @@ import os, json
 # import IPython.core.display as idisp
 # from ut.pfile.name import recursive_file_walk_iterator
 from ut.pstr.to import file as str_to_file
+import re
 
 notebook_root = 'http://localhost:8888/notebooks/'
 default_notebook_folder = 'soto'
