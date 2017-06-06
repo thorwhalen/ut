@@ -23,6 +23,8 @@ def all_table_of_contents_html_from_notebooks_in_folder(folder='.', save_to_file
     if save_to_file is None:
         return s
     else:
+        if not isinstance(save_to_file, basestring):
+            save_to_file = 'table_of_contents.html'
         str_to_file(s, save_to_file)
 
 
