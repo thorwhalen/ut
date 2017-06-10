@@ -5,6 +5,84 @@ import numpy as np
 import pandas as pd
 import json
 
+base_validation_funs = {
+    "be a": isinstance,
+    "be in": lambda val, check_val: val in check_val,
+    "be at least": lambda val, check_val: val >= check_val,
+    "be more than": lambda val, check_val: val > check_val,
+    "be no more than": lambda val, check_val: val <= check_val,
+    "be less than": lambda val, check_val: val < check_val,
+}
+
+
+def validate_kwargs(kwargs_to_validate,
+                     validation_dict,
+                     validation_funs=base_validation_funs,
+                     all_kwargs_should_be_in_validation_dict=False,
+                     ignore_misunderstood_validation_instructions=True
+                     ):
+    """
+    Utility to validate a dict. It's main use is to validate function arguments (expressing the validation checks
+    in validation_dict) by doing validate_kwargs(locals()), usually in the beginning of the function
+    (to avoid having more accumulated variables than we need in locals())
+    :param kwargs_to_validate: as the name implies...
+    :param validation_dict: A dict specifying what to validate. Keys are usually name of variables (when feeding
+        locals()) and values are dicts, themselves specifying check:check_val pairs where check is a string that
+        points to a function (see validation_funs argument) and check_val is an object that the kwargs_to_validate
+        value will be checked against.
+    :param validation_funs: A dict of check:check_function(val, check_val) where check_function is a function returning
+        True if val is valid (with respect to check_val).
+    :param all_kwargs_should_be_in_validation_dict: If True, will raise an error if kwargs_to_validate contains
+        keys that are not in validation_dict.
+    :param ignore_misunderstood_validation_instructions: If True, wil raise an error if validation_dict contains
+        a key that is not in validation_funs (safer, since if you mistype a key in validation_dict, the function will
+        tell you so!
+    :return: True if all the validations passed.
+
+    >>> validation_dict = {
+    ...     'system': {
+    ...         'be in': {'darwin', 'linux'}
+    ...     },
+    ...     'fv_version': {
+    ...         'be a': int,
+    ...         'be at least': 5
+    ...     }
+    ... }
+    >>> validate_kwargs({'system': 'darwin'}, validation_dict)
+    True
+    >>> try:
+    ...     validate_kwargs({'system': 'windows'}, validation_dict)
+    ... except AssertionError as e:
+    ...     print(e)
+    system must be in set(['darwin', 'linux'])
+    >>> try:
+    ...     validate_kwargs({'fv_version': 9.9}, validation_dict)
+    ... except AssertionError as e:
+    ...     print(e)
+    fv_version must be a <type 'int'>
+    >>> try:
+    ...     validate_kwargs({'fv_version': 4}, validation_dict)
+    ... except AssertionError as e:
+    ...     print(e)
+    fv_version must be at least 5
+    >>> validate_kwargs({'fv_version': 6}, validation_dict)
+    True
+    """
+    validation_funs = dict(base_validation_funs, **validation_funs)
+    for var, val in kwargs_to_validate.iteritems():  # for every (var, val) pair of kwargs
+        if var in validation_dict:  # if var is in the validation_dict
+            for check, check_val in validation_dict[var].iteritems():  # for every (key, val) of this dict
+                if check in base_validation_funs:  # if you have a validation check for it
+                    if not validation_funs[check](val, check_val):  # check it's valid
+                        raise AssertionError("{} must {} {}".format(var, check, check_val))  # and raise an error if not
+                elif not ignore_misunderstood_validation_instructions:  # should ignore if check not understood?
+                    raise AssertionError("I don't know what to do with the validation check {}".format(
+                        check
+                    ))
+        elif all_kwargs_should_be_in_validation_dict:  # should all variables have checks?
+            raise AssertionError("{} wasn't in the validation_dict")
+    return True
+
 
 def json_size_of_fields(d):
     """
