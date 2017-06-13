@@ -30,7 +30,7 @@ configparser==3.5.0
 contextlib2==0.5.3
 cryptography==1.5
 cycler==0.10.0
-Cython==0.24.1
+Cython==0.25.2
 cytoolz==0.8.0
 dask==0.13.0
 datashape==0.5.2
@@ -95,7 +95,7 @@ nose==1.3.7
 notebook==4.3.1
 numba==0.28.1+0.gfe99fbc.dirty
 numexpr==2.6.1
-numpy==1.12.0
+numpy==1.12.1
 odo==0.5.0
 openpyxl==2.3.2
 pandas==0.19.1
@@ -112,7 +112,7 @@ ply==3.9
 prompt-toolkit==1.0.9
 psutil==5.2.2
 ptyprocess==0.5.1
-py==1.4.31
+py==1.4.34
 pyasn1==0.1.9
 pycairo==1.10.0
 pycallgraph==1.0.1
@@ -128,9 +128,9 @@ pymongo==2.8
 pyOpenSSL==16.2.0
 pyparsing==2.1.10
 PySoundFile==0.8.1
-pytest==2.9.2
+pytest==3.1.2
 python-dateutil==2.6.0
-pytz==2016.10
+pytz==2017.2
 PyYAML==3.12
 pyzmq==16.0.2
 QtAwesome==0.3.3

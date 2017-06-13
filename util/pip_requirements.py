@@ -4,6 +4,7 @@ from ut.pfile.to import string as file_to_string
 import pandas as pd
 from numpy import array
 import os
+from warnings import warn
 
 
 def requirement_file_to_df(filepath):
@@ -12,11 +13,16 @@ def requirement_file_to_df(filepath):
     return pd.DataFrame(map(lambda x: {'pkg': x[0], 'version': x[1]}, t))
 
 
+def requirements_comparison_df_only_when_different(requirements_filepath_1, requirements_filepath_2):
+    c = requirements_comparison_df(requirements_filepath_1, requirements_filepath_2)
+    c = c[c['version_x'] != c['version_y']]
+    return c
+
+
 def requirements_comparison_df(requirements_filepath_1, requirements_filepath_2):
     r1 = requirement_file_to_df(requirements_filepath_1)
     r2 = requirement_file_to_df(requirements_filepath_2)
     c = r1.merge(r2, how='outer', on='pkg')
-    c = c[c['version_x'] != c['version_y']]
     return c
 
 
@@ -24,33 +30,52 @@ str_to_num_key = array([1e12, 1e6, 1e3, 1]).astype(int)
 
 
 def version_str_to_num(version_str):
-    if isinstance(version_str, basestring):
-        num = 0
-        for i, v in enumerate(version_str.split('.')):
-            num += int(v) * str_to_num_key[i]
-        return num
-    else:
+    try:
+        if isinstance(version_str, basestring):
+            num = 0
+            for i, v in enumerate(version_str.split('.')):
+                num += int(v) * str_to_num_key[i]
+            return num
+        else:
+            return None
+    except:
         return None
 
 
 def requirements_comparison_objects(requirements_filepath_1, requirements_filepath_2):
-    c = requirements_comparison_df(requirements_filepath_1, requirements_filepath_2)
+    c = requirements_comparison_df_only_when_different(requirements_filepath_1, requirements_filepath_2)
 
-    lidx = c['version_x'].isnull()
-    missing_1 = list(c.ix[lidx, 'pkg'])
-    c = c.ix[~lidx]
+    c, missing_1, missing_2 = rm_empty_version_entries(c)
 
-    lidx = c['version_y'].isnull()
-    missing_2 = list(c.ix[lidx, 'pkg'])
-    c = c.ix[~lidx]
-
-    v1_num = array(map(version_str_to_num, c['version_x']))
-    v2_num = array(map(version_str_to_num, c['version_y']))
+    v1_num = list()
+    v2_num = list()
+    for _, row in c.iterrows():
+        v1 = version_str_to_num(row['version_x'])
+        v2 = version_str_to_num(row['version_y'])
+        if v1 and v2:
+            v1_num.append(v1)
+            v2_num.append(v2)
+        else:
+            print("!!! Couldn't get the version NUMBER for {}\n".format(dict(row)))
+    v1_num = array(v1_num)
+    v2_num = array(v2_num)
 
     v1_greater_than_v2_df = c.ix[v1_num > v2_num]
     v2_greater_than_v1_df = c.ix[v2_num > v1_num]
 
     return missing_1, missing_2, v1_greater_than_v2_df, v2_greater_than_v1_df
+
+
+def rm_empty_version_entries(comp_df):
+    lidx = comp_df['version_x'].isnull()
+    missing_1 = list(comp_df.ix[lidx, 'pkg'])
+    comp_df = comp_df.ix[~lidx]
+
+    lidx = comp_df['version_y'].isnull()
+    missing_2 = list(comp_df.ix[lidx, 'pkg'])
+    comp_df = comp_df.ix[~lidx]
+
+    return comp_df, missing_1, missing_2
 
 
 def file_unique_identifiers(f1, f2):
@@ -102,3 +127,39 @@ def get_requirements_to_update_second_requirements_when_behind_first(
         s += row['pkg'] + '==' + row['version_x'] + "\n"
 
     return s
+
+
+def updated_requirements_2_with_requirements_1_that_are_ahead(
+        requirements_filepath_1, requirements_filepath_2):
+
+    r1 = requirement_file_to_df(requirements_filepath_1).set_index('pkg')['version']
+    r2 = requirement_file_to_df(requirements_filepath_2).set_index('pkg')['version']
+
+    s = ''
+    for pkg, v2_str in r2.iteritems():
+        v2 = version_str_to_num(v2_str)
+        v1_str = r1.get(pkg)
+        v1 = version_str_to_num(v1_str)
+        if v1 and v1 > v2:
+            s += pkg + '==' + v1_str + "\n"
+        else:
+            s += pkg + '==' + v2_str + "\n"
+    return s
+    #
+    #
+    # comp_df = requirements_comparison_df(requirements_filepath_1, requirements_filepath_2)
+    #
+    # lidx = comp_df['version_y'].isnull()
+    # comp_df = comp_df.ix[~lidx]
+    #
+    # s = ''
+    # for _, row in comp_df.iterrows():
+    #     v1 = version_str_to_num(row['version_x'])
+    #     v2 = version_str_to_num(row['version_y'])
+    #
+    #     if v2:
+    #         if v1 > v2:
+    #             s += row['pkg'] + '==' + row['version_x'] + "\n"
+    #         else:
+    #             s += row['pkg'] + '==' + row['version_y'] + "\n"
+    # return s
