@@ -224,12 +224,12 @@ def rand(nrows=9, ncols=None, values_spec=None, columnTypes=None, columns=None):
     # # ''.join([string.lowercase[:10][x] for x in np.array([1,1,2,3,2,4,4,3])])
 
 
-def chunks(df, chunk_size):
+def chunks(df, chk_size):
     """
     A generator that yields a dataframe in chunks
     """
-    for i in xrange(0, len(df), chunk_size):
-        if i + chunk_size < len(df):
-            yield df.iloc[range(i, i + chunk_size)]
+    for i in xrange(0, len(df), chk_size):
+        if i + chk_size < len(df):
+            yield df.iloc[range(i, i + chk_size)]
         else:
             yield df.iloc[range(i, len(df))]

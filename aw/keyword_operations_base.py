@@ -11,7 +11,7 @@ from adwords.operations import Operations
 
 
 class KeywordOperationsBase(object):
-    def __init__(self, account_id='7998744469', store=None, min_money=None, max_money=None, logging_level=logging.DEBUG, chunk_size=5000):
+    def __init__(self, account_id='7998744469', store=None, min_money=None, max_money=None, logging_level=logging.DEBUG, chk_size=5000):
         """
         Pass in min and max (in Euros, NOT micros) based bid if you want to override the GMoney defaults
         store: storage that acts like an HDF5 store
@@ -24,7 +24,7 @@ class KeywordOperationsBase(object):
         self.ops = Operations(self.gmoney)
         self.mutations = Mutations(self.conn)
 
-        self.chunk_size = chunk_size
+        self.chk_size = chk_size
 
         self.store = store
 

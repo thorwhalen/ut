@@ -35,13 +35,13 @@ class KeywordOperationsMS(KeywordOperationsBase):
 
         kw_df['ops'] = kw_df.apply(self.ops.update_keyword_df_row, axis=1)
 
-        big_one = kw_df > self.chunk_size * 5
+        big_one = kw_df > self.chk_size * 5
         first_push = True
 
         self.job_ids = []
 
         # chunk into appropriate sizes, to constrain number of ops in each job
-        for df in daf_get.chunks(kw_df, self.chunk_size):
+        for df in daf_get.chunks(kw_df, self.chk_size):
 
             # Google requests that we wait 2 seconds between multiple pushes to the same account
             if big_one and not first_push:
