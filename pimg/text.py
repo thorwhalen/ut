@@ -9,8 +9,8 @@ from ut.pimg.utils import crop_out_identical_margins
 folder_containing_current_file, _ = os.path.split(__file__)
 ttf_font_folder = os.path.join(folder_containing_current_file, 'data/fonts/ttf/')
 
-DEFAULT_FONT_FILE = 'DejaVuSans-Bold.ttf'
-
+# DEFAULT_FONT_FILE = 'DejaVuSans-Bold.ttf'
+DEFAULT_FONT_FILE = 'courier.ttf'
 
 def local_font_files():
     return filter(lambda f: f.endswith('.ttf'), os.listdir(ttf_font_folder))
