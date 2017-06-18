@@ -7,7 +7,31 @@ import inspect
 import cPickle
 import zlib
 import types
+
 function_type = type(lambda x: x)  # using this instead of callable() because classes are callable, for instance
+
+
+def is_classmethod(class_, attr):
+    attr = getattr(class_, attr)
+    return inspect.ismethod(attr) and getattr(attr, "__self__") == class_
+
+
+def list_of_properties_instancemethods_and_classmethods(class_):
+    props = list()
+    instance_methods = list()
+    class_methods = list()
+
+    for attr_str in (x for x in class_.__dict__.keys() if not x.startswith('__')):
+        attr = getattr(class_, attr_str)
+        if inspect.ismethod(attr):
+            if getattr(attr, "__self__") == class_:
+                class_methods.append(attr_str)
+            else:
+                instance_methods.append(attr_str)
+        else:
+            props.append(attr_str)
+
+    return props, instance_methods, class_methods
 
 
 def zpickle_dumps(obj):
@@ -75,6 +99,3 @@ def has_callable_attr(obj, attr):
 
 def has_non_callable_attr(obj, attr):
     return hasattr(obj, attr) and not hasattr(getattr(obj, attr), '__call__')
-
-
-
