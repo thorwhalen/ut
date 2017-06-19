@@ -15,6 +15,70 @@ import ut.wserv.errors as err
 DFLT_RESULT_FIELD = 'result'
 
 
+def get_pattern_from_attr_permissions_dict(attr_permissions):
+    """
+    Construct a compiled regular expression from a permissions dict containing a list of what to include and exclude.
+    Will be used in ObjWrapper if permissible_attr_pattern is a dict.
+    Note that the function enforces certain patterns (like inclusions ending with $ unless they end with *, etc.
+    What is not checked for is that the "." was meant, or if it was "\." that was meant.
+    This shouldn't be a problem in most cases, and hey! It's to the user to know regular expressions!
+    :param attr_permissions: A dict of the format {'include': INCLUSION_LIST, 'exclude': EXCLUSION_LIST}.
+        Both 'include' and 'exclude' are optional, and their lists can be empty.
+    :return: a re.compile object
+
+    >>> attr_permissions = {
+    ...     'include': ['i.want.this', 'he.wants.that'],
+    ...     'exclude': ['i.want', 'he.wants', 'and.definitely.not.this']
+    ... }
+    >>> r = get_pattern_from_attr_permissions_dict(attr_permissions)
+    >>> test = ['i.want.this', 'i.want.this.too', 'he.wants.that', 'he.wants.that.other.thing',
+    ...         'i.want.ice.cream', 'he.wants.me'
+    ...        ]
+    >>> for t in test:
+    ...     print("{}: {}".format(t, bool(r.match(t))))
+    i.want.this: True
+    i.want.this.too: False
+    he.wants.that: True
+    he.wants.that.other.thing: False
+    i.want.ice.cream: False
+    he.wants.me: False
+    """
+    s = ""
+
+    # process inclusions
+    corrected_list = []
+    for include in attr_permissions.get('include', []):
+        if not include.endswith('*'):
+            if not include.endswith('$'):
+                include += '$'
+        else:  # ends with "*"
+            if include.endswith('\.*'):
+                # assume that's not what the user meant, so change
+                include = include[:-3] + '.*'
+            elif include[-2] != '.':
+                # assume that's not what the user meant, so change
+                include = include[:-1] + '.*'
+        corrected_list.append(include)
+    s += '|'.join(corrected_list)
+
+    # process exclusions
+    corrected_list = []
+    for include in attr_permissions.get('exclude', []):
+        if not include.endswith('$') and not include.endswith('*'):
+            # add to exclude all subpaths if not explicitly ending with "$"
+            include += '.*'
+        else:  # ends with "*"
+            if include.endswith('\.*'):
+                # assume that's not what the user meant, so change
+                include = include[:-3] + '.*'
+            elif include[-2] != '.':
+                # assume that's not what the user meant, so change
+                include = include[:-1] + '.*'
+        corrected_list.append(include)
+    s += '(?!' + '|'.join(corrected_list) + ')'
+
+    return re.compile(s)
+
 def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
     if isinstance(result, list):
         return {result_field: result}
@@ -43,7 +107,7 @@ class ObjWrapper(object):
                  obj_constructor,
                  obj_constructor_arg_names=None,  # used to determine the params of the object constructors
                  convert_arg=None,  # input processing: Dict specifying how to prepare ws arguments for methods
-                 permissible_attr_pattern='.*',  # what attributes are allowed to be accessed (default is all)
+                 permissible_attr_pattern='[^_].*',  # what attributes are allowed to be accessed
                  to_jdict=default_to_jdict,  # output processing: Function to convert an output to a jsonizable dict
                  obj_str='obj',  # name of object to use in error messages
                  cache_size=5):
@@ -83,7 +147,10 @@ class ObjWrapper(object):
             convert_arg = {}
         self.convert_arg = convert_arg  # a specification of how to convert specific argument names or types
 
-        self.permissible_attr_pattern = re.compile(permissible_attr_pattern)
+        if isinstance(permissible_attr_pattern, dict):
+            self.permissible_attr_pattern = get_pattern_from_attr_permissions_dict(permissible_attr_pattern)
+        else:
+            self.permissible_attr_pattern = re.compile(permissible_attr_pattern)
         self.to_jdict = to_jdict
         self.obj_str = obj_str
 
@@ -160,7 +227,6 @@ class ObjWrapper(object):
             raise err.MissingAttribute()
         elif not self._is_permissible_attr(attr):
             raise err.ForbiddenAttribute(attr)
-
         return self.obj(obj=obj_kwargs, attr=attr, **kwargs)
 
 

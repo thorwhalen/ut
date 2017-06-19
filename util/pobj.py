@@ -16,7 +16,7 @@ def is_classmethod(class_, attr):
     return inspect.ismethod(attr) and getattr(attr, "__self__") == class_
 
 
-def list_of_properties_instancemethods_and_classmethods(class_):
+def list_of_properties_instancemethods_and_classmethods_for_class(class_):
     props = list()
     instance_methods = list()
     class_methods = list()
@@ -33,6 +33,23 @@ def list_of_properties_instancemethods_and_classmethods(class_):
 
     return props, instance_methods, class_methods
 
+def list_of_properties_instancemethods_and_classmethods_for_obj(obj):
+    props = list()
+    instance_methods = list()
+    class_methods = list()
+
+    for attr_str in (x for x in obj.__dict__.keys() if not x.startswith('__')):
+        attr = getattr(obj, attr_str)
+        if inspect.ismethod(attr):
+            # if getattr(attr, "__self__") == obj.__class__:
+            #     class_methods.append(attr_str)
+            # else:
+            instance_methods.append(attr_str)
+        else:
+            props.append(attr_str)
+    _, _, class_methods = list_of_properties_instancemethods_and_classmethods_for_class(obj.__class__)
+
+    return props, instance_methods, class_methods
 
 def zpickle_dumps(obj):
     return zlib.compress(cPickle.dumps(obj))
@@ -69,7 +86,7 @@ def methods_of(obj_or_class):
     return [x[0] for x in t]
 
 
-def set_attributes(obj, attr_dict=dict(), default_attr_dict=None):
+def set_attributes(obj, attr_dict=None, default_attr_dict=None):
     '''
     Setting attributes and values (specified by a dict) to an object instance, possibly completing the attributes with
     defaults.
@@ -79,6 +96,8 @@ def set_attributes(obj, attr_dict=dict(), default_attr_dict=None):
     :return:
     '''
     # if default_attributes were given, complete attr_dict with them
+    if attr_dict is None:
+        attr_dict = dict()
     if default_attr_dict:
         attr_dict = pdict_get.left_union(attr_dict, default_attr_dict)
     # loop through attr_dict and assign attributes to obj
