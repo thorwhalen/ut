@@ -192,10 +192,12 @@ class ObjWrapper(object):
         else:
             obj = self.obj_constructor()
 
+        # at this point obj is an actual obj_constructor constructed object....
+
         # get the leaf object
         if attr is None:
             raise err.MissingAttribute()
-        obj = get_attr_recursively(obj, attr)
+        obj = get_attr_recursively(obj, attr)  # at this point obj is the nested attribute object
 
         # call a method or return a property
         if callable(obj):
