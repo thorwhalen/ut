@@ -43,6 +43,7 @@ def get_pattern_from_attr_permissions_dict(attr_permissions):
     i.want.ice.cream: False
     he.wants.me: False
     """
+
     s = ""
 
     # process inclusions
