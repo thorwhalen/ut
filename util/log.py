@@ -56,6 +56,10 @@ def hms_message(msg=''):
     return "({:02.0f}){:02.0f}:{:02.0f}:{:02.0f} - {}".format(t.day, t.hour, t.minute, t.second, msg)
 
 
+def print_iter_one_per_line(it):
+    for x in it:
+        print(x)
+
 def get_a_logger(**kwargs):
     kwargs = dict(dict(
             filename=default_log_filepath,
