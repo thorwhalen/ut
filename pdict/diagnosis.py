@@ -19,7 +19,7 @@ def validate_kwargs(kwargs_to_validate,
                      validation_dict,
                      validation_funs=base_validation_funs,
                      all_kwargs_should_be_in_validation_dict=False,
-                     ignore_misunderstood_validation_instructions=True
+                     ignore_misunderstood_validation_instructions=False
                      ):
     """
     Utility to validate a dict. It's main use is to validate function arguments (expressing the validation checks
@@ -34,7 +34,7 @@ def validate_kwargs(kwargs_to_validate,
         True if val is valid (with respect to check_val).
     :param all_kwargs_should_be_in_validation_dict: If True, will raise an error if kwargs_to_validate contains
         keys that are not in validation_dict.
-    :param ignore_misunderstood_validation_instructions: If True, wil raise an error if validation_dict contains
+    :param ignore_misunderstood_validation_instructions: If True, will raise an error if validation_dict contains
         a key that is not in validation_funs (safer, since if you mistype a key in validation_dict, the function will
         tell you so!
     :return: True if all the validations passed.
