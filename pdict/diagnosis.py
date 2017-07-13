@@ -76,7 +76,7 @@ def validate_kwargs(kwargs_to_validate,
                     if not validation_funs[check](val, check_val):  # check it's valid
                         raise AssertionError("{} must {} {}".format(var, check, check_val))  # and raise an error if not
                 elif not ignore_misunderstood_validation_instructions:  # should ignore if check not understood?
-                    raise AssertionError("I don't know what to do with the validation check {}".format(
+                    raise AssertionError("I don't know what to do with the validation check '{}'".format(
                         check
                     ))
         elif all_kwargs_should_be_in_validation_dict:  # should all variables have checks?
