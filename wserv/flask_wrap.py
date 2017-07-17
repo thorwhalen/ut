@@ -80,6 +80,7 @@ def get_pattern_from_attr_permissions_dict(attr_permissions):
 
     return re.compile(s)
 
+
 def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
     if isinstance(result, list):
         return {result_field: result}
@@ -101,6 +102,23 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
         return default_to_jdict(result.to_dict())
     else:
         return {result_field: result}
+
+
+def extract_kwargs(request, convert_arg):
+    kwargs = dict()
+    for k in request.args.keys():
+        if k in convert_arg:
+            if 'default' in convert_arg[k]:
+                kwargs[k] = request.args.get(k,
+                                             type=convert_arg[k].get('type', str),
+                                             default=convert_arg[k]['default'])
+            else:
+                kwargs[k] = request.args.get(k, type=convert_arg[k].get('type', str))
+        else:
+            kwargs[k] = request.args.get(k)
+    if request.json is not None:
+        kwargs = dict(kwargs, **request.json)
+    return kwargs
 
 
 class ObjWrapper(object):
@@ -163,18 +181,7 @@ class ObjWrapper(object):
         :param request: the flask request object
         :return: a dict of kwargs corresponding to the union of post and get arguments
         """
-        kwargs = dict()
-
-        for k in request.args.keys():
-            if k in self.convert_arg:
-                kwargs[k] = request.args.get(k,
-                                             type=self.convert_arg[k]['type'],
-                                             default=self.convert_arg[k]['default'])
-            else:
-                kwargs[k] = request.args.get(k)
-
-        if request.json is not None:
-            kwargs = dict(kwargs, **request.json)
+        kwargs = extract_kwargs(request, self.convert_arg)
 
         return dict(kwargs)
 
