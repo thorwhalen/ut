@@ -22,7 +22,17 @@ import operator
 #         return d
 
 
-def get_value_in_key_path(d, key_path):
+def key_paths(d):
+    key_path_list = list()
+    for k, v in d.iteritems():
+        if not isinstance(v, dict):
+            key_path_list.append(k)
+        else:
+            key_path_list.extend(map(lambda x: k + '.' + x, key_paths(v)))
+    return key_path_list
+
+
+def get_value_in_key_path(d, key_path, default_val=None):
     """
     getting with a key list or "."-separated string
     :param d: dict
@@ -31,7 +41,10 @@ def get_value_in_key_path(d, key_path):
     """
     if isinstance(key_path, basestring):
         key_path = key_path.split('.')
-    return reduce(operator.getitem, key_path, d)
+    try:
+        return reduce(operator.getitem, key_path, d)
+    except (TypeError, KeyError):
+        return default_val
 
 
 def set_value_in_key_path(d, key_path, val):
