@@ -122,6 +122,8 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, **kwargs):
             plt.xticks([])
         plt.gca().xaxis.set_tick_params(labeltop='on')
 
+    return plt.gca()
+
 
 def labeled_heatmap(X, y=None, col_labels=None):
     n_items, n_cols = X.shape
