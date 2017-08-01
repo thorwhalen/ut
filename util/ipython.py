@@ -11,7 +11,7 @@ default_notebook_folder = 'soto'
 default_link_root = os.path.join(notebook_root, default_notebook_folder)
 
 
-def all_table_of_contents_html_from_notebooks_in_folder(folder='.', save_to_file=None):
+def all_table_of_contents_html_from_notebooks_in_folder(folder='.', save_to_file='table_of_contents.html'):
     folder = os.path.abspath(folder)
     folder_name = os.path.dirname(folder)
     s = "<b>{}</b><br><br>\n\n".format(folder)
