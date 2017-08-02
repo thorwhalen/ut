@@ -106,7 +106,7 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
         return {result_field: result}
 
 
-def extract_kwargs(request, convert_arg):
+def extract_kwargs(request, convert_arg, file_var='file'):
     kwargs = dict()
     for k in request.args.keys():
         if k in convert_arg:
@@ -120,6 +120,8 @@ def extract_kwargs(request, convert_arg):
             kwargs[k] = request.args.get(k)
     if request.json is not None:
         kwargs = dict(kwargs, **request.json)
+    if 'file' in request.files:
+        kwargs[file_var] = request.files['file']
     return kwargs
 
 
@@ -128,6 +130,7 @@ class ObjWrapper(object):
                  obj_constructor,
                  obj_constructor_arg_names=None,  # used to determine the params of the object constructors
                  convert_arg=None,  # input processing: Dict specifying how to prepare ws arguments for methods
+                 file_var='file',  # input processing: name of the variable to use if there's a 'file' in request.files
                  permissible_attr_pattern='[^_].*',  # what attributes are allowed to be accessed
                  to_jdict=default_to_jdict,  # output processing: Function to convert an output to a jsonizable dict
                  obj_str='obj',  # name of object to use in error messages
@@ -167,6 +170,7 @@ class ObjWrapper(object):
         if convert_arg is None:
             convert_arg = {}
         self.convert_arg = convert_arg  # a specification of how to convert specific argument names or types
+        self.file_var = file_var
 
         if isinstance(permissible_attr_pattern, dict):
             self.permissible_attr_pattern = get_pattern_from_attr_permissions_dict(permissible_attr_pattern)
@@ -183,7 +187,7 @@ class ObjWrapper(object):
         :param request: the flask request object
         :return: a dict of kwargs corresponding to the union of post and get arguments
         """
-        kwargs = extract_kwargs(request, self.convert_arg)
+        kwargs = extract_kwargs(request, convert_arg=self.convert_arg, file_var=self.file_var)
 
         return dict(kwargs)
 
