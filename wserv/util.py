@@ -1,7 +1,7 @@
 from __future__ import division
 
 
-def to_curl(request, headers="Content-Type: application/json", print_it=True):
+def to_curl(request, headers="simple", print_it=True):
     """
     Get a curl string from a python request.
     :param request: a requests.models.Response or a requests.models.Response.request object
@@ -19,25 +19,39 @@ def to_curl(request, headers="Content-Type: application/json", print_it=True):
     if hasattr(request, 'request'):
         request = getattr(request, 'request')
 
+    command = None
+
     if headers is None:
         headers = {k: v for k, v in request.headers.iteritems()}
+    elif isinstance(headers, basestring) and headers == 'simple':
+        if request.method == 'GET':
+            command = "curl -X {method} '{uri}'".format(
+                        method=request.method,
+                        uri=request.url,
+                    )
+        elif request.method == 'POST':
+            command = "curl -X {method} -H 'Content-Type: application/json' -d '{data}' '{uri}'".format(
+                data=request.body or "",
+                method=request.method,
+                uri=request.url,
+            )
 
-    # headers = headers or {k: v for k, v in request.headers.iteritems()}
+    if command is None:
+        if isinstance(headers, dict):
+            headers = ["'{}: {}'".format(k, v) for k, v in headers.iteritems()]
+            headers = " -H ".join(sorted(headers))
+        elif isinstance(headers, list):
+            headers = " -H ".join(map(lambda x: '"' + x + '"', sorted(headers)))
+        elif isinstance(headers, basestring) and (not headers.startswith("'") or not headers.startswith('"')):
+                headers = '"' + headers + '"'
 
-    if isinstance(headers, dict):
-        headers = ["'{}: {}'".format(k, v) for k, v in headers.iteritems()]
-        headers = " -H ".join(sorted(headers))
-    elif isinstance(headers, list):
-        headers = " -H ".join(map(lambda x: '"' + x + '"', sorted(headers)))
-    elif isinstance(headers, basestring) and not headers.startswith("'") or not headers.startswith('"'):
-        headers = '"' + headers + '"'
+        command = "curl -X {method} -H {headers} -d '{data}' '{uri}'".format(
+            data=request.body or "",
+            headers=headers,
+            method=request.method,
+            uri=request.url,
+        )
 
-    command = "curl -X {method} -H {headers} -d '{data}' '{uri}'".format(
-        data=request.body or "",
-        headers=headers,
-        method=request.method,
-        uri=request.url,
-    )
     if print_it:
         print(command)
     else:
