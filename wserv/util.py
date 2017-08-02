@@ -1,10 +1,18 @@
 from __future__ import division
 
 
-def to_curl(request, headers="Content-Type: application/json"):
+def to_curl(request, headers="Content-Type: application/json", print_it=True):
     """
     Get a curl string from a python request.
-    :param request: a requests.request object
+    :param request: a requests.models.Response or a requests.models.Response.request object
+    :param headers: headers to include in the curl request (the "-H" args).
+        Specified by
+            a {header_name: header_value} dict
+            a "header_name: header_value" string (if only one header}
+            a list of "header_name: header_value" strings
+        If None, will ask the request objects for it's request headers.
+    :param print_it: If True (default), will print the curl command. If not, it will return a string containing it.
+
     :return: a curl string corresponding to this request
     """
 
@@ -30,4 +38,7 @@ def to_curl(request, headers="Content-Type: application/json"):
         method=request.method,
         uri=request.url,
     )
-    return command
+    if print_it:
+        print(command)
+    else:
+        return command
