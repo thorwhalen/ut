@@ -60,6 +60,19 @@ def set_value_in_key_path(d, key_path, val):
     get_value_in_key_path(d, key_path[:-1])[key_path[-1]] = val
 
 
+def set_value_in_nested_key_path(d, key_path, val):
+    if isinstance(key_path, basestring):
+        key_path = key_path.split('.')
+    first_key = key_path[0]
+    if len(key_path) == 1:
+        d[first_key] = val
+    else:
+        if first_key in d:
+            set_value_in_nested_key_path(d[first_key], key_path[1:], val)
+        else:
+            d[first_key] = {}
+            set_value_in_nested_key_path(d[first_key], key_path[1:], val)
+
 def mk_fixed_coordinates_value_getter(get_key_list):
     return \
         lambda the_dict: \
