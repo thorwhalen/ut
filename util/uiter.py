@@ -47,7 +47,6 @@ def grouper(iterable, n=1, fillvalue='drop'):
         return izip_longest(fillvalue=fillvalue, *args)
 
 
-
 def batch(iterable, n=1, return_tail=True):
     current_batch = []
     for item in iterable:
@@ -59,16 +58,26 @@ def batch(iterable, n=1, return_tail=True):
         yield current_batch
 
 
+def sample_iterator(iterator, k, iterator_size=None):
+    if iterator_size is None:
+        iterator_size = len(iterator)
+    for item in iterator:
+        if random() < k / iterator_size:
+            yield item
+            k -= 1
+        iterator_size -= 1
+        if iterator_size == 0:
+            raise StopIteration()
+
+
 def random_subset(iterator, K):
     """
     Uses reservoir sampling to get a sample from an iterator without knowing how many points there are
     in advance.
     """
     result = []
-    N = 0
 
-    for item in iterator:
-        N += 1
+    for N, item in enumerate(iterator):
         if N <= K:
             result.append(item)
         else:
@@ -80,10 +89,10 @@ def random_subset(iterator, K):
 
 
 def print_iter_progress(iterator,
-                   print_progress_every=None,
-                   header_template="{hour:02.0f}:{minute:02.0f}:{second:02.0f} - iteration {iteration}",
-                   data_msg_intro_str="",
-                   data_to_string=None):
+                        print_progress_every=None,
+                        header_template="{hour:02.0f}:{minute:02.0f}:{second:02.0f} - iteration {iteration}",
+                        data_msg_intro_str="",
+                        data_to_string=None):
     """
     Wraps an iterator, allowing one to use the iterator as one would, but will print progress messages every
     print_progress_every iterations.
@@ -158,7 +167,7 @@ def powerset(iterable):
     powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
     """
     s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
 def all_subsets_of(iterable, include_empty_set=True):
@@ -167,7 +176,7 @@ def all_subsets_of(iterable, include_empty_set=True):
     else:
         start = 1
     n = len(list(iterable))
-    return chain(*imap(lambda x: combinations(iterable, x), xrange(start, n+1)))
+    return chain(*imap(lambda x: combinations(iterable, x), xrange(start, n + 1)))
 
 
 def take(n, iterable):
@@ -240,7 +249,6 @@ def pairwise(iterable):
     return itertools.izip(a, b)
 
 
-
 def grouper_no_fill(iterable, n):  # untested
     "grouper_no_fill('ABCDEFG', 3) --> ABC DEF G"
     args = [iter(iterable)] * n
@@ -264,7 +272,7 @@ def roundrobin(*iterables):
 def powerset(iterable):
     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
     s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
 def unique_everseen(iterable, key=None):
