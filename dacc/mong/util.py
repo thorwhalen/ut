@@ -83,6 +83,25 @@ def bulk_update_collection(mgc, operations, verbose=0):
         print('Update result {}'.format(result))
 
 
+def bulk_insert_collection(mgc, docs):
+    """
+    Has the effect of doing:
+    for doc in docs:
+        mgc.insert(docs)
+    but uses bulk operations to do it faster.
+
+    :param mgc: the mongo collection to update
+    :param docs: a list of docs to insert
+    :return: what ever bulk_mgc.execute() returns
+    """
+    bulk_mgc = mgc.initialize_unordered_bulk_op()
+
+    for doc in docs:
+        bulk_mgc.insert(doc)
+
+    return bulk_mgc.execute()
+
+
 def copy_missing_indices_from(source_mgc, target_mgc):
     source_index = source_mgc.index_information()
     target_index = target_mgc.index_information()

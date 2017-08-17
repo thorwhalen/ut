@@ -7,7 +7,8 @@ from dateutil import tz
 __author__ = 'thor'
 
 second_ms = 1000.0
-minute_ms = float(60 * 1e9)
+minute_ms = float(60 * second_ms)
+five_mn_ms = 5 * minute_ms
 hour_ms = float(60 * minute_ms)
 day_ms = float(24 * hour_ms)
 day_hours = float(24)
@@ -51,6 +52,10 @@ def local_to_utc(local_date):
     from_zone = tz.tzlocal()
     to_zone = tz.tzutc()
     return local_date.replace(tzinfo=from_zone).astimezone(to_zone)
+
+
+def utc_ms_to_day_utc_ms(ts):
+    return int(day_ms * (ts // day_ms))
 
 
 #################### Display
