@@ -10,6 +10,8 @@ import pandas as pd
 from numpy import inf, random, int64, int32, ndarray, float64, float32
 import subprocess
 from datetime import datetime
+from pymongo.collection import Collection
+from pymongo.errors import BulkWriteError
 
 from ut.daf.to import dict_list_of_rows
 from ut.daf.manip import rm_cols_if_present
@@ -20,8 +22,9 @@ from ut.util.log import printProgress
 import numpy as np
 from ut.pdict.manip import recursively_update_with
 from ut.util.pobj import inject_method
-from pymongo.collection import Collection
-from pymongo.errors import BulkWriteError
+from ut.util.design_patterns import FixedSizeBuffer
+
+
 
 s3_backup_bucket_name = 'mongo-db-bak'
 
@@ -54,6 +57,98 @@ def restart_find_cursor(cursor, docs_retrieved_so_far=None):
             return new_cursor
 
     return cursor._Cursor__collection.find(**kwargs)
+
+
+class BulkUpdateBuffer(FixedSizeBuffer):
+    def __init__(self, mgc, max_buf_size=500, upsert=False):
+        """
+        Accumulate and execute bulk update operations.
+
+        An object to have the convenience to just "push and forget" bulk operations.
+        By push, we mean "just add an update operation".
+        By forget, we mean "don't have to remember to execute the bulk operation since the object will do so
+        automatically as soon as the threshold flush_when_buffer_size_is_over is reached.
+
+        Note: That said, you can't completely forget since you should run self.flush_operations() at the end
+         of an iteration of add_operation instructions to make sure the remainder of operations (accumulated, but
+         below the threshold) will be written to the target collection.
+
+        :param mgc: The mongo collection (a pymongo.collection.Collection object) to update
+        :param flush_when_buffer_size_is_over: The number of operations after which to do a bulk update.
+        :param upsert: Whether to use update with upsert or not (default False)
+
+        >>> from pymongo import MongoClient
+        >>> from numpy.random import randint
+        >>>
+        >>> i = 0
+        >>> def rand_doc():
+        ...     global i
+        ...     i += 1
+        ...     return {'a': i, 'b': list(randint(0, 9, 3))}
+        ...
+        >>> # get an empty test collection
+        >>> mgc = MongoClient()['test']['test']
+        >>> _ = mgc.remove({})
+        >>> print(len(list(mgc.find())))
+        0
+        >>> # Use BulkUpdateBuffer to bulk insert 7 docs (with flush when buffer is size 3)
+        >>> bub = BulkUpdateBuffer(mgc, max_buf_size=3, upsert=True)
+        >>> for i in range(7):
+        ...     doc = rand_doc()
+        ...     _ = bub.push({'spec': {'a': doc['a']},
+        ...                        'document': {'$set': {'b': doc['b']}}});
+        >>> # Note that 6 out of 7 docs are in the collection
+        >>> print(len(list(mgc.find())))
+        6
+        >>> # This is why, when one is done with consuming the doc iterator, one should always flush the operations.
+        >>> _ = bub.flush();
+        >>> print(len(list(mgc.find())))
+        7
+        >>> # showing how, when using absorb_operation_iterator, all docs are flushed
+        >>> it = ({'spec': {'a': doc['a']},
+        ...        'document': {'$set': {'b': doc['b']}}}
+        ...       for doc in (rand_doc() for i in range(4)))
+        >>> _ = bub.iterate(it)
+        >>> print(len(list(mgc.find())))
+        11
+        """
+        self.mgc = mgc
+        super(BulkUpdateBuffer, self).__init__(max_buf_size=max_buf_size)
+        self.initialize()
+        self.upsert = upsert
+
+    def initialize(self):
+        self._buf_size = 0
+        self.bulk_mgc = self.mgc.initialize_unordered_bulk_op()
+
+    def buf_info(self):
+        return self._buf_size
+
+    def _push(self, item):
+        if self.upsert:
+            self.bulk_mgc.find(item.get('spec')).upsert().update(item.get('document'))
+        else:
+            self.bulk_mgc.find(item.get('spec')).update(item.get('document'))
+        self._buf_size += 1
+
+    def _flush(self):
+        return self.bulk_mgc.execute()
+
+    def push(self, item):
+        """
+        Push an operation to the buffer
+        :param item: A bulk operation. A dict containing a "spec" and a "document" field.
+        :return: If operations were flushed, returns what every flush_operation returns, if not returns None.
+        """
+        return super(self.__class__, self).push(item)
+
+    def flush(self):
+        """
+        Call bulk_mgc.execute() to write (and flush) all operations that have been added.
+        Also reinitialize the buffer_size to 0 and reintialize unordered_bulk_op.
+        :return: What ever bulk_mgc.execute() returns
+        """
+        return super(self.__class__, self).flush()
 
 
 def bulk_update_collection(mgc, operations, verbose=0):
