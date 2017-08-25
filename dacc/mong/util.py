@@ -22,9 +22,7 @@ from ut.util.log import printProgress
 import numpy as np
 from ut.pdict.manip import recursively_update_with
 from ut.util.pobj import inject_method
-from ut.util.design_patterns import FixedSizeBuffer
-
-
+from ut.dpat.buffer import ThreshBuffer
 
 s3_backup_bucket_name = 'mongo-db-bak'
 
@@ -59,7 +57,7 @@ def restart_find_cursor(cursor, docs_retrieved_so_far=None):
     return cursor._Cursor__collection.find(**kwargs)
 
 
-class BulkUpdateBuffer(FixedSizeBuffer):
+class BulkUpdateBuffer(ThreshBuffer):
     def __init__(self, mgc, max_buf_size=500, upsert=False):
         """
         Accumulate and execute bulk update operations.
@@ -104,7 +102,7 @@ class BulkUpdateBuffer(FixedSizeBuffer):
         >>> _ = bub.flush();
         >>> print(len(list(mgc.find())))
         7
-        >>> # showing how, when using absorb_operation_iterator, all docs are flushed
+        >>> # showing how, when using iterate, all docs are flushed
         >>> it = ({'spec': {'a': doc['a']},
         ...        'document': {'$set': {'b': doc['b']}}}
         ...       for doc in (rand_doc() for i in range(4)))
@@ -113,15 +111,16 @@ class BulkUpdateBuffer(FixedSizeBuffer):
         11
         """
         self.mgc = mgc
-        super(BulkUpdateBuffer, self).__init__(max_buf_size=max_buf_size)
+        super(BulkUpdateBuffer, self).__init__(thresh=max_buf_size)
         self.initialize()
         self.upsert = upsert
 
     def initialize(self):
+        super(BulkUpdateBuffer, self).initialize()
         self._buf_size = 0
         self.bulk_mgc = self.mgc.initialize_unordered_bulk_op()
 
-    def buf_info(self):
+    def buf_val_for_thresh(self):
         return self._buf_size
 
     def _push(self, item):
@@ -140,7 +139,7 @@ class BulkUpdateBuffer(FixedSizeBuffer):
         :param item: A bulk operation. A dict containing a "spec" and a "document" field.
         :return: If operations were flushed, returns what every flush_operation returns, if not returns None.
         """
-        return super(self.__class__, self).push(item)
+        return super(BulkUpdateBuffer, self).push(item)
 
     def flush(self):
         """
@@ -148,7 +147,71 @@ class BulkUpdateBuffer(FixedSizeBuffer):
         Also reinitialize the buffer_size to 0 and reintialize unordered_bulk_op.
         :return: What ever bulk_mgc.execute() returns
         """
-        return super(self.__class__, self).flush()
+        return super(BulkUpdateBuffer, self).flush()
+
+
+class KeyedBulkUpdateBuffer(BulkUpdateBuffer):
+    def __init__(self, key_fields, mgc, max_buf_size=500, upsert=False, assert_all_keys=True):
+        """
+        Accumulate and execute bulk update operations with specified key_fields.
+
+        This uses the parent class BulkUpdateBuffer, where items are no longer explicit {'spec': SPEC, 'document': DOC}
+        specifications, but "flat docs" from which the key_fields are extracted to form the SPEC dict.
+
+        See BulkUpdateBuffer for mor information.
+
+        :param key_fields: A list/tuple/array/set of fields to use for the 'spec' of an update operation
+        :param mgc: The mongo collection (a pymongo.collection.Collection object) to update
+        :param flush_when_buffer_size_is_over: The number of operations after which to do a bulk update.
+        :param upsert: Whether to use update with upsert or not (default False)
+        :param assert_all_keys: Whether to assert that all "spec" keys are present
+
+        >>> from pymongo import MongoClient
+        >>> from numpy.random import randint
+        >>>
+        >>> i = 0
+        >>> def rand_doc():
+        ...     global i
+        ...     i += 1
+        ...     return {'a': i, 'b': list(randint(0, 9, 3))}
+        ...
+        >>> # get an empty test collection
+        >>> mgc = MongoClient()['test']['test']
+        >>> _ = mgc.remove({})
+        >>> print(len(list(mgc.find())))
+        0
+        >>> # Use BulkUpdateBuffer to bulk insert 7 docs (with flush when buffer is size 3)
+        >>> bub = KeyedBulkUpdateBuffer(['a'], mgc, max_buf_size=3, upsert=True)
+        >>> for i in range(7):
+        ...     _ = bub.push(rand_doc())
+        >>> # Note that 6 out of 7 docs are in the collection
+        >>> print(len(list(mgc.find())))
+        6
+        >>> # This is why, when one is done with consuming the doc iterator, one should always flush the operations.
+        >>> _ = bub.flush();
+        >>> print(len(list(mgc.find())))
+        7
+        >>> # showing how, when using iterate, all docs are flushed
+        >>> it = (rand_doc() for i in range(4))
+        >>> _ = bub.iterate(it)
+        >>> print(len(list(mgc.find())))
+        11
+        """
+        super(KeyedBulkUpdateBuffer, self).__init__(mgc=mgc, max_buf_size=max_buf_size, upsert=upsert)
+        self.key_fields = set(key_fields)
+        self.assert_all_keys = assert_all_keys
+
+    def _push(self, item):
+        _item = {'spec': {}, 'document': {"$set": {}}}
+        for k, v in item.iteritems():
+            if k in self.key_fields:
+                _item['spec'][k] = v
+            else:
+                _item['document']['$set'][k] = v
+        if self.assert_all_keys:
+            assert self.key_fields == set(_item['spec']), \
+                "Some update keys are missing. All items should have fields: {}".format(self.key_fields)
+        super(KeyedBulkUpdateBuffer, self)._push(_item)
 
 
 def bulk_update_collection(mgc, operations, verbose=0):

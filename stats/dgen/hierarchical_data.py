@@ -3,13 +3,13 @@ from __future__ import division
 __author__ = 'thor'
 
 from sklearn.datasets import make_blobs
-from numpy import array, prod, triu_indices
+from numpy import triu_indices, ndarray
 from scipy.spatial.distance import cdist
 
 
 def make_hblobs(n_samples=100,
                 n_features=2,
-                centers=[2, 3],
+                centers=(2, 3),
                 cluster_std=1.0,
                 center_box=(-10.0, 10.0),
                 shuffle=True,
@@ -39,7 +39,7 @@ def make_hblobs(n_samples=100,
     Now that we have all our centers, we simply call the normal make_blobs with them (asking for n_samples=100))
     """
 
-    if isinstance(centers, list):
+    if isinstance(centers, (list, tuple, ndarray)):
         if len(centers) == 1:
             return make_blobs(n_samples, n_features, centers[0], cluster_std, center_box, shuffle, random_state)
         else:
@@ -69,3 +69,6 @@ def make_hblobs(n_samples=100,
 
     else:
         return make_blobs(n_samples, n_features, centers, cluster_std, center_box, shuffle, random_state)
+
+
+
