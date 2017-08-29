@@ -31,6 +31,32 @@ def xy_boxplot(X, y=None, col_labels=None, grid_size=None):
             plt.gca().set_title(yy)
 
 
+def vlines_ranges(X, aggr=('min', 'median', 'max'), axis=0, **kwargs):
+    if isinstance(aggr, int):
+        if aggr == 2:
+            aggr = ('min', 'max')
+        elif aggr == 3:
+            aggr = ('min', 'median', 'max')
+    assert len(aggr) >= 2, "aggr must have at least 2 elements"
+
+    # aggr_func = list()
+    # for i, a in enumerate(aggr):
+    #     if isinstance(a, basestring):
+    #         aggr_func.append(lambda x: getattr(np, a)(x, axis=axis))
+    #     else:
+    #         aggr_func.append(a)
+    lo_val = getattr(np, aggr[0])(X, axis=axis)
+    hi_val = getattr(np, aggr[-1])(X, axis=axis)
+    x = np.arange(len(lo_val))
+    plt.vlines(x, ymin=lo_val, ymax=hi_val, **kwargs)
+    if len(aggr) > 2:
+        markers = 'oxsd'
+        for i, a in enumerate(aggr[1:-1]):
+            plt.plot(x, getattr(np, a)(X, axis=axis), markers[i], **kwargs)
+
+
+
+
 def vlines_of_matrix(X, y=None, col_labels=None, padding=0.05,
                      y_lim=None, col_label_rotation=0, ax=None, figsize=None, alpha=1):
     if y is None:
