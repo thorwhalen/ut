@@ -1,6 +1,7 @@
 __author__ = 'thor'
 
 import os
+import errno
 
 
 def dir_but_not_ancestors(newdir):
@@ -20,3 +21,12 @@ def dir_but_not_ancestors(newdir):
             raise OSError("The parent directory %s doesn't exist, so you can't make %s in it " % (head, tail))
         elif tail:
             os.mkdir(newdir)
+
+
+def create_missing_directory_for_filename(filename):
+    if not os.path.exists(os.path.dirname(filename)):
+        try:
+            os.makedirs(os.path.dirname(filename))
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise

@@ -1,17 +1,146 @@
+"""
+    An example of connecting the flush of one buffer to the push of another.
+
+    >>> from ut.dpat.buffer import ThreshBuffer, inject_post_flush_func
+    >>> class SumFixedSizeBuffer(ThreshBuffer):
+    ...     def _flush(self):
+    ...         return sum(self._buf)
+    ...
+    >>> buf_a = SumFixedSizeBuffer(thresh=2)
+    >>> buf_b = SumFixedSizeBuffer(thresh=3)
+    >>> buf_a = inject_post_flush_func(buf_a, buf_b.push)
+    >>> for i in range(13):
+    ...     print("push: {}".format(i))
+    ...     print("  push output: {}".format(buf_a.push(i)))
+    ...     print("  from_buf._buf: {}".format(buf_a._buf))
+    ...     print("    to_buf._buf: {}".format(buf_b._buf))
+    ...
+    push: 0
+      push output: None
+      from_buf._buf: [0]
+        to_buf._buf: []
+    push: 1
+      push output: None
+      from_buf._buf: []
+        to_buf._buf: [1]
+    push: 2
+      push output: None
+      from_buf._buf: [2]
+        to_buf._buf: [1]
+    push: 3
+      push output: None
+      from_buf._buf: []
+        to_buf._buf: [1, 5]
+    push: 4
+      push output: None
+      from_buf._buf: [4]
+        to_buf._buf: [1, 5]
+    push: 5
+      push output: 15
+      from_buf._buf: []
+        to_buf._buf: []
+    push: 6
+      push output: None
+      from_buf._buf: [6]
+        to_buf._buf: []
+    push: 7
+      push output: None
+      from_buf._buf: []
+        to_buf._buf: [13]
+    push: 8
+      push output: None
+      from_buf._buf: [8]
+        to_buf._buf: [13]
+    push: 9
+      push output: None
+      from_buf._buf: []
+        to_buf._buf: [13, 17]
+    push: 10
+      push output: None
+      from_buf._buf: [10]
+        to_buf._buf: [13, 17]
+    push: 11
+      push output: 51
+      from_buf._buf: []
+        to_buf._buf: []
+    push: 12
+      push output: None
+      from_buf._buf: [12]
+        to_buf._buf: []
+    >>> buf_a.flush()
+    >>> print("flush_all() output: {}".format(buf_b.flush()))
+    flush_all() output: 12
+    """
+
 from __future__ import division
 
 from collections import defaultdict
-from ut.util.pobj import inject_method
+
+
+def _add_pre_input_func(method, pre_input_func):
+    def wrapper(*args):
+        return method(pre_input_func(*args))
+
+    return wrapper
+
+
+def _add_post_output_func(method, post_output_func):
+    def wrapper(*args):
+        return post_output_func(method(*args))
+
+    return wrapper
+
+
+def inject_pre_push_func(buf, pre_push_func):
+    buf.push = _add_pre_input_func(buf.push, pre_push_func)
+    return buf
+
+
+def inject_post_flush_func(buf, post_flush_func):
+    def post_flush_func_with_not_none(x):
+        if x is not None:
+            return post_flush_func(x)
+
+    buf.flush = _add_post_output_func(buf.flush, post_flush_func_with_not_none)
+    return buf
+
+
+def print_buf_pre_push(buf):
+    def print_buf(item):
+        print(buf._buf)
+        return item
+
+    return inject_pre_push_func(buf, print_buf)
+
+
+def print_flush(buf):
+    def print_flush(item):
+        print(item)
+        return item
+
+    return inject_post_flush_func(buf, print_flush)
+
+def reroute_flush_to_push(from_buf, to_buf):
+    inject_post_flush_func(from_buf, to_buf.push)
 
 
 def mk_fixed_size_buffer(max_buf_size):
     return ThreshBuffer(thresh=max_buf_size)
 
 
+def name_buffer(buffer, name):
+    setattr(buffer, 'name', name)
+    return buffer
+
+
 class AbstractBuffer(object):
     """
     An abstract buffer just specifies that there needs to be a push and a flush method
     """
+
+    def __call__(self, item):
+        if item is not None:
+            return self.push(item)
 
     def push(self, item):
         raise NotImplementedError("Needs to be implemented in a concrete class.")
@@ -29,6 +158,10 @@ class AbstractBuffer(object):
         return self.flush()
 
 
+# def wrap_push_and_flush(buffer_class, pre_push=None, post_flush=None, *args, **kwargs):
+#     class BufferWrap
+
+
 class Router(AbstractBuffer):
     def __init__(self, buf_list):
         """
@@ -36,6 +169,8 @@ class Router(AbstractBuffer):
             * when pushing an item, loops through the buffers of the list and pushes the item to each
             * when flushing, loops through the buffers of the list and flushes each
         :param buf_list: A list of Buffer objects
+
+        Note: The flush of a Router buffer returns None. This means they are not meant for flushing with output.
 
         >>> from numpy import sum
         >>> class StoreBuffer(ThreshBuffer):
@@ -93,151 +228,237 @@ class Router(AbstractBuffer):
             buf.flush()
 
 
-class BufferLink(AbstractBuffer):
+class WrappedRouter(AbstractBuffer):
+    def __init__(self, buf_list):
+        self.buf_list = buf_list
+        for i, buf_spec in enumerate(self.buf_list):
+            if isinstance(buf_spec, dict):
+                buf_spec['pre_push'] = buf_spec.get('pre_push', lambda x: x)
+                buf_spec['post_flush'] = buf_spec.get('post_flush', lambda x: x)
+            else:
+                self.buf_list[i] = {
+                    'buf': self.buf_list[i],
+                    'pre_push': lambda x: x,
+                    'post_flush': lambda x: x
+                }
+
+    def push(self, item):
+        """
+        Call buf.push(pre_push(item)) for every buf of buf_list.
+        :param item:
+        :return: None
+        """
+        for buf_spec in self.buf_list:
+            buf_spec['push'].push(buf_spec['pre_push'](item))
+
+    def flush(self):
+        """
+        Flushes all buffers in object's buf_list, feeding them to their post_flush function.
+        :return: None
+        """
+        for buf_spec in self.buf_list:
+            buf_spec['post_flush'](buf_spec['buf'].flush())
+
+
+class BufferPipeline(AbstractBuffer):
     """
-    An AbstractBuffer obtained by composing two buffers: from_buf and to_buf.
-    When push(item) is called, it is passed on to from_buf.push(item).
-    If that later returns something (because it was flushed), the output will be pushed to to_buf
-    (i.e. to_buf.push(output_of_from_buf_push).
+    A buffer made by composing a list of buffers.
+    Pushing an item to this buffer will push to the first buffer of the list, but if and when it flushes, the return
+    value of the flush will be pushed to the next buffer, and so on through the list.
+    Flushing will result in flushing every buffer of the list, in order. Again, flush output of buffer[i] is pushed to
+    buffer[i+1], which is then force-flushed, and so on. The output of this pipeline flush will be the output of the
+    last buffer of the pipeline, which will have integrated the flushes of all previous buffers.
 
-    Note: For proper use, the from_buf.push should only return an output whose bool(output) resolves to True if and only
-    if this output is meant to be passed on as an item in a to_buf.push(item)
-
-    By composing several BufferLinks together, we can get pipelines and buffer computation DAGs.
-
-    >>> from ut.dpat.buffer import ThreshBuffer, BufferLink
+    >>> from ut.dpat.buffer import ThreshBuffer, BufferPipeline
     >>> class SumFixedSizeBuffer(ThreshBuffer):
     ...     def _flush(self):
     ...         return sum(self._buf)
     ...
+    >>> class SumFixedSizeBufferWithPrint(ThreshBuffer):
+    ...     def _flush(self):
+    ...         r = sum(self._buf)
+    ...         print("  SumFixedSizeBufferWithPrint: {}".format(r))
+    ...         return r
+    ...
     >>> buf_a = SumFixedSizeBuffer(thresh=2)
     >>> buf_b = SumFixedSizeBuffer(thresh=3)
-    >>> b = BufferLink(from_buf=buf_a, to_buf=buf_b)
-    >>> for i in range(13):
-    ...     print("push: {}".format(i))
-    ...     print("  push output: {}".format(b.push(i)))
-    ...     print("  from_buf._buf: {}".format(b.from_buf._buf))
-    ...     print("    to_buf._buf: {}".format(b.to_buf._buf))
+    >>> buf_c = SumFixedSizeBufferWithPrint(thresh=2)
+    >>> b = BufferPipeline(buf_list=[buf_a, buf_b, buf_c])
+    >>> for item in range(16):
+    ...     print("push: {}".format(item))
+    ...     print("  push output: {}".format(b.push(item)))
+    ...     for j in range(len(b.buf_list)):
+    ...         print("     buf[{}]._buf: {}".format(j, b.buf_list[j]._buf))
     ...
     push: 0
       push output: None
-      from_buf._buf: [0]
-        to_buf._buf: []
+         buf[0]._buf: [0]
+         buf[1]._buf: []
+         buf[2]._buf: []
     push: 1
       push output: None
-      from_buf._buf: []
-        to_buf._buf: [1]
+         buf[0]._buf: []
+         buf[1]._buf: [1]
+         buf[2]._buf: []
     push: 2
       push output: None
-      from_buf._buf: [2]
-        to_buf._buf: [1]
+         buf[0]._buf: [2]
+         buf[1]._buf: [1]
+         buf[2]._buf: []
     push: 3
       push output: None
-      from_buf._buf: []
-        to_buf._buf: [1, 5]
+         buf[0]._buf: []
+         buf[1]._buf: [1, 5]
+         buf[2]._buf: []
     push: 4
       push output: None
-      from_buf._buf: [4]
-        to_buf._buf: [1, 5]
+         buf[0]._buf: [4]
+         buf[1]._buf: [1, 5]
+         buf[2]._buf: []
     push: 5
-      push output: 15
-      from_buf._buf: []
-        to_buf._buf: []
+      push output: None
+         buf[0]._buf: []
+         buf[1]._buf: []
+         buf[2]._buf: [15]
     push: 6
       push output: None
-      from_buf._buf: [6]
-        to_buf._buf: []
+         buf[0]._buf: [6]
+         buf[1]._buf: []
+         buf[2]._buf: [15]
     push: 7
       push output: None
-      from_buf._buf: []
-        to_buf._buf: [13]
+         buf[0]._buf: []
+         buf[1]._buf: [13]
+         buf[2]._buf: [15]
     push: 8
       push output: None
-      from_buf._buf: [8]
-        to_buf._buf: [13]
+         buf[0]._buf: [8]
+         buf[1]._buf: [13]
+         buf[2]._buf: [15]
     push: 9
       push output: None
-      from_buf._buf: []
-        to_buf._buf: [13, 17]
+         buf[0]._buf: []
+         buf[1]._buf: [13, 17]
+         buf[2]._buf: [15]
     push: 10
       push output: None
-      from_buf._buf: [10]
-        to_buf._buf: [13, 17]
+         buf[0]._buf: [10]
+         buf[1]._buf: [13, 17]
+         buf[2]._buf: [15]
     push: 11
-      push output: 51
-      from_buf._buf: []
-        to_buf._buf: []
+      SumFixedSizeBufferWithPrint: 66
+      push output: 66
+         buf[0]._buf: []
+         buf[1]._buf: []
+         buf[2]._buf: []
     push: 12
       push output: None
-      from_buf._buf: [12]
-        to_buf._buf: []
-    >>>
-    >>> print("flush_all() output: {}".format(b.flush_all()))
-    flush_all() output: 12
+         buf[0]._buf: [12]
+         buf[1]._buf: []
+         buf[2]._buf: []
+    push: 13
+      push output: None
+         buf[0]._buf: []
+         buf[1]._buf: [25]
+         buf[2]._buf: []
+    push: 14
+      push output: None
+         buf[0]._buf: [14]
+         buf[1]._buf: [25]
+         buf[2]._buf: []
+    push: 15
+      push output: None
+         buf[0]._buf: []
+         buf[1]._buf: [25, 29]
+         buf[2]._buf: []
+    >>> print("flush_all() output: {}".format(b.flush()))
+      SumFixedSizeBufferWithPrint: 54
+    flush_all() output: 54
     """
 
-    def __init__(self, from_buf, to_buf):
-        self.from_buf = from_buf
-        self.to_buf = to_buf
+    def __init__(self, buf_list):
+        """
+        :param buf_list: A list of Buffer objects.
+        """
+        self.buf_list = buf_list
+        for i in range(len(self.buf_list) - 1):
+            self.buf_list[i] = inject_post_flush_func(self.buf_list[i], self.buf_list[i + 1].push)
+
+    def push(self, item):
+        if item is not None:
+            return self.buf_list[0].push(item)
+        # for buf in self.buf_list:
+        #     item = buf.push(item)
+        #     if item is None:
+        #         return None
+        # return item
+
+    def flush(self):
+        for i in range(len(self.buf_list) - 1):
+            self.buf_list[i].flush()
+        return self.buf_list[-1].flush()
+        # item = None
+        # for buf in self.buf_list:
+        #     if item is not None:
+        #         buf.push(item)
+        #     item = buf.flush()
+        # return item
+
+
+class BufferWrapper(AbstractBuffer):
+    def __init__(self, buf):
+        self.buf = buf
+
+    def push(self, item):
+        if item is not None:
+            return self.buf.push(item)
+
+    def flush(self):
+        return self.buf.flush()
+
+    def __getattr__(self, attr):
+        if attr not in ['push', 'flush']:
+            return getattr(self.buf, attr)
+        else:
+            return getattr(self, attr)
+
+
+class TransparentBuffer(AbstractBuffer):
+    def __init__(self):
         self.initialize()
 
     def initialize(self):
-        self.from_buf.initialize()
-        self.to_buf.initialize()
+        self._buf = None
 
     def push(self, item):
-        r = self.from_buf.push(item)
-        if r:
-            return self.to_buf.push(r)
+        if item is not None:
+            self._buf = item
 
     def flush(self):
-        """
-        Flushes all buffers in object's buf_list.
-        :return: None
-        """
-        r = self.from_buf.flush()
-        if r:
-            self.to_buf.push(r)
-        return self.to_buf.flush()
+        return self._buf
 
 
-def reroute_flush(from_buf, to_buf):
-    def flush():
-        r = from_buf.flush()
-        if r:
-            return to_buf.push(r)
+class PassThroughBuffer(AbstractBuffer):
+    def __init__(self, pre_push_funcs=(), post_flush_funcs=()):
+        self.pre_push_funcs = pre_push_funcs
+        self.post_flush_funcs = post_flush_funcs
+        self.initialize()
 
-    return flush
-
-
-class BufferPipeline(AbstractBuffer):
-    def __init__(self, buf_list):
-        self.buf_list = buf_list
-        self.n_buffers = len(self.buf_list)
-        # self.buf_link = list()
-        # pipeline_buf = BufferLink(from_buf=self.buf_list[-2], to_buf=self.buf_list[-1])
-        # for i in range(self.n_buffers - 1)[::-1][1:]:
-        #     from_buf = self.buf_list[i]
-        #     pipeline_buf = BufferLink(from_buf=self.buf_list[i], to_buf=pipeline_buf)
-        #     # from_buf = self.buf_list[i]
-        #     # to_buf = self.buf_list[i + 1]
-        #     # from_buf.flush = inject_method(from_buf, )
-        #     self.buf_link.append(BufferLink(from_buf=self.buf_list[i], to_buf=self.buf_list[i + 1]))
+    def initialize(self):
+        self._buf = None
 
     def push(self, item):
-        for buf in self.buf_list:
-            item = buf.push(item)
-            if item is None:
-                return None
-        return item
+        for func in self.pre_push_funcs:
+            item = func(item)
+        self._buf = item
 
     def flush(self):
-        item = None
-        for buf in self.buf_list:
-            if item is not None:
-                buf.push(item)
-            item = buf.flush()
-        return item
+        item = self._buf
+        if item is not None:
+            for func in self.post_flush_funcs:
+                item = func(item)
+            return item
+
 
 
 class Buffer(AbstractBuffer):
@@ -283,9 +504,10 @@ class Buffer(AbstractBuffer):
         #     r = None
         # self._push(item)
         # return r
-        self._push(item)
-        if self.should_flush():
-            return self.flush()
+        if item is not None:
+            self._push(item)
+            if self.should_flush():
+                return self.flush()
 
     def flush(self):
         r = self._flush()
@@ -321,8 +543,6 @@ class ThreshBuffer(Buffer):
 
     * buf_val_for_thresh: Method returning a numerical value for self._buf that will be used for the >= self.thresh
         comparison. By default, self._buf.__len__() is used.
-
-    :param thresh: The threshold that determines when to flush.
 
     >>> b = ThreshBuffer(thresh=3)
     >>> for item in range(5):
@@ -427,8 +647,9 @@ class BucketBuffer(ThreshBuffer):
     push: {'x': '!', 't': 43}
     flushed: {20: [{'x': 'foo', 't': 24}]}
       _buf: {40: [{'x': '!', 't': 43}], 30: [{'x': 'bar', 't': 30}]}
-    >>> print('final flush: {}'.format(b.flush_all()))
-    final flush: [{30: [{'x': 'bar', 't': 30}]}, {40: [{'x': '!', 't': 43}]}]
+    >>> import operator
+    >>> print('final flush: {}'.format(sorted(b.flush_all().items(),key=operator.itemgetter(0))))
+    final flush: [(30, [{'x': 'bar', 't': 30}]), (40, [{'x': '!', 't': 43}])]
     """
 
     def __init__(self, thresh, index_field, bucket_step):
@@ -451,11 +672,12 @@ class BucketBuffer(ThreshBuffer):
 
     def initialize(self):
         """
-        Initialize _buf with self._initialize_buf_with (originally an empty dict)
+        Initialize _buf. Here this means poping off the lowest key, if there's any.
         :return:
         """
-        pass
-        # self._buf = defaultdict(list, **self._initialize_buf_with)
+        if len(self._buf) > 0:
+            min_key = min(self._buf.keys())
+            self._buf.pop(min_key)
 
     def _buf_key_for_item(self, item):
         """
@@ -476,47 +698,17 @@ class BucketBuffer(ThreshBuffer):
 
     def _flush(self):
         """
-        If len(_buf) > 1, return all elements of _buf BUT the element with the highest
+        If len(_buf) >= thresh, return all elements of _buf BUT the element with the highest
         :return:
         """
         if len(self._buf) > 0:
             min_key = min(self._buf.keys())
-            return {min_key: self._buf.pop(min_key)}
+            return {min_key: self._buf[min_key]}
+            # return {min_key: self._buf.pop(min_key)}
         else:
             return self._buf
 
     def flush_all(self):
-        r = list()
-        while len(self._buf) > 0:
-            r.append(self._flush())
+        r = dict(self._buf)
+        self._buf = defaultdict(list)
         return r
-
-# class FixedSizeBuffer(ThreshBuffer):
-#     def __init__(self, max_buf_size):
-#         """
-#         A ThreshBuffer that is meant to be used with a _buf list whose size determines when to flush.
-#         :param max_buf_size: maximum size of len(_buf) over which to call flush()
-#
-#         >>> from numpy import sum
-#         >>> class SumFixedSizeBuffer(FixedSizeBuffer):
-#         ...     def _flush(self):
-#         ...         val = sum(self._buf)
-#         ...         print("SumFixedSizeBuffer._flush({}): {}".format(self.thresh, val))
-#         ...         return sum(val)
-#         ...
-#         >>> b = SumFixedSizeBuffer(max_buf_size=3)
-#         >>> for item in range(5):
-#         ...     print('----> {}'.format(item))
-#         ...     b.push(item)
-#         ----> 0
-#         ----> 1
-#         ----> 2
-#         SumFixedSizeBuffer._flush(3): 3
-#         3
-#         ----> 3
-#         ----> 4
-#         >>> b.flush()
-#         SumFixedSizeBuffer._flush(3): 7
-#         7
-#         """
-#         super(FixedSizeBuffer, self).__init__(thresh=max_buf_size)

@@ -11,7 +11,7 @@ from numpy import inf, random, int64, int32, ndarray, float64, float32
 import subprocess
 from datetime import datetime
 from pymongo.collection import Collection
-from pymongo.errors import BulkWriteError
+from pymongo.errors import InvalidOperation
 
 from ut.daf.to import dict_list_of_rows
 from ut.daf.manip import rm_cols_if_present
@@ -118,20 +118,28 @@ class BulkUpdateBuffer(ThreshBuffer):
     def initialize(self):
         super(BulkUpdateBuffer, self).initialize()
         self._buf_size = 0
-        self.bulk_mgc = self.mgc.initialize_unordered_bulk_op()
+        self._buf = self.mgc.initialize_unordered_bulk_op()
 
     def buf_val_for_thresh(self):
         return self._buf_size
 
     def _push(self, item):
-        if self.upsert:
-            self.bulk_mgc.find(item.get('spec')).upsert().update(item.get('document'))
+        if isinstance(item, dict):
+            if self.upsert:
+                self._buf.find(item.get('spec')).upsert().update(item.get('document'))
+            else:
+                self._buf.find(item.get('spec')).update(item.get('document'))
+            self._buf_size += 1
         else:
-            self.bulk_mgc.find(item.get('spec')).update(item.get('document'))
-        self._buf_size += 1
+            for _item in item:
+                self._push(_item)
 
     def _flush(self):
-        return self.bulk_mgc.execute()
+        try:
+            return self._buf.execute()
+        except InvalidOperation as e:
+            if str(e) != 'No operations to execute':
+                raise e
 
     def push(self, item):
         """
