@@ -66,18 +66,18 @@ def get_pattern_from_attr_permissions_dict(attr_permissions):
 
     # process exclusions
     corrected_list = []
-    for include in attr_permissions.get('exclude', []):
-        if not include.endswith('$') and not include.endswith('*'):
+    for exclude in attr_permissions.get('exclude', []):
+        if not exclude.endswith('$') and not exclude.endswith('*'):
             # add to exclude all subpaths if not explicitly ending with "$"
-            include += '.*'
+            exclude += '.*'
         else:  # ends with "*"
-            if include.endswith('\.*'):
+            if exclude.endswith('\.*'):
                 # assume that's not what the user meant, so change
-                include = include[:-3] + '.*'
-            elif include[-2] != '.':
+                exclude = exclude[:-3] + '.*'
+            elif exclude[-2] != '.':
                 # assume that's not what the user meant, so change
-                include = include[:-1] + '.*'
-        corrected_list.append(include)
+                exclude = exclude[:-1] + '.*'
+        corrected_list.append(exclude)
     s += '(?!' + '|'.join(corrected_list) + ')'
 
     return re.compile(s)
