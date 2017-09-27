@@ -78,7 +78,8 @@ def get_pattern_from_attr_permissions_dict(attr_permissions):
                 # assume that's not what the user meant, so change
                 exclude = exclude[:-1] + '.*'
         corrected_list.append(exclude)
-    s += '(?!' + '|'.join(corrected_list) + ')'
+    if corrected_list:
+        s += '(?!' + '|'.join(corrected_list) + ')'
 
     return re.compile(s)
 
@@ -244,6 +245,8 @@ class ObjWrapper(object):
         if attr is None:
             raise err.MissingAttribute()
         elif not self._is_permissible_attr(attr):
+            print attr
+            print str(self.permissible_attr_pattern.pattern)
             raise err.ForbiddenAttribute(attr)
         return self.obj(obj=obj_kwargs, attr=attr, **kwargs)
 
