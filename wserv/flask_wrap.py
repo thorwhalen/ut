@@ -102,7 +102,10 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
         else:
             return {key_trans(k): v for k, v in result.iteritems()}
     elif isinstance(result, (Series, DataFrame)):
-        return default_to_jdict(result.to_dict())
+        return result.to_json()
+        # return default_to_jdict(result.to_dict())
+    elif hasattr(result, 'to_json'):
+        return result.to_json()
     else:
         return {result_field: result}
 
