@@ -3,6 +3,7 @@ from __future__ import division
 from numpy import ndarray
 from pandas import Series, DataFrame
 import re
+import json
 
 from ut.others.lru_cache import lru_cache
 # from werkzeug.exceptions import InternalServerError
@@ -102,10 +103,10 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
         else:
             return {key_trans(k): v for k, v in result.iteritems()}
     elif isinstance(result, (Series, DataFrame)):
-        return result.to_json()
+        return json.loads(result.to_json())
         # return default_to_jdict(result.to_dict())
     elif hasattr(result, 'to_json'):
-        return result.to_json()
+        return json.loads(result.to_json())
     else:
         return {result_field: result}
 
