@@ -22,6 +22,39 @@ import operator
 #         return d
 
 
+def extract_key_paths(d, key_paths, field_naming='full', use_default=False, default_val=None):
+    """
+    getting with a key list or "."-separated string
+    :param d: dict
+    :param key_path: list or "."-separated string of keys
+    :return:
+    """
+    dd = dict()
+    if isinstance(key_paths, dict):
+        key_paths = [k for k, v in key_paths.iteritems() if v]
+
+    for key_path in key_paths:
+
+        if isinstance(key_path, basestring):
+            field = key_path
+            key_path = key_path.split('.')
+        else:
+            field = '.'.join(key_path)
+
+        if field_naming == 'leaf':
+            field = key_path[-1]
+        else:
+            field = field
+
+        try:
+            dd.update({field: reduce(operator.getitem, key_path, d)})
+        except (TypeError, KeyError):
+            if use_default:
+                dd.update({field: default_val})
+
+    return dd
+
+
 def key_paths(d):
     key_path_list = list()
     for k, v in d.iteritems():
@@ -72,6 +105,7 @@ def set_value_in_nested_key_path(d, key_path, val):
         else:
             d[first_key] = {}
             set_value_in_nested_key_path(d[first_key], key_path[1:], val)
+
 
 def mk_fixed_coordinates_value_getter(get_key_list):
     return \
