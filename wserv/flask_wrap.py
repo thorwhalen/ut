@@ -144,7 +144,8 @@ class ObjWrapper(object):
                  permissible_attr_pattern='[^_].*',  # what attributes are allowed to be accessed
                  to_jdict=default_to_jdict,  # output processing: Function to convert an output to a jsonizable dict
                  obj_str='obj',  # name of object to use in error messages
-                 cache_size=5):
+                 cache_size=5,
+                 debug=0):
         """
         An class to wrap a "controller" class for a web service API.
         It takes care of LRU caching objects constructed before (so they don't need to be re-constructed for every
@@ -188,6 +189,7 @@ class ObjWrapper(object):
             self.permissible_attr_pattern = re.compile(permissible_attr_pattern)
         self.to_jdict = to_jdict
         self.obj_str = obj_str
+        self.debug = debug
 
     def _get_kwargs_from_request(self, request):
         """
@@ -246,6 +248,8 @@ class ObjWrapper(object):
         :return: The value of an object's property, or the output of a method.
         """
         kwargs = self._get_kwargs_from_request(request)
+        if self.debug > 0:
+            print("robj: kwargs = {}".format(kwargs))
         obj_kwargs = {k: kwargs.pop(k) for k in self.obj_constructor_arg_names if k in kwargs}
 
         attr = kwargs.pop('attr', None)
@@ -255,6 +259,8 @@ class ObjWrapper(object):
             print attr
             print str(self.permissible_attr_pattern.pattern)
             raise err.ForbiddenAttribute(attr)
+        if self.debug > 0:
+            print("robj: attr={}, obj_kwargs = {}, kwargs = {}".format(attr, obj_kwargs, kwargs))
         return self.obj(obj=obj_kwargs, attr=attr, **kwargs)
 
 
