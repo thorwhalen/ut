@@ -27,6 +27,7 @@ named_capture_template = '(?P<{name}>{format})'
 names_re = re.compile('(?<={)[^}]+(?=})')
 
 
+
 def get_names_from_template(template):
     """
     Get list from {item} items of template string
