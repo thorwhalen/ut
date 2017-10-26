@@ -58,6 +58,15 @@ def utc_ms_to_day_utc_ms(ts):
     return int(day_ms * (ts // day_ms))
 
 
+def day_datetime_from_datetime(dt):
+    return datetime.datetime(dt.year, dt.month, dt.day)
+
+
+def day_datetime_from_utc_ms(ts):
+    dt = utc_ms_to_utc_datetime(ts)
+    return datetime.datetime(dt.year, dt.month, dt.day)
+
+
 #################### Display
 
 def seconds_to_mmss_str(s):
