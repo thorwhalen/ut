@@ -34,12 +34,12 @@ def utc_datetime_to_utc_ms(utc_datetime):
     return (utc_datetime - epoch).total_seconds() * second_ms
 
 
-def utc_ms_to_utc_datetime(ts):
-    return dt.utcfromtimestamp(ts / second_ms)
+def utc_ms_to_utc_datetime(ums):
+    return dt.utcfromtimestamp(ums / second_ms)
 
 
-def utc_ms_to_local_datetime(ts):
-    return dt.fromtimestamp(ts / second_ms)
+def utc_ms_to_local_datetime(ums):
+    return dt.fromtimestamp(ums / second_ms)
 
 
 def utc_to_local(utc_date):
@@ -54,16 +54,47 @@ def local_to_utc(local_date):
     return local_date.replace(tzinfo=from_zone).astimezone(to_zone)
 
 
-def utc_ms_to_day_utc_ms(ts):
-    return int(day_ms * (ts // day_ms))
+def day_utc_ms_from_utc_ms(ums):
+    """
+    Get a utc_ms corresponding to midnight of the day of the input ums
+    :param ums: utc in milliseconds
+    :return: utc_ms corresponding to midnight of the day of the input ums
+    >>> from numpy.random import randint
+    >>> ums = randint(1, 2000000000000)
+    >>> day_ums = utc_datetime_to_utc_ms(day_datetime_from_utc_ms(ums))
+    >>> int(day_utc_ms_from_utc_ms(day_ums)) == int(day_ums)
+    True
+    """
+    return int(day_ms * (ums // day_ms))
 
 
-def day_datetime_from_datetime(dt):
-    return datetime.datetime(dt.year, dt.month, dt.day)
+def day_datetime_from_datetime(date_time):
+    """
+    Get a datetime corresponding to midnight of the day of the input datetime
+    :param date_time: (utc) datetime
+    :return:
+    >>> from numpy.random import randint
+    >>> ums = randint(1, 2000000000000)
+    >>> date_time = utc_ms_to_utc_datetime(ums)
+    >>> day_ums = day_utc_ms_from_utc_ms(ums)
+    >>> day_datetime_from_datetime(date_time) == utc_ms_to_utc_datetime(day_ums)
+    True
+    """
+    return datetime.datetime(date_time.year, date_time.month, date_time.day)
 
 
-def day_datetime_from_utc_ms(ts):
-    dt = utc_ms_to_utc_datetime(ts)
+def day_datetime_from_utc_ms(ums):
+    """
+    Get a datetime corresponding to midnight of the day of the input ums
+    :param ums: utc in milliseconds
+    :return: datetime corresponding to midnight of the day of the input ums
+    >>> from numpy.random import randint
+    >>> ums = randint(1, 2000000000000)
+    >>> day_datetime = utc_ms_to_utc_datetime(day_utc_ms_from_utc_ms(ums))
+    >>> day_datetime_from_utc_ms(ums) == day_datetime
+    True
+    """
+    dt = utc_ms_to_utc_datetime(ums)
     return datetime.datetime(dt.year, dt.month, dt.day)
 
 
@@ -75,7 +106,7 @@ def seconds_to_mmss_str(s):
 
 #################### Deprecated
 
-def unix_time_ms_to_datetime(ts):
+def unix_time_ms_to_datetime(ums):
     raise DeprecationWarning("Use utc_ms_to_local_datetime instead")
 
 
