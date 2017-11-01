@@ -1,8 +1,68 @@
 __author__ = 'thorwhalen'
 
 from collections import MutableMapping
-from numpy import concatenate
 from itertools import chain, imap
+
+from ut.pdict.get import iter_key_path_items, get_value_in_key_path, set_value_in_nested_key_path
+
+
+def transform_dict(d, key_path_trans):
+    """
+    Make a transformed copy of a dict.
+    :param d: a dict (to copy and transform)
+    :param key_path_trans: a one-level dict mapping key_paths (possibly ending with a wildcard '*') to an instruction
+    of what to do with this item. This instruction could be:
+        * the string "ignore_entry", which will result in the item being ignored (like poping it from the original dict)
+        * any string (will result in the value of that item being copied to a (key path) field baring that name)
+        * a function, which will be applied to the value of the item
+    :return:
+    >>> key_path_trans = {
+    ...     'a.b': int,
+    ...     'a.c': 'new_ac',
+    ...     'b.*': lambda x: x * 10,
+    ...     'delete_this': 'ignore_entry'
+    ... }
+    >>> input_dict = {
+    ...     'a': {
+    ...         'b': 3.14,  # should become 3 (int)
+    ...         'c': 'I am a.c',  # should move to new_ac field
+    ...         'd': 'this should remain as is'
+    ...     },
+    ...     'b': {
+    ...         'A': 1,
+    ...         'B': 2
+    ...     },
+    ...     'delete_this': 'should be ommited'
+    ... }
+    >>> transform_dict(input_dict, key_path_trans)
+    {'a': {'b': 3, 'd': 'this should remain as is'}, 'new_ac': 'I am a.c', 'b': {'A': 10, 'B': 20}}
+    """
+    new_d = dict()
+    wildcard_prefixes = map(lambda k: k[:-1], filter(lambda k: k.endswith('*'), key_path_trans.keys()))
+
+    def to_trans_key(key_path):
+        for prefix in wildcard_prefixes:
+            if key_path.startswith(prefix):
+                return prefix + '*'
+        return key_path
+
+    for key_path, val in iter_key_path_items(d):
+        trans_key = to_trans_key(key_path)
+        if trans_key in key_path_trans:
+            trans_func = key_path_trans[trans_key]
+            if callable(trans_func):
+                set_value_in_nested_key_path(new_d, key_path, trans_func(val))  # apply trans_func to val
+            elif trans_func == 'ignore_entry':
+                continue  # skip this one (so you won't have it in new_d)
+            else:
+                if isinstance(trans_func, basestring):  # assume trans_func is a field name...
+                    set_value_in_nested_key_path(new_d, trans_func, val)  # ... which we want to rename key_path by.
+                else:
+                    raise TypeError("trans_func must be a callable or a string")
+        else:
+            set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
+
+    return new_d
 
 
 def rollout(d, key, sep='.', copy=True):
@@ -78,7 +138,7 @@ def merge(a, b, path=None):
             if isinstance(a[key], dict) and isinstance(b[key], dict):
                 merge(a[key], b[key], path + [str(key)])
             elif a[key] == b[key]:
-                pass # same leaf value
+                pass  # same leaf value
             else:
                 raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
         else:
