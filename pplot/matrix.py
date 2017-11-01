@@ -105,7 +105,7 @@ def vlines_of_matrix(X, y=None, col_labels=None, padding=0.05,
             ax.set_ylabel(item_label)
 
 
-def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, **kwargs):
+def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=False, **kwargs):
     n_items, n_cols = X.shape
     if col_labels is not None:
         assert len(col_labels) == n_cols, "col_labels length should be the same as the number of columns in the matrix"
@@ -126,7 +126,9 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, **kwargs):
     kwargs['cmap'] = cmap
     kwargs = dict(kwargs, interpolation='nearest', aspect='auto')
 
-    plt.figure(figsize=figsize)
+    if figsize != False:
+        plt.figure(figsize=figsize)
+
     plt.imshow(X, **kwargs)
     plt.grid(None)
 
@@ -148,7 +150,8 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, **kwargs):
             plt.xticks([])
         plt.gca().xaxis.set_tick_params(labeltop='on')
 
-    return plt.gcf()
+    if return_gcf:
+        return plt.gcf()
 
 
 def labeled_heatmap(X, y=None, col_labels=None):
