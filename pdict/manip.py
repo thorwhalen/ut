@@ -3,7 +3,7 @@ __author__ = 'thorwhalen'
 from collections import MutableMapping
 from itertools import chain, imap
 
-from ut.pdict.get import iter_key_path_items, get_value_in_key_path, set_value_in_nested_key_path
+from ut.pdict.get import iter_key_path_items, set_value_in_nested_key_path
 
 
 def transform_dict(d, key_path_trans):
@@ -54,6 +54,8 @@ def transform_dict(d, key_path_trans):
                 set_value_in_nested_key_path(new_d, key_path, trans_func(val))  # apply trans_func to val
             elif trans_func == 'ignore_entry':
                 continue  # skip this one (so you won't have it in new_d)
+            elif trans_func == 'entry_asis':
+                set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
             else:
                 if isinstance(trans_func, basestring):  # assume trans_func is a field name...
                     set_value_in_nested_key_path(new_d, trans_func, val)  # ... which we want to rename key_path by.

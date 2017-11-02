@@ -132,6 +132,35 @@ def set_value_in_key_path(d, key_path, val):
 
 
 def set_value_in_nested_key_path(d, key_path, val):
+    """
+
+    :param d:
+    :param key_path:
+    :param val:
+    :return:
+    >>> input_dict = {
+    ...   "a": {
+    ...     "c": "val of a.c",
+    ...     "b": 1,
+    ...   },
+    ...   "10": 10,
+    ...   "b": {
+    ...     "B": {
+    ...       "AA": 3
+    ...     }
+    ...   }
+    ... }
+    >>>
+    >>> set_value_in_nested_key_path(input_dict, 'new.key.path', 7)
+    >>> input_dict
+    {'a': {'c': 'val of a.c', 'b': 1}, '10': 10, 'b': {'B': {'AA': 3}}, 'new': {'key': {'path': 7}}}
+    >>> set_value_in_nested_key_path(input_dict, 'new.key.old.path', 8)
+    >>> input_dict
+    {'a': {'c': 'val of a.c', 'b': 1}, '10': 10, 'b': {'B': {'AA': 3}}, 'new': {'key': {'path': 7, 'old': {'path': 8}}}}
+    >>> set_value_in_nested_key_path(input_dict, 'new.key', 'new val')
+    >>> input_dict
+    {'a': {'c': 'val of a.c', 'b': 1}, '10': 10, 'b': {'B': {'AA': 3}}, 'new': {'key': 'new val'}}
+    """
     if isinstance(key_path, basestring):
         key_path = key_path.split('.')
     first_key = key_path[0]
