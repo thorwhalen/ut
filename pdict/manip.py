@@ -5,22 +5,29 @@ from itertools import chain, imap
 
 from ut.pdict.get import iter_key_path_items, set_value_in_nested_key_path
 
+ASIS = '_keep_val_as_is'
+DROP = '_drop_key_path_entry'
 
-def transform_dict(d, key_path_trans):
+def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
     """
     Make a transformed copy of a dict.
     :param d: a dict (to copy and transform)
     :param key_path_trans: a one-level dict mapping key_paths (possibly ending with a wildcard '*') to an instruction
     of what to do with this item. This instruction could be:
-        * the string "ignore_entry", which will result in the item being ignored (like poping it from the original dict)
+        * the string '_drop_key_path_entry' (better used through the DROP var that can be imported from this module)
+            which will result in the item being ignored (like popping it from the original dict)
+        * the string '_keep_val_as_is' (better used through the ASIS var that can be imported from this module)
+            which will result in the item being kept as is.
         * any string (will result in the value of that item being copied to a (key path) field baring that name)
         * a function, which will be applied to the value of the item
+        * a (new_key_path, function) tuple: the function will be applied to the value, the result placed in new_key_path
+    :param keep_unspecified_key_paths: Whether to keep unspecified key paths (same as specifying "entry_asis" asis), or ignore them
     :return:
     >>> key_path_trans = {
     ...     'a.b': int,
     ...     'a.c': 'new_ac',
     ...     'b.*': lambda x: x * 10,
-    ...     'delete_this': 'ignore_entry'
+    ...     'delete_this': '_drop_key_path_entry'
     ... }
     >>> input_dict = {
     ...     'a': {
@@ -52,17 +59,24 @@ def transform_dict(d, key_path_trans):
             trans_func = key_path_trans[trans_key]
             if callable(trans_func):
                 set_value_in_nested_key_path(new_d, key_path, trans_func(val))  # apply trans_func to val
-            elif trans_func == 'ignore_entry':
+            elif trans_func == DROP:
                 continue  # skip this one (so you won't have it in new_d)
-            elif trans_func == 'entry_asis':
+            elif trans_func == ASIS:
                 set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
+            elif isinstance(trans_func, (tuple, list)) and len(trans_func) == 2:
+                new_key_path = trans_func[0]  # the key path where we should store the value
+                trans_func = trans_func[1]
+                set_value_in_nested_key_path(new_d, new_key_path, trans_func(val))  # apply trans_func to val
             else:
                 if isinstance(trans_func, basestring):  # assume trans_func is a field name...
                     set_value_in_nested_key_path(new_d, trans_func, val)  # ... which we want to rename key_path by.
                 else:
                     raise TypeError("trans_func must be a callable or a string")
-        else:
-            set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
+        else:  # if trans_key is not listed in key_path_trans keys...
+            if keep_unspecified_key_paths:  # then consider it as a "_keep_key_path"
+                set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
+            # else will ignore it (same effect as "ignore_entry"
+
 
     return new_d
 
