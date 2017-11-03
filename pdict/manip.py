@@ -39,7 +39,7 @@ def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
     ...         'A': 1,
     ...         'B': 2
     ...     },
-    ...     'delete_this': 'should be ommited'
+    ...     'delete_this': 'should be omited'
     ... }
     >>> transform_dict(input_dict, key_path_trans)
     {'a': {'b': 3, 'd': 'this should remain as is'}, 'new_ac': 'I am a.c', 'b': {'A': 10, 'B': 20}}
