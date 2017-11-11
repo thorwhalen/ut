@@ -3,6 +3,7 @@ from __future__ import division
 import re
 import string
 
+pipe_split_p = re.compile("\s*\|\s*")
 func_and_arg_p = re.compile('(?P<func>\w+)\((?P<args>.*)\)', flags=re.DOTALL)
 comma_sep_p = re.compile('\s*,\s*')
 
@@ -66,11 +67,11 @@ class PipelineTemplate(string.Formatter):
         '1 + 10 = 11, (1 + 10) * 10 = 110'
         >>> p.format('x + 10 = {0:plus_ten}, (x + 10) * 10 = {0:plus_ten|times_ten}', 1)  # no name use
         'x + 10 = 11, (x + 10) * 10 = 110'
-        >>> p.format('{x:times_ten|plus_ten}', x=1)
+        >>> p.format('{x: times_ten  | plus_ten  }', x=1)  # can have spaces between pipes
         '20'
         >>> p.format('{x:04.02f}', x=2)  # you can also use standard formatting specs
         '2.00'
-        >>> p.format('{x:times_ten|plus_ten|04.0f}', x=2)  # even in a pipeline
+        >>> p.format('{x:times_ten | plus_ten | 04.0f}', x=2)  # even in a pipeline
         '0030'
         >>> p = {
         ...     'f_wrap': lambda x: map('f({})'.format, x),
@@ -83,18 +84,57 @@ class PipelineTemplate(string.Formatter):
         'this --> f(A)'
         >>> p.format('that --> {alist:f_wrap|csv}', alist=['A', 'B', 'C'])
         'that --> f(A), f(B), f(C)'
+        >>> # and if you didn't define what you needed in the constructor arguments, you can always write python code
+        >>> s = '''This {x:
+        ...         lambda x: x + 2
+        ...         | lambda x: x * 10
+        ...         | 3.02f} was obtained through python functions.'''
+        >>> PipelineTemplate().format(s, x=1)
+        'This 30.00 was obtained through python functions.'
+        >>> # and you can even use functions that need to be imported!
+        >>> p = {
+        ...     'add_10': lambda x: x + 10
+        ... }
+        >>> s = '''{x:
+        ...         lambda x: map(lambda xx: xx + 2, x)
+        ...         | lambda x: __import__('numpy').array(x) * 10
+        ...         | __import__('numpy').sum
+        ...         | add_10}'''
+        >>> PipelineTemplate(**p).format(s, x=[1, 2])
+        '80'
         """
         self.key_to_action = key_to_action
 
     def format_field(self, value, spec):
-        spec_list = spec.split('|')
+        spec = spec.strip()
+        spec_list = pipe_split_p.split(spec)
         for spec in spec_list:
             try:
                 if spec in self.key_to_action:
                     value = self.key_to_action[spec](value)
                 else:
-                    value = super(PipelineTemplate, self).format_field(value, spec)
+                    try:
+                        f = eval(spec)
+                        value = eval("f(value)")  # TODO: evals are not secure. Put safety checks in place.
+                    except Exception:
+                        value = super(PipelineTemplate, self).format_field(value, spec)
             except ValueError as e:
                 raise ValueError("{}: {}".format(spec, e.args[0]))
         return str(value)
 
+
+def wrapper(prefix='', suffix=''):
+    return "{prefix}{{}}{suffix}".format(prefix=prefix, suffix=suffix).format
+
+
+def mapper(func):
+    return lambda x: map(func, x)
+
+
+def templater(template):
+    template = template.replace("{{}}", "{}")
+    return template.format
+
+
+def joiner(join_str=','):
+    return join_str.join
