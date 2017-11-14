@@ -135,6 +135,3 @@ def templater(template):
     template = template.replace("{{}}", "{}")
     return template.format
 
-
-def joiner(join_str=','):
-    return join_str.join
