@@ -7,7 +7,7 @@ import pfile.accessor as pfile_accessor
 import pickle
 import pfile.to as pfile_to
 
-MS_DATA = environ['MS_DATA']
+MS_DATA = getenv('MS_DATA')
 LOCATION_LOCAL = 'LOCAL'
 LOCATION_S3 = 'S3'
 

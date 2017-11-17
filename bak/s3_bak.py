@@ -26,8 +26,8 @@ class S3(object):
         Connection and bucket are available to clients via self properties, in case clients wish to use those objects
         directly.
         """
-        access_key = access_key or os.environ['VEN_S3_ACCESS_KEY']
-        secret = secret or os.environ['VEN_S3_SECRET']
+        access_key = access_key or os.getenv('VEN_S3_ACCESS_KEY')
+        secret = secret or os.getenv('VEN_S3_SECRET')
 
         # note - this calls the setter
         self.base_folder = base_folder

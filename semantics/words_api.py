@@ -51,7 +51,7 @@ class Words(object):
                 print("Then, you won't need to specify it every time")
                 raise ValueError("No api_key given or found in environmental variable name WORDSAPI_KEY")
             else:
-                api_key = os.environ['WORDSAPI_KEY']
+                api_key = os.getenv('WORDSAPI_KEY')
         self._base_url = 'https://wordsapiv1.p.mashape.com/words/'
         self._auth_headers = {'X-Mashape-Key': api_key}  # auth against Mashape APIs
         self.pretty_print = pretty  # pretty print set to False by default for functionality, can be set to True for pretty one-offs

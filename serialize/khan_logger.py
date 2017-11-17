@@ -56,7 +56,7 @@ class KhanLogger(object):
 
     @classmethod
     def most_recent_log(cls, base_folder=None):
-        logdir = base_folder or os.environ['KHAN_LOG_FOLDER']
+        logdir = base_folder or os.getenv('KHAN_LOG_FOLDER')
         logfiles = sorted([f for f in os.listdir(logdir) if f.endswith('.log')])
         most_recent_log = os.path.join(logdir, logfiles[-1])
         return most_recent_log
@@ -64,7 +64,7 @@ class KhanLogger(object):
     @classmethod
     def move_logs_to_backup(cls, base_folder=None):
 
-        logdir = base_folder or os.environ['KHAN_LOG_FOLDER']
+        logdir = base_folder or os.getenv('KHAN_LOG_FOLDER')
         backup_folder = os.path.join(logdir, 'bak')
         if not os.path.exists(backup_folder):
             os.makedirs(backup_folder)
@@ -102,9 +102,9 @@ class KhanLogger(object):
         #    logs = [f for f in os.listdir(os.environ['KHAN_LOG_FOLDER']) if f.endswith(".log")]
 
         # if a file already exists, use it:
-        logs = [f for f in os.listdir(os.environ['KHAN_LOG_FOLDER']) if f.endswith(".log")]
+        logs = [f for f in os.listdir(os.getenv('KHAN_LOG_FOLDER')) if f.endswith(".log")]
         if logs:
-            name_and_path = os.path.join(os.environ['KHAN_LOG_FOLDER'], logs[0])
+            name_and_path = os.path.join(os.getenv('KHAN_LOG_FOLDER'), logs[0])
         else:
             name_and_path = self._make_file_name_and_path(file_name, file_path, make_file_name_unique)
 
@@ -112,7 +112,7 @@ class KhanLogger(object):
 
         self.filename_and_path = name_and_path
 
-        generic_folder = os.path.join(os.environ['KHAN_LOG_FOLDER'], 'generic')
+        generic_folder = os.path.join(os.getenv('KHAN_LOG_FOLDER'), 'generic')
         if not os.path.exists(generic_folder):
             os.makedirs(generic_folder)
         generic_log_name_and_path = os.path.join(generic_folder, "generic.log")
@@ -232,7 +232,7 @@ class KhanLogger(object):
 
     def _make_file_name_and_path(self, file_name, file_path, make_file_name_unique):
 
-        file_path = file_path or os.environ['KHAN_LOG_FOLDER']
+        file_path = file_path or os.getenv('KHAN_LOG_FOLDER')
 
         if make_file_name_unique:
             time_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")

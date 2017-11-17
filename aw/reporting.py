@@ -38,12 +38,12 @@ def get_client(clientCustomerId='7998744469'):
     # US 03 : 7214411738
     # AU 01 : 3851930085
     clientCustomerId = get_account_id(clientCustomerId)
-    headers = {'email': os.environ['VEN_ADWORDS_EMAIL'],
-               'password': os.environ['VEN_ADWORDS_EMAIL_PASSWORD'],
+    headers = {'email': os.getenv('VEN_ADWORDS_EMAIL'),
+               'password': os.getenv('VEN_ADWORDS_EMAIL_PASSWORD'),
                'clientCustomerId': clientCustomerId,
                # 'userAgent': 'MethodicSolutions',
                'userAgent': 'Venere',
-               'developerToken': os.environ['VEN_ADWORDS_TOKEN'],
+               'developerToken': os.getenv('VEN_ADWORDS_TOKEN'),
                'validateOnly': 'n',
                'partialFailure': 'n'
     }

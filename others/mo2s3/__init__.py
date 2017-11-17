@@ -1,8 +1,8 @@
 import os
 
 try:
-    DEFAULT_ACCESS_KEY = os.environ['VEN_S3_ACCESS_KEY']
-    DEFAULT_SECRET_KEY = os.environ['VEN_S3_SECRET']
+    DEFAULT_ACCESS_KEY = os.getenv('VEN_S3_ACCESS_KEY')
+    DEFAULT_SECRET_KEY = os.getenv('VEN_S3_SECRET')
     DEFAULT_BUCKET = 'mongo-db-bak'
     DEFAULT_FOLDER = ''
 except Exception:
