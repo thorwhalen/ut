@@ -9,7 +9,26 @@ import functools
 
 __author__ = 'thor'
 
-def autoargs(*include,**kwargs):
+
+def decorate_all_methods(decorator, exclude=(), include=()):
+    def decorate(obj):
+        if not include:
+            inclusion_list = map(lambda x: x[0],
+                                 filter(lambda x: not x[0].startswith('__') and callable(x[1]),
+                                        inspect.getmembers(obj)))
+        else:
+            inclusion_list = include
+        inclusion_list = list(set(inclusion_list).difference(exclude))
+        inclusion_list = filter(lambda x: callable(getattr(obj, x)), inclusion_list)
+        inclusion_dict = {method_name: getattr(obj, method_name) for method_name in inclusion_list}
+        for method_name, method in inclusion_dict:
+            setattr(obj, method_name, decorator(method))
+        return obj
+
+    return decorate
+
+
+def autoargs(*include, **kwargs):
     """
     Automatically assign __init__ arguments.
     Courtesy of the answer of: https://stackoverflow.com/questions/3652851/what-is-the-best-way-to-do-automatic-attribute-assignment-in-python-and-is-it-a
@@ -78,31 +97,38 @@ def autoargs(*include,**kwargs):
     Yep, that's what's expected!
     Yep, that's what's expected!
     """
+
     def _autoargs(func):
-        attrs,varargs,varkw,defaults=inspect.getargspec(func)
+        attrs, varargs, varkw, defaults = inspect.getargspec(func)
+
         def sieve(attr):
             if kwargs and attr in kwargs['exclude']: return False
-            if not include or attr in include: return True
-            else: return False
+            if not include or attr in include:
+                return True
+            else:
+                return False
+
         @functools.wraps(func)
-        def wrapper(self,*args,**kwargs):
+        def wrapper(self, *args, **kwargs):
             # handle default values
-            for attr,val in zip(reversed(attrs),reversed(defaults)):
+            for attr, val in zip(reversed(attrs), reversed(defaults)):
                 if sieve(attr): setattr(self, attr, val)
             # handle positional arguments
-            positional_attrs=attrs[1:]
-            for attr,val in zip(positional_attrs,args):
+            positional_attrs = attrs[1:]
+            for attr, val in zip(positional_attrs, args):
                 if sieve(attr): setattr(self, attr, val)
             # handle varargs
             if varargs:
-                remaining_args=args[len(positional_attrs):]
+                remaining_args = args[len(positional_attrs):]
                 if sieve(varargs): setattr(self, varargs, remaining_args)
             # handle varkw
             if kwargs:
-                for attr,val in kwargs.iteritems():
-                    if sieve(attr): setattr(self,attr,val)
-            return func(self,*args,**kwargs)
+                for attr, val in kwargs.iteritems():
+                    if sieve(attr): setattr(self, attr, val)
+            return func(self, *args, **kwargs)
+
         return wrapper
+
     return _autoargs
 
 
@@ -246,5 +272,3 @@ def autoassign(*names, **kwargs):
         return decorated
 
     return f and decorator(f) or decorator
-
-
