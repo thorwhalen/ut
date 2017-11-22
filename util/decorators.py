@@ -21,7 +21,7 @@ def decorate_all_methods(decorator, exclude=(), include=()):
         inclusion_list = list(set(inclusion_list).difference(exclude))
         inclusion_list = filter(lambda x: callable(getattr(obj, x)), inclusion_list)
         inclusion_dict = {method_name: getattr(obj, method_name) for method_name in inclusion_list}
-        for method_name, method in inclusion_dict:
+        for method_name, method in inclusion_dict.iteritems():
             setattr(obj, method_name, decorator(method))
         return obj
 
