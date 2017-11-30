@@ -9,7 +9,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from numpy import vstack
 from sklearn.cluster import KMeans
-from ut.ml.util import get_model_attributes
+from ut.ml.utils import get_model_attributes
 
 
 class SpectralClustering(sk_SpectralClustering):

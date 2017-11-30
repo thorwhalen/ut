@@ -1,7 +1,7 @@
 from __future__ import division
 
 from numpy import inf, random, array, ravel, amin, amax, ndim, vectorize
-from ut.ml.utils.feature_analysis import plot_feat_ranges
+from ut.ml.util.feature_analysis import plot_feat_ranges
 
 
 class Range(object):

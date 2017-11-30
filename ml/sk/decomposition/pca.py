@@ -12,7 +12,7 @@ from numpy import reshape, sqrt, average
 import numpy as np
 from scipy import linalg
 from sklearn.decomposition.pca import PCA
-from ut.ml.util import trailing_underscore_attributes, get_model_attributes
+from ut.ml.utils import trailing_underscore_attributes, get_model_attributes
 # from scipy.special import gammaln
 
 from sklearn.utils.validation import as_float_array
