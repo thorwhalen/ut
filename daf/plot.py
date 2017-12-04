@@ -33,7 +33,7 @@ def plot_timeseries(data, time_field='index', time_type='utc_ms', legend=False, 
     data = pd.DataFrame(data).copy()
     if time_field in data.columns:
         data = data.set_index(time_field)
-    assert time_field in data.index.name or time_field == 'index', \
+    assert time_field in data.index.names or time_field == 'index', \
         "time_field couldn't be resolved (neither in columns, nor index.name, nor 'index')"
     if time_type == 'utc_ms':
         data[time_field] = pd.to_datetime(
