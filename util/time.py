@@ -7,6 +7,7 @@ from dateutil import tz
 __author__ = 'thor'
 
 second_ms = 1000.0
+second_ns = 1e9
 minute_ms = float(60 * second_ms)
 five_mn_ms = 5 * minute_ms
 hour_ms = float(60 * minute_ms)
@@ -28,6 +29,10 @@ def utcnow_timestamp():
 
 def utcnow_ms():
     return (dt.utcnow() - epoch).total_seconds() * second_ms
+
+
+def utcnow_ns():
+    return (dt.utcnow() - epoch).total_seconds() * second_ns
 
 
 def utc_datetime_to_utc_ms(utc_datetime):
