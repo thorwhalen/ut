@@ -65,6 +65,8 @@ def extract_key_paths(d, key_paths, field_naming='full', use_default=False, defa
     getting with a key list or "."-separated string
     :param d: dict
     :param key_path: list or "."-separated string of keys
+    :param field_naming: 'full' (default) will use key_path strings as is, leaf will only use the last dot item
+        (i.e. this.is.a.key.path will result in "path" being used)
     :return:
     """
     dd = dict()
