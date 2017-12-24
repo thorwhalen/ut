@@ -14,6 +14,9 @@ def mk_inclusion_exclusion_filter(include=(), exclude=(), key=None):
         * callable, the filter will be determined by: key(x) in include or key(x not in exclude
         * hashable, the filter will be determined by: x[key] in include or x[key] not in exclude
     :return: a filter function (a function that returns True or False)
+    >>> # if there's no include nore exclude
+    >>> filter(mk_inclusion_exclusion_filter(), [1, 2, 3, 4, 5])
+    [1, 2, 3, 4, 5]
     >>> # pure inclusion demo...
     >>> filt = mk_inclusion_exclusion_filter(include=[2, 4])
     >>> filter(filt, [1, 2, 3, 4, 2, 3, 4, 3, 4])
@@ -63,7 +66,10 @@ def mk_inclusion_exclusion_filter(include=(), exclude=(), key=None):
             include = set(include).difference(exclude)
             return mk_inclusion_filter(include=include, key=key)
     else:
-        return mk_inclusion_filter(include=include, key=key)
+        if include:
+            return mk_inclusion_filter(include=include, key=key)
+        else:
+            return lambda x: True  # transparent filter (all goes through)
 
 
 def mk_inclusion_filter(include=(), key=None):
