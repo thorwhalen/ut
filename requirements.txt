@@ -16,7 +16,6 @@ blaze==0.10.1
 bokeh==0.12.4
 boto==2.42.0
 Bottleneck==1.1.0
-bson==0.5.0
 cdecimal==2.3
 cffi==1.9.1
 chest==0.2.3
