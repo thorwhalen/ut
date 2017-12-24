@@ -13,7 +13,7 @@ import itertools
 #         for i in itertools.count(start, size):
 #             yield seq[i: i + size]
 
-from numpy import mod
+from numpy import mod, ndarray, array
 from datetime import datetime
 from itertools import islice, chain, imap, combinations, izip_longest
 from operator import itemgetter, is_not
@@ -23,6 +23,17 @@ from functools import partial
 from random import random
 
 is_not_none = partial(is_not, None)
+
+
+def batch(iterable, n=1, return_tail=True):
+    current_batch = []
+    for item in iterable:
+        current_batch.append(item)
+        if len(current_batch) == n:
+            yield current_batch
+            current_batch = []
+    if return_tail and current_batch:
+        yield current_batch
 
 
 def grouper(iterable, n=1, fillvalue='drop'):
@@ -47,15 +58,46 @@ def grouper(iterable, n=1, fillvalue='drop'):
         return izip_longest(fillvalue=fillvalue, *args)
 
 
-def batch(iterable, n=1, return_tail=True):
-    current_batch = []
-    for item in iterable:
-        current_batch.append(item)
-        if len(current_batch) == n:
-            yield current_batch
-            current_batch = []
-    if return_tail and current_batch:
-        yield current_batch
+def seq_batch(seq, n=1, return_tail=True, fillvalue=None):
+    """
+    An iterator of equal sized batches of a sequence.
+    :param seq: a sequence (should have a .__len__ and a .__getitem__ method)
+    :param n: batch size
+    :param return_tail:
+        * True (default): Return the tail (what's remaining if the seq len is not a multiple of the batch size),
+            as is (so the last batch might not be of size n
+        * None: Return the tail, but fill it will the value specified in the fillvalue argument, to make it size n
+        * False: Don't return the tail at all
+    :param fillvalue: Value to be used to fill the tail if return_tail == None
+
+    >>> seq = [1, 2, 3, 4, 5, 6, 7]
+    >>> list(seq_batch(seq, 3, False))
+    [[1, 2, 3], [4, 5, 6]]
+    >>> list(seq_batch(seq, 3, True))
+    [[1, 2, 3], [4, 5, 6], [7]]
+    >>> list(seq_batch(seq, 3, None))
+    [[1, 2, 3], [4, 5, 6], [7, None, None]]
+    >>> list(seq_batch(seq, 3, None, 0))
+    [[1, 2, 3], [4, 5, 6], [7, 0, 0]]
+    """
+    seq_len = len(seq)
+    tail_len = seq_len % n
+    for ndx in xrange(0, seq_len - tail_len, n):
+        yield seq[ndx:(ndx + n)]
+
+    # handing the tail...
+    if tail_len > 0 and return_tail is not False:
+        if return_tail is True:
+            yield seq[(seq_len - tail_len):]
+        else:
+            t = list(seq[(seq_len - tail_len):]) + [fillvalue] * (n - tail_len)
+            if isinstance(t, ndarray):
+                yield array(t)
+            else:
+                try:
+                    yield type(seq)(t)
+                except Exception:
+                    yield t
 
 
 def sample_iterator(iterator, k, iterator_size=None):
