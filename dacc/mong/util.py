@@ -21,7 +21,6 @@ from ut.pfile.to import ungzip
 from ut.util.log import printProgress
 import numpy as np
 from ut.pdict.manip import recursively_update_with
-from ut.util.pobj import inject_method
 from ut.dpat.buffer import ThreshBuffer
 
 s3_backup_bucket_name = 'mongo-db-bak'
@@ -55,6 +54,63 @@ def restart_find_cursor(cursor, docs_retrieved_so_far=None):
             return new_cursor
 
     return cursor._Cursor__collection.find(**kwargs)
+
+
+class BulkMgUpdates(object):
+    """
+    A class to accumulate update instructions and flush them (to perform a bulk mongo update).
+    See also BulkUpdateBuffer.
+
+    When constructed, once must specify a collection object mgc that the data must be stored in.
+
+    The push method pushes a (spec, document) tuple to the bulk_op list.
+    The flush method actually does the bulk write of the items pushed so far.
+
+    These methods can be used "manually" to get data written, but a common use of BulkMgUpdates is to used the feed
+    method, which takes an iterator of items, pushes the corresponding (spec, document) tuples, flushes at regular
+    intervals, and when the iterator is completely consumed, will do a final flush.
+
+    The regularity of the flushes during a feed call is controlled by the flush_every attribute.
+    How to get (spec, document) tuples from the items the iterator yields is specified by the get_spec_and_doc
+    attribute: A callable taking an item the iterator yields and returning the corresponding (spec, document)
+    """
+
+    def __init__(self, mgc, flush_every=500, get_spec_and_doc=None):
+        """
+
+        :param mgc: mongo collection (pymongo.collection.Collection object)
+        :param flush_every: How often should data be flushed to the db when calling the feed method
+        :param get_spec_and_doc: The function to be applied to the elements of the iterator in the feed method to get
+            (spec, document) tuples from iterator elements. If not specified, will assume the iterator is feeding
+            (spec, document) tuples.
+        """
+        self.mgc = mgc
+        self.updater = None
+        self.initialize()
+        self.flush_every = flush_every
+        if get_spec_and_doc is None:
+            get_spec_and_doc = lambda x: x
+        self.get_spec_and_doc = get_spec_and_doc
+
+    def initialize(self):
+        self.updater = self.mgc.initialize_unordered_bulk_op()
+
+    def push(self, spec, document):
+        return self.updater.find(spec).upsert().update(document)
+
+    def flush(self):
+        r = self.updater.execute()
+        self.initialize()
+        return r
+
+    def feed(self, it):
+        self.initialize()
+        for i, x in enumerate(it, 1):
+            spec, document = self.get_spec_and_doc(x)
+            self.push(spec, document)
+            if i % self.flush_every == 0:
+                self.flush()
+        self.flush()
 
 
 class BulkUpdateBuffer(ThreshBuffer):
