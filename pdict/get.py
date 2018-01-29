@@ -59,7 +59,6 @@ def iter_key_path_items(d, key_path_prefix=None):
                     yield key_path_prefix + '.' + kk, vv
 
 
-
 def extract_key_paths(d, key_paths, field_naming='full', use_default=False, default_val=None):
     """
     getting with a key list or "."-separated string
