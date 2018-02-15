@@ -156,6 +156,7 @@ six==1.10.0
 smmap2==2.0.1
 snowballstemmer==1.2.1
 sockjs-tornado==1.0.3
+sortedcontainers==1.5.9
 SoundFile==0.8.1
 Sphinx==1.4.6
 spyder==3.0.0
