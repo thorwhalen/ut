@@ -111,7 +111,10 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
         try:
             return {result_field: result}
         except TypeError:
-            return {result_field: str(result)}
+            if hasattr(result, 'next'):
+                return {result_field: list(result)}
+            else:
+                return {result_field: str(result)}
 
 
 def extract_kwargs(request, convert_arg=None, file_var='file'):
