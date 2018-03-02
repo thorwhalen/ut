@@ -19,6 +19,25 @@ from random import random
 is_not_none = partial(is_not, None)
 
 
+class GeneratorLen(object):
+    def __init__(self, gen, length):
+        """
+        A class to wrap a generator, allowing it to have a length (which should be specified).
+        Useful in situations where when we construct the generator, we know the length it's going to have,
+        and would like the user of the generator to access this information the usual way.
+        :param gen: the generator
+        :param length: the length we want this generator to return when asked for it
+        """
+        self.gen = gen
+        self.length = length
+
+    def __len__(self):
+        return self.length
+
+    def __iter__(self):
+        return self.gen
+
+
 def first_elements_and_full_iter(it, n=1):
     """
     Given an iterator it, returns the pair (first_elements, it) (where it is the full original
