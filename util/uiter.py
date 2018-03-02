@@ -1,17 +1,11 @@
 from __future__ import division
 import itertools
 
-# These are itertools recipes taken from https://docs.python.org/2/library/itertools.html#recipes
-# ... plus other stuff found here and there, plus my own sh**
+# Some of these recipes were taken from
+#   https://docs.python.org/2/library/itertools.html#recipes
+#   or random other places.
+# plus my own sh** and adaptation
 
-
-# def chunker(seq, size):
-#     return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
-
-
-# def chunker(seq, size, start=0):
-#         for i in itertools.count(start, size):
-#             yield seq[i: i + size]
 
 from numpy import mod, ndarray, array
 from datetime import datetime
@@ -23,6 +17,22 @@ from functools import partial
 from random import random
 
 is_not_none = partial(is_not, None)
+
+
+def first_elements_and_full_iter(it, n=1):
+    """
+    Given an iterator it, returns the pair (first_elements, it) (where it is the full original
+    iterator).
+    This is useful when you need to peek into an iterator before actually processing it (say
+    because the way you will process it will depend on what you see in there).
+    :param it: an iterator
+    :param n: the number of first elements you want to peek at
+    :return:
+        first_elements: A list of the first n elements of the iterator
+        it: The original (full) iterator
+    """
+    first_elements = take(n, it)
+    return first_elements, itertools.chain(first_elements, it)
 
 
 def batch(iterable, n=1, return_tail=True):
@@ -110,6 +120,15 @@ def sample_iterator(iterator, k, iterator_size=None):
         iterator_size -= 1
         if iterator_size == 0:
             raise StopIteration()
+
+
+# def chunker(seq, size):
+#     return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
+
+
+# def chunker(seq, size, start=0):
+#         for i in itertools.count(start, size):
+#             yield seq[i: i + size]
 
 
 def random_subset(iterator, K):
