@@ -2,7 +2,6 @@ from __future__ import division
 
 import numpy as np
 from datetime import datetime as dt
-import matplotlib.pylab as plt
 
 unit_str_to_unit_in_seconds = {
     'day': 3600 * 24,
@@ -52,7 +51,7 @@ def utc_datetime_from_val_and_unit(val, unit):
 def largest_unit_that_changes_at_every_tick(ticks, ticks_unit):
     """
     Returns the largest time unit for which each time tick changes.
-    :param ticks: List of numbers (that represent utc time in some way)
+    :param ticks: The list of ticks
     :param ticks_unit: The unit of the elements of ticks, expressed in seconds. For example, if the list
         contains hours, unit=3600, if minutes, unit=60, if seconds unit=1,
         if milliseconds unit=0.001.
@@ -73,59 +72,53 @@ def largest_unit_that_changes_at_every_tick(ticks, ticks_unit):
 
 
 def strftime_format_for_ticks(ticks, ticks_unit):
-    """
-    What format to use for the given list of time numbers (ticks). Will be chosen to represent the three most
-    significant numbers of the day-hour-minute-second-sub_second_decimals spectrum.
-    :param ticks: List of numbers (that represent utc time in some way)
-    :param ticks_unit: The unit of the elements of ticks, expressed in seconds. For example, if the list
-        contains hours, unit=3600, if minutes, unit=60, if seconds unit=1,
-        if milliseconds unit=0.001.
-            Note: You can also use a string to express the unit, as long as it's recognized by the
-            unit_str_to_unit_in_seconds dict. Keys recognized:
-            ['day', 'hour', 'h', 'minute', 'mn', 'second', 's', 'millisecond', 'ms', 'microsecond', 'us']
-    :return:
-    """
     unit = largest_unit_that_changes_at_every_tick(ticks, ticks_unit)
     return strftime_format_for_unit[unit]
 
 
-def str_ticks(ticks, ticks_unit):
+def strftime_with_precision(tick, format, sub_secs_precision=2):
     """
-    Get readable time specifications for the input ticks. Used for ticks of graphs usually.
-    :param ticks: List of numbers (that represent utc time in some way)
-    :param ticks_unit: The unit of the elements of ticks, expressed in seconds. For example, if the list
-        contains hours, unit=3600, if minutes, unit=60, if seconds unit=1,
-        if milliseconds unit=0.001.
-            Note: You can also use a string to express the unit, as long as it's recognized by the
-            unit_str_to_unit_in_seconds dict. Keys recognized:
-            ['day', 'hour', 'h', 'minute', 'mn', 'second', 's', 'millisecond', 'ms', 'microsecond', 'us']
-    :return: a list of readable time specifications for the input ticks
+    Returns a formatted string for a datetime (tick).
+    :param tick: The datetime for this tick
+    :param format: The formatting string
+    :param sub_secs_precision: Number of digits to used for sub-seconds.
+        If None, will choose it "smartly/dynamically"
+    :return: Formatted string
     """
+    t = tick.strftime(format)
+    is_us = '%f' in format
+    if is_us:
+        if sub_secs_precision is None:
+            while t[-1] == '0':
+                t = t[:-1]
+            while not t[-1].isdigit():
+                t = t[:-1]
+            return t
+        else:
+            if sub_secs_precision < 0:
+                sub_secs_precision = 0
+            elif sub_secs_precision > 6:
+                sub_secs_precision = 6
+
+            DFLT_PRECISION = 6
+            digits_to_skip = DFLT_PRECISION - sub_secs_precision
+            if digits_to_skip == 0:
+                return t
+            else:
+                t = t[:-digits_to_skip]
+                while not t[-1].isdigit():
+                    t = t[:-1]
+                return t
+    else:
+        return t
+
+
+def str_ticks(ticks, ticks_unit, sub_secs_precision=2):
     t_format = strftime_format_for_ticks(ticks, ticks_unit)
-    return map(lambda x: utc_datetime_from_val_and_unit(x, ticks_unit).strftime(t_format), ticks)
+    return map(
+        lambda x: strftime_with_precision(utc_datetime_from_val_and_unit(x, ticks_unit), t_format, sub_secs_precision),
+        ticks)
 
 
 def unit_aligned_ticks(ticks, ticks_unit):
     pass
-
-
-def time_format_xticks(ticks_unit, ax=None, **kwargs):
-    """
-    Change the tick labels of the xaxis to be well formatted and readable time specifications.
-    :param ticks_unit: The unit of the elements of ticks, expressed in seconds. For example, if the list
-        contains hours, unit=3600, if minutes, unit=60, if seconds unit=1,
-        if milliseconds unit=0.001.
-            Note: You can also use a string to express the unit, as long as it's recognized by the
-            unit_str_to_unit_in_seconds dict. Keys recognized:
-            ['day', 'hour', 'h', 'minute', 'mn', 'second', 's', 'millisecond', 'ms', 'microsecond', 'us']
-    :param ax: plot axis to modify. If not given, will use ax = gca()
-    :param kwargs: to be passed on to ax.set_xticklabels (for example rotation=90, if the tick lables overlap)
-    :return: None
-    """
-    if ax is None:
-        ax = plt.gca()
-
-    ticks = ax.get_xticks()
-    tick_labels = str_ticks(ticks, ticks_unit)
-    ax.set_xticklabels(tick_labels, **kwargs)
-
