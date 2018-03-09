@@ -6,6 +6,7 @@ from functools import reduce  # forward compatibility for Python 3
 import operator
 from functools import partial
 
+
 # def recursive_list_of_keys(d, key=None):
 #     """
 #     recursive list of lists of dict keys:
@@ -21,13 +22,30 @@ from functools import partial
 #     except BaseException:
 #         return d
 
-mg_op_key_to_op = {
-    '$gte': operator.__le__,
-    '$gt': operator.__lt__,
-    '$lte': operator.__ge__,
-    '$lt': operator.__gt__,
-}  # NOTE: Misalignment on purpose
+def nor(*args):
+    for a in args:
+        if not bool(a):
+            return True
+    return False
 
+
+mg_op_key_to_op = {
+    '$gte': operator.le,
+    '$gt': operator.lt,
+    '$lte': operator.ge,
+    '$lt': operator.gt,
+    '$in': operator.contains,
+    '$nin': lambda element, _set: not operator.contains(_set, element),
+    '$eq': operator.eq,
+    '$neq': operator.ne,
+    '$not': operator.not_,
+    '$and': operator.__and__,  # TODO: Need to extend to more than two operands
+    '$or': operator.__or__,  # TODO: Need to extend to more than two operands
+    '$nor': nor
+}  # NOTE: Apparent misalignment of gt and lt ops on purpose (order of operator and use is flipped.
+
+
+# TODO: Might want $exists and $type?
 
 def mg_filt_kv_to_func(key_path, val_condition):
     if isinstance(val_condition, dict):
@@ -58,6 +76,21 @@ def key_func_list_from_mg_filt(mg_filt):
 
 
 def dict_filt_from_mg_filt(mg_filt):
+    """
+    The final intent is to do what a mongo query does on a collection, but with a dict iterator instead.
+    dict_filt_from_mg_filt creates, based on a mg_filt (that uses the same language as mongo, a filter.
+    A filter is a function that returns True iff mg_filt condition is satistfied.
+    Basically, if mgc is a mongo collection and dict_iter is a dict iterator containing the same dicts,
+    the following should be equivalent:
+        mgc.find(mg_filt) and itertools.ifilter(dict_filt_from_mg_filt(mg_filt), dict_iter)
+    In fact, you can test this directly with a (small) mongo collection by doing:
+        assert list(mgc.find(mg_filt)) == filter(dict_filt_from_mg_filt(mg_filt), mgc.find())
+    :param mg_filt:
+    :return: a filter (a function returning True or False)
+
+    >>> mg_filt = {'a': {'$gt': 10}}
+    >>> filt = dict_filt_from_mg_filt()
+    """
     key_func_list = key_func_list_from_mg_filt(mg_filt)
 
     def _filt(_dict):
