@@ -30,10 +30,10 @@ def nor(*args):
 
 
 mg_op_key_to_op = {
-    '$gte': operator.le,
-    '$gt': operator.lt,
-    '$lte': operator.ge,
-    '$lt': operator.gt,
+    '$gte': operator.le,  # operator reversed because arguments inverse of order we need in code
+    '$gt': operator.lt,  # operator reversed because arguments inverse of order we need in code
+    '$lte': operator.ge,  # operator reversed because arguments inverse of order we need in code
+    '$lt': operator.gt,  # operator reversed because arguments inverse of order we need in code
     '$in': operator.contains,
     '$nin': lambda element, _set: not operator.contains(_set, element),
     '$eq': operator.eq,
@@ -48,6 +48,15 @@ mg_op_key_to_op = {
 # TODO: Might want $exists and $type?
 
 def mg_filt_kv_to_func(key_path, val_condition):
+    """
+    Returns a function that checks
+        (1) The existance of a key path in a dict
+        (2) If the value satisfies the condition specified by mongo-query-like val_condition
+    :param key_path: A key path. That is, a field name, or a nested field specification,
+        such as 'this.is.a.nested.field'.
+    :param val_condition: A value or a (single field) mongo-query-like dict
+    :return: A function
+    """
     if isinstance(val_condition, dict):
         func_list = list()
         for k, v in val_condition.iteritems():
@@ -72,6 +81,11 @@ def mg_filt_kv_to_func(key_path, val_condition):
 
 
 def key_func_list_from_mg_filt(mg_filt):
+    """
+    Just applies mg_filt_kv_to_func to every element of the (dict) mg_filt
+    :param mg_filt: A mongo-query-like dict (can have several fields
+    :return: A list of functions
+    """
     return map(lambda x: mg_filt_kv_to_func(*x), mg_filt.iteritems())
 
 
@@ -88,8 +102,58 @@ def dict_filt_from_mg_filt(mg_filt):
     :param mg_filt:
     :return: a filter (a function returning True or False)
 
-    >>> mg_filt = {'a': {'$gt': 10}}
-    >>> filt = dict_filt_from_mg_filt()
+    >>> ####### A complicated one
+    >>> mg_filt = {
+    ...    'a': {'$in': [3, 4, 5]},
+    ...    'x': {'$gte': 10, '$lt': 20},
+    ...    'foo.bar': 'bit',
+    ...    'this': {'is': 'that'},
+    ... }
+    >>> filt = dict_filt_from_mg_filt(mg_filt)
+    >>> filt({'a': 3, 'x': 15, 'foo': {'bar': 'bit'}, 'this': {'is': 'that'}, 'and_something': 'else'})
+    True
+    >>> filt({'a': 1, 'x': 15, 'foo': {'bar': 'bit'}, 'this': {'is': 'that'}, 'and_something': 'else'})
+    False
+    >>> filt({'a': 3, 'x': 20, 'foo': {'bar': 'bit'}, 'this': {'is': 'that'}, 'and_something': 'else'})
+    False
+    >>> filt({'a': 3, 'x': 15, 'foo.bar': 'bit', 'this': {'is': 'that'}, 'and_something': 'else'})
+    False
+    >>> ####### testing equality
+    >>> filt = dict_filt_from_mg_filt(mg_filt={'foo': 'bar'})
+    >>> # True when equal
+    >>> filt({'foo': 'bar'})
+    True
+    >>> # false when not equal
+    >>> filt({'foo': 'bear'})
+    False
+    >>> # false if key not present
+    >>> filt({'fool': 'bar'})
+    False
+    >>> # can also have equality of dicts
+    >>> filt = dict_filt_from_mg_filt(mg_filt={'foo': {'bar': 'bit'}})
+    >>> filt({'foo': {'bar': 'bit'}})
+    True
+    >>> ####### A single >= comparison
+    >>> mg_filt = {'a': {'$gte': 10}}
+    >>> filt = dict_filt_from_mg_filt(mg_filt)
+    >>> filt({'a': 9})
+    False
+    >>> filt({'a': 10})
+    True
+    >>> filt({'a': 11})
+    True
+    >>> ####### A single > comparison
+    >>> filt = dict_filt_from_mg_filt({'a': {'$gt': 10}})
+    >>> filt({'a': 9})
+    False
+    >>> filt({'a': 10})
+    False
+    >>> filt({'a': 11})
+    True
+    >>> ####### A range query
+    >>> filt = dict_filt_from_mg_filt({'a': {'$gte': 10, '$lt': 20}})
+    >>> map(filt, [{'a': x} for x in [9, 10, 15, 20, 21]])
+    [False, True, True, False, False]
     """
     key_func_list = key_func_list_from_mg_filt(mg_filt)
 
