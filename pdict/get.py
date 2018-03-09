@@ -4,7 +4,7 @@ import ut.util.ulist as ulist
 from numpy import isnan
 from functools import reduce  # forward compatibility for Python 3
 import operator
-
+from functools import partial
 
 # def recursive_list_of_keys(d, key=None):
 #     """
@@ -20,6 +20,53 @@ import operator
 #         return klist
 #     except BaseException:
 #         return d
+
+mg_op_key_to_op = {
+    '$gte': operator.__le__,
+    '$gt': operator.__lt__,
+    '$lte': operator.__ge__,
+    '$lt': operator.__gt__,
+}  # NOTE: Misalignment on purpose
+
+
+def mg_filt_kv_to_func(key_path, val_condition):
+    if isinstance(val_condition, dict):
+        func_list = list()
+        for k, v in val_condition.iteritems():
+            if k.startswith('$'):
+                func_list.append(partial(mg_op_key_to_op[k], v))
+        if func_list:
+            def key_func(_dict):
+                """
+                Returns True if and only iff all func_list funcs return True
+                """
+                for f in func_list:
+                    if not f(get_value_in_key_path(_dict, key_path, None)):
+                        return False  # stop early, we know it's False
+                return True
+
+            return key_func
+
+    def key_func(_dict):
+        return get_value_in_key_path(_dict, key_path, None) == val_condition
+
+    return key_func
+
+
+def key_func_list_from_mg_filt(mg_filt):
+    return map(lambda x: mg_filt_kv_to_func(*x), mg_filt.iteritems())
+
+
+def dict_filt_from_mg_filt(mg_filt):
+    key_func_list = key_func_list_from_mg_filt(mg_filt)
+
+    def _filt(_dict):
+        for i, f in enumerate(key_func_list):
+            if not f(_dict):
+                return False
+        return True  # if you get this far
+
+    return _filt
 
 
 def iter_key_path_items(d, key_path_prefix=None):
