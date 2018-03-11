@@ -4,6 +4,11 @@ from threading import RLock
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize"])
 
+"""
+lru_cache is now built in of Python 3. This is a back-port of it found online.
+Can't find the original author since it seems so many poeple copied and reused this code when searching for it online
+"""
+
 
 class _HashedSeq(list):
     __slots__ = 'hashvalue'
