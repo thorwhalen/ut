@@ -9,6 +9,11 @@ Remember to use these useful utils:
     ppr
 '''
 
+import sys
+if sys.platform == 'darwin':
+    from IPython.display import set_matplotlib_formats
+    set_matplotlib_formats('retina')
+
 from numpy import *
 import os
 import re
