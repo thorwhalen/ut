@@ -55,6 +55,14 @@ def first_elements_and_full_iter(it, n=1):
 
 
 def batch(iterable, n=1, return_tail=True):
+    """
+    Iterator yielding batches of size n of the input iterable.
+    See also grouper and seq_batch.
+    :param iterable: in put iterable
+    :param n: batch size
+    :param return_tail: whether to return the last chunk (even if it's length is not the batch size)
+    :return: an iterator
+    """
     current_batch = []
     for item in iterable:
         current_batch.append(item)
@@ -68,7 +76,7 @@ def batch(iterable, n=1, return_tail=True):
 def grouper(iterable, n=1, fillvalue='drop'):
     """
     Returns an iterable that feeds tuples of size n corresponding to chunks of the input iterable.
-
+    See also batch and seq_batch.
     :param iterable: Input iterable
     :param n: chunk (batch) size
     :param fillvalue: The element to use to fill the last chunk, or 'drop' to keep only elements of the iterable,
@@ -90,6 +98,7 @@ def grouper(iterable, n=1, fillvalue='drop'):
 def seq_batch(seq, n=1, return_tail=True, fillvalue=None):
     """
     An iterator of equal sized batches of a sequence.
+    See also grouper and seq_batch.
     :param seq: a sequence (should have a .__len__ and a .__getitem__ method)
     :param n: batch size
     :param return_tail:
