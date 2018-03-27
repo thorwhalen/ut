@@ -19,6 +19,94 @@ from random import random
 is_not_none = partial(is_not, None)
 
 
+def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
+                                      start_at=None, key=None, return_tail=True):
+    """
+    a function to get (an iterator of) segments (bt, tt) of chunks from (an iterator of) ordered timestamps,
+    given a chk_size, chk_step, and a start_at time.
+    :param it:
+    :param chk_size:
+    :param chk_step:
+    :param start_at:
+    :param key:
+    :param return_tail:
+    :return:
+    """
+    raise NotImplementedError("Not implemented totally yet!!")
+    if chk_step is None:
+        chk_step = chk_size
+    if key is None:
+        key = lambda x: x
+    if start_at is None:
+        # print('start at')
+        x = it.next()  # get the first element
+        start_at = key(x)  # ... and get the key for it
+        it = itertools.chain([x], it)  # put that first element back in the iterator
+
+    chk = list()  # initialize chunk
+    # initialize bt and tt (bottom and top of sliding window)
+    bt = start_at
+    tt = bt + chk_size
+
+    def slide_forward(bt, tt):
+        return bt + chk_step, tt + chk_step
+
+    print("initial: start_at={}, bt/tt={},{}".format(start_at, bt, tt))
+    # skip over the first elements if they're not >= start_at
+    for x in it:
+        k = key(x)
+        # print("i: ({},{})".format(x, k))
+
+        if k < start_at:
+            continue  # skip the remainder of the loop code until we get an element >= bt
+        else:
+            if k < tt:  # if x is in fact with in [bt, tt)...
+                chk.append(x)  # ...start accumulating chk elements
+            else:
+                print('skip: k = {}, tt = {}'.format(k , tt))
+                yield list()  # If not, yield an empty list (the first window is empty!)
+                # and slide forward (without reinitializing chk
+                bt, tt = slide_forward(bt, tt)
+
+    if chk_step >= chk_size:
+
+        for x in it:
+            # then add all elements less than tt to chk
+            k = key(x)
+            if bt <= k < tt:
+                chk.append(x)
+            else:
+                yield chk
+                # yield empty lists until the window contains or is above x
+                while True:
+                    if tt < k:
+                        yield list()
+                        bt += chk_step
+                        tt += chk_step
+                    else:
+                        break
+                # if window contains x, reinitialize the chunk with it
+                if bt <= k:
+                    chk = [x]
+                else:
+                    chk = list()
+                # bt, tt = slide_forward(bt, tt)
+                # chk = [x]  # reinitialize chk with x
+
+        # when the iterator is all consumed, return the tail chk if asked for
+        if return_tail:
+            yield chk
+
+    else:
+        first_part = []
+        last_part = []
+
+        for x in it:
+            if key(x) >= bt:
+                first_part.append(x)
+            else:
+                continue
+
 class GeneratorLen(object):
     def __init__(self, gen, length):
         """
