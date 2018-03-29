@@ -143,7 +143,7 @@ def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=F
     if chk_step is None:
         chk_step = chk_size
 
-    if hasattr(it, '__getitem__'):
+    if hasattr(it, '__getslice__'):
         if stop_at is None:
             stop_at = len(it)
         else:
