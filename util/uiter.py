@@ -18,6 +18,8 @@ from random import random
 
 is_not_none = partial(is_not, None)
 
+inf = float('inf')
+
 
 def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
                                       start_at=None, stop_at=None,
@@ -134,6 +136,55 @@ class GeneratorLen(object):
 
     def __iter__(self):
         return self.gen
+
+
+def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
+    # TODO: Handle true iterator case
+    if chk_step is None:
+        chk_step = chk_size
+
+    if hasattr(it, '__getitem__'):
+        if stop_at is None:
+            stop_at = len(it)
+        else:
+            stop_at = min(len(it), stop_at)
+        if not return_tail:
+            stop_at = start_at + chk_size * ((stop_at - start_at) // chk_size)
+        it = it[start_at:stop_at]
+        bt = 0
+        tt = bt + chk_size
+        max_bt = stop_at - start_at
+        while bt < max_bt:
+            yield it[bt:tt]
+            bt += chk_step
+            tt += chk_step
+    else:
+        if chk_size <= chk_step:
+            if start_at > 0:
+                for i in xrange(start_at):
+                    _ = it.next()  # throw away the first items
+            if stop_at is not None:
+                stop_at -= start_at
+                max_bt = stop_at - chk_size
+                n_chks_float = max_bt / float(chk_step)
+                n_chks = int(n_chks_float)
+                if n_chks != n_chks_float:
+                    if return_tail:
+                        n_chks += 1
+            else:
+                n_chks = inf
+
+            chk_idx = 0
+            while chk_idx < n_chks:
+                x = list(islice(it, chk_size))
+                if len(x) < chk_size:  # TODO: Might be able to handle this case outside the loop?
+                    if return_tail:
+                        yield x
+                    break
+                yield x
+                chk_idx += 1
+        else:
+            raise NotImplementedError("Haven't implemented the true iterator case")
 
 
 def first_elements_and_full_iter(it, n=1):
