@@ -43,6 +43,9 @@ def indexed_chunking_random_test(f_list=indexed_chunking_f_list,
                                  x=None,
                                  return_debug_info=False,
                                  verbose=0):
+    """made it so you can just run a function (several times) to test, but if you want to see print outs use verbose=1,
+    and if you want to get a bunch of variables that will then allow you to diagnose things,
+    specify return_debug_info=True"""
     if x is None:
         x = randint(10, 1000)
     if isinstance(x, int):
