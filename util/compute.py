@@ -1,7 +1,14 @@
 from __future__ import division
 
 
-class PredPipeline(object):
+def mk_step_func_name_and_func(step):
+    if len(step) == 2:
+        return step[0], getattr(step[1], '__call__')
+    else:
+        return step[0], getattr(step[1], step[2])
+
+
+class ComputationPipeline(object):
     def __init__(self, steps):
         """
         Constructs a callable object that composes the steps listed in the input.
@@ -10,7 +17,7 @@ class PredPipeline(object):
         Originally intended to compose a pipeline of transformers and models with eachother by composing their objects
         (assumed to have a __call__ method).
         :param steps: A list of (func_name, func) pairs defining the pipeline.
-        >>> f = PredPipeline(steps=[('f', lambda x: x + 2), ('g', lambda x: x * 10)])
+        >>> f = ComputationPipeline(steps=[('f', lambda x: x + 2), ('g', lambda x: x * 10)])
         >>> f(0)
         20
         >>> f(10)
@@ -18,9 +25,7 @@ class PredPipeline(object):
         """
         assert len(steps) > 0, "You need at least one step in your pipeline"
         self.step_names = list()
-        for func_name, func in steps:
-            assert callable(func), \
-                "The object associated with {} wasn't callable".format(func_name)
+        for func_name, func in map(mk_step_func_name_and_func, steps):
             setattr(self, func_name, func)
             self.step_names.append(func_name)
 
