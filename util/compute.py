@@ -1,11 +1,15 @@
 from __future__ import division
 
+from functools import partial
 
-def mk_step_func_name_and_func(step):
+
+def get_step_func_name_obj_and_call_method(step):
     if len(step) == 2:
-        return step[0], getattr(step[1], '__call__')
+        return step[0], step[1], '__call__'
+    elif len(step) == 3:
+        return step[0], step[1], step[2]
     else:
-        return step[0], getattr(step[1], step[2])
+        return step[0], step[1], step[2:]
 
 
 class ComputationPipeline(object):
@@ -25,14 +29,28 @@ class ComputationPipeline(object):
         """
         assert len(steps) > 0, "You need at least one step in your pipeline"
         self.step_names = list()
-        for func_name, func in map(mk_step_func_name_and_func, steps):
-            setattr(self, func_name, func)
+        self.call_method_for_func_name = dict()
+        for func_name, obj, call_method in map(get_step_func_name_obj_and_call_method, steps):
+            setattr(self, func_name, obj)  # make an attribute with the func_name, pointing to object
             self.step_names.append(func_name)
+            func = getattr(obj, call_method)
+            if isinstance(call_method, basestring):
+                self.call_method_for_func_name[func_name] = func
+            else:
+                if len(call_method) == 2 and isinstance(call_method[0], basestring):
+                    partial_args_and_keywords = call_method[1]
+                    call_method = call_method[0]
+                    if isinstance(partial_args_and_keywords, dict):
+                        self.call_method_for_func_name[func_name] = partial(func,
+                                                                            *partial_args_and_keywords['args'],
+                                                                            **partial_args_and_keywords['keywords'])
+                    else:
+                        raise TypeError("Don't know how to handle that type of call_method spec.")
+                else:
+                    raise TypeError("Don't know how to handle that type of call_method spec.")
 
     def __call__(self, *args, **kwargs):
-        f = getattr(self, self.step_names[0])
-        x = f(*args, **kwargs)
+        x = self.call_method_for_func_name[self.step_names[0]](*args, **kwargs)
         for func_name in self.step_names[1:]:
-            f = getattr(self, func_name)
-            x = f(x)
+            x = self.call_method_for_func_name[func_name](x)
         return x
