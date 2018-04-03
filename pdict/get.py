@@ -1,92 +1,11 @@
-__author__ = 'thorwhalen'
+from __future__ import division
+
+import operator
+from functools import reduce  # forward compatibility for Python 3
 
 import ut.util.ulist as ulist
 from numpy import isnan
-from functools import reduce  # forward compatibility for Python 3
-import operator
-from functools import partial
-
-
-# def recursive_list_of_keys(d, key=None):
-#     """
-#     recursive list of lists of dict keys:
-#         get a list (of lists of lists...) of keys of the dict (and the dict's dicts...)
-#     """
-#     try:
-#         if isinstance(d, list) and len(d[0]) > 0 and isinstance(d[0], dict):
-#
-#         klist = d.keys()
-#         for i, x in enumerate(klist):
-#             klist[i] = recursive_list_of_keys(d[x])
-#         return klist
-#     except BaseException:
-#         return d
-
-def nor(*args):
-    for a in args:
-        if not bool(a):
-            return True
-    return False
-
-
-mg_op_key_to_op = {
-    '$gte': operator.le,  # operator reversed because arguments inverse of order we need in code
-    '$gt': operator.lt,  # operator reversed because arguments inverse of order we need in code
-    '$lte': operator.ge,  # operator reversed because arguments inverse of order we need in code
-    '$lt': operator.gt,  # operator reversed because arguments inverse of order we need in code
-    '$in': operator.contains,
-    '$nin': lambda element, _set: not operator.contains(_set, element),
-    '$eq': operator.eq,
-    '$neq': operator.ne,
-    '$not': operator.not_,
-    '$and': operator.__and__,  # TODO: Need to extend to more than two operands
-    '$or': operator.__or__,  # TODO: Need to extend to more than two operands
-    '$nor': nor
-}  # NOTE: Apparent misalignment of gt and lt ops on purpose (order of operator and use is flipped.
-
-
-# TODO: Might want $exists and $type?
-
-def mg_filt_kv_to_func(key_path, val_condition):
-    """
-    Returns a function that checks
-        (1) The existance of a key path in a dict
-        (2) If the value satisfies the condition specified by mongo-query-like val_condition
-    :param key_path: A key path. That is, a field name, or a nested field specification,
-        such as 'this.is.a.nested.field'.
-    :param val_condition: A value or a (single field) mongo-query-like dict
-    :return: A function
-    """
-    if isinstance(val_condition, dict):
-        func_list = list()
-        for k, v in val_condition.iteritems():
-            if k.startswith('$'):
-                func_list.append(partial(mg_op_key_to_op[k], v))
-        if func_list:
-            def key_func(_dict):
-                """
-                Returns True if and only iff all func_list funcs return True
-                """
-                for f in func_list:
-                    if not f(get_value_in_key_path(_dict, key_path, None)):
-                        return False  # stop early, we know it's False
-                return True
-
-            return key_func
-
-    def key_func(_dict):
-        return get_value_in_key_path(_dict, key_path, None) == val_condition
-
-    return key_func
-
-
-def key_func_list_from_mg_filt(mg_filt):
-    """
-    Just applies mg_filt_kv_to_func to every element of the (dict) mg_filt
-    :param mg_filt: A mongo-query-like dict (can have several fields
-    :return: A list of functions
-    """
-    return map(lambda x: mg_filt_kv_to_func(*x), mg_filt.iteritems())
+from mongoquery import Query, QueryError
 
 
 def dict_filt_from_mg_filt(mg_filt):
@@ -155,15 +74,8 @@ def dict_filt_from_mg_filt(mg_filt):
     >>> map(filt, [{'a': x} for x in [9, 10, 15, 20, 21]])
     [False, True, True, False, False]
     """
-    key_func_list = key_func_list_from_mg_filt(mg_filt)
+    return Query(mg_filt).match
 
-    def _filt(_dict):
-        for i, f in enumerate(key_func_list):
-            if not f(_dict):
-                return False
-        return True  # if you get this far
-
-    return _filt
 
 
 def iter_key_path_items(d, key_path_prefix=None):
