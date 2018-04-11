@@ -55,8 +55,6 @@ def vlines_ranges(X, aggr=('min', 'median', 'max'), axis=0, **kwargs):
             plt.plot(x, getattr(np, a)(X, axis=axis), markers[i], **kwargs)
 
 
-
-
 def vlines_of_matrix(X, y=None, col_labels=None, padding=0.05,
                      y_lim=None, col_label_rotation=0, ax=None, figsize=None, alpha=1):
     if y is None:
@@ -126,7 +124,7 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=Fals
     kwargs['cmap'] = cmap
     kwargs = dict(kwargs, interpolation='nearest', aspect='auto')
 
-    if figsize != False:
+    if figsize is not False:
         plt.figure(figsize=figsize)
 
     if ax is None:
