@@ -8,6 +8,7 @@ import itertools
 
 
 from numpy import mod, ndarray, array
+from collections import deque
 from datetime import datetime
 from itertools import islice, chain, imap, combinations, izip_longest
 from operator import itemgetter, is_not
@@ -15,73 +16,51 @@ import operator
 from functools import partial
 
 from random import random
+from numpy import floor
 
 is_not_none = partial(is_not, None)
 
 inf = float('inf')
 
 
-def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
-                                      start_at=None, stop_at=None,
-                                      key=None, return_tail=True):
+def running_mean(it, chk_size=2, chk_step=1):  # TODO: A version of this with chk_step as well
     """
-    a function to get (an iterator of) segments (bt, tt) of chunks from (an iterator of) ordered timestamps,
-    given a chk_size, chk_step, and a start_at time.
-    :param it:
-    :param chk_size:
-    :param chk_step:
-    :param start_at:
-    :param key:
-    :param return_tail:
+    Running mean (moving average) on iterator.
+    Note: When input it is list-like, ut.stats.smooth.sliders version of running_mean is 4 times more efficient with
+    big (but not too big, because happens in RAM) inputs.
+    :param it: iterable
+    :param chk_size: width of the window to take means from
     :return:
     """
+    it = iter(it)
+    if chk_size > 1:
+        c = 0
+        fifo = deque([], maxlen=chk_size)
+        for i, x in enumerate(it, 1):
+            fifo.append(x)
+            c += x
+            if i >= chk_size:
+                break
 
-    if chk_step is None:
-        chk_step = chk_size
-    if key is None:
-        key = lambda x: x
-    if start_at is None:
-        x = it.next()  # get the first element
-        start_at = key(x)  # ... and get the key for it
-        it = itertools.chain([x], it)  # put that first element back in the iterator
+        yield c / chk_size
 
-    chk = list()  # initialize chunk
-
-    # initialize bt and tt (bottom and top of sliding window)
-    bt = start_at
-    tt = bt + chk_size
-
-    stop_at_is_not_none = stop_at is not None
-
-    for x in it:
-        k = key(x)
-        if k < bt:
-            continue  # skip the remainder of the loop code until we get an element >= bt
-        elif (stop_at_is_not_none and stop_at < bt):
-            break
-
-        if bt <= k < tt:
-            chk.append(x)  # adding x to chunk when k is in current window of time
-
+        if chk_step == 1:
+            for x in it:
+                c += x - fifo[0]  # NOTE: seems faster than fifo.popleft
+                fifo.append(x)
+                yield c / chk_size
         else:
-            yield chk  # since k is outside the range of the current chunk, the chunk is complete
+            raise NotImplementedError("Not yet implemented (correctly)")
+            for chk in chunker(it, chk_size=chk_size, chk_step=chk_step, return_tail=False):
+                print chk
+                for x in chk:
+                    c += x - fifo.popleft()
+                fifo.extend(chk)
+                yield c / chk_size
 
-            while tt <= k:  # we yield all the "sliding windows/chunks" until k belongs to one (the if below)
-                # in which case we just add x (represented by k) to chk and go back to considering the
-                # next element in it
-                bt += chk_step
-                tt += chk_step
-                chk = [i for i in chk if bt <= i < tt]
-                if bt <= k < tt:
-                    chk.append(x)
-                else:
-                    yield chk
-
-    while len(chk) > 0:  # return the last few chks, when the iterator it is empty
-        yield chk
-        bt += chk_step
-        tt += chk_step
-        chk = [i for i in chk if bt <= i < tt]
+    else:
+        for x in it:
+            yield x
 
 
 def _inefficient_indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
@@ -138,53 +117,438 @@ class GeneratorLen(object):
         return self.gen
 
 
-def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
-    # TODO: Handle true iterator case
-    if chk_step is None:
-        chk_step = chk_size
-
-    if hasattr(it, '__getslice__'):
-        if stop_at is None:
-            stop_at = len(it)
-        else:
-            stop_at = min(len(it), stop_at)
-        if not return_tail:
-            stop_at = start_at + chk_size * ((stop_at - start_at) // chk_size)
-        it = it[start_at:stop_at]
-        bt = 0
-        tt = bt + chk_size
-        max_bt = stop_at - start_at
-        while bt < max_bt:
-            yield it[bt:tt]
-            bt += chk_step
-            tt += chk_step
-    else:
-        if chk_size <= chk_step:
-            if start_at > 0:
-                for i in xrange(start_at):
-                    _ = it.next()  # throw away the first items
-            if stop_at is not None:
-                stop_at -= start_at
-                max_bt = stop_at - chk_size
-                n_chks_float = max_bt / float(chk_step)
-                n_chks = int(n_chks_float)
-                if n_chks != n_chks_float:
-                    if return_tail:
-                        n_chks += 1
-            else:
-                n_chks = inf
-
-            chk_idx = 0
-            while chk_idx < n_chks:
-                x = list(islice(it, chk_size))
-                if len(x) < chk_size:  # TODO: Might be able to handle this case outside the loop?
-                    if return_tail:
-                        yield x
-                    break
-                yield x
-                chk_idx += 1
-        else:
-            raise NotImplementedError("Haven't implemented the true iterator case")
+#
+# def indexed_sliding_window_chunk_iter(it, chk_size=1, start_at=None,
+#                                       chk_step=None, stop_at=None,
+#                                       key=None, return_tail=True):
+#     """
+#     a function to get (an iterator of) segments (bt, tt) of chunks from (an iterator of) ordered timestamps,
+#     given a chk_size, chk_step, and a start_at time.
+#     :param it:
+#     :param chk_size:
+#     :param chk_step:
+#     :param start_at:
+#     :param key:
+#     :param return_tail:
+#     :return:
+#
+#     1) If stop_at is not None and return_tail is False:
+#        will return all chunks with maximum element (in it or otherwise) less or equal to stop_at.
+#
+#     2) If stop_at is not None and return_tail is True:
+#        will return all chunks with minimum element (in it or otherwise) less or equal to stop_at.
+#
+#     3) If stop_at is None and return_tail is False:
+#        will return all chunks with maximum element less or equal the largest term in it.
+#        In other words, stop_at defaults to the last element of it and the behavior is as 1)
+#
+#     4) If stop_at is None and return_tail is True:
+#        will return all chunks with minimum element less or equal the largest term in it.
+#        In other words, stop_at defaults to the last element of it and the behavior is as 2)
+#
+#     See  /Users/MacBook/Desktop/Otosense/sound_sketch/ca/ChunkIteratorNB.html for examples with pictures
+#
+#     #typical example, last two chunks contains 13 twice since chk_step=2 and return_tail=True
+#     >>> chk_size=2
+#     >>> chk_step=1
+#     >>> start_at=0
+#     >>> stop_at= None
+#     >>> return_tail = True
+#     >>> it = iter([0,2,3,7,9,10,13])
+#     >>> A = indexed_sliding_window_chunk_iter(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
+#     >>> print list(A)
+#     [[0], [2], [2, 3], [3], [], [], [7], [7], [9], [9, 10], [10], [], [13], [13]]
+#
+#     #similar to previous but with a start_at non zero and return_tail=False. The later condition
+#     #implies that 13 is returned only once
+#     >>> chk_size=3
+#     >>> chk_step=2
+#     >>> start_at=1
+#     >>> stop_at= None
+#     >>> return_tail = False
+#     >>> it = iter([0,2,3,7,9,10,13])
+#     >>> A = indexed_sliding_window_chunk_iter(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
+#     >>> print list(A)
+#     [[2, 3], [3], [7], [7, 9], [9, 10], [13]]
+#
+#     #this time stop_at is set to 11, consequently no chunk will contain a higher value, even though 13
+#     #is "within reach" of the last chunk since 11+2=13. This demonstrate the choice of having the
+#     #trailing chunk to not contain any value higher than stop_at.
+#     >>> chk_size=2
+#     >>> chk_step=4
+#     >>> start_at=2
+#     >>> stop_at= 11
+#     >>> return_tail = True
+#     >>> it = iter([0,2,3,7,9,10,13])
+#     >>> A = indexed_sliding_window_chunk_iter(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
+#     >>> print list(A)
+#     [[2, 3], [7], [10]]
+#
+#     #rather typical example. Since stop_at=None, each element of it belongs to at least one chunk
+#     >>> chk_size=5
+#     >>> chk_step=4
+#     >>> start_at=0
+#     >>> stop_at= None
+#     >>> return_tail = True
+#     >>> it = iter([0,2,3,7,9,10,13])
+#     >>> A = indexed_sliding_window_chunk_iter(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
+#     >>> print list(A)
+#     [[0, 2, 3], [7], [9, 10], [13]]
+#
+#     #chk_step is higher than ch_size here, we miss all terms in it which are not multiple of 6 here.
+#     >>> chk_size=1
+#     >>> chk_step=6
+#     >>> start_at=0
+#     >>> stop_at= None
+#     >>> return_tail = True
+#     >>> it = iter([0,2,3,7,9,10,13])
+#     >>> A = indexed_sliding_window_chunk_iter(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
+#     >>> print list(A)
+#     [[0], [], []]
+#
+#     #since the stop_at value is an element of it, we end up having it in at least one chunk. Even with a larger
+#     #chk_step of 3 we would not have 13 in any chunk since it is bove the stop_at value
+#     >>> chk_size=4
+#     >>> chk_step=2
+#     >>> start_at=1
+#     >>> stop_at= 10
+#     >>> return_tail = True
+#     >>> it = iter([0,2,3,7,9,10,13])
+#     >>> A = indexed_sliding_window_chunk_iter(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
+#     >>> print list(A)
+#     [[2, 3], [3], [7], [7, 9, 10], [9, 10]]
+#     """
+#
+#     if chk_step is None:
+#         chk_step = chk_size
+#
+#     for obj in [chk_size, chk_step]:
+#         assert isinstance(obj, int), 'chk_size and chk_step must be integers'
+#         assert obj > 0, 'chk_size and chk_step must be positive'
+#
+#     if key is None:  # key fetches the timestamps of the can signal, if none are given the elements are the timestamps
+#         def key(it_elem):
+#             return it_elem
+#
+#     if start_at is None:
+#         x = it.next()  # get the first element
+#         start_at = key(x)  # ... and get the key for it
+#         it = chain([x], it)  # put that first element back in the iterator
+#
+#     # initialize chunk
+#     chk = list()
+#
+#     # initialize bt and tt (bottom and top of sliding window)
+#     bt = start_at
+#     tt = bt + chk_size
+#
+#     if stop_at is not None and return_tail is False:
+#
+#         for x in it:
+#             k = key(x)
+#
+#             if tt > stop_at:
+#                 return
+#
+#             if k < bt:
+#                 continue  # skip the remainder of the loop code until we get an element >= bt
+#
+#             while tt <= k <= stop_at:
+#                 yield chk
+#                 bt += chk_step
+#                 tt += chk_step
+#                 chk = [i for i in chk if bt <= i < tt]
+#
+#             if bt <= k < tt:  # simplest case, we just append to chk
+#                 chk.append(x)
+#
+#             if k >= tt and k > stop_at:
+#                 while tt <= stop_at:
+#                     yield chk
+#                     bt += chk_step
+#                     tt += chk_step
+#                     chk = [i for i in chk if bt <= i < tt]
+#
+#     if stop_at is not None and return_tail is True:
+#
+#         for x in it:
+#             k = key(x)
+#
+#             if bt > stop_at:
+#                 return
+#
+#             if k < bt:
+#                 continue  # skip the remainder of the loop code until we get an element >= bt
+#
+#             while tt <= k <= stop_at + chk_size:
+#                 yield chk
+#                 bt += chk_step
+#                 tt += chk_step
+#                 chk = [i for i in chk if bt <= i < tt]
+#
+#             if bt <= k < tt:  # simplest case, we just append to chk
+#                 chk.append(x)
+#
+#             if k >= tt and k > stop_at + chk_size:
+#                 while tt <= stop_at + chk_size:
+#                     yield chk
+#                     bt += chk_step
+#                     tt += chk_step
+#                     chk = [i for i in chk if bt <= i < tt]
+#
+#     if stop_at is None and return_tail is False:
+#
+#         for x in it:
+#             k = key(x)
+#
+#             if k < bt:
+#                 continue  # skip the remainder of the loop code until we get an element >= bt
+#
+#             while k >= tt:
+#                 yield chk
+#                 bt += chk_step
+#                 tt += chk_step
+#                 chk = [i for i in chk if bt <= i < tt]
+#
+#             if bt <= k < tt:  # simplest case, we just append to chk
+#                 chk.append(x)
+#
+#         yield chk
+#
+#     if stop_at is None and return_tail is True:
+#
+#         for x in it:
+#             k = key(x)
+#
+#             if k < bt:
+#                 continue  # skip the remainder of the loop code until we get an element >= bt
+#
+#             while k >= tt:
+#                 yield chk
+#                 bt += chk_step
+#                 tt += chk_step
+#                 chk = [i for i in chk if bt <= i < tt]
+#
+#             if bt <= k < tt:  # simplest case, we just append to chk
+#                 chk.append(x)
+#
+#         while len(chk) > 0:
+#             yield chk
+#             bt += chk_step
+#             tt += chk_step
+#             chk = [i for i in chk if bt <= i < tt]
+#
+#
+# def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
+#     """
+#     same as indexed_sliding_window_chunk_iter but in the special case when an element of
+#     it is presented every unit of time. A bit faster for that special case
+#     """
+#
+#     if chk_step is None:
+#         chk_step = chk_size
+#
+#     if start_at is None:
+#         x = it.next()  # get the first element
+#         start_at = x
+#         it = chain([x], it)  # put that first element back in the iterator
+#
+#     # initialize bt and tt (bottom and top of sliding window)
+#     bt = start_at
+#     tt = bt + chk_size
+#     chk = []
+#
+#     if stop_at is None:
+#         for x in it:
+#             if x < bt:
+#                 continue  # skip the remainder of the loop code until we get an element >= bt
+#
+#             while x >= tt:
+#                 yield chk
+#                 bt += chk_step
+#                 tt += chk_step
+#                 chk = [i for i in chk if bt <= i < tt]
+#
+#             if bt <= x < tt:  # simplest case, we just append to chk
+#                 chk.append(x)
+#
+#         # if last created chk fits entirely before the last element of it we return that last chk
+#         if return_tail is False and len(chk) == chk_size:
+#             yield chk
+#
+#             # otherwise we don't, unless return_tail is true in which case we also return it along
+#         # with all its "shifts" to the right by chk_step
+#         elif return_tail is True:
+#             while len(chk) > 0:
+#                 yield chk
+#                 bt += chk_step
+#                 tt += chk_step
+#                 chk = [i for i in chk if bt <= i < tt]
+#
+#     if stop_at is None:
+#         for x in it:
+#             while tt <= stop_at:
+#                 if x < bt:
+#                     continue  # skip the remainder of the loop code until we get an element >= bt
+#
+#                 while x >= tt:
+#                     yield chk
+#                     bt += chk_step
+#                     tt += chk_step
+#                     chk = [i for i in chk if bt <= i < tt]
+#
+#                 if bt <= x < tt:  # simplest case, we just append to chk
+#                     chk.append(x)
+#
+#         # if last created chk fits entirely before the last element of it we return that last chk
+#         if return_tail is False and len(chk) == chk_size:
+#             yield chk
+#
+#             # otherwise we don't, unless return_tail is true in which case we also return it along
+#         # with all its "shifts" to the right by chk_step
+#         elif return_tail is True:
+#             while len(chk) > 0:
+#                 yield chk
+#                 bt += chk_step
+#                 tt += chk_step
+#                 chk = [i for i in chk if bt <= i < tt]
+#
+#
+# def fast_chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
+#     """
+#         Faster version of the chunker. Much faster when chk_size is large
+#
+#     Args:
+#         it: iterator
+#         chk_size:  int
+#         chk_step: int
+#         start_at: int
+#         stop_at: int
+#         return_tail: boolean
+#
+#     Returns:
+#
+#     """
+#
+#     if chk_step is None:
+#         chk_step = chk_size
+#
+#     if stop_at is None:
+#         assert isinstance(stop_at, int), 'stop_at should be an integer'
+#
+#     # we set stop_at to be infinity by default
+#     if stop_at is None:
+#         stop_at = inf
+#
+#     # setting the start_at to the first element of the iterator by default
+#     if start_at is None:
+#         x = it.next()
+#         start_at = x
+#         it = chain([x], it)  # put that first element back in the iterator
+#
+#     # checking a few things
+#     assert isinstance(chk_size, int) and chk_size > 0, 'chk_size should be a positive interger'
+#     assert isinstance(chk_step, int) and chk_step > 0, 'chk_step should be a positive integer'
+#     assert isinstance(start_at, int), 'start_at should be an integer'
+#     assert stop_at > start_at, 'stop_at should be larger than start_at'
+#
+#     # initializing chk
+#     chk = []
+#
+#     # in that case, nothing to return
+#     if stop_at - start_at < chk_size and not return_tail:
+#         return
+#
+#     # in that case only tails are returned
+#     if stop_at - start_at < chk_size and return_tail:
+#         bt = start_at
+#         tt = bt + chk_size
+#         elem = it.next()
+#         # skipping terms smaller than bottom of the chk
+#         while elem < bt:
+#             elem = it.next()
+#         # appending terms in the range of chk
+#         while elem < tt:
+#             chk.append(elem)
+#             elem = it.next()
+#         # yielding the chk as build above along with its shifts, truncated above by stop_at
+#         # and below by the sliding bt's
+#         while bt <= stop_at:
+#             yield chk
+#             bt += chk_step
+#             chk = [i for i in chk if i >= bt]
+#         return
+#
+#         # if stop_at is not given, the number of chks will be infinity (or until it is exhausted)
+#     if stop_at == inf:
+#         n_chunks = inf
+#
+#     # computing the number of chk to return in the general case
+#     elif stop_at != inf:
+#         n_chunks = int(floor((stop_at - start_at + 1 - chk_size) / chk_step) + 1)
+#
+#     # main loop for chk_step < chk_size
+#     if chk_step < chk_size:
+#         # counter for the number of chk returned
+#         chunk_number = 1
+#         # find and return the first chk
+#         chk = list(islice(it, start_at, start_at + chk_size, 1))
+#         yield chk
+#         # number of terms to add to chk after shifting the previous one by chk_step
+#         n_it_to_add = chk_step
+#         # find and return the first chk
+#         while chunk_number < n_chunks:
+#             chunk_number += 1
+#             chk = chk[chk_step:]
+#             for i in range(n_it_to_add):
+#                 to_add = it.next()
+#                 chk.append(to_add)
+#             yield chk
+#
+#         # return the tail up to stop_at
+#         if return_tail and stop_at != inf:
+#             # find the current bt and add the chk_step to get the next bt
+#             bt = min(chk) + chk_step
+#             while bt <= stop_at:
+#                 # anything from current bt to stop_at (included, thus the +1)
+#                 chk = range(bt, stop_at + 1, 1)
+#                 yield chk
+#                 bt += chk_step
+#
+#     # main loop for chk_step >= chk_size
+#     if chk_step >= chk_size:
+#         # number of terms to skip when going from one chk to the next
+#         n_it_to_skip = chk_step - chk_size
+#         # counter for the number of chk returned
+#         chunk_number = 1
+#         # find and return the first chk
+#         chk = list(islice(it, start_at, start_at + chk_size, 1))
+#         yield chk
+#         # find and return the other ones
+#         while chunk_number < n_chunks:
+#             chk = []
+#             for i in range(n_it_to_skip):
+#                 it.next()
+#             for i in range(chk_size):
+#                 to_add = it.next()
+#                 chk.append(to_add)
+#             yield chk
+#             chunk_number += 1
+#
+#         if return_tail and stop_at != inf:
+#             # if the min element of the last chk plus the chk_step is more than stop_at
+#             # there is nothing to return
+#             if min(chk) + chk_step > stop_at:
+#                 return
+#             # otherwise there is exactly one more chk to yield
+#             chk = []
+#             for i in range(n_it_to_skip):
+#                 it.next()
+#             elem = it.next()
+#             while elem <= stop_at:
+#                 chk.append(elem)
+#                 elem = it.next()
+#             yield chk
 
 
 def first_elements_and_full_iter(it, n=1):
@@ -613,3 +977,119 @@ def tee_lookahead(t, i):
     for value in islice(t.__copy__(), i, None):
         return value
     raise IndexError(i)
+
+
+def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
+                                      start_at=None, stop_at=None,
+                                      key=None, return_tail=True):
+    """
+    a function to get (an iterator of) segments (bt, tt) of chunks from (an iterator of) ordered timestamps,
+    given a chk_size, chk_step, and a start_at time.
+    :param it:
+    :param chk_size:
+    :param chk_step:
+    :param start_at:
+    :param key:
+    :param return_tail:
+    :return:
+    """
+
+    if chk_step is None:
+        chk_step = chk_size
+    if key is None:
+        key = lambda x: x
+    if start_at is None:
+        x = it.next()  # get the first element
+        start_at = key(x)  # ... and get the key for it
+        it = itertools.chain([x], it)  # put that first element back in the iterator
+
+    chk = list()  # initialize chunk
+
+    # initialize bt and tt (bottom and top of sliding window)
+    bt = start_at
+    tt = bt + chk_size
+
+    stop_at_is_not_none = stop_at is not None
+
+    for x in it:
+        k = key(x)
+        if k < bt:
+            continue  # skip the remainder of the loop code until we get an element >= bt
+        elif (stop_at_is_not_none and stop_at < bt):
+            break
+
+        if bt <= k < tt:
+            chk.append(x)  # adding x to chunk when k is in current window of time
+
+        else:
+            yield chk  # since k is outside the range of the current chunk, the chunk is complete
+
+            while tt <= k:  # we yield all the "sliding windows/chunks" until k belongs to one (the if below)
+                # in which case we just add x (represented by k) to chk and go back to considering the
+                # next element in it
+                bt += chk_step
+                tt += chk_step
+                chk = [i for i in chk if bt <= i < tt]
+                if bt <= k < tt:
+                    chk.append(x)
+                else:
+                    yield chk
+
+    while len(chk) > 0:  # return the last few chks, when the iterator it is empty
+        yield chk
+        bt += chk_step
+        tt += chk_step
+        chk = [i for i in chk if bt <= i < tt]
+
+
+def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
+    # TODO: Handle true iterator case
+    if chk_step is None:
+        chk_step = chk_size
+
+    if hasattr(it, '__getslice__'):
+        if stop_at is None:
+            stop_at = len(it)
+        else:
+            stop_at = min(len(it), stop_at)
+        if not return_tail:
+            stop_at = start_at + chk_size * ((stop_at - start_at) // chk_size)
+        it = it[start_at:stop_at]
+        bt = 0
+        tt = bt + chk_size
+        max_bt = stop_at - start_at
+        while bt < max_bt:
+            yield it[bt:tt]
+            bt += chk_step
+            tt += chk_step
+    else:
+        if chk_size <= chk_step:
+            if start_at > 0:
+                for i in xrange(start_at):
+                    _ = it.next()  # throw away the first items
+            if stop_at is not None:
+                stop_at -= start_at
+                max_bt = stop_at - chk_size
+                n_chks_float = max_bt / float(chk_step)
+                n_chks = int(n_chks_float)
+                if n_chks != n_chks_float:
+                    if return_tail:
+                        n_chks += 1
+            else:
+                n_chks = inf
+
+            chk_idx = 0
+            while chk_idx < n_chks:
+                x = list(islice(it, chk_size))
+                if len(x) < chk_size:  # TODO: Might be able to handle this case outside the loop?
+                    if return_tail:
+                        yield x
+                    break
+                yield x
+                chk_idx += 1
+        else:
+            from warnings import warn
+            warn("Haven't implemented the true iterator case")
+            for x in chunker(list(it), chk_size, chk_step=chk_step, start_at=start_at, stop_at=stop_at,
+                             return_tail=return_tail):
+                yield x
