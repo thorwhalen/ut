@@ -43,6 +43,7 @@ class KeepMinK(list):
     If you push items that have only one element, it will raise an IndexError.
     If you push items that have more than 2 elements, only the first two will be taken into account.
     """
+
     def __init__(self, k):
         super(self.__class__, self).__init__()
         self.k = k
@@ -109,7 +110,7 @@ def ismember_lidx(A, B):
 #     return tf, index
 
 def sort_as(sort_x, as_y, **sorted_kwargs):
-    return [x for (y,x) in sorted(zip(as_y, sort_x), **sorted_kwargs)]
+    return [x for (y, x) in sorted(zip(as_y, sort_x), **sorted_kwargs)]
 
 
 def all_true(x):
@@ -144,9 +145,9 @@ def ascertain_list(x):
             x = list(x)
         else:
             x = [x]
-        ## The (less safe) "just force what you want to do differently in those cases only" approach
-        # if isinstance(x, np.ndarray):
-        #     x = list(x)
-        # else:
-        #     x = [x]
+            ## The (less safe) "just force what you want to do differently in those cases only" approach
+            # if isinstance(x, np.ndarray):
+            #     x = list(x)
+            # else:
+            #     x = [x]
     return x
