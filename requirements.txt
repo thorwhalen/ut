@@ -55,7 +55,6 @@ graphkit==1.0.3
 greenlet==0.4.10
 grin==1.2.1
 h5py==2.6.0
-hdbscan==0.8.5
 HeapDict==1.0.0
 idna==2.1
 imagesize==0.7.1
