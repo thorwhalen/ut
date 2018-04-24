@@ -118,6 +118,7 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
 
 
 def extract_kwargs(request, convert_arg=None, file_var='file'):
+    print convert_arg
     if convert_arg is None:
         convert_arg = {}
     kwargs = dict()
@@ -132,7 +133,12 @@ def extract_kwargs(request, convert_arg=None, file_var='file'):
         else:
             kwargs[k] = request.args.get(k)
     if request.json is not None:
-        kwargs = dict(kwargs, **request.json)
+        for k, v in request.json.iteritems():
+            if k in convert_arg:
+                _type = convert_arg[k].get('type', None)
+                if callable(_type):
+                    v = _type(v)
+            kwargs[k] = v
     if 'file' in request.files:
         kwargs[file_var] = request.files['file']
     return kwargs
