@@ -118,7 +118,6 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
 
 
 def extract_kwargs(request, convert_arg=None, file_var='file'):
-    print convert_arg
     if convert_arg is None:
         convert_arg = {}
     kwargs = dict()
