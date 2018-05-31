@@ -1166,9 +1166,9 @@ def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=F
         else:
             stop_at = min(len(it), stop_at)
         if not return_tail:
-            print chk_size, start_at, stop_at
+            # print chk_size, start_at, stop_at
             stop_at = start_at + chk_size * ((stop_at - start_at) // chk_size)
-            print stop_at
+            # print stop_at
         it = it[start_at:stop_at]
         bt = 0
         tt = bt + chk_size
