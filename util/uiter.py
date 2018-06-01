@@ -252,7 +252,7 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
                 yield chk
                 bt += chk_step
                 tt += chk_step
-                chk = [i for i in chk if bt <= i < tt]
+                chk = [i for i in chk if bt <= key(i) < tt]
 
             if bt <= k < tt:  # simplest case, we just append to chk
                 chk.append(x)
@@ -262,7 +262,7 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
                     yield chk
                     bt += chk_step
                     tt += chk_step
-                    chk = [i for i in chk if bt <= i < tt]
+                    chk = [i for i in chk if bt <= key(i) < tt]
 
     if stop_at is not None and return_tail is True:
 
@@ -279,7 +279,7 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
                 yield chk
                 bt += chk_step
                 tt += chk_step
-                chk = [i for i in chk if bt <= i < tt]
+                chk = [i for i in chk if bt <= key(i) < tt]
 
             if bt <= k < tt:  # simplest case, we just append to chk
                 chk.append(x)
@@ -289,7 +289,7 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
                     yield chk
                     bt += chk_step
                     tt += chk_step
-                    chk = [i for i in chk if bt <= i < tt]
+                    chk = [i for i in chk if bt <= key(i) < tt]
 
     if stop_at is None and return_tail is False:
 
@@ -303,7 +303,7 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
                 yield chk
                 bt += chk_step
                 tt += chk_step
-                chk = [i for i in chk if bt <= i < tt]
+                chk = [i for i in chk if bt <= key(i) < tt]
 
             if bt <= k < tt:  # simplest case, we just append to chk
                 chk.append(x)
@@ -322,7 +322,7 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
                 yield chk
                 bt += chk_step
                 tt += chk_step
-                chk = [i for i in chk if bt <= i < tt]
+                chk = [i for i in chk if bt <= key(i) < tt]
 
             if bt <= k < tt:  # simplest case, we just append to chk
                 chk.append(x)
@@ -331,7 +331,7 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
             yield chk
             bt += chk_step
             tt += chk_step
-            chk = [i for i in chk if bt <= i < tt]
+            chk = [i for i in chk if bt <= key(i) < tt]
 
 
 def fast_chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
