@@ -3,8 +3,22 @@ __author__ = 'thorwhalen'
 import itertools
 import re
 from collections import namedtuple as _namedtuple
-from collections import Counter
-from warnings import warn
+from collections import Counter, defaultdict
+
+
+def permute_first_and_second_level_of_dict(d):
+    """
+    Restructures a nested dict, swapping the first and second levels.
+    :param d:
+    :return: A dict with first and second levels swapped.
+    >>> permute_first_and_second_level_of_dict({"A": {"AA": 1}, "B": {"BB": 2, "AA": "the_AA_under_B"}})
+    {'AA': {'A': 1, 'B': 'the_AA_under_B'}, 'BB': {'B': 2}}
+    """
+    new_d = defaultdict(dict)
+    for k, dd in d.items():
+        for kk, v in dd.items():
+            new_d[kk][k] = v
+    return dict(new_d)
 
 
 def kv_tuple_list(d):
@@ -170,15 +184,15 @@ def inverse_many_to_one(d):
 
 
 
-# def dataframe(d):
-#     """
-#     returns a datafame from a multi-level dict
-#     NOTE: use pd.DataFrame.from_dict() instead for up to two depth levels
-#     """
-#     val_list
-#     for key,val in d.values():
-#         frames.append(pd.DataFrame.from_dict(val, orient='index'))
-#     return pd.concat(frames, keys=key_list)
+    # def dataframe(d):
+    #     """
+    #     returns a datafame from a multi-level dict
+    #     NOTE: use pd.DataFrame.from_dict() instead for up to two depth levels
+    #     """
+    #     val_list
+    #     for key,val in d.values():
+    #         frames.append(pd.DataFrame.from_dict(val, orient='index'))
+    #     return pd.concat(frames, keys=key_list)
 
 
     # some code from someone else that words for depths of exactly 3
@@ -193,7 +207,7 @@ def inverse_many_to_one(d):
 
 
 
-# if __name__ == "__main__":
+    # if __name__ == "__main__":
 
 
 
@@ -203,12 +217,12 @@ def inverse_many_to_one(d):
 
 
 
-# # test for dataframe
-# from pdict.to import dataframe as dict2df
-# w = {12: {'Category 1': {'att_1': 1, 'att_2': 'whatever'},
-#   'Category 2': {'att_1': 23, 'att_2': 'another'}},
-#  15: {'Category 1': {'att_1': 10, 'att_2': 'foo'},
-#   'Category 2': {'att_1': 30, 'att_2': 'bar'}}}
-# df = dict2df(w)
-# print w
-# print df
+    # # test for dataframe
+    # from pdict.to import dataframe as dict2df
+    # w = {12: {'Category 1': {'att_1': 1, 'att_2': 'whatever'},
+    #   'Category 2': {'att_1': 23, 'att_2': 'another'}},
+    #  15: {'Category 1': {'att_1': 10, 'att_2': 'foo'},
+    #   'Category 2': {'att_1': 30, 'att_2': 'bar'}}}
+    # df = dict2df(w)
+    # print w
+    # print df
