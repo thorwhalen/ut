@@ -30,6 +30,24 @@ def import_non_local(name, custom_name=None):
     return module
 
 
+def synchronized(lock):
+    """
+
+    :param lock: multiprocessing.Lock or threading.Lock
+    :return:
+    """
+
+    def wrapper(func):
+        @wraps(func)
+        def sync_func(*args, **kwargs):
+            with lock:
+                return func(*args, **kwargs)
+
+        return sync_func
+
+    return wrapper
+
+
 def real_time_it(func, output_func=sys.stdout.write):
     time = import_non_local('time.time')
 
