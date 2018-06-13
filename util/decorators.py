@@ -6,8 +6,62 @@ from inspect import getargspec, isfunction
 from itertools import izip, ifilter, starmap
 import inspect
 import functools
+import sys
 
 __author__ = 'thor'
+
+
+# TODO: refactor util/time.py to a different name so this hack isn't needed
+def import_non_local(name, custom_name=None):
+    """
+    https://stackoverflow.com/questions/6031584/importing-from-builtin-library-when-module-with-same-name-exists
+    :param name:
+    :param custom_name:
+    :return:
+    """
+    import imp, sys
+
+    custom_name = custom_name or name
+
+    f, pathname, desc = imp.find_module(name, sys.path[1:])
+    module = imp.load_module(custom_name, f, pathname, desc)
+    f.close()
+
+    return module
+
+
+def real_time_it(func, output_func=sys.stdout.write):
+    time = import_non_local('time.time')
+
+    def wrapper(*args, **kwargs):
+        start = time()
+        ret = func(*args, **kwargs)
+        end = time()
+        msg = "{} with following args: {} and kwargs: {} took {}s (real_time).".format(func.func_name,
+                                                                                       args,
+                                                                                       kwargs,
+                                                                                       (end - start))
+        output_func(msg)
+        return ret
+
+    return wrapper
+
+
+def cpu_time_it(func, output_func=sys.stdout.write):
+    clock = import_non_local('time.clock')
+
+    def wrapper(*args, **kwargs):
+        start = clock()
+        ret = func(*args, **kwargs)
+        end = clock()
+        msg = "{} with following args: {} and kwargs: {} took {}s (cpu_time).".format(func.func_name,
+                                                                                      args,
+                                                                                      kwargs,
+                                                                                      (end - start))
+        output_func(msg)
+        return ret
+
+    return wrapper
 
 
 def decorate_all_methods(decorator, exclude=(), include=()):
