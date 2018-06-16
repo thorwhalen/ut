@@ -7,13 +7,10 @@ from glob import iglob
 
 __author__ = 'thor'
 
-
 file_sep = os.sep
 
-
-class FilePatterns(object):
-    NOT_HIDDEN_FILE = '^[^.].+'
-    WAV_EXTENSION = '.wav$'
+NOT_HIDDEN_FILE = '^[^.].+'
+WAV_EXTENSION = '.wav$'
 
 
 def get_file_iterator(root_folder,
