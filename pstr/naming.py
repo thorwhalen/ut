@@ -1,3 +1,7 @@
+"""
+generate parametrized strings and parse out the parameters of templated strings
+"""
+
 from __future__ import division
 
 import re

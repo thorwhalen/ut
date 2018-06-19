@@ -1161,22 +1161,9 @@ def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=F
         chk_step = chk_size
 
     if hasattr(it, '__getslice__'):
-        if stop_at is None:
-            stop_at = len(it)
-        else:
-            stop_at = min(len(it), stop_at)
-        if not return_tail:
-            # print chk_size, start_at, stop_at
-            stop_at = start_at + chk_size * ((stop_at - start_at) // chk_size)
-            # print stop_at
-        it = it[start_at:stop_at]
-        bt = 0
-        tt = bt + chk_size
-        max_bt = stop_at - start_at
-        while bt < max_bt:
-            yield it[bt:tt]
-            bt += chk_step
-            tt += chk_step
+        for x in chunker_with_sliceable_iterator(
+                it, chk_size, chk_step=chk_step, start_at=start_at, stop_at=stop_at, return_tail=return_tail):
+            yield x
     else:
         if chk_size <= chk_step:
             if start_at > 0:
@@ -1208,3 +1195,20 @@ def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=F
             for x in chunker(list(it), chk_size, chk_step=chk_step, start_at=start_at, stop_at=stop_at,
                              return_tail=return_tail):
                 yield x
+
+
+def chunker_with_sliceable_iterator(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
+    if stop_at is None:
+        stop_at = len(it)
+    else:
+        stop_at = min(len(it), stop_at)
+    if not return_tail:
+        stop_at = start_at + (chk_size - chk_step) + chk_step * ((stop_at - start_at) // chk_step)
+    it = it[start_at:stop_at]
+    max_bt = stop_at - start_at - chk_size
+    bt = 0
+    tt = bt + chk_size
+    while bt <= max_bt:
+        yield it[bt:tt]
+        bt += chk_step
+        tt += chk_step
