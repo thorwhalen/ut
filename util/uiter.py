@@ -334,399 +334,6 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
             chk = [i for i in chk if bt <= key(i) < tt]
 
 
-def fast_chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
-    """
-      a function to get (an iterator of) segments (bt, tt) of chunks from the iterator of {1,2,3...end},
-      given a chk_size, chk_step, and a start_at time.
-      :param it: iterator xrange(start,stop,1)
-      :param chk_size: length of the chunks
-      :param chk_step: step between chunks
-      :param start_at: value from the iterator at which we begin building the chunks (inclusive)
-      :param stop_at: last value from the iterator included in the chunks
-      :param return_tail: if set to false, only the chunks with max element less than stop_at are yielded
-      if set to true, any chunks with min value no more than stop_at are returned but they contain values no more
-      than stop_at
-      :return: an iterator of the chunks
-
-      1) If stop_at is not None and return_tail is False:
-         will return all chunks with maximum element (in it or otherwise) less or equal to stop_at.
-
-      2) If stop_at is not None and return_tail is True:
-         will return all chunks with minimum element (in it or otherwise) less or equal to stop_at.
-
-      3) If stop_at is None and return_tail is False:
-         will return all chunks with maximum element less or equal the largest term in it.
-         In other words, stop_at defaults to the last element of it and the behavior is as 1)
-
-      4) If stop_at is None and return_tail is True:
-         will return all chunks with minimum element less or equal the largest term in it.
-         In other words, stop_at defaults to the last element of it and the behavior is as 2)
-
-      See  /Users/MacBook/Desktop/Otosense/sound_sketch/ca/ChunkIteratorNB.html for examples with pictures
-
-      >>> chk_size = 3
-      >>> chk_step = 2
-      >>> start_at = 1
-      >>> stop_at = None
-      >>> return_tail = True
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size=chk_size, start_at=start_at, chk_step=chk_step,stop_at=stop_at,return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2, 3], [3, 4, 5], [5, 6, 7], [7, 8, 9], [9, 10, 11], [11, 12, 13], [13, 14, 15], [15, 16]]
-
-      >>> chk_size=3
-      >>> chk_step=2
-      >>> start_at=1
-      >>> stop_at= 14
-      >>> return_tail = True
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2, 3], [3, 4, 5], [5, 6, 7], [7, 8, 9], [9, 10, 11], [11, 12, 13], [13, 14]]
-
-      >>> chk_size=3
-      >>> chk_step=2
-      >>> start_at=1
-      >>> stop_at= 14
-      >>> return_tail = False
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2, 3], [3, 4, 5], [5, 6, 7], [7, 8, 9], [9, 10, 11], [11, 12, 13]]
-
-      >>> chk_size=2
-      >>> chk_step=3
-      >>> start_at=2
-      >>> stop_at= None
-      >>> return_tail = True
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[2, 3], [5, 6], [8, 9], [11, 12], [14, 15], [17]]
-
-      >>> chk_size=2
-      >>> chk_step=3
-      >>> start_at=2
-      >>> stop_at= None
-      >>> return_tail = False
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[2, 3], [5, 6], [8, 9], [11, 12], [14, 15]]
-
-      >>> chk_size=3
-      >>> chk_step=2
-      >>> start_at=2
-      >>> stop_at= 14
-      >>> return_tail = True
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[2, 3, 4], [4, 5, 6], [6, 7, 8], [8, 9, 10], [10, 11, 12], [12, 13, 14], [14]]
-
-      >>> chk_size=2
-      >>> chk_step=3
-      >>> start_at=None
-      >>> stop_at=None
-      >>> return_tail = True
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2], [4, 5], [7, 8], [10, 11], [13, 14], [16, 17]]
-
-      >>> chk_size=5
-      >>> chk_step=5
-      >>> start_at=0
-      >>> stop_at=17
-      >>> return_tail = True
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [16, 17]]
-
-
-      >>> chk_size=5
-      >>> chk_step=5
-      >>> start_at=None
-      >>> stop_at=16
-      >>> return_tail = True
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [16]]
-
-
-      >>> chk_size=50
-      >>> chk_step=5
-      >>> start_at=None
-      >>> stop_at=16
-      >>> return_tail = False
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      []
-
-
-      >>> chk_size=50
-      >>> chk_step=5
-      >>> start_at=None
-      >>> stop_at=16
-      >>> return_tail = True
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [11, 12, 13, 14, 15, 16], [16]]
-
-      >>> chk_size=2
-      >>> chk_step=3
-      >>> start_at=2
-      >>> stop_at=None
-      >>> return_tail = True
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[2, 3], [5, 6], [8, 9], [11, 12], [14, 15], [17]]
-
-
-      >>> chk_size=2
-      >>> chk_step=1
-      >>> start_at=2
-      >>> stop_at=15
-      >>> return_tail = False
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [13, 14], [14, 15]]
-
-      >>> chk_size=1
-      >>> chk_step=1
-      >>> start_at=2
-      >>> stop_at=15
-      >>> return_tail = False
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15]]
-
-      >>> chk_size=3
-      >>> chk_step=2
-      >>> start_at=1
-      >>> stop_at=None
-      >>> return_tail=True
-      >>> it = iter(xrange(1,18,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2, 3], [3, 4, 5], [5, 6, 7], [7, 8, 9], [9, 10, 11], [11, 12, 13], [13, 14, 15], [15, 16, 17], [17]]
-
-      >>> chk_size=3
-      >>> chk_step=8
-      >>> start_at=1
-      >>> stop_at=None
-      >>> return_tail=True
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[1, 2, 3], [9, 10, 11]]
-
-      >>> chk_size=3
-      >>> chk_step=8
-      >>> start_at=1000
-      >>> stop_at=None
-      >>> return_tail=True
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      []
-
-      >>> chk_size=3
-      >>> chk_step=8
-      >>> start_at=1000
-      >>> stop_at=None
-      >>> return_tail=True
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      []
-
-      >>> chk_size=3
-      >>> chk_step=8000
-      >>> start_at=10
-      >>> stop_at=None
-      >>> return_tail=True
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[10, 11, 12]]
-
-      >>> chk_size=300
-      >>> chk_step=8
-      >>> start_at=10
-      >>> stop_at=None
-      >>> return_tail=False
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      []
-
-      >>> chk_size=300
-      >>> chk_step=8
-      >>> start_at=10
-      >>> stop_at=None
-      >>> return_tail=True
-      >>> it = iter(xrange(1,17,1))
-      >>> A = fast_chunker(it, chk_size, chk_step, start_at, stop_at, return_tail=return_tail)
-      >>> print list(A)
-      [[10, 11, 12, 13, 14, 15, 16]]
-
-       """
-
-    if chk_step is None:
-        chk_step = chk_size
-
-    if stop_at is not None:
-        assert isinstance(stop_at, int), 'stop_at should be an integer'
-
-    # we set stop_at to be infinity by default
-    if stop_at is None:
-        stop_at = inf
-
-    # looking up the value of the first element
-    x = it.next()
-
-    # consuming it until we reach start_at
-    if start_at is not None:
-        while x < start_at:
-            x = it.next()
-        it = chain([x], it)
-
-    # setting the start_at to the first element of the iterator by default
-    if start_at is None:
-        start_at = x
-        it = chain([x], it)  # put that first element back in the iterator
-
-    # checking a few things
-    assert isinstance(chk_size, int) and chk_size > 0, 'chk_size should be a positive interger'
-    assert isinstance(chk_step, int) and chk_step > 0, 'chk_step should be a positive integer'
-    assert isinstance(start_at, int), 'start_at should be an integer'
-    assert stop_at > start_at, 'stop_at should be larger than start_at'
-
-    # initializing chk
-    chk = []
-
-    # in that case, nothing to return
-    if stop_at - start_at < chk_size and not return_tail:
-        return
-
-    # in that case only tails are returned
-    finish = False
-    if stop_at - start_at < chk_size and return_tail:
-        bt = start_at
-        tt = min(bt + chk_size, stop_at + 1)
-        elem = it.next()
-        while elem < tt and finish is False:
-            chk.append(elem)
-            try:
-                elem = it.next()
-            except:
-                finish = True
-
-        # yielding the chk as build above along with its shifts, truncated above by stop_at
-        # and below by the sliding bt's
-        while bt <= stop_at:
-            yield chk
-            bt += chk_step
-            chk = [i for i in chk if i >= bt]
-        return
-
-    # if stop_at is not given, the number of chks will be infinity (or until it is exhausted)
-    if stop_at is inf:
-        n_chunks = inf
-    else:  # compute the number of chk to return in the general case
-        n_chunks = int(floor((stop_at - start_at + 1 - chk_size) / chk_step) + 1)
-
-    # main loop for chk_step < chk_size
-    if chk_step < chk_size:
-        # counter for the number of chk returned
-        chunk_number = 1
-        # find and return the first chk
-        chk = list(islice(it, 0, chk_size, 1))
-        if return_tail or (not return_tail and len(chk) == chk_size):
-            yield chk
-        # number of terms to add to chk after shifting the previous one by chk_step
-        n_it_to_add = chk_step
-        # find and return the first chk
-        finish = False
-        while chunk_number < n_chunks and finish is False:
-            chunk_number += 1
-            chk = chk[chk_step:]
-            for i in range(n_it_to_add):
-                try:
-                    to_add = it.next()
-                    if to_add <= stop_at:
-                        chk.append(to_add)
-                except:
-                    finish = True
-                    break
-            if len(chk) == chk_size or (return_tail is True and len(chk) > 0):
-                yield chk
-
-        # return the tail up to stop_at
-        if return_tail and stop_at != inf:
-            # find the current bt and add the chk_step to get the next bt
-            bt = min(chk) + chk_step
-            while bt <= stop_at:
-                # anything from current bt to stop_at (included, thus the +1)
-                chk = range(bt, stop_at + 1, 1)
-                yield chk
-                bt += chk_step
-
-    # main loop for chk_step >= chk_size
-    if chk_step >= chk_size:
-        # number of terms to skip when going from one chk to the next
-        n_it_to_skip = chk_step - chk_size
-        # counter for the number of chk returned
-        chunk_number = 1
-        # find and return the first chk
-        chk = list(islice(it, 0, chk_size, 1))
-        yield chk
-        # find and return the other ones
-        finish = False
-        while chunk_number < n_chunks and finish is False:
-            chk = []
-            for i in range(n_it_to_skip):
-                it.next()
-            for i in range(chk_size):
-                try:
-                    to_add = it.next()
-                    chk.append(to_add)
-                except:
-                    finish = True
-                    break
-            if len(chk) == chk_size or (return_tail is True and len(chk) > 0):
-                yield chk
-            chunk_number += 1
-
-        if return_tail and stop_at != inf:
-            # if the min element of the last chk plus the chk_step is more than stop_at
-            # there is nothing to return
-            finish = False
-            if min(chk) + chk_step > stop_at:
-                return
-            # otherwise there is exactly one more chk to yield
-            chk = []
-            for i in range(n_it_to_skip):
-                it.next()
-            elem = it.next()
-            while elem <= stop_at and finish is False:
-                try:
-                    chk.append(elem)
-                    elem = it.next()
-                except:
-                    finish = True
-                    break
-            yield chk
-
-
 def first_elements_and_full_iter(it, n=1):
     """
     Given an iterator it, returns the pair (first_elements, it) (where it is the full original
@@ -1155,60 +762,306 @@ def tee_lookahead(t, i):
     raise IndexError(i)
 
 
-def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
-    # TODO: Handle true iterator case
+def chunker(it, chk_size, chk_step=None, start_at=None, stop_at=None, return_tail=False):
+    """
+      a function to get (an iterator of) segments (bt, tt) of chunks from an iterator (or list)
+      of the for [it_1, it_2...], given a chk_size, chk_step, and a start_at and a stop_at.
+      The start_at, stop_at act like slices indices for a list: start_at is included and stop_at is excluded
+
+      :param it: iterator of elements of any type
+      :param chk_size: length of the chunks
+      :param chk_step: step between chunks
+      :param start_at: index of the first term of the iterator at which we begin building the chunks (inclusive)
+      :param stop_at: index of the last term from the iterator included in the chunks
+      :param return_tail: if set to false, only the chunks with max element with index less than stop_at are yielded
+      if set to true, any chunks with minimum index value no more than stop_at are returned but they contain
+      term with index no more than stop_at
+      :return: an iterator of the chunks
+
+      1) If stop_at is not None and return_tail is False:
+         will return all full chunks with maximum element index less than stop_at
+         or until the iterator is exhausted. Only full chunks are returned here.
+
+      2) If stop_at is not None and return_tail is True:
+         will return all full chunks as above along with possibly cut off chunks
+         containing one term whose index is stop_at-1 or one (last) term which is the
+         last element of it
+
+      3) If stop_at is None and return_tail is False:
+         will return all full chunks with maximum element index less or equal to the last
+         element of it
+
+      4) If stop_at is None and return_tail is True:
+         will return all full chunks with maximum element index less or equal to the last
+         element of it plus cut off chunks whose maximum term index is the last term of it
+
+        # testing chk_step < chk_size with return_tail=TRUE, stop and start_at PRESENT
+        # and stop_at SMALLER than the largest index of it
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=1, start_at=2, stop_at=5, return_tail=True)
+        >>> it = range(1, 17, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[3, 4, 5], [4, 5], [5]]
+
+        # testing chk_step < chk_size with return_tail=FALSE, stop and start_at PRESENT
+        # and stop_at SMALLER than the largest index of it
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=1, start_at=2, stop_at=5, return_tail=False)
+        >>> it = range(1, 17, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[3, 4, 5]]
+
+        # testing chk_step < chk_size with return_tail=TRUE, stop and start_at PRESENT
+        # and stop_at LARGER than the largest index of it
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=1, start_at=1, stop_at=20, return_tail=True)
+        >>> it = range(1, 17, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[2, 3, 4], [3, 4, 5], [4, 5, 6], [5, 6, 7], [6, 7, 8], [7, 8, 9], [8, 9, 10], [9, 10, 11], [10, 11, 12], [11, 12, 13], [12, 13, 14], [13, 14, 15], [14, 15, 16], [15, 16], [16]]
+
+        # testing chk_step < chk_size with return_tail=FALSE, stop and start_at PRESENT
+        # and stop_at LARGER than the largest index of it
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=1, start_at=1, stop_at=20, return_tail=False)
+        >>> it = range(1, 17, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[2, 3, 4], [3, 4, 5], [4, 5, 6], [5, 6, 7], [6, 7, 8], [7, 8, 9], [8, 9, 10], [9, 10, 11], [10, 11, 12], [11, 12, 13], [12, 13, 14], [13, 14, 15], [14, 15, 16]]
+
+        # testing chk_step = chk_size with return_tail=TRUE, stop and start_at PRESENT
+        # and stop_at SMALLER than the largest index of it
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=3, start_at=1, stop_at=7, return_tail=True)
+        >>> it = range(1, 17, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[2, 3, 4], [5, 6, 7]]
+
+        # testing chk_step > chk_size with return_tail=TRUE, stop and start_at PRESENT
+        # and stop_at SMALLER than the largest index of it
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=4, start_at=1, stop_at=7, return_tail=True)
+        >>> it = range(1, 17, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[2, 3, 4], [6, 7]]
+
+        # testing chk_step > chk_size with return_tail=FALSE, stop and start_at PRESENT
+        # and stop_at SMALLER than the largest index of it
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=4, start_at=1, stop_at=7, return_tail=False)
+        >>> it = range(1, 17, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[2, 3, 4]]
+
+        # testing chk_step > chk_size with return_tail=FALSE, stop and start_at NOT PRESENT
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=4, start_at=None, stop_at=None, return_tail=False)
+        >>> it = range(1, 17, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[1, 2, 3], [5, 6, 7], [9, 10, 11], [13, 14, 15]]
+
+        # testing chk_step > chk_size with return_tail=TRUE, stop and start_at NOT PRESENT
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=4, start_at=None, stop_at=None, return_tail=True)
+        >>> it = range(1, 19, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[1, 2, 3], [5, 6, 7], [9, 10, 11], [13, 14, 15], [17, 18]]
+
+        # testing chk_step > chk_size with return_tail=TRUE, stop and start_at NOT PRESENT
+        # with negative values in the iterator
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=4, start_at=None, stop_at=None, return_tail=True)
+        >>> it = range(-10, 19, 1)
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [[-10, -9, -8], [-6, -5, -4], [-2, -1, 0], [2, 3, 4], [6, 7, 8], [10, 11, 12], [14, 15, 16], [18]]
+
+        # testing chk_step > chk_size with return_tail=TRUE, stop and start_at NOT PRESENT
+        # with items of various types in the iterator
+        >>> f = lambda it: chunker(it, chk_size=3, chk_step=2, start_at=None, stop_at=None, return_tail=True)
+        >>> it = ['a', 3, -10, 9.2, str, [1,2,3], set([10,20])]
+        >>> A = list(f(it)); B = list(f(iter(it)));  # trying the function on it (a list) and iter(it) (and iterator)
+        >>> assert A == B  # it and iter(it) should give the same thing!
+        >>> A  # and that thing is:
+        [['a', 3, -10], [-10, 9.2, <type 'str'>], [<type 'str'>, [1, 2, 3], set([10, 20])], [set([10, 20])]]
+
+
+       """
+
     if chk_step is None:
         chk_step = chk_size
 
+    if stop_at is not None and stop_at is not inf:
+        assert isinstance(stop_at, int), 'stop_at should be an integer'
+
+    # if the input is a list
     if hasattr(it, '__getslice__'):
-        for x in chunker_with_sliceable_iterator(
-                it, chk_size, chk_step=chk_step, start_at=start_at, stop_at=stop_at, return_tail=return_tail):
-            yield x
-    else:
-        if chk_size <= chk_step:
-            if start_at > 0:
-                for i in xrange(start_at):
-                    _ = it.next()  # throw away the first items
-            if stop_at is not None:
-                stop_at -= start_at
-                max_bt = stop_at - chk_size
-                n_chks_float = max_bt / float(chk_step)
-                n_chks = int(n_chks_float)
-                if n_chks != n_chks_float:
-                    if return_tail:
-                        n_chks += 1
-            else:
-                n_chks = inf
 
-            chk_idx = 0
-            while chk_idx < n_chks:
-                x = list(islice(it, chk_size))
-                if len(x) < chk_size:  # TODO: Might be able to handle this case outside the loop?
-                    if return_tail:
-                        yield x
-                    break
-                yield x
-                chk_idx += 1
+        if stop_at is None:
+            stop_at = len(it)
         else:
-            from warnings import warn
-            warn("Haven't implemented the true iterator case")
-            for x in chunker(list(it), chk_size, chk_step=chk_step, start_at=start_at, stop_at=stop_at,
-                             return_tail=return_tail):
-                yield x
+            stop_at = min(len(it), stop_at)
+        if start_at is None:
+            start_at = 0
 
+        it = it[start_at:stop_at]
+        n_full_chk_to_return = max(int((floor(len(it) - chk_size) / chk_step) + 1), 0)
+        bt = 0
+        tt = bt + chk_size
+        for i in range(n_full_chk_to_return):
+            yield it[bt:tt]
+            bt += chk_step
+            tt += chk_step
 
-def chunker_with_sliceable_iterator(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
-    if stop_at is None:
-        stop_at = len(it)
+        if return_tail:
+            while len(it[bt:tt]) > 0:
+                yield it[bt:tt]
+                bt += chk_step
+                tt += chk_step
+
+    # if the input is an iterator
     else:
-        stop_at = min(len(it), stop_at)
-    if not return_tail:
-        stop_at = start_at + (chk_size - chk_step) + chk_step * ((stop_at - start_at) // chk_step)
-    it = it[start_at:stop_at]
-    max_bt = stop_at - start_at - chk_size
-    bt = 0
-    tt = bt + chk_size
-    while bt <= max_bt:
-        yield it[bt:tt]
-        bt += chk_step
-        tt += chk_step
+        # we set stop_at to be infinity by default
+        if stop_at is None:
+            stop_at = inf
+
+        # consuming start_at elements of the iterator
+        if start_at is not None:
+            for i in range(start_at):
+                x = it.next()
+
+        if start_at is None:
+            start_at = 0
+
+        # checking a few things
+        assert isinstance(chk_size, int) and chk_size > 0, 'chk_size should be a positive interger'
+        assert isinstance(chk_step, int) and chk_step > 0, 'chk_step should be a positive integer'
+        assert isinstance(start_at, int), 'start_at should be an integer'
+        assert start_at >= 0, 'start_at should be a non negative integer'
+        assert stop_at > start_at, 'stop_at should be larger than start_at'
+
+        # case when consecutive chunks overlap
+        if chk_size > chk_step:
+            chk = []
+            it_empty = False
+            # number of full chunks to return
+            if stop_at != inf:
+                n_full_chk_to_return, n_partial_chk = divmod(stop_at - start_at - chk_size, chk_step)
+                n_full_chk_to_return = max(n_full_chk_to_return + 1, 0)
+            else:
+                n_full_chk_to_return = inf
+
+            # first chunk to be yield or possible tails if we run out
+            # of elements trying to build the first chunk:
+            for i in range(chk_size):
+                try:
+                    chk.append(it.next())
+                except StopIteration:
+                    it_empty = True
+
+            # if iterator is consumed we return the tails if required and quit
+            if it_empty and return_tail:
+                while len(chk) > 0:
+                    yield chk
+                    chk = chk[chk_step:]
+                return
+
+            if it_empty and not return_tail:
+                return
+
+            n_returned = 0
+            while not it_empty and n_returned < n_full_chk_to_return:
+                yield chk
+                n_returned += 1
+                chk = chk[chk_step:]
+                for j in range(chk_step):
+                    try:
+                        chk.append(it.next())
+                    except StopIteration:
+                        it_empty = True
+
+            if return_tail and n_returned == n_full_chk_to_return:
+                chk = chk[:chk_size - chk_step + n_partial_chk]
+                while len(chk) > 0:
+                    yield chk
+                    chk = chk[chk_step:]
+                return
+
+            if return_tail and (stop_at == inf or n_returned < n_full_chk_to_return):
+                while len(chk) > 0:
+                    yield chk
+                    chk = chk[chk_step:]
+                return
+
+        # case when no overlap between consecutive chunks
+        if chk_size <= chk_step:
+            chk = []
+            it_empty = False
+            # number of full chunks to return
+            if stop_at != inf:
+                n_full_chk_to_return, n_partial_chk = divmod(stop_at - start_at,
+                                                             chk_step)
+                if n_partial_chk >= chk_size:
+                    n_full_chk_to_return += 1
+                    n_partial_chk = 0
+            else:
+                n_full_chk_to_return = inf
+
+            # first chunk to be yield or possible tails if we run out
+            # of elements trying to build the first chunk:
+            for i in range(chk_size):
+                try:
+                    chk.append(it.next())
+                except StopIteration:
+                    it_empty = True
+
+            # if the iterator is consumed and return_tail is True we return the partial chk
+            # (only one, due to chk_step > chk_size)
+            # then quit
+            if it_empty and return_tail and len(chk) > 0:
+                yield chk
+                return
+            # or quit right away if return_tail is False
+            if it_empty and not return_tail:
+                return
+
+            # if the iterator is not consumed yet, nothing has been returned yet and one full chunk has been built
+            n_returned = 0
+            while not it_empty and n_returned < n_full_chk_to_return:
+                yield chk
+                n_returned += 1
+                # reset chunk since there is no overlap
+                chk = []
+                for j in range(chk_step - chk_size):
+                    try:
+                        it.next()
+                    except StopIteration:
+                        it_empty = True
+                for j in range(chk_size):
+                    try:
+                        chk.append(it.next())
+                    except StopIteration:
+                        it_empty = True
+
+            if len(chk) == chk_size and n_returned < n_full_chk_to_return:
+                yield chk
+
+            elif return_tail and n_returned == n_full_chk_to_return:
+                if stop_at != inf:
+                    chk = chk[: n_partial_chk]
+                    if len(chk) > 0:
+                        yield chk
+
+                elif len(chk) > 0:
+                    yield chk
+
+            elif return_tail and n_returned < n_full_chk_to_return:
+                if len(chk) > 0:
+                    yield chk
