@@ -3,7 +3,7 @@ from __future__ import division
 import shutil
 import os
 import re
-import ut.util.time as utime
+
 import py_compile
 from itertools import imap
 from glob import iglob
@@ -93,7 +93,7 @@ def depy(folderpath, backup_folderpath=None):
     if backup_folderpath is None:
         parent = parent_folder(folderpath)
         name = os.path.basename(folderpath[:-1])
-        backup_folderpath = os.path.join(parent, "depy_{}_bak_{}".format(name, int(utime.utcnow_ms())))
+        backup_folderpath = os.path.join(parent, "depy_{}_bak_{}".format(name, int(utcnow_ms())))
 
     if backup_folderpath:
         shutil.copytree(folderpath, backup_folderpath)
