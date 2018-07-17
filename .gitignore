@@ -1,4 +1,5 @@
 *.py[cod]
+*.pyc
 
 *.idea
 *.idea/*
