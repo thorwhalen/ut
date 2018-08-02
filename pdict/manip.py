@@ -1,12 +1,37 @@
 __author__ = 'thorwhalen'
 
-from collections import MutableMapping
+from collections import MutableMapping, defaultdict
 from itertools import chain, imap
 
 from ut.pdict.get import iter_key_path_items, set_value_in_nested_key_path
 
 ASIS = '_keep_val_as_is'
 DROP = '_drop_key_path_entry'
+
+
+# TODO: Find a more opt way for this (e.g. pre allocation of list size, different way of dealing with gaps (fillna))
+def key_vals_dict_from_dict_list(dict_list, fillna=None):
+    """
+    Get a {key: val_list, ...} dict from a [{key: val, ...}, ...] list of dicts.
+    :param dict_list: a [{key: val, ...}, ...] list of dicts.
+    :param fillna: The value to use if a key is missing.
+    :return: {key: val_list, ...} dict
+    >>> key_vals_dict_from_dict_list([{'a': 1, 'b': 10}, {'a': 2, 'b': 20}, {'a': 3, 'b': 30}])
+    {'a': [1, 2, 3], 'b': [10, 20, 30]}
+    >>> key_vals_dict_from_dict_list([{'a': 1, 'b': 10}, {'a': 2}, {'b': 30}], fillna=None)
+    {'a': [1, 2, None], 'b': [10, None, 30]}
+    """
+    all_keys = set()
+    for d in dict_list:
+        all_keys.update(d.keys())
+
+    key_vals_dict = {k: [] for k in all_keys}
+    for d in dict_list:
+        for k in all_keys:
+            key_vals_dict[k].append(d.get(k, fillna))
+
+    return key_vals_dict
+
 
 def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
     """
@@ -75,8 +100,7 @@ def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
         else:  # if trans_key is not listed in key_path_trans keys...
             if keep_unspecified_key_paths:  # then consider it as a "_keep_key_path"
                 set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
-            # else will ignore it (same effect as "ignore_entry"
-
+                # else will ignore it (same effect as "ignore_entry"
 
     return new_d
 
