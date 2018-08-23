@@ -902,7 +902,7 @@ def chunker(it, chk_size, chk_step=None, start_at=None, stop_at=None, return_tai
         assert isinstance(stop_at, int), 'stop_at should be an integer'
 
     # if the input is a list
-    if hasattr(it, '__getslice__'):
+    if hasattr(it, '__getitem__'):
 
         if stop_at is None:
             stop_at = len(it)
