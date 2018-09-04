@@ -33,6 +33,7 @@ def list_of_properties_instancemethods_and_classmethods_for_class(class_):
 
     return props, instance_methods, class_methods
 
+
 def list_of_properties_instancemethods_and_classmethods_for_obj(obj):
     props = list()
     instance_methods = list()
@@ -50,6 +51,7 @@ def list_of_properties_instancemethods_and_classmethods_for_obj(obj):
     _, _, class_methods = list_of_properties_instancemethods_and_classmethods_for_class(obj.__class__)
 
     return props, instance_methods, class_methods
+
 
 def zpickle_dumps(obj):
     return zlib.compress(cPickle.dumps(obj))
