@@ -358,6 +358,7 @@ class Sound(object):
     def copy(self):
         return Sound(wf=self.wf.copy(), sr=self.sr, name=self.name)
 
+
     ####################################################################################################################
     # CREATION
 
