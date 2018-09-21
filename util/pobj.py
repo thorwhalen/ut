@@ -2,7 +2,7 @@ __author__ = 'thor'
 
 import ut.pdict.get as pdict_get
 import ut.util.ulist as util_ulist
-from optparse import OptionParser
+from itertools import chain
 import inspect
 import cPickle
 import zlib
@@ -78,6 +78,25 @@ def inject_method(self, method_function, method_name=None):
                 self = inject_method(self, method)
 
     return self
+
+
+def add_method(obj, meth, name=None):
+    if isinstance(meth, basestring):
+        name = meth
+        meth = getattr(obj, name)
+    if name is None:
+        name = meth.__name__
+
+    base = type(obj)
+
+    cname = "_".join((base.__name__, name, "add_method"))
+    bases = (base.__bases__[1:]) + (base,)
+
+    new_keys = set(dir(obj)) - set(chain(*[dir(b) for b in bases]))
+
+    d = {a: getattr(obj, a) for a in new_keys}
+    d[name] = meth
+    return type(cname, bases, d)()
 
 
 def methods_of(obj_or_class):
