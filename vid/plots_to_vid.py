@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 from matplotlib.animation import FFMpegWriter
 
+
 def xy_iter_to_plot_movie(xy_iter, line, fig=None, fps=15, save_filepath="xy_plot_movie.mp4", movie_size=200,
                           metadata=None):
     # FFMpegWriter = manimation.writers['ffmpeg']
