@@ -33,14 +33,22 @@ if __name__ == '__main__':
 
     parser.add_argument("--rootdir",
                         help="directory to search for (subdirectories)")
+    parser.add_argument("--display",
+                        help="How to display the list: print or for_pythonpath", default='print')
 
 
     args = parser.parse_args()
-    args = vars(args)
+    args = dict(vars(args))
 
     rootdir = args['rootdir']
+    display = args.get('display', 'print')
 
     cumul = find_folders_with_setup_py(rootdir)
 
-    for f in cumul:
-        print(f)
+    if display == 'print':
+        for f in cumul:
+            print(f)
+    elif display == 'for_pythonpath':
+        print(":".join(cumul))
+    else:
+        print("Don't know how to display")
