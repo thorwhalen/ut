@@ -22,8 +22,32 @@ def recursive_file_walk_iterator(directory, pattern=''):
                 yield full_path
 
 
+def proper_ext(ext):
+    if not ext.startswith('.'):
+        ext = '.' + ext
+    return ext
+
+
+def change_filepath(filepath, new_folder=None, new_name=None, new_ext=None):
+    old_folder, filename = os.path.split(filepath)
+    if new_folder is None:
+        new_folder = old_folder
+
+    old_name, old_ext = os.path.splitext(filename)
+    if new_name is None:
+        new_name = old_name
+
+    new_name, new_ext_in_new_name = os.path.splitext(new_name)
+    if new_ext is None:
+        new_ext = new_ext_in_new_name
+    if not new_ext:
+        new_ext = old_ext
+
+    return os.path.join(new_folder, new_name + proper_ext(new_ext))
+
+
 def add_extension_if_not_present(filename, ext=None):
-    if get_extension(filename)=='' and ext:
+    if get_extension(filename) == '' and ext:
         return replace_extension(filename, ext)
     return filename
 
@@ -49,21 +73,36 @@ def files_of_folder(folder):
 
 
 def replace_folder_and_ext(filename, newfolder, ext):
-    return replace_extension(os.path.join(newfolder,os.path.basename(filename)),ext)
+    return replace_extension(os.path.join(newfolder, os.path.basename(filename)), ext)
 
 
 def replace_folder(filename, newfolder):
-    return os.path.join(newfolder,os.path.basename(filename))
+    return os.path.join(newfolder, os.path.basename(filename))
 
 
 def replace_extension(filename, ext):
     """
     replaces the extension of a filename by the input extension ext
     """
-    if ext=='':
+    if ext == '':
         return os.path.splitext(filename)[0]
     else:
         return os.path.splitext(filename)[0] + ensure_dot_prefix(ext)
+
+
+# newer versions of the above two functions, writen without doing on purpose. Which is best? I don't know. Ask your dad.
+def change_extension(filepath, new_ext):
+    if not new_ext.startswith('.'):
+        new_ext = '.' + new_ext
+    return os.path.splitext(filepath)[0] + new_ext
+
+
+def change_containing_folder(filepath, new_folder=None):
+    filepath = os.path.realpath(filepath)
+    old_folder, filename = os.path.split(filepath)
+    if new_folder is None:
+        new_folder = old_folder
+    return os.path.join(new_folder, filename)
 
 
 def ensure_parent_folder(filename, default_parent_folder):
@@ -75,6 +114,7 @@ def ensure_parent_folder(filename, default_parent_folder):
     else:
         return filename
 
+
 def ensure_dot_prefix(ext):
     if ext:
         if ext[0] != '.':
@@ -84,7 +124,7 @@ def ensure_dot_prefix(ext):
 
 def ensure_slash_suffix(str):
     if str:
-        if str[-1]!='/':
+        if str[-1] != '/':
             str = str + '/'
     return str
 
@@ -98,7 +138,7 @@ def fileparts(file):
     import os.path
     (root, ext) = os.path.splitext(file)
     (x, name) = os.path.split(root)
-    if root==name:
+    if root == name:
         return ('', name, ext)
     else:
         return (root, name, ext)
@@ -108,7 +148,7 @@ def get_highest_level_folder(filepath):
     file_parts = filepath.split('/')
     if not file_parts[0]:
         # if file_parts[0] is empty
-        if len(file_parts) >= 2: # and there is some more...
+        if len(file_parts) >= 2:  # and there is some more...
             return file_parts[1]
         else:
             return file_parts[0]
@@ -125,7 +165,7 @@ def fullfile(root, name, ext):
     :return: the root, name, and extension of the pfile
     """
     import os.path
-    return os.path.join(root,name+ext)
+    return os.path.join(root, name + ext)
 
 
 # input: filename
@@ -136,10 +176,11 @@ def is_delim_file(dataname):
     output: True if the extension (.csv, .tab, or .txt) looks like it might be a delim pfile
     '''
     root, name, ext = fileparts(dataname)
-    if ext and ismember(ext,['.csv','.tab','.txt']):
+    if ext and ismember(ext, ['.csv', '.tab', '.txt']):
         return True
     else:
         return False
+
 
 # input: dataname
 # output: csv pfile path for this dataname, if such a pfile exists, looking for files that have the template
@@ -162,55 +203,55 @@ def is_delim_file(dataname):
 #         'csv/' + dataname + csvExtensions
 #         data_folder + dataname + csvExtensions
 #         data_folder + '/csv/' + dataname + csvExtensions
-def delim_file(dataname, data_folder=['','csv'], csvExtensions=['.csv', '.tab', '.txt']):
+def delim_file(dataname, data_folder=['', 'csv'], csvExtensions=['.csv', '.tab', '.txt']):
     import os.path
     # set up lists of folders and extensions we'll be looking through
-    root,name,ext = fileparts(dataname)
-    if ext and ismember(ext,csvExtensions): # if dataname had a permissable extension
+    root, name, ext = fileparts(dataname)
+    if ext and ismember(ext, csvExtensions):  # if dataname had a permissable extension
         csvExtensions = [ext]
-    if root: # if dataname has a path header (i.e. is specified by a full path)
+    if root:  # if dataname has a path header (i.e. is specified by a full path)
         data_folder = [root]
     else:
-        if isinstance(data_folder,list):
+        if isinstance(data_folder, list):
             tail_options = data_folder
             data_folder = ['']
         else:
-            tail_options = ['','data','daf']
+            tail_options = ['', 'data', 'daf']
             data_folder = [data_folder]
-        data_folder = [os.path.join(f,t) for f in data_folder for t in tail_options]
+        data_folder = [os.path.join(f, t) for f in data_folder for t in tail_options]
         # look through possibilities until a pfile is found (or not)
     for folder in data_folder:
         for ext in csvExtensions:
-            try_filename = fullfile(folder,name,ext)
+            try_filename = fullfile(folder, name, ext)
             if os.path.exists(try_filename):
                 return try_filename
-    return '' # if no pfile was found
+    return ''  # if no pfile was found
+
 
 # input: dataname
 # output: pfile path for this dataname, if such a pfile exists, looking for files that have the template
 #   data_folder + dataname + fileExtensions
 # NOTE: Same as delim_file (see this function for more details), but with different fileExtensions defaults
-def data_file(dataname, data_folder=['','data','daf'], fileExtensions=['']):
+def data_file(dataname, data_folder=['', 'data', 'daf'], fileExtensions=['']):
     import os.path
     # set up lists of folders and extensions we'll be looking through
-    root,name,ext = fileparts(dataname)
-    if ext and ismember(ext,fileExtensions): # if dataname had a permissable extension
+    root, name, ext = fileparts(dataname)
+    if ext and ismember(ext, fileExtensions):  # if dataname had a permissable extension
         fileExtensions = [ext]
-    if root: # if dataname has a path header (i.e. is specified by a full path)
+    if root:  # if dataname has a path header (i.e. is specified by a full path)
         data_folder = [root]
     else:
-        if isinstance(data_folder,list):
+        if isinstance(data_folder, list):
             tail_options = data_folder
             data_folder = ['']
         else:
-            tail_options = ['','data','daf']
+            tail_options = ['', 'data', 'daf']
             data_folder = [data_folder]
-        data_folder = [os.path.join(f,t) for f in data_folder for t in tail_options]
+        data_folder = [os.path.join(f, t) for f in data_folder for t in tail_options]
         # look through possibilities until a pfile is found (or not)
     for folder in data_folder:
         for ext in fileExtensions:
-            try_filename = fullfile(folder,name,ext)
+            try_filename = fullfile(folder, name, ext)
             if os.path.exists(try_filename):
                 return try_filename
-    return '' # if no pfile was found
-
+    return ''  # if no pfile was found
