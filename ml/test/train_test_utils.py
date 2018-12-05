@@ -25,23 +25,7 @@ scores_for['clf'] = [
     'accuracy_score', 'average_precision_score', 'brier_score_loss',
     'precision_score', 'recall_score', 'roc_auc_score']
 
-
-def model_scores(y_true, y_pred, model_type='clf'):
-    s = dict()
-    if model_type is not None:
-        for score_func in scores_for[model_type]:
-            try:
-                s[score_func] = getattr(metrics, score_func)(y_true, y_pred)
-            except Exception:
-                pass
-    else:
-        for score_func in scores_for['reg'] + scores_for['clf']:
-            try:
-                s[score_func] = getattr(metrics, score_func)(y_true, y_pred)
-            except Exception:
-                pass
-
-    return s
+metrics_for_pred_prob = {'average_precision_score', 'brier_score_loss', 'roc_auc_score'}
 
 
 def safe_element_isnan(x):
@@ -82,6 +66,23 @@ def type_of_elements_of_arr(arr, max_count_for_categoricals=9):
             return 'nominal'
         else:
             return 'numerical'
+
+
+def model_scores(y_true, y_pred, y_pred_prob=None, model_type='clf'):
+    s = dict()
+    model_type = model_type or type_of_elements_of_arr(y_true)
+
+    if model_type is not None:
+        for score_func in scores_for[model_type]:
+            try:
+                if score_func not in metrics_for_pred_prob:
+                    s[score_func] = getattr(metrics, score_func)(y_true, y_pred)
+                elif y_pred_prob is not None:
+                    s[score_func] = getattr(metrics, score_func)(y_true, y_pred_prob)
+            except Exception:
+                pass
+
+    return s
 
 
 def default_model_type_for_y(y):
@@ -127,9 +128,14 @@ def multiple_train_test_stats(model,
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
             d = {'n_train_pts': len(y_train), 'n_test_pts': len(y_test)}
 
-            model = get_model().fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            d = dict(d, **model_scores(y_true=y_test, y_pred=y_pred, model_type=model_type))
+            _model = get_model().fit(X_train, y_train)
+            y_pred = _model.predict(X_test)
+            if hasattr(_model, 'predict_proba'):
+                y_pred_prob = _model.predict_proba(X_test)
+            else:
+                y_pred_prob = None
+            d = dict(d, **model_scores(
+                y_true=y_test, y_pred=y_pred, y_pred_prob=y_pred_prob, model_type=model_type))
 
             stats.append(d)
 
