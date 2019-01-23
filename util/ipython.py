@@ -5,17 +5,19 @@ import os, json
 # from ut.pfile.name import recursive_file_walk_iterator
 from ut.pstr.to import file as str_to_file
 import re
+from ut.pfile.iter import recursive_file_walk_iterator_with_filepath_filter
 
 notebook_root = 'http://localhost:8888/notebooks/'
 default_notebook_folder = 'soto'
 default_link_root = os.path.join(notebook_root, default_notebook_folder)
 
 
-def all_table_of_contents_html_from_notebooks_in_folder(folder='.', save_to_file='table_of_contents.html'):
+def all_table_of_contents_html_from_notebooks_in_folder(
+        folder='.', save_to_file='table_of_contents.html', recursive=False):
     folder = os.path.abspath(folder)
     folder_name = os.path.dirname(folder)
     s = "<b>{}</b><br><br>\n\n".format(folder)
-    for f in ipynb_filepath_list(folder):
+    for f in ipynb_filepath_list(folder, recursive=recursive):
         #         print f
         ss = table_of_contents_html_from_notebook(f)
         if ss is not None:
@@ -56,7 +58,12 @@ def table_of_contents_html_from_notebook(ipynb_filepath,
                                                           link_root_for_file)
 
 
-def ipynb_filepath_list(root_folder='.'):
-    return map(lambda x: os.path.abspath(os.path.join(root_folder, x)),
-               filter(lambda x: x.endswith('.ipynb'),
-                      os.listdir(root_folder)))
+def ipynb_filepath_list(root_folder='.', recursive=False):
+    root_folder = os.path.expanduser(root_folder)
+    if recursive:
+        return recursive_file_walk_iterator_with_filepath_filter(
+            root_folder, filt=lambda x: x.endswith('.ipynb'))
+    else:
+        return map(lambda x: os.path.abspath(os.path.join(root_folder, x)),
+                   filter(lambda x: x.endswith('.ipynb'),
+                          os.listdir(root_folder)))
