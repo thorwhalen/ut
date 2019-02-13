@@ -116,7 +116,7 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=Fals
             figsize = (min(18, 6 * y_size / x_size), 6)
 
     if cmap is None:
-        if X.min() < 0:
+        if np.array(X).min() < 0:
             cmap = 'RdBu_r'
         else:
             cmap = 'hot_r'

@@ -1,5 +1,6 @@
 from __future__ import division
 
+from matplotlib.pylab import gca
 import numpy as np
 from datetime import datetime as dt
 
@@ -116,8 +117,24 @@ def strftime_with_precision(tick, format, sub_secs_precision=2):
 def str_ticks(ticks, ticks_unit, sub_secs_precision=2):
     t_format = strftime_format_for_ticks(ticks, ticks_unit)
     return map(
-        lambda x: strftime_with_precision(utc_datetime_from_val_and_unit(x, ticks_unit), t_format, sub_secs_precision),
+        lambda x: strftime_with_precision(
+            utc_datetime_from_val_and_unit(x, ticks_unit), t_format, sub_secs_precision),
         ticks)
+
+
+def format_ticks_as_time(ticks_unit, axis='x', ax=None, sub_secs_precision=2,
+                         fontdict=None, minor=False, **kwargs):
+    if ax is None:
+        ax = gca()
+    if axis == 'y':
+        tick_vals = ax.get_yticks()
+    else:
+        tick_vals = ax.get_xticks()
+    tick_labels = str_ticks(tick_vals, ticks_unit, sub_secs_precision=sub_secs_precision)
+    if axis == 'y':
+        ax.set_yticklabels(tick_labels, fontdict=fontdict, minor=minor, **kwargs)
+    else:
+        ax.set_xticklabels(tick_labels, fontdict=fontdict, minor=minor, **kwargs)
 
 
 def unit_aligned_ticks(ticks, ticks_unit):
