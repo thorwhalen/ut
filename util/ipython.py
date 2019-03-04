@@ -1,36 +1,72 @@
 from __future__ import division
 
 import os, json
-# import IPython.core.display as idisp
-# from ut.pfile.name import recursive_file_walk_iterator
 from ut.pstr.to import file as str_to_file
 import re
 from ut.pfile.iter import recursive_file_walk_iterator_with_filepath_filter
 
-notebook_root = 'http://localhost:8888/notebooks/'
-default_notebook_folder = 'soto'
-default_link_root = os.path.join(notebook_root, default_notebook_folder)
+default_link_root = 'http://localhost:8888/notebooks/'
 
 
-def all_table_of_contents_html_from_notebooks_in_folder(
-        folder='.', save_to_file='table_of_contents.html', recursive=False):
-    folder = os.path.abspath(folder)
-    folder_name = os.path.dirname(folder)
-    s = "<b>{}</b><br><br>\n\n".format(folder)
-    for f in ipynb_filepath_list(folder, recursive=recursive):
-        #         print f
-        ss = table_of_contents_html_from_notebook(f)
+def _link_root_from_port(port):
+    return 'http://localhost:{}/notebooks/'.format(port)
+
+
+def _mk_link_root(x):
+    if isinstance(x, int):
+        return _link_root_from_port(x)
+    elif x.startswith('http'):
+        return x
+    else:
+        return 'http://' + x
+
+
+def max_common_prefix(a):
+    """
+    Given a list of strings, returns the longest common prefix
+    :param a: list-like of strings
+    :return: the smallest common prefix of all strings in a
+    """
+    if not a:
+        return ''
+    # Note: Try to optimize by using a min_max function to give me both in one pass. The current version is still faster
+    s1 = min(a)
+    s2 = max(a)
+    for i, c in enumerate(s1):
+        if c != s2[i]:
+            return s1[:i]
+    return s1
+
+
+def all_table_of_contents_html_from_notebooks(notebooks,
+                                              title=None,
+                                              link_root=default_link_root,
+                                              save_to_file='table_of_contents.html'):
+    if isinstance(notebooks, str) and os.path.isdir(notebooks):
+        folder = os.path.abspath(notebooks)
+        notebooks = ipynb_filepath_list(folder)
+        title = title or folder
+        s = "<b>{}</b><br><br>\n\n".format(title)
+    elif title:
+        s = "<b>{}</b><br><br>\n\n".format(title)
+    else:
+        s = '' \
+            ''
+
+    for f in notebooks:
+        ss = table_of_contents_html_from_notebook(f, link_root=link_root)
         if ss is not None:
             s += ss + '<br>\n\n'
     if save_to_file is None:
         return s
     else:
-        if not isinstance(save_to_file, basestring):
+        if not isinstance(save_to_file, str):
             save_to_file = 'table_of_contents.html'
         str_to_file(s, save_to_file)
 
 
 def _mk_link_html(filename, link_root=default_link_root):
+    link_root = _mk_link_root(link_root)
     url = os.path.join(link_root, filename)
     if filename.endswith('.ipynb'):
         filename = filename[:-len('.ipynb')]
@@ -51,6 +87,7 @@ def table_of_contents_html_from_notebook(ipynb_filepath,
             and len(d) > 0 and 'source' in d[0] \
             and len(d[0]['source']) >= 2:
         if d[0]['source'][0] == '# Table of Contents\n':
+            link_root = _mk_link_root(link_root)
             link_root_for_file = os.path.join(link_root, filename)
             return _mk_link_html(filename, link_root_for_file) \
                    + '\n\n' \
