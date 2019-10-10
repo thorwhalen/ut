@@ -16,7 +16,7 @@ def main(output, *mnames):
         mf.run_script(mname)
     cwd = os.getcwd()
     zf = zipfile.ZipFile(output, 'w')
-    for mod in mf.modules.itervalues():
+    for mod in mf.modules.values():
         if not mod.__file__:
             continue
         modfile = os.path.abspath(mod.__file__)

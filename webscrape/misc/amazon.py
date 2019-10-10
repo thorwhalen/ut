@@ -217,7 +217,7 @@ class AmazonBookWatch(object):
     @staticmethod
     def get_min_max_sales_rank_dates(book_info):
         cumul = list()
-        for x in book_info['sales_rank'].values():
+        for x in list(book_info['sales_rank'].values()):
             try:
                 cumul += x['data']['date'].tolist()
             except Exception:
@@ -253,11 +253,11 @@ class AmazonBookWatch(object):
     def mk_sales_rank_plot(self, d, category='', save_filename=True, **kwargs):
         kwargs = dict(kwargs, **self.default)
         if isinstance(d, dict):
-            if 'sales_rank' in d.keys():
+            if 'sales_rank' in list(d.keys()):
                 d = d['sales_rank'][category]['data']
-            elif category in d.keys():
+            elif category in list(d.keys()):
                 d = d[category]['data']
-            elif 'data' in d.keys():
+            elif 'data' in list(d.keys()):
                 d = d['data']
             else:
                 raise ValueError('Your dict must have a "data" key or a %s key' % category)
@@ -295,7 +295,7 @@ class AmazonBookWatch(object):
         # ax.xaxis.set_major_formatter(dates.DateFormatter('\n\n\n%b\n%Y'))
         plt.tight_layout()
         if save_filename:
-            if isinstance(save_filename, basestring):
+            if isinstance(save_filename, str):
                 save_filename = save_filename + '.' + kwargs['save_format']
             else:  # save to temp file
                 save_filename = tempfile.NamedTemporaryFile().name
@@ -314,7 +314,7 @@ class AmazonBookWatch(object):
             num_of_reviews=book_info['num_reviews']
         )
         html = html + "<br>\n"
-        for category in book_info['sales_rank'].keys():
+        for category in list(book_info['sales_rank'].keys()):
             # make and save a graph, send to s3, and return a url for it
             file_name = self.mk_sales_rank_plot(
                 d=book_info['sales_rank'],
@@ -352,7 +352,7 @@ class AmazonBookWatch(object):
             title = title_country['title']
             country = title_country['country']
             book_info = self.mk_book_info(title=title, country=country)
-            for category in book_info['sales_rank'].keys():
+            for category in list(book_info['sales_rank'].keys()):
                 dd = pd.concat([pd.DataFrame([{'title': title, 'country': country, 'category': category}]),
                                 book_info['sales_rank'][category]['rank_stats']], axis=1)
                 d = pd.concat([d, dd])
@@ -387,6 +387,6 @@ class AmazonBookWatch(object):
 #         d['sales_rank_category'] = d['sales_rank_category'][-1]
 
 def process_sales_rank_category(d):
-    d['sales_rank_subcategory'] = map(lambda x: ' > '.join(x) if isinstance(x, list) else x, d['sales_rank_category'])
-    d['sales_rank_category'] = map(lambda x: x[-1] if isinstance(x, list) else x, d['sales_rank_category'])
+    d['sales_rank_subcategory'] = [' > '.join(x) if isinstance(x, list) else x for x in d['sales_rank_category']]
+    d['sales_rank_category'] = [x[-1] if isinstance(x, list) else x for x in d['sales_rank_category']]
     return d

@@ -5,21 +5,21 @@ import io
 import pandas as pd
 import itertools
 from collections import Counter
-import nltk
 from nltk.corpus import wordnet as wn
 
 
 def print_word_definitions(word):
-    print word_definitions_string(word)
+    print(word_definitions_string(word))
 
 
 def word_definitions_string(word):
     return '\n'.join(['%d: %s (%s)'
-                     % (i, x.definition(), x.name()) for i, x in enumerate(wn.synsets(word))])
+                      % (i, x.definition(), x.name()) for i, x in enumerate(wn.synsets(word))])
+
 
 def print_word_lemmas(word):
     t = Counter([l.name for s in wn.synsets(word) for l in s.lemmas])
-    print pd.Series(index=t.keys(), data=t.values()).sort(inplace=False, ascending=False)
+    print(pd.Series(index=list(t.keys()), data=list(t.values())).sort(inplace=False, ascending=False))
 
 
 def _lemma_names_str(syn):
@@ -27,21 +27,22 @@ def _lemma_names_str(syn):
 
 
 def print_hypos_with_synset(syn, tab=''):
-    print tab + syn.name
+    print(tab + syn.name)
     h = syn.hyponyms()
     if len(h) > 0:
         for hi in h:
             print_hypos_with_synset(hi, tab + '  ')
     else:
-        print tab + '  ' + _lemma_names_str(syn)
+        print(tab + '  ' + _lemma_names_str(syn))
 
 
 def pprint_hypos(syn, tab=''):
-    print tab + _lemma_names_str(syn)
+    print(tab + _lemma_names_str(syn))
     h = syn.hyponyms()
     if len(h) > 0:
         for hi in h:
             pprint_hypos(hi, tab + '  ')
+
 
 class iTree(object):
     def __init__(self, value=None):
@@ -50,15 +51,15 @@ class iTree(object):
         self.default_node_2_str = lambda node: str(node.value)
 
     def __iter__(self):
-        for v in itertools.chain(*itertools.imap(iter, self.children)):
+        for v in itertools.chain(*map(iter, self.children)):
             yield v
         yield self
 
     def tree_info_str(self,
-                        node_2_str=None,  # default info is node value
-                        tab_str=2 * ' ',  # tab string
-                        depth=0
-                        ):
+                      node_2_str=None,  # default info is node value
+                      tab_str=2 * ' ',  # tab string
+                      depth=0
+                      ):
         node_2_str = node_2_str or self.default_node_2_str
         s = depth * tab_str + node_2_str(self) + '\n'
         new_depth = depth + 1
@@ -69,7 +70,7 @@ class iTree(object):
 
 class HyponymTree(iTree):
     def __init__(self, value=None):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             value = wn.synset(value)
         super(HyponymTree, self).__init__(value=value)
         for hypo in value.hyponyms():
@@ -83,7 +84,7 @@ class HyponymTree(iTree):
         return self.value.name()
 
     def print_lemmas(self, tab=''):
-        print tab + _lemma_names_str(self.value)
+        print(tab + _lemma_names_str(self.value))
         for c in self.children:
             pprint_hypos(c, tab + '  ')
 
@@ -153,9 +154,9 @@ class HyponymTree(iTree):
         s = ''
         # s = 'lemmas' + method_args['def_sep'] + 'synset' + method_args['def_sep'] + 'definition' + '\n'
         s += self.tree_info_str(node_2_str=self.get_node_2_str_function(method=method),
-                               tab_str=method_args['tab_str'])
-        return pd.DataFrame.from_csv(io.StringIO(unicode(s)),
-                                  sep=method_args['def_sep'], header=None, index_col=None)
+                                tab_str=method_args['tab_str'])
+        return pd.DataFrame.from_csv(io.StringIO(str(s)),
+                                     sep=method_args['def_sep'], header=None, index_col=None)
 
     def export_info_to_excel(self, filepath, sheet_name='hyponyms', method='all', method_args={}):
         d = self._df_for_excel_export(method=method, method_args=method_args)

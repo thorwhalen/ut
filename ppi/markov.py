@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 from collections import Counter, defaultdict
-from itertools import islice, chain, imap
+from itertools import islice, chain
 import matplotlib.pylab as plt
 
 
@@ -42,9 +42,9 @@ class Markov(object):
             cond_prob_matrix = cond_prob_matrix.T
         plt.matshow(cond_prob_matrix);
         ax = plt.gca()
-        plt.xticks(range(len(self.labels)))
+        plt.xticks(list(range(len(self.labels))))
         ax.set_xticklabels(self.labels, rotation=90)
-        plt.yticks(range(len(self.labels)))
+        plt.yticks(list(range(len(self.labels))))
         ax.set_yticklabels(self.labels)
         plt.grid('off');
 
@@ -66,9 +66,9 @@ class Markov(object):
 
     @staticmethod
     def seqs_to_pair_count_df(seqs):
-        event_pair_counts = Counter(chain(*imap(_sliding_window_iter, seqs)))
+        event_pair_counts = Counter(chain(*map(_sliding_window_iter, seqs)))
         pair_count_df = pd.DataFrame([{'t': k[0], 't+1': k[1], 'count': v}
-                                  for k, v in event_pair_counts.iteritems()])
+                                  for k, v in event_pair_counts.items()])
         pair_count_df = pair_count_df.set_index(['t', 't+1']).sort()
         pair_count_df = pair_count_df['count'].unstack('t')
         return pair_count_df
@@ -78,7 +78,7 @@ class Markov(object):
         initial_probs = pd.Series(mc.initial_counts).sort(inplace=False, ascending=False)
         initial_probs /= np.sum(initial_probs)
 
-        cond_probs = [{t_name: k[0], t_plus_1_name: k[1], 'count': v} for k, v in mc.pair_counts.iteritems()]
+        cond_probs = [{t_name: k[0], t_plus_1_name: k[1], 'count': v} for k, v in mc.pair_counts.items()]
         cond_probs = pd.DataFrame(cond_probs)\
             .set_index([t_name, t_plus_1_name])['count']\
             .unstack(t_name)\

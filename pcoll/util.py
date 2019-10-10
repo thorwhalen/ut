@@ -37,4 +37,4 @@ class WindowCollector(deque):
 
 
 def duplicated_values(arr):
-    return [x for x, y in Counter(arr).items() if y > 1]
+    return [x for x, y in list(Counter(arr).items()) if y > 1]

@@ -8,13 +8,13 @@ import re
 import os.path
 from ut.pfile.name import files_of_folder
 from ut.pfile.name import replace_folder_and_ext
-from urllib2 import urlopen
+from urllib.request import urlopen
 from ut.pfile import to
 from lxml import etree
 import pickle
 import tldextract
 import ut.parse.util as putil
-from urlparse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 
 # RE_HAS_NEW_LINE = re.compile('\n|\r')
 RE_NUM_SEP = "[,\.\s]"
@@ -49,7 +49,7 @@ def get_info_dict_01(input):
 def get_info_dict_debug(input):
     # input handling
     if not isinstance(input,dict):
-        if isinstance(input,basestring):
+        if isinstance(input,str):
             if os.path.isfile(input):
                 input = BeautifulSoup(input)
             else:
@@ -62,7 +62,7 @@ def get_info_dict_debug(input):
 def get_info_dict(input):
     # input handling
     if not isinstance(input,dict):
-        if isinstance(input,basestring):
+        if isinstance(input,str):
             if os.path.isfile(input):
                 input = BeautifulSoup(input)
             else:
@@ -184,23 +184,23 @@ def parse_tag_dict(tag_dict):
         'rhs_ads_list':[],
         'related_search_list':[]
     }
-    if tag_dict.has_key('_resultStats'):
+    if '_resultStats' in tag_dict:
         xx = parse_number_of_results(tag_dict['_resultStats'])
         if xx: d['number_of_results'] = xx
-    if tag_dict.has_key('_top_ads_list'):
+    if '_top_ads_list' in tag_dict:
         for x in tag_dict['_top_ads_list']:
             xx = parse_ad(x)
             if xx: d['top_ads_list'].append(xx)
         # d['top_ads_list'] = [d['top_ads_list'].append(parse_ad(x)) for x in tag_dict['_top_ads_list'] if x!=None]
-    if tag_dict.has_key('_organic_results_list'):
+    if '_organic_results_list' in tag_dict:
         for x in tag_dict['_organic_results_list']:
             xx = parse_organic_result(x)
             if xx: d['organic_results_list'].append(xx)
-    if tag_dict.has_key('_rhs_ads_list'):
+    if '_rhs_ads_list' in tag_dict:
         for x in tag_dict['_rhs_ads_list']:
             xx = parse_ad(x)
             if xx: d['rhs_ads_list'].append(xx)
-    if tag_dict.has_key('_related_search'):
+    if '_related_search' in tag_dict:
         for x in tag_dict['_related_search']:
             xx = parse_related_search_list(x)
             if xx: d['related_search_list'].append(xx)
@@ -249,11 +249,11 @@ def parse_organic_result(search_ires_li_instance):
                 td = table_tds_list[0]
                 span = td.find(name='span')
                 if span:
-                    d['td0_span_text'] = span.get_text(separator=u"\n",strip=True)
+                    d['td0_span_text'] = span.get_text(separator="\n",strip=True)
                     # d = dict(d,**{'td0_span_text':span.get_text(separator=u"\n",strip=True)})
                 fl = td.findAll(name='a',attrs={'class':'fl'})
                 if fl:
-                    d['td0_fl'] = [x.get_text(separator=u"\n",strip=True) for x in fl]
+                    d['td0_fl'] = [x.get_text(separator="\n",strip=True) for x in fl]
                     # d = dict(d,**{'td0_fl':[x.get_text(separator=u"\n",strip=True) for x in fl]})
             if len(table_tds_list)>=2:
                 td1 = table_tds_list[1]
@@ -261,7 +261,7 @@ def parse_organic_result(search_ires_li_instance):
                     td1_href = td1.find(name='a')
                     if td1_href:
                         d['td1'] = td1_href.get('href')
-                        d['td1_text'] = td1.get_text(separator=u"\n",strip=True)
+                        d['td1_text'] = td1.get_text(separator="\n",strip=True)
                     #d['td1'] = td1.find(name='a').get('href')
                     #d['td1_text'] = td1.get_text(separator=u"\n",strip=True)
 
@@ -270,8 +270,8 @@ def parse_organic_result(search_ires_li_instance):
         organic_result_type = 1 # default organic result type
         d['organic_result_type'] = 1 # default organic result type
         # d = dict(d,**{'organic_result_type':1}) # default organic result type
-        if d.has_key('table_tds_list'):
-            if all([d.has_key(x) for x in ['td0_fl', 'td1_text']]):
+        if 'table_tds_list' in d:
+            if all([x in d for x in ['td0_fl', 'td1_text']]):
                 organic_result_type = 2 # a specific hotel google meta listing
             else:
                 organic_result_type = 3 # something else with a table in it
@@ -290,10 +290,10 @@ def parse_ad(rad):
         # d = dict(d,**{'dest_url':dest_url})
         dest_url_parsed = parse_qs(dest_url)
         if dest_url_parsed:
-            dest_url_parsed = {k:v[0] for k,v in dest_url_parsed.iteritems()}
+            dest_url_parsed = {k:v[0] for k,v in dest_url_parsed.items()}
             if dest_url_parsed:
                 d['dest_url_parsed'] = dest_url_parsed
-                if dest_url_parsed.has_key('adurl'):
+                if 'adurl' in dest_url_parsed:
                     adurl = dest_url_parsed['adurl']
                     if adurl:
                         d['adurl'] = adurl
@@ -344,12 +344,12 @@ def get_domain_list_from_google_results(gresults):
     if not isinstance(gresults,dict): # assume it's a soup, html, or filename thereof
         gresults = parse_tag_dict(mk_gresult_tag_dict(gresults))
     # if not, assume the input is a info_dict
-    if gresults.has_key('organic_results_list'):
-        domain_list = domain_list + [x['domain'] for x in gresults['organic_results_list'] if x.has_key('domain')]
-    if gresults.has_key('top_ads_list'):
-        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['top_ads_list'] if x.has_key('disp_url_domain')]
-    if gresults.has_key('organic_results_list'):
-        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['organic_results_list'] if x.has_key('disp_url_domain')]
+    if 'organic_results_list' in gresults:
+        domain_list = domain_list + [x['domain'] for x in gresults['organic_results_list'] if 'domain' in x]
+    if 'top_ads_list' in gresults:
+        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['top_ads_list'] if 'disp_url_domain' in x]
+    if 'organic_results_list' in gresults:
+        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['organic_results_list'] if 'disp_url_domain' in x]
     return domain_list
 
 ##################################################################################
@@ -390,14 +390,14 @@ def element_presence_dict(input):
 ##################################################################################
 
 def html_to_info_dicts(source,tag_folder,info_folder,printProgress=True):
-    if isinstance(source,basestring) and os.path.isdir(source):
+    if isinstance(source,str) and os.path.isdir(source):
         source_folder = source
         source = [os.path.join(source_folder,f) for f in files_of_folder(source)]
     else:
         assert isinstance(source,list),"source must be a folder or a list of filepaths"
     for i,f in enumerate(source):
         if printProgress==True:
-            print "{}: {}".format(i,f)
+            print("{}: {}".format(i,f))
         d = mk_gresult_tag_dict(f)
         pickle.dump(d,open(replace_folder_and_ext(f,tag_folder,'tag_dict'),'w'))
         d = parse_tag_dict(d)
@@ -415,7 +415,7 @@ def html_to_info_dicts(source,tag_folder,info_folder,printProgress=True):
 
 if __name__ == "__main__":
 
-    print "you just ran ut.parse.google"
+    print("you just ran ut.parse.google")
     html_folder = '/D/Dropbox/dev/py/data/html/google_results_tests/'
     tag_folder = '/D/Dropbox/dev/py/data/dict/google_results_tag_dict/'
     info_folder = '/D/Dropbox/dev/py/data/dict/google_results_info_dict/'

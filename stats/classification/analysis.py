@@ -26,7 +26,7 @@ def equality_counts(df):
 
     """
     eq_counts = pd.DataFrame()
-    for i, j in itertools.combinations(xrange(len(df)), 2):
+    for i, j in itertools.combinations(range(len(df)), 2):
         eq_counts = pd.concat([eq_counts, df.iloc[i] == df.iloc[j]], axis=1)
     eq_counts = eq_counts.T.reset_index(drop=True)
     return eq_counts.groupby(list(eq_counts.columns)).size()

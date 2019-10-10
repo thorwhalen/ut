@@ -67,7 +67,7 @@ def _total_dup_groups(array_of_dup_counts):
 def _grp_id_array_to_number_of_groups(grp_id_array):
     unik_grp_id_array = np.unique(grp_id_array)
     nDupGroups = len(unik_grp_id_array)
-    if isinstance(unik_grp_id_array[0],basestring):
+    if isinstance(unik_grp_id_array[0],str):
         if '' in unik_grp_id_array:
             nDupGroups = nDupGroups - 1
     else:

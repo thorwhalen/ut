@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import matplotlib.pylab as plt
 
@@ -21,15 +21,13 @@ def _get_attr_args_and_kwargs_from_ax_call_item(ax_call_item):
             args, kwargs = ax_call_item[1:]
     return attr, args, kwargs
 
-
-def multi_row_plot(data=(), plot_func=plt.plot, figsize=3, plot_func_kwargs=None, ax_calls=()):
+def multi_row_plot(plot_func=plt.plot, data_list=(), figsize=3, plot_func_kwargs=None, ax_calls=()):
     """
     Quickly plotting multiple rows of data.
 
     :param plot_func: The plotting function to use.
-    :param data: The data to plot. Could be a {'group': row_data, ...} dict, or a list of row_data items.
-        For each "row_data" of data_list, a row will be created and plot_func will be called, using that item as input.
-        If row_data is:
+    :param data_list: The list of datas to plot. For each "row_data" of data_list, a row will be created and plot_func
+        will be called, using that item as input. If row_data is:
             * a dict, plot_func(**dict(plot_func_kwargs, **row_data)) will be called to populate that row
             * a tuple, plot_func(*row_data, **plot_func_kwargs) will be called to populate that row
             * if not, plot_func(row_data, **plot_func_kwargs) will be called to populate that row
@@ -45,9 +43,7 @@ def multi_row_plot(data=(), plot_func=plt.plot, figsize=3, plot_func_kwargs=None
     """
     if plot_func_kwargs is None:
         plot_func_kwargs = {}
-    n_rows = len(data)
-    if isinstance(data, dict):
-        data = data.values()
+    n_rows = len(data_list)
     if isinstance(figsize, (int, float)):
         figsize_units_per_row = figsize
         figsize = (16, n_rows * figsize_units_per_row)
@@ -55,7 +51,7 @@ def multi_row_plot(data=(), plot_func=plt.plot, figsize=3, plot_func_kwargs=None
         plt.figure(figsize=figsize)
 
     ax_list = list()
-    for row_idx, row_data in enumerate(data, 1):
+    for row_idx, row_data in enumerate(data_list, 1):
         #         print(row_data)
         plt.subplot(n_rows, 1, row_idx)
         specific_ax_calls = ()

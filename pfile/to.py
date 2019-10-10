@@ -52,7 +52,7 @@ def tail(f, window=20):
     """
     Returns the last `window` lines of file `f` as a list.
     """
-    if isinstance(f, basestring):
+    if isinstance(f, str):
         f = open(f, 'r')
         file_should_be_closed = True
     else:

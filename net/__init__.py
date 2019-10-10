@@ -1,2 +1,2 @@
-from __future__ import division
+"""Yet another package to work with graphs and networks"""
 

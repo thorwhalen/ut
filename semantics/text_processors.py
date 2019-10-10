@@ -29,8 +29,8 @@ def lower_ascii_term_replacer(map_spec, rep_col=None, by_col=None, term_padding_
 def erenev_kw_str_term_replacer(rep_col=None, by_col=None, term_padding_exp=r'\b'):
     DeprecationWarning("ut.semantics.text_processors.erenev_kw_str_term_replacer is depreciated: "
                        "Use the ut.erenev.aw version instead")
-    print "misc.semantics.text_processors.erenev_kw_str_term_replacer is depreciated: " \
-          "Use the ut.venere.aw version instead"
+    print("misc.semantics.text_processors.erenev_kw_str_term_replacer is depreciated: " \
+          "Use the ut.venere.aw version instead")
     #venere_term_replacer = TermReplacer(venere_data_source.term_map, rep_col=None, by_col=None, term_padding_exp=r'\b')
     #return TextProcessor(text_processors=[aw_manip.kw_str, venere_term_replacer.replace_terms]).process
 
@@ -68,7 +68,7 @@ class TermReplacer(object):
         # if map_spec is given by a dataframe, make a mapto dict out of it
             map_spec = pdict_ot.keyval_df(map_spec, key_col=rep_col, val_col=by_col, warn=True)
 
-        self.pattern = list_to_token_matcher_re(map_spec.keys(), term_padding_exp=term_padding_exp)
+        self.pattern = list_to_token_matcher_re(list(map_spec.keys()), term_padding_exp=term_padding_exp)
         # replaces:
         # key_lengths = map(len,map_spec.keys())
         # keys = util_ulist.sort_as(map_spec.keys(), key_lengths, reverse=True)
@@ -81,7 +81,7 @@ class TermReplacer(object):
 
 
 def list_to_token_matcher_re(str_list, term_padding_exp=r'\b'):
-    str_lengths = map(len, str_list)
+    str_lengths = list(map(len, str_list))
     str_list = util_ulist.sort_as(str_list, str_lengths, reverse=True)
     return re.compile(term_padding_exp + '(' + '|'.join(str_list) + ')' + term_padding_exp)
 

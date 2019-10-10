@@ -17,6 +17,6 @@ awe_col_replacer = pdict_to.word_replacer(pdict_to.inverse_one_to_many(awe_col_s
 
 def mk_awe_cols(df):
     old_cols = df.columns
-    new_cols = map(awe_col_replacer, old_cols)
+    new_cols = list(map(awe_col_replacer, old_cols))
     return daf_ch.ch_col_names(df, new_cols, old_cols)
 

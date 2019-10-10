@@ -1,10 +1,10 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
 from numpy import *
 
-from util import ensure_mono
+from .util import ensure_mono
 
 
 def _get_wf_and_sr_from_sound(sound):
@@ -122,7 +122,7 @@ def _non_silence_interval_indices_from_silence_intervals(array_length, silence_i
         # adding fake silence intervals at the end of silence_intervals
         silence_intervals = silence_intervals + [(array_length, nan)]
 
-        t = zip(*silence_intervals)
+        t = list(zip(*silence_intervals))
         return [(i + 1, j - 1) for i, j in zip(t[1][:-1], t[0][1:]) if (j - i - 1) >= min_interval_length]
 
 

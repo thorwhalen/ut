@@ -70,7 +70,7 @@ class BinaryClassifierBase2D(object):
         n_xgrid = shape(point_grid)[1]
         n_ygrid = shape(point_grid)[2]
 
-        positions = vstack(map(ravel, point_grid)).transpose()
+        positions = vstack(list(map(ravel, point_grid))).transpose()
         plt.pcolor(positions[:, 0].reshape(n_xgrid, n_ygrid),
                    positions[:, 1].reshape(n_xgrid, n_ygrid),
                    self.predict_proba(positions)[:, 1]
@@ -108,7 +108,7 @@ class BinaryClassifierBase2D(object):
         plt.legend(framealpha=0.5, title=self.x_name[slice_dim])
 
     def mk_grid(self, method='minmax'):
-        if isinstance(method, basestring):
+        if isinstance(method, str):
             if method == 'minmax':
                 return mgrid[slice(percentile(self.cluster_X[:, 0], 0), percentile(self.cluster_X[:, 0], 100), 100j),
                             slice(percentile(self.cluster_X[:, 1], 0), percentile(self.cluster_X[:, 1], 100), 100j)]

@@ -11,7 +11,7 @@ class DataFlow(object):
     """
     def __init__(self, **kwargs):
         kwargs = dict({'verbose_level': 0}, **kwargs)
-        [setattr(self, k, v) for k, v in kwargs.iteritems()]
+        [setattr(self, k, v) for k, v in kwargs.items()]
 
         if not hasattr(self, 'data_dependencies'):
             self.data_dependencies = dict()
@@ -24,9 +24,9 @@ class DataFlow(object):
 
     def mk_data_flow(self):
         # make sure values of data_dependencies are lists
-        self.data_dependencies = {k: util_ulist.ascertain_list(v) for k, v in self.data_dependencies.iteritems()}
+        self.data_dependencies = {k: util_ulist.ascertain_list(v) for k, v in self.data_dependencies.items()}
         # default data_makers to functions of the same name as data_dependencies
-        missing_data_makers = set(self.data_dependencies.keys()).difference(self.data_makers.keys())
+        missing_data_makers = set(self.data_dependencies.keys()).difference(list(self.data_makers.keys()))
         bundles = list()
         for k in missing_data_makers:
             if hasattr(self, k):
@@ -38,7 +38,7 @@ class DataFlow(object):
         if bundles:
             print("Bundles:")
             for k in bundles:
-                print("  {}: \n    {}").format(k, ', '.join(self.data_dependencies[k]))
+                print(("  {}: \n    {}").format(k, ', '.join(self.data_dependencies[k])))
 
     def put_in_store(self, name, data):
         self.print_progress('  Storing {} in store'.format(name))
@@ -58,7 +58,7 @@ class DataFlow(object):
     def get_data(self, data_name, **kwargs):
         #if data_name not in self.data_dependencies.keys():
         #    raise ValueError("I have no data_dependencies for %s" % data_name)
-        if hasattr(self, 'store') and self.store.has_key(data_name):  # if no data is input and the data exists in the store...
+        if hasattr(self, 'store') and data_name in self.store:  # if no data is input and the data exists in the store...
                 # return the stored data
                 self.print_progress(2, '  Getting {} from store'.format(data_name))
                 return self.store[data_name]
@@ -68,7 +68,7 @@ class DataFlow(object):
             # determine what the data part of kwargs is
             input_data, kwargs = pdict_get.get_subdict_and_remainder(kwargs, self.data_dependencies[data_name])
             # determine what data we don't have
-            missing_data_names = set(self.data_dependencies[data_name]).difference(input_data.keys())
+            missing_data_names = set(self.data_dependencies[data_name]).difference(list(input_data.keys()))
             # get the data we don't have
             if missing_data_names:
                 self.print_progress(3, "  --> {} requires {}".format(data_name, ', '.join(missing_data_names)))
@@ -76,13 +76,13 @@ class DataFlow(object):
                     input_data[missing_dependency] = \
                         self.get_data(data_name=missing_dependency, **kwargs)
         # make the data
-        if data_name in self.data_makers.keys():
+        if data_name in list(self.data_makers.keys()):
             # here the data needs to be made from data
             self.print_progress(1, '  Making {}'.format(data_name))
             kwargs = dict(input_data, **kwargs)
             made_data = self.data_makers[data_name](**kwargs)
             # store it if necessary
-            if data_name in self.data_storers.keys() and self.data_storers[data_name] is not None:
+            if data_name in list(self.data_storers.keys()) and self.data_storers[data_name] is not None:
                 self.data_storers[data_name](data_name, made_data)
             return made_data
         else:
@@ -91,22 +91,22 @@ class DataFlow(object):
 
     def get_data_lite_and_broad(self, data_name, **kwargs):
         # determine what the data part of kwargs is
-        input_data = {k: v for k, v in kwargs.iteritems() if k in self.data_dependencies[data_name]}
+        input_data = {k: v for k, v in kwargs.items() if k in self.data_dependencies[data_name]}
         # input_data, kwargs = pdict_get.get_subdict_and_remainder(kwargs, self.data_dependencies[data_name])
         # determine what data we don't have
-        missing_data_names = set(self.data_dependencies[data_name]).difference(input_data.keys())
+        missing_data_names = set(self.data_dependencies[data_name]).difference(list(input_data.keys()))
         # get the data we don't have
         if missing_data_names:
             for missing_dependency in missing_data_names:
                 input_data[missing_dependency] = \
                     self.get_data_lite_and_broad(data_name=missing_dependency, **kwargs)
         # make the data
-        if data_name in self.data_makers.keys():
+        if data_name in list(self.data_makers.keys()):
             # here the data needs to be made from data
             kwargs = dict(input_data, **kwargs)
             made_data = self.data_makers[data_name](**kwargs)
             # store it if necessary
-            if data_name in self.data_storers.keys() and self.data_storers[data_name] is not None:
+            if data_name in list(self.data_storers.keys()) and self.data_storers[data_name] is not None:
                 self.data_storers[data_name](data_name, made_data)
             return made_data
         else:
@@ -121,4 +121,4 @@ class DataFlow(object):
 
     @staticmethod
     def verbose(kwargs, min_level=1):
-        return ('verbose' in kwargs.keys()) and (kwargs['verbose'] >= min_level)
+        return ('verbose' in list(kwargs.keys())) and (kwargs['verbose'] >= min_level)

@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 
 def to_curl(request, headers="simple", print_it=True):
@@ -22,8 +22,8 @@ def to_curl(request, headers="simple", print_it=True):
     command = None
 
     if headers is None:
-        headers = {k: v for k, v in request.headers.iteritems()}
-    elif isinstance(headers, basestring) and headers == 'simple':
+        headers = {k: v for k, v in request.headers.items()}
+    elif isinstance(headers, str) and headers == 'simple':
         if request.method == 'GET':
             command = "curl -X {method} '{uri}'".format(
                         method=request.method,
@@ -38,11 +38,11 @@ def to_curl(request, headers="simple", print_it=True):
 
     if command is None:
         if isinstance(headers, dict):
-            headers = ["'{}: {}'".format(k, v) for k, v in headers.iteritems()]
+            headers = ["'{}: {}'".format(k, v) for k, v in headers.items()]
             headers = " -H ".join(sorted(headers))
         elif isinstance(headers, list):
-            headers = " -H ".join(map(lambda x: '"' + x + '"', sorted(headers)))
-        elif isinstance(headers, basestring) and (not headers.startswith("'") or not headers.startswith('"')):
+            headers = " -H ".join(['"' + x + '"' for x in sorted(headers)])
+        elif isinstance(headers, str) and (not headers.startswith("'") or not headers.startswith('"')):
                 headers = '"' + headers + '"'
 
         command = "curl -X {method} -H {headers} -d '{data}' '{uri}'".format(

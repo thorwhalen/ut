@@ -25,14 +25,14 @@ def plot_with_label_color(X, y, shuffle=False, decompose=None, y_to_color=defaul
                 decompose = 'tsne'
             else:
                 decompose = 'pca'
-        if isinstance(decompose, basestring):
+        if isinstance(decompose, str):
             if decompose == 'pca':
                 decompose = Pipeline(steps=[('scale', StandardScaler()),
                                             ('decompose', PCA(n_components=2, whiten=True))])
             elif decompose == 'tsne':
                 if len(X) > MAX_PTS_FOR_TSNE:
-                    print("TSNE would be too slow with thatm much data: Taking a set of {} random pts...".format(
-                        MAX_PTS_FOR_TSNE))
+                    print(("TSNE would be too slow with thatm much data: Taking a set of {} random pts...".format(
+                        MAX_PTS_FOR_TSNE)))
                     idx = np.random.choice(len(X), size=MAX_PTS_FOR_TSNE, replace=False)
                     X = X[idx, :]
                     y = y[idx]
@@ -42,7 +42,7 @@ def plot_with_label_color(X, y, shuffle=False, decompose=None, y_to_color=defaul
         else:
             X = decompose(X)
 
-    if isinstance(y[0], basestring):
+    if isinstance(y[0], str):
         y = LabelEncoder().fit_transform(y)
 
     if len(np.unique(y)) <= len(y_to_color):
@@ -51,7 +51,7 @@ def plot_with_label_color(X, y, shuffle=False, decompose=None, y_to_color=defaul
             permi = np.random.permutation(len(X))
             X = X[permi, :]
             y = y[permi]
-            for i in xrange(len(X)):
+            for i in range(len(X)):
                 mpl_plt.plot(X[i, 0], X[i, 1], 'o', color=y_to_color[y[i]], **kwargs)
         else:
             for yy in np.unique(y):
@@ -116,7 +116,7 @@ def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
     if isinstance(factor, np.ndarray):
         factor = pd.Series(factor)
 
-    if isinstance(factor, basestring):
+    if isinstance(factor, str):
         factor_name = factor  # save off the name
         factor = df[factor]  # extract column
         df = df.drop(factor_name, axis=1)  # remove from df, so it doesn't get a row and col in the plot.
@@ -128,7 +128,7 @@ def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
     if color_map is None:
         color_map = ['#e41a1c', '#377eb8', '#4eae4b', '#994fa1', '#ff8101', '#fdfc33', '#a8572c', '#f482be', '#999999']
     if not isinstance(color_map, dict):
-        color_map = dict(zip(classes, color_map))
+        color_map = dict(list(zip(classes, color_map)))
 
     if len(classes) > len(color_map):
         raise ValueError('''Too many groups for the number of colors provided.
@@ -141,7 +141,7 @@ def factor_scatter_matrix(df, factor, color_map=None, **kwargs):
     axarr = pd.tools.plotting.scatter_matrix(df, **scatter_matrix_kwargs)
 
     columns = list(df.columns)
-    for rc in xrange(len(columns)):
+    for rc in range(len(columns)):
         for group in classes:
             y = df[factor == group].iloc[:, rc].values
             gkde = gaussian_kde(y)

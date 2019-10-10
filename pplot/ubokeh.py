@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -62,7 +62,7 @@ def compute_and_display_distances(dd,
     dist_mat = distance_matrix_fun(dd)
 
     # input handling
-    if isinstance(cmap, basestring):
+    if isinstance(cmap, str):
         cmap = cm.get_cmap(cmap)
 
     if data_to_01_color is None:
@@ -187,7 +187,7 @@ def square_df_heatmap(df,
                       output_filepath='bokeh_heatmap.html'):
 
     # input handling
-    if isinstance(cmap, basestring):
+    if isinstance(cmap, str):
         cmap = cm.get_cmap(cmap)
 
     if data_to_01_color is None:
@@ -221,6 +221,6 @@ def _square_df_to_bokeh_graph(df):
     n = len(node_names)
     data['nodes'] = [{'name': v} for i, v in enumerate(node_names)]
     data['links'] = [{'source': source, 'target': target, 'value': df.iloc[source, target]}
-                     for source, target in itertools.product(range(n), range(n))]
+                     for source, target in itertools.product(list(range(n)), list(range(n)))]
     # data['df'] = df
     return data

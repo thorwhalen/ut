@@ -1,6 +1,6 @@
-from __future__ import division
 
-from __future__ import division
+
+
 
 from collections import Counter
 import pandas as pd
@@ -44,15 +44,15 @@ class TimeseriesPlot(object):
         self.max_fig_height = max_fig_height
 
     def plot_timeseries(self, timeseries):
-        n = len(timeseries.keys())
-        min_offset_date = min(map(lambda x: min(x[self.ts_field]), timeseries.values()))
-        max_offset_date = max(map(lambda x: max(x[self.ts_field]), timeseries.values()))
+        n = len(list(timeseries.keys()))
+        min_offset_date = min([min(x[self.ts_field]) for x in list(timeseries.values())])
+        max_offset_date = max([max(x[self.ts_field]) for x in list(timeseries.values())])
         min_datetime = utc_ms_to_utc_datetime(min_offset_date)
         max_datetime = utc_ms_to_utc_datetime(max_offset_date)
 
         fig = plt.figure(figsize=(self.fig_width, min(self.max_fig_height, self.fig_height_factor * n)))
 
-        for i, (named_signal, d) in enumerate(timeseries.iteritems(), 1):
+        for i, (named_signal, d) in enumerate(iter(timeseries.items()), 1):
             ax = fig.add_subplot(n, 1, i)
 
             ax.text(.5, .9, named_signal,
@@ -60,14 +60,14 @@ class TimeseriesPlot(object):
                     transform=ax.transAxes)
 
             signal_val = d[self.ts_val_field]
-            if isinstance(signal_val[0], basestring):
+            if isinstance(signal_val[0], str):
                 sr = pd.Series(Counter(signal_val)).sort_values(ascending=False)
                 sr.name = named_signal
                 sr.plot(kind='bar', ax=ax)
                 ax.set_ylim(top=ax.get_ylim()[1] * 1.1)
                 ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
             else:
-                x = map(utc_ms_to_utc_datetime, d[self.ts_field])
+                x = list(map(utc_ms_to_utc_datetime, d[self.ts_field]))
                 ax.plot(x, signal_val, '-o')
                 plt.xlim([min_datetime, max_datetime])
 
@@ -95,16 +95,16 @@ class SegmentPlot(object):
 
     def plot_segments_df(self, segments_df, ax=None):
         categorical_data = False
-        if isinstance(segments_df.iloc[0][self.val_field], basestring):
+        if isinstance(segments_df.iloc[0][self.val_field], str):
             categorical_data = True
             idx_to_cat = segments_df[self.val_field].unique()
             cat_to_idx = {cat: idx for idx, cat in enumerate(idx_to_cat)}
-            segments_df[self.val_field] = map(cat_to_idx.get, segments_df[self.val_field])
+            segments_df[self.val_field] = list(map(cat_to_idx.get, segments_df[self.val_field]))
         else:
             idx_to_cat = None
 
-        x = zip(zip(segments_df[self.bt_field], segments_df[self.val_field]),
-                zip(segments_df[self.tt_field], segments_df[self.val_field]))
+        x = list(zip(list(zip(segments_df[self.bt_field], segments_df[self.val_field])),
+                list(zip(segments_df[self.tt_field], segments_df[self.val_field]))))
         lc = mc.LineCollection(x)
 
         if ax is None:
@@ -118,7 +118,7 @@ class SegmentPlot(object):
             ax.plot(segments_df[self.bt_field], segments_df[self.val_field], 'o', alpha=self.alpha)
 
         if categorical_data:
-            plt.yticks(range(len(idx_to_cat)), idx_to_cat)
+            plt.yticks(list(range(len(idx_to_cat))), idx_to_cat)
 
         x_ticks, _ = plt.xticks()
         plt.xticks(x_ticks, str_ticks(x_ticks, ticks_unit=ms_seconds))
@@ -187,8 +187,8 @@ class MgSegmentPlot(SegmentPlot):
     def segments_df_from_mgc(self, mgc, channel):
         it = mgc.find({self.channel_field: channel},
                       fields={"_id": 0, self.mg_val_key_path: 1, self.bt_field: 1, self.tt_field: 1})
-        return pd.DataFrame(zip(*[(get_value_in_key_path(doc, self.mg_val_key_path),
-                                   doc[self.bt_field], doc[self.tt_field]) for doc in it]),
+        return pd.DataFrame(list(zip(*[(get_value_in_key_path(doc, self.mg_val_key_path),
+                                   doc[self.bt_field], doc[self.tt_field]) for doc in it])),
                             index=[self.val_field, self.bt_field, self.tt_field]).T
 
     def plot_segments_for_signal_from_mgc(self, mgc, channel):

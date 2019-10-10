@@ -9,12 +9,12 @@ __author__ = 'thor'
 # A Python implementation of the FP-growth algorithm.
 
 from collections import defaultdict, namedtuple
-from itertools import imap
+
 
 
 def print_rules(rules_tuples):
     for h in rules_tuples:
-        print("{} --> {} (sup = {})".format(", ".join(h[0]), ", ".join(h[1]), h[2]))
+        print(("{} --> {} (sup = {})".format(", ".join(h[0]), ", ".join(h[1]), h[2])))
 
 
 def fpgrowth(dataset, min_support=0.5, include_support=False, verbose=False):
@@ -60,7 +60,7 @@ def fpgrowth(dataset, min_support=0.5, include_support=False, verbose=False):
         bucket = defaultdict(list)
         for sublist in nested_list:
             bucket[len(sublist)].append(sublist)
-        return [v for k,v in sorted(bucket.items())] if sort else bucket.values()
+        return [v for k,v in sorted(bucket.items())] if sort else list(bucket.values())
 
     F = bucket_list(F)
 
@@ -108,25 +108,25 @@ def find_frequent_itemsets(dataset, min_support, include_support=False, verbose=
         processed_transactions.append(processed)
 
     # Remove infrequent items from the item support dictionary.
-    items = dict((item, support) for item, support in items.iteritems()
+    items = dict((item, support) for item, support in items.items()
         if support >= min_support)
 
     # Build our FP-tree. Before any transactions can be added to the tree, they
     # must be stripped of infrequent items and their surviving items must be
     # sorted in decreasing order of frequency.
     def clean_transaction(transaction):
-        transaction = filter(lambda v: v in items, transaction)
+        transaction = [v for v in transaction if v in items]
         transaction.sort(key=lambda v: items[v], reverse=True)
         return transaction
 
     master = FPTree()
-    for transaction in imap(clean_transaction, processed_transactions):
+    for transaction in map(clean_transaction, processed_transactions):
         master.add(transaction)
 
     support_data = {}
 
     def find_with_suffix(tree, suffix):
-        for item, nodes in tree.items():
+        for item, nodes in list(tree.items()):
             support = float(sum(n.count for n in nodes)) / len(dataset)
             if support >= min_support and item not in suffix:
                 # New winner!
@@ -144,11 +144,11 @@ def find_frequent_itemsets(dataset, min_support, include_support=False, verbose=
     if verbose:
         # Print a list of all the frequent itemsets.
         for itemset, support in find_with_suffix(master, []):
-            print("" \
+            print(("" \
                 + "{" \
                 + "".join(str(i) + ", " for i in iter(itemset)).rstrip(', ') \
                 + "}" \
-                + ":  sup = " + str(round(support_data[frozenset(itemset)], 3)))
+                + ":  sup = " + str(round(support_data[frozenset(itemset)], 3))))
 
     # Search for frequent itemsets, and yield the results we find.
     for itemset in find_with_suffix(master, []):
@@ -221,7 +221,7 @@ class FPTree(object):
         element of the tuple is the item itself, and the second element is a
         generator that will yield the nodes in the tree that belong to the item.
         """
-        for item in self._routes.iterkeys():
+        for item in self._routes.keys():
             yield (item, self.nodes(item))
 
     def nodes(self, item):
@@ -257,10 +257,10 @@ class FPTree(object):
 
         print("")
         print("Routes:")
-        for item, nodes in self.items():
-            print("  %r" % item)
+        for item, nodes in list(self.items()):
+            print(("  %r" % item))
             for node in nodes:
-                print("    %r" % node)
+                print(("    %r" % node))
 
     def _removed(self, node):
         """Called when `node` is removed from the tree; performs cleanup."""
@@ -451,10 +451,10 @@ class FPNode(object):
     @property
     def children(self):
         """The nodes that are children of this node."""
-        return tuple(self._children.itervalues())
+        return tuple(self._children.values())
 
     def inspect(self, depth=0):
-        print(('  ' * depth) + repr(self))
+        print((('  ' * depth) + repr(self)))
         for child in self.children:
             child.inspect(depth + 1)
 
@@ -580,7 +580,7 @@ def calc_confidence(freq_set, H, support_data, rules, min_confidence=0.5, verbos
             pruned_H.append(conseq)
 
             if verbose:
-                print("" \
+                print(("" \
                     + "{" \
                     + "".join([str(i) + ", " for i in iter(freq_set-conseq)]).rstrip(', ') \
                     + "}" \
@@ -589,7 +589,7 @@ def calc_confidence(freq_set, H, support_data, rules, min_confidence=0.5, verbos
                     + "".join([str(i) + ", " for i in iter(conseq)]).rstrip(', ') \
                     + "}" \
                     + ":  conf = " + str(round(conf, 3)) \
-                    + ", sup = " + str(round(support_data[freq_set], 3)))
+                    + ", sup = " + str(round(support_data[freq_set], 3))))
 
     return pruned_H
 

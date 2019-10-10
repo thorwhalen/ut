@@ -51,9 +51,9 @@ def SMOTE(T, N, k):
     neigh.fit(T)
     
     #Calculate synthetic samples
-    for i in xrange(n_minority_samples):
+    for i in range(n_minority_samples):
         nn = neigh.kneighbors(T[i], return_distance=False)
-        for n in xrange(N):
+        for n in range(N):
             nn_index = choice(nn[0])
             #NOTE: nn includes T[i], we don't want to select it 
             while nn_index == i:

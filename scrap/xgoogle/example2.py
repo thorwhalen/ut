@@ -5,7 +5,7 @@
 #
 
 import re
-from urlparse import urlparse
+from urllib.parse import urlparse
 from xgoogle.search import GoogleSearch, SearchError
 
 target_domain = "catonmat.net"
@@ -26,5 +26,5 @@ for idx, res in enumerate(results):
   parsed = urlparse(res.url)
   domain = mk_nice_domain(parsed.netloc)
   if domain == target_domain:
-    print "Ranking position %d for keyword %s on domain %s" % (idx+1, target_keyword, target_domain) 
+    print("Ranking position %d for keyword %s on domain %s" % (idx+1, target_keyword, target_domain)) 
 

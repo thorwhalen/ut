@@ -127,7 +127,7 @@ class TermStats(object):
         returns a TermStats from a dict of term:stat pairs
         """
         kwargs = dict(TermStats.default, **kwargs)
-        return TermStats(pd.Series(data=d.values(), index=d.keys())).set_name(kwargs['name'])
+        return TermStats(pd.Series(data=list(d.values()), index=list(d.keys()))).set_name(kwargs['name'])
 
     @staticmethod
     def from_terms(terms, **kwargs):

@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from numpy import where, array
 from numpy.random import randint, rand
@@ -55,10 +55,10 @@ def indexed_chunking_random_test(f_list=indexed_chunking_f_list,
 
     kwargs = random_kwargs_for_list(x)
     if verbose:
-        print("x: {} elements. min: {}, max: {}".format(len(x), x[0], x[-1]))
-    t = {k: v for k, v in kwargs.iteritems() if k != 'key'}
+        print(("x: {} elements. min: {}, max: {}".format(len(x), x[0], x[-1])))
+    t = {k: v for k, v in kwargs.items() if k != 'key'}
     if verbose:
-        print("kwargs: {}\n".format(json.dumps(t, indent=2)))
+        print(("kwargs: {}\n".format(json.dumps(t, indent=2))))
 
     b = list(f_list[0](iter(x), **kwargs))
     bb = None
@@ -70,13 +70,13 @@ def indexed_chunking_random_test(f_list=indexed_chunking_f_list,
         if len(b) != len(bb):
             all_good &= False
             if verbose:
-                print("{}: Not the same length! Base had {} elements, comp has {}".format(
-                    i, len(b), len(bb)))
-        idx_where_different = where(map(lambda x: x[0] != x[1], zip(b, bb)))[0]
+                print(("{}: Not the same length! Base had {} elements, comp has {}".format(
+                    i, len(b), len(bb))))
+        idx_where_different = where([x[0] != x[1] for x in zip(b, bb)])[0]
         if len(idx_where_different) > 0:
             all_good &= False
             if verbose:
-                print("{} values where different".format(len(idx_where_different)))
+                print(("{} values where different".format(len(idx_where_different))))
         if not all_good:
             if verbose:
                 print("STOPPING HERE: Check the variables for diagnosis")
@@ -92,5 +92,5 @@ def indexed_chunking_random_test(f_list=indexed_chunking_f_list,
 
 
 if __name__ == '__main__':
-    for i in xrange(100):
+    for i in range(100):
         assert indexed_chunking_random_test(), "indexed_chunking_random_test failed"

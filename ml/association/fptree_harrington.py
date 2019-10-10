@@ -17,13 +17,13 @@ class treeNode:
         self.count += numOccur
 
     def disp(self, ind=1):
-        print '  '*ind, self.name, ' ', self.count
-        for child in self.children.values():
+        print('  '*ind, self.name, ' ', self.count)
+        for child in list(self.children.values()):
             child.disp(ind+1)
 
     def __str__(self, ind=1):
         s = '  ' * ind + self.name + ' ' + str(self.count)
-        for child in self.children.values():
+        for child in list(self.children.values()):
             s += '\n' + child.__str__(ind+1)
         return s
 
@@ -37,7 +37,7 @@ def createTree(dataSet, minSup=1): #create FP-tree from dataset but don't mine
     for trans in dataSet:  # first pass counts frequency of occurrence
         for item in trans:
             headerTable[item] = headerTable.get(item, 0) + dataSet[trans]
-    for k in headerTable.keys():  # remove items not meeting minSup
+    for k in list(headerTable.keys()):  # remove items not meeting minSup
         if headerTable[k] < minSup:
             del(headerTable[k])
     freqItemSet = set(headerTable.keys())
@@ -47,13 +47,13 @@ def createTree(dataSet, minSup=1): #create FP-tree from dataset but don't mine
         headerTable[k] = [headerTable[k], None]  # reformat headerTable to use Node link
     #print 'headerTable: ',headerTable
     retTree = treeNode('Null Set', 1, None)  # create tree
-    for tranSet, count in dataSet.items():   # go through dataset 2nd time
+    for tranSet, count in list(dataSet.items()):   # go through dataset 2nd time
         localD = {}
         for item in tranSet:  # put transaction items in order
             if item in freqItemSet:
                 localD[item] = headerTable[item][0]
         if len(localD) > 0:
-            orderedItems = [v[0] for v in sorted(localD.items(), key=lambda p: p[1], reverse=True)]
+            orderedItems = [v[0] for v in sorted(list(localD.items()), key=lambda p: p[1], reverse=True)]
             updateTree(orderedItems, retTree, headerTable, count)  # populate tree with ordered freq itemset
     return retTree, headerTable # return tree and header table
 
@@ -95,7 +95,7 @@ def findPrefixPath(basePat, treeNode): #treeNode comes from header table
 
 
 def mineTree(inTree, headerTable, minSup, preFix, freqItemList):
-    bigL = [v[0] for v in sorted(headerTable.items(), key=lambda p: p[1])]#(sort header table)
+    bigL = [v[0] for v in sorted(list(headerTable.items()), key=lambda p: p[1])]#(sort header table)
     for basePat in bigL:  #start from bottom of header table
         newFreqSet = preFix.copy()
         newFreqSet.add(basePat)

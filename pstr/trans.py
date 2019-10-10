@@ -1,11 +1,27 @@
 __author__ = 'thorwhalen'
 
 from unidecode import unidecode
-import codecs
 import re
 import pandas as pd
 
 multiple_spaces_exp = re.compile('\s\s*')
+
+
+def pycli_of_str(s):
+    """
+
+    :param s: a string assumed to be python code
+    :return: a string that would correspond to this code written in a python cli (you know, with the >>> and ...)
+    """
+    ss = ''
+    for line in s.split('\n'):
+        if len(line) == 0:
+            ss += '>>> ' + line + '\n'
+        elif line[0].isspace() and line[0] != '\n':
+            ss += '...' + line + '\n'
+        else:
+            ss += '>>> ' + line + '\n'
+    return ss
 
 
 def indent_string_block(s, indent=2):
@@ -17,14 +33,14 @@ def indent_string_block(s, indent=2):
 
 
 def str_to_unicode_or_bust(obj, encoding='utf-8'):
-    if isinstance(obj, basestring):
-        if not isinstance(obj, unicode):
-            obj = unicode(obj, encoding)
+    if isinstance(obj, str):
+        if not isinstance(obj, str):
+            obj = str(obj, encoding)
     return obj
 
 
 def str_to_utf8_or_bust(obj):
-    if isinstance(obj, basestring):
+    if isinstance(obj, str):
         try:
             obj = obj.encode('utf-8')
         except UnicodeDecodeError:
@@ -38,23 +54,24 @@ def to_utf8_or_bust_iter(it):
 
 def to_unicode_or_bust(obj, encoding='utf-8'):
     try:
-        if isinstance(obj, basestring):
-            if not isinstance(obj, unicode):
-                obj = unicode(obj, encoding)
+        if isinstance(obj, str):
+            if not isinstance(obj, str):
+                obj = str(obj, encoding)
         else:
             if isinstance(obj, pd.DataFrame):
                 for c in obj.columns:
                     obj[c] = to_unicode_or_bust(obj[c], encoding)
             else:
                 try:
-                    obj = map(lambda x: unicode(x, encoding), obj)
+                    obj = [str(x, encoding) for x in obj]
                 except:
                     pass
         return obj
-                # print "changed something"
+        # print "changed something"
         # print type(obj)
     except:
         UnicodeError("to_unicode_or_bust failed with %s" % obj)
+
 
 # at some point to_unicode_or_bust looked like follows, but didn't make sense (and had bugs, so I did the above)
 # def to_unicode_or_bust(obj, encoding='utf-8'):
@@ -83,49 +100,49 @@ def toascii(s):
     :return: string of ascii char correspondents
     (replacing, for example, accentuated letters with non-accentuated versions of the latter)
     '''
-    if isinstance(s, basestring):
-        if not isinstance(s, unicode): # transform to unicode if it's not already so
-            s = unicode(s, encoding='utf-8')
+    if isinstance(s, str):
+        if not isinstance(s, str):  # transform to unicode if it's not already so
+            s = str(s, encoding='utf-8')
         return unidecode(s)
-    else: # assume it's an iterable
-        if not isinstance(s[0], unicode): # transform to unicode if it's not already so (NOTE: Only checked first element
-            s = map(lambda x: unicode(x, encoding='utf-8'), s)
-        return map(unidecode, s)
+    else:  # assume it's an iterable
+        if not isinstance(s[0], str):  # transform to unicode if it's not already so (NOTE: Only checked first element
+            s = [str(x, encoding='utf-8') for x in s]
+        return list(map(unidecode, s))
 
 
 def lower(s):
-    if isinstance(s,basestring):
+    if isinstance(s, str):
         return s.lower()
     else:
-        return map(lambda x: x.lower(),s)
+        return [x.lower() for x in s]
 
 
 def strip(s):
-    if isinstance(s, basestring):
+    if isinstance(s, str):
         return re.sub(multiple_spaces_exp, ' ', s.strip())
     else:
-        return map(lambda x: re.sub(multiple_spaces_exp, ' ', x.strip()), s)
+        return [re.sub(multiple_spaces_exp, ' ', x.strip()) for x in s]
 
 
 def replace_space_by_underscore(s):
-    if isinstance(s,basestring):
-        return s.replace(' ','_')
+    if isinstance(s, str):
+        return s.replace(' ', '_')
     else:
-        return map(lambda x:x.replace(' ','_'),s)
+        return [x.replace(' ', '_') for x in s]
 
 
-## with to_unicode_or_bust INSIDE the functions:
-# def toascii(s):
-#     if isinstance(s,basestring):
-#         return unidecode(to_unicode_or_bust(s))
-#     else:
-#         return map(lambda x:unidecode(to_unicode_or_bust(x)),s)
-#
-# def lower(s):
-#     if isinstance(s,basestring):
-#         return to_unicode_or_bust(s).lower()
-#     else:
-#         return map(lambda x:to_unicode_or_bust(x).lower(),s)
+    ## with to_unicode_or_bust INSIDE the functions:
+    # def toascii(s):
+    #     if isinstance(s,basestring):
+    #         return unidecode(to_unicode_or_bust(s))
+    #     else:
+    #         return map(lambda x:unidecode(to_unicode_or_bust(x)),s)
+    #
+    # def lower(s):
+    #     if isinstance(s,basestring):
+    #         return to_unicode_or_bust(s).lower()
+    #     else:
+    #         return map(lambda x:to_unicode_or_bust(x).lower(),s)
 
 
     # if isinstance(s,string):
@@ -137,4 +154,3 @@ def replace_space_by_underscore(s):
     #         return map(lambda x:unidecode(codecs.decode(x, 'utf-8')),s)
     #     elif isinstance(s[0],unicode):
     #         return map(lambda x:unidecode(x,s))
-

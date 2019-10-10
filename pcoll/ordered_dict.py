@@ -5,15 +5,15 @@ from collections import OrderedDict
 
 
 def sort_by_keys(d, reverse=False):
-    return OrderedDict(sorted(d.items(), key=lambda t: t[0], reverse=reverse))
+    return OrderedDict(sorted(list(d.items()), key=lambda t: t[0], reverse=reverse))
 
 
 def sort_by_value(d, reverse=False):
-    return OrderedDict(sorted(d.items(), key=lambda t: t[1], reverse=reverse))
+    return OrderedDict(sorted(list(d.items()), key=lambda t: t[1], reverse=reverse))
 
 
 def sort_by_function(d, fun, reverse=False):
-    return OrderedDict(sorted(d.items(), key=fun, reverse=reverse))
+    return OrderedDict(sorted(list(d.items()), key=fun, reverse=reverse))
 
 
 def ordered_counter(x, sort_by=None, reverse=False):

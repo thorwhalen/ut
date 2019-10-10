@@ -76,4 +76,4 @@ class Pusher(object):
     def __init__(self,x):
         self.x = x
     def doit(self,t):
-        print "%s %d" % (self.x,t)
+        print("%s %d" % (self.x,t))

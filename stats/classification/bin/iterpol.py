@@ -45,7 +45,7 @@ class BinaryClassificationByInterpolatedProbabilities(BinaryClassifierBase2D):
 
         # compute the cluster means
         self.cluster_x = self.clus.cluster_centers_
-        self.cluster_y = array(map(lambda i: nanmean(y[neighbor_idx[i, :]]), xrange(shape(self.cluster_x)[0])))
+        self.cluster_y = array([nanmean(y[neighbor_idx[i, :]]) for i in range(shape(self.cluster_x)[0])])
 
         # make the interpolator
         if self.interpolator == 'linear':
@@ -54,7 +54,7 @@ class BinaryClassificationByInterpolatedProbabilities(BinaryClassifierBase2D):
             self.iterpol = interpolate.CloughTocher2DInterpolator(self.cluster_x, self.cluster_y, fill_value=nan)
         self.nnb_iterpol = interpolate.NearestNDInterpolator(self.cluster_x, self.cluster_y)
 
-        print "fit elapsed time: %.02f minutes" % ((time.time() - t0) / 60.)
+        print("fit elapsed time: %.02f minutes" % ((time.time() - t0) / 60.))
 
     def predict_proba(self, x):
         iterpolations = self.iterpol(x)

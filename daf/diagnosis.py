@@ -1,4 +1,4 @@
-from __future__ import division
+
 __author__ = 'thorwhalen'
 """
 Includes various adwords elements diagnosis functions
@@ -84,13 +84,13 @@ def pr_numof(data, column=None, op=ge, comp_val=0,
         data = data[column]
     n = len(data)
     k = sum(op(data, comp_val))
-    print(str_format.format(
+    print((str_format.format(
         k=k,
         n=n,
         perc=100. * k / n,
         op=op2str[op],
         column=column,
-        comp_val=comp_val))
+        comp_val=comp_val)))
 
 
 def cols_that_are_of_the_type(df, type_spec):
@@ -102,18 +102,18 @@ def cols_that_are_of_the_type(df, type_spec):
 
 def get_unique(d, cols=None):
     if cols is None: cols = d.columns.tolist()
-    d = d.reindex(index=range(len(d)))
+    d = d.reindex(index=list(range(len(d))))
     grouped = d.groupby(cols)
-    index = [gp_keys[0] for gp_keys in grouped.groups.values()]
+    index = [gp_keys[0] for gp_keys in list(grouped.groups.values())]
     return d.reindex(index)
 
 
 def print_unique_counts(d):
     column_list = d.columns.tolist()
-    print "number of rows: \t{}".format(len(d[column_list[0]]))
-    print ""
+    print("number of rows: \t{}".format(len(d[column_list[0]])))
+    print("")
     for c in column_list:
-        print "number of unique {}: \t{}".format(c,len(arraysetops.unique(d[c])))
+        print("number of unique {}: \t{}".format(c,len(arraysetops.unique(d[c]))))
 
 
 def mk_fanout_score_df(df, fromVars, toVars, statVars=None, keep_statVars=False):

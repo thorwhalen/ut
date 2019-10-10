@@ -38,7 +38,7 @@ def for_local(relative_root='', read_only=False, extension=None, force_extension
         relative_root = ''
     elif relative_root == 'test':  # if relative root is test...
         relative_root = 'test'
-        print "you asked for a local test, so I forced the root to be %s" % relative_root
+        print("you asked for a local test, so I forced the root to be %s" % relative_root)
     # ensure that sound_file_root_folder ends with a "/"
     file_handler = FilepathHandler(relative_root=pfile_name.ensure_slash_suffix(root_folder)+relative_root)
     # take care of extensions
@@ -63,7 +63,7 @@ def for_local(relative_root='', read_only=False, extension=None, force_extension
 def for_s3(relative_root='loc-data', read_only=False, extension=None, force_extension=False, **kwargs):
     if relative_root == 'test':
         relative_root = 'loc-data/test'
-        print "you asked for a s3 test, so I forced the root to be %s" % relative_root
+        print("you asked for a s3 test, so I forced the root to be %s" % relative_root)
     file_handler = FilepathHandler(relative_root=relative_root)
     if extension:
         extension_handler = ExtensionHandler(extension=extension, force_extension=force_extension)
@@ -84,7 +84,7 @@ def for_s3(relative_root='loc-data', read_only=False, extension=None, force_exte
         bucket_name = save_kwargs['bucket_name']
         base_folder = save_kwargs['key_name']
     except:
-        print "couldn't get bucket_name and key_name for relative_root"
+        print("couldn't get bucket_name and key_name for relative_root")
     instance.s3 = S3(bucket_name=bucket_name, base_folder=base_folder)
     instance._set_s3_defaults()
     return instance
@@ -125,7 +125,7 @@ class Accessor(object):
 
         self.read_only = read_only
 
-        for k, v in kwargs.items():
+        for k, v in list(kwargs.items()):
             self.__setattr__(k,v)
 
         self._guess_missing_attributes()
@@ -223,7 +223,7 @@ class Accessor(object):
                 raise ValueError("unknown location")
 
     def copy_to(self, target_relative_root, file_spec, target_location=None):
-        if isinstance(target_relative_root, basestring):
+        if isinstance(target_relative_root, str):
             target_relative_root, target_location = \
                 _make_a_file_loc_proc_and_location_from_string_specifications(target_relative_root, target_location)
             # make a file accessor for the (target_location, target_relative_root)
@@ -238,11 +238,11 @@ class Accessor(object):
 
     def _guess_missing_attributes(self):
         if self.file_loc_proc is None: # if no file_loc_proc is given
-            if self.location is not None and isinstance(self.location, basestring):
+            if self.location is not None and isinstance(self.location, str):
                 self.file_loc_proc==self.location
             else:
                 self.file_loc_proc==LOCATION_LOCAL
-        elif isinstance(self.file_loc_proc, basestring): # if file_loc_proc is a string
+        elif isinstance(self.file_loc_proc, str): # if file_loc_proc is a string
             self.file_loc_proc, self.location = \
                 _make_a_file_loc_proc_and_location_from_string_specifications(self.file_loc_proc, self.location)
             # if self.file_loc_proc==LOCATION_LOCAL:
@@ -261,7 +261,7 @@ class Accessor(object):
 
     def _set_defaults(self):
         if self.location is None:
-            print "setting location to LOCAL (because you didn't specify a location)"
+            print("setting location to LOCAL (because you didn't specify a location)")
             self.location = LOCATION_LOCAL
         if self.location == LOCATION_LOCAL:
             self._set_local_defaults()
@@ -317,10 +317,10 @@ class Accessor(object):
 
 
 def _make_a_file_loc_proc_and_location_from_string_specifications(file_loc_proc, location):
-    if file_loc_proc is None and isinstance(location, basestring):
+    if file_loc_proc is None and isinstance(location, str):
         file_loc_proc = location + "/"
         location = None
-    elif location is None and isinstance(file_loc_proc, basestring):
+    elif location is None and isinstance(file_loc_proc, str):
         first_folder = pfile_name.get_highest_level_folder(location)
         if first_folder in [LOCATION_LOCAL, LOCATION_S3]:
             location = first_folder # set the location to first_folder
@@ -376,7 +376,7 @@ class LocalIOMethods(object):
         self.encoding = encoding
 
     def unicode_save(self, obj, filepath=None, **kwargs):
-        if isinstance(obj, basestring):
+        if isinstance(obj, str):
             # pstr_to.file(string=pstr_trans.to_unicode_or_bust(obj), tofile=filepath, encoding=self.encoding)
             # pstr_to.file(string=pstr_trans.to_utf8_or_bust_iter(obj), tofile=filepath, encoding=self.encoding)
             # pstr_to.file(string=pstr_trans.str_to_utf8_or_bust(obj), tofile=filepath, encoding=self.encoding)
@@ -385,7 +385,7 @@ class LocalIOMethods(object):
             pickle.dump(obj=obj, file=open(filepath, 'w'))
 
     def simple_save(self, obj, filepath=None, **kwargs):
-        if isinstance(obj, basestring):
+        if isinstance(obj, str):
             pstr_to.file(string=obj, tofile=filepath, encoding=self.encoding)
         else:
             pickle.dump(obj=obj, file=open(filepath, 'w'))
@@ -423,13 +423,13 @@ class S3IOMethods(object):
         self.s3 = S3(**kwargs)
 
     def unicode_save(self, obj, key_name, bucket_name):
-        if isinstance(obj, basestring):
+        if isinstance(obj, str):
             self.s3.dumps(the_str=pstr_trans.to_unicode_or_bust(obj), key_name=key_name, bucket_name=bucket_name)
         else:
             self.s3.dumpo(obj=obj, key_name=key_name, bucket_name=bucket_name)
 
     def simple_save(self, obj, key_name, bucket_name):
-        if isinstance(obj, basestring):
+        if isinstance(obj, str):
             self.s3.dumps(the_str=obj, key_name=key_name, bucket_name=bucket_name)
         else:
             self.s3.dumpo(obj=obj, key_name=key_name, bucket_name=bucket_name)

@@ -20,6 +20,7 @@ from ut.util.prand import rand_numbers_summing_to_one
 from ut.pplot.color import shifted_color_map
 
 import ut.pplot.get
+from functools import reduce
 
 
 class Pot(object):
@@ -34,8 +35,8 @@ class Pot(object):
                 assert 'pval' in data.columns, "dataframe had no pval column"
                 self.tb = data
             elif isinstance(data, dict):
-                if 'pval' not in data.keys():
-                    data = dict(data, pval=len(data[data.keys()[0]]) * [1])
+                if 'pval' not in list(data.keys()):
+                    data = dict(data, pval=len(data[list(data.keys())[0]]) * [1])
                 self.tb = pd.DataFrame(data=data)
             else:
                 try:
@@ -60,7 +61,7 @@ class Pot(object):
         It's like a subplane of points defined by given axis intercepts.
         """
         tb = self.tb.copy()
-        for k, v in intercept_dict.iteritems():
+        for k, v in intercept_dict.items():
             tb = tb[tb[k] == v]
             del tb[k]
         return Pot(tb)
@@ -99,15 +100,15 @@ class Pot(object):
         If item is a dict, it normalizes according to the keys, and slices according to the dict.
         --> This resembles P(A|B=1) kind of thing...
         """
-        print "I'm trying to discourage using | now (might want to use it for fuzzy logic at some point"
-        print "--> Use / instead of |. "
-        if isinstance(item, basestring):
+        print("I'm trying to discourage using | now (might want to use it for fuzzy logic at some point")
+        print("--> Use / instead of |. ")
+        if isinstance(item, str):
             return self / self.project_to([item])
         elif isinstance(item, list):
             return self / self.project_to(item)
         elif isinstance(item, dict):
             intercept_dict = item
-            var_list = colloc.intersect(self.vars(), intercept_dict.keys())
+            var_list = colloc.intersect(self.vars(), list(intercept_dict.keys()))
             return (self / self.project_to(var_list)).get_slice(intercept_dict)
         else:
             TypeError('Unknown item type')
@@ -122,7 +123,7 @@ class Pot(object):
                 return self.get_slice(item)
             elif isinstance(item, list):
                 return self.project_to(item)
-            elif isinstance(item, basestring):
+            elif isinstance(item, str):
                 return self.project_to(item)
             else:
                 raise TypeError("Unknown type for item (must be None, dict, list, or string)")
@@ -152,13 +153,13 @@ class Pot(object):
         """
         if isinstance(item, Pot):
             return Pot(_val_div_(self._merge_(item)))
-        elif isinstance(item, basestring):
+        elif isinstance(item, str):
             return self.normalize([item])
         elif isinstance(item, list):
             return self.normalize(item)
         elif isinstance(item, dict):
             intercept_dict = item
-            var_list = colloc.intersect(self.vars(), intercept_dict.keys())
+            var_list = colloc.intersect(self.vars(), list(intercept_dict.keys()))
             return self.normalize(var_list).get_slice(intercept_dict)
         else:
             TypeError('Unknown item type')
@@ -213,7 +214,7 @@ class Pot(object):
         maps specified variables to {0, 1}
             var_values_to_map_to_1_dict is a {variable_name: values to map to 1} specification dict
         """
-        for var_name, vals_to_map_to_1 in var_values_to_map_to_1_dict.iteritems():
+        for var_name, vals_to_map_to_1 in var_values_to_map_to_1_dict.items():
             tb = self.tb.copy()
             if not hasattr(vals_to_map_to_1, '__iter__'):
                 vals_to_map_to_1 = [vals_to_map_to_1]
@@ -226,8 +227,8 @@ class Pot(object):
     def round(self, ndigits=None, inplace=False):
         if ndigits is None:
             ndigits = abs(int(math.log10(self.tb['pval'].min()))) + 1 + 2
-            print ndigits
-        rounded_pvals = map(lambda x: round(x, ndigits), self.tb['pval'])
+            print(ndigits)
+        rounded_pvals = [round(x, ndigits) for x in self.tb['pval']]
         if inplace:
             self.tb['pval'] = rounded_pvals
         else:
@@ -300,10 +301,10 @@ class Pot(object):
         else:
             counts = Counter(pts)
             if vars is None:
-                example_key = counts.keys()[0]
-                vars = range(len(example_key))
+                example_key = list(counts.keys())[0]
+                vars = list(range(len(example_key)))
             return Pot(pd.DataFrame(
-                [dict(pval=v, **{kk: vv for kk, vv in zip(vars, k)}) for k, v in counts.iteritems()])
+                [dict(pval=v, **{kk: vv for kk, vv in zip(vars, k)}) for k, v in counts.items()])
             )
 
 
@@ -335,12 +336,12 @@ class Pot(object):
         # check inputs
         assert len(n_var_vals) <= 26, "You can't request more than 26 variables: That's just crazy"
         if var_names is None:
-            var_names = [str(unichr(x)) for x in range(ord('A'),ord('Z'))]
+            var_names = [str(chr(x)) for x in range(ord('A'),ord('Z'))]
         assert len(n_var_vals) <= len(var_names), "You can't have less var_names than you have n_var_vals"
         assert min(array(n_var_vals)) >= 2, "n_var_vals elements should be >= 2"
 
         # make the df by taking the cartesian product of the n_var_vals defined ranges
-        df = reduce(cartesian_product, [pd.DataFrame(data=range(x), columns=[y]) for x, y in zip(n_var_vals, var_names)])
+        df = reduce(cartesian_product, [pd.DataFrame(data=list(range(x)), columns=[y]) for x, y in zip(n_var_vals, var_names)])
 
         n_vals = len(df)
 
@@ -370,7 +371,7 @@ class Pot(object):
         else:
             pvals = _get_random_pvals()
 
-        df['pval'] = map(float, pvals)
+        df['pval'] = list(map(float, pvals))
 
         return Pot(df)
 
@@ -404,10 +405,10 @@ class ProbPot(Pot):
         matrix_shape = (t['exposure'].nunique(), t['event'].nunique())
         m = ut.daf.to.map_vals_to_ints_inplace(t, cols_to_map=['exposure'])
         m = m['exposure']
-        ut.daf.to.map_vals_to_ints_inplace(t, cols_to_map={'event': dict(zip(m, range(len(m))))})
+        ut.daf.to.map_vals_to_ints_inplace(t, cols_to_map={'event': dict(list(zip(m, list(range(len(m))))))})
         RR = zeros(matrix_shape)
         RR[t['exposure'], t['event']] = t['relative_risk']
-        RR[range(len(m)), range(len(m))] = nan
+        RR[list(range(len(m))), list(range(len(m)))] = nan
 
         RRL = np.log2(RR)
         def normalizor(X):
@@ -422,8 +423,8 @@ class ProbPot(Pot):
         color_map = shifted_color_map(cmap=cm.get_cmap('coolwarm'), start=0, midpoint=center, stop=1)
         imshow(RRL, cmap=color_map, interpolation='none');
 
-        xticks(range(shape(RRL)[0]), m, rotation=90)
-        yticks(range(shape(RRL)[1]), m)
+        xticks(list(range(shape(RRL)[0])), m, rotation=90)
+        yticks(list(range(shape(RRL)[1])), m)
         cbar = colorbar()
         cbar.ax.set_yticklabels(["%.02f" % x for x in np.exp2(array(ut.pplot.get.get_colorbar_tick_labels_as_floats(cbar)))])
 
@@ -438,7 +439,7 @@ def from_points_to_binary(d, mid_fun=median):
     dd = d.copy()
     columns = d.columns
     for c in columns:
-        dd[c] = map(int, d[c] > mid_fun(d[c]))
+        dd[c] = list(map(int, d[c] > mid_fun(d[c])))
     return dd
 
 

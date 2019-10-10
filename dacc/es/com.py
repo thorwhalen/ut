@@ -13,7 +13,7 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
 import pandas as pd
-from itertools import imap, islice, chain
+from itertools import islice, chain
 
 from ut.pdict.manip import rollout
 from ut.util.log import printProgress
@@ -67,10 +67,10 @@ class ElasticCom(object):
             # print(body)
             return body
 
-        return chain(*imap(lambda x: self.search_and_export_to_dict(body=mk_rand_body(),
+        return chain(*map(lambda x: self.search_and_export_to_dict(body=mk_rand_body(),
                                                                     size=rand_batch_size,
                                                                     *args, **kwargs),
-                           xrange(n_rand_picks)))
+                           range(n_rand_picks)))
 
     def scan_extractor(self, query=None, extractor=None, get_item='_source', print_progress_every=None, *args,
                        **kwargs):
@@ -106,9 +106,9 @@ class ElasticCom(object):
                 extractor_ = lambda x: extractor(x[get_item])
 
         if print_progress_every is None:
-            return imap(extractor_, scanner)
+            return map(extractor_, scanner)
         else:
-            return print_iter_progress(imap(extractor_, scanner), print_progress_every=print_progress_every)
+            return print_iter_progress(map(extractor_, scanner), print_progress_every=print_progress_every)
 
     def source_scan_iterator(self, extractor=None, print_progress_every=None, *args, **kwargs):
         """
@@ -125,15 +125,15 @@ class ElasticCom(object):
 
         if extractor is None:
             if print_progress_every is None:
-                return imap(lambda x: x['_source'], scanner)
+                return map(lambda x: x['_source'], scanner)
             else:
-                return print_iter_progress(imap(lambda x: x['_source'], scanner),
+                return print_iter_progress(map(lambda x: x['_source'], scanner),
                                            print_progress_every=print_progress_every)
         else:
             if print_progress_every is None:
-                return imap(lambda x: extractor(x['_source']), scanner)
+                return map(lambda x: extractor(x['_source']), scanner)
             else:
-                return print_iter_progress(imap(lambda x: extractor(x['_source']), scanner),
+                return print_iter_progress(map(lambda x: extractor(x['_source']), scanner),
                                            print_progress_every=print_progress_every)
 
     def dict_of_source_data(self,
@@ -188,7 +188,7 @@ class ElasticCom(object):
 
         df = pd.DataFrame(self.search_and_export_to_dict(*args, **kwargs))
         if len(exclude_fields) > 0:
-            if isinstance(exclude_fields, basestring):
+            if isinstance(exclude_fields, str):
                 exclude_fields = [exclude_fields]
             for field in exclude_fields:
                 df.drop(field, axis=1, inplace=True)
@@ -211,7 +211,7 @@ class ElasticCom(object):
 
     def get_doc_types(self):
         mapping = self.es.indices.get_mapping(index=self.index)
-        return mapping[self.index]['mappings'].keys()
+        return list(mapping[self.index]['mappings'].keys())
 
     def get_fields_mapping_info(self):
         mapping = self.es.indices.get_mapping(index=self.index, doc_type=self.doc_type)
@@ -244,7 +244,7 @@ class ElasticCom(object):
 
     def import_mongo_collection(self, mongo_db=None, mongo_collection=None, doc_func=None, **kwargs):
         if mongo_db is not None:
-            if isinstance(mongo_db, basestring):
+            if isinstance(mongo_db, str):
                 mongo_db = MongoClient()[mongo_db]
         else:  # mongo_db is None
             if mongo_collection is None:
@@ -266,17 +266,17 @@ class ElasticCom(object):
 
 def es_types_to_main_types(mapping):
     fields_with_type = defaultdict(list)
-    for k, v in mapping.iteritems():
-        if 'type' in v.keys():
+    for k, v in mapping.items():
+        if 'type' in list(v.keys()):
             v_type = v.get('type')
             if v_type in ['float', 'double', 'byte', 'short', 'integer', 'long']:
                 fields_with_type['number'].append(k)
             else:
                 fields_with_type[v_type].append(k)
-        elif 'properties' in v.keys():
+        elif 'properties' in list(v.keys()):
             nested_fields_with_type = es_types_to_main_types(v['properties'])
-            for kk, vv in nested_fields_with_type.iteritems():
-                fields_with_type[kk].extend(map(lambda x: k + '.' + x, vv))
+            for kk, vv in nested_fields_with_type.items():
+                fields_with_type[kk].extend([k + '.' + x for x in vv])
     # fields_with_type['number'] = [k for k, v in mapping.iteritems() if v['type']
     #                               in ['float', 'double', 'byte', 'short', 'integer', 'long']]
     # fields_with_type['string'] = [k for k, v in mapping.iteritems() if v['type'] in ['string']]
@@ -289,10 +289,10 @@ def get_search_hits(es_response, _id=True, data_key=None):
     if len(response_hits) > 0:
         if data_key is None:
             for hit in response_hits:
-                if '_source' in hit.keys():
+                if '_source' in list(hit.keys()):
                     data_key = '_source'
                     break
-                elif 'fields' in hit.keys():
+                elif 'fields' in list(hit.keys()):
                     data_key = 'fields'
                     break
             if data_key is None:
@@ -307,7 +307,7 @@ def get_search_hits(es_response, _id=True, data_key=None):
 
 
 def to_utf8_or_bust(obj):
-    if isinstance(obj, basestring):
+    if isinstance(obj, str):
         try:
             return obj.encode('utf-8')
         except UnicodeDecodeError:
@@ -316,7 +316,7 @@ def to_utf8_or_bust(obj):
         try:
             return to_utf8_or_bust(str(obj))
         except (UnicodeDecodeError, UnicodeEncodeError, TypeError):
-            return to_utf8_or_bust(unicode(obj))
+            return to_utf8_or_bust(str(obj))
 
 
 def stringify_when_necessary(d, fields_to_stringify):

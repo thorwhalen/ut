@@ -14,7 +14,7 @@ Based on https://github.com/enaeseth/python-fp-growth (MIT License) from Eric Na
 """
 
 from collections import defaultdict, namedtuple
-from itertools import imap, izip
+
 # from matplotlib.cbook import flatten
 
 def find_frequent_itemsets(transactions, transaction_values, minimum_support):
@@ -46,19 +46,19 @@ def mk_fptree(transactions, transaction_values, minimum_support, item_counts=Non
             # processed_transactions.append(processed)
 
     # Remove infrequent items from the item support dictionary.
-    item_counts = dict((item, support) for item, support in item_counts.iteritems() if support >= minimum_support)
+    item_counts = dict((item, support) for item, support in item_counts.items() if support >= minimum_support)
 
     # Build our FP-tree. Before any transactions can be added to the tree, they
     # must be stripped of infrequent items and their surviving items must be
     # sorted in decreasing order of frequency.
     def clean_transaction(transaction):
-        transaction = filter(lambda v: v in item_counts, transaction)
+        transaction = [v for v in transaction if v in item_counts]
         transaction.sort(key=lambda v: item_counts[v], reverse=True)
         return transaction
 
     fptree = FPTree()
     for transaction, transaction_value \
-            in izip(imap(clean_transaction, transactions), transaction_values):
+            in zip(map(clean_transaction, transactions), transaction_values):
         fptree.add(transaction, transaction_value)
         # print("transaction={}, transaction_value={}".format(transaction, transaction_value))
         # print(tree.inspect())
@@ -72,9 +72,9 @@ def find_frequent_itemsets_from_fp_tree(fp_tree, minimum_support):
     Find frequent itemsets from a given fp_tree
     """
     def find_with_suffix(tree, suffix):
-        for item, nodes in tree.items():
+        for item, nodes in list(tree.items()):
             # support = sum(n.count for n in nodes)
-            support, value = map(sum, zip(*[(n.count, n.value) for n in nodes]))
+            support, value = list(map(sum, list(zip(*[(n.count, n.value) for n in nodes]))))
             if support >= minimum_support and item not in suffix:
                 # New winner!
                 found_set = [item] + suffix
@@ -158,7 +158,7 @@ class FPTree(object):
         element of the tuple is the item itself, and the second element is a
         generator that will yield the nodes in the tree that belong to the item.
         """
-        for item in self._routes.iterkeys():
+        for item in self._routes.keys():
             yield (item, self.nodes(item))
 
     def nodes(self, item):
@@ -191,15 +191,15 @@ class FPTree(object):
         return (collect_path(node) for node in self.nodes(item))
 
     def inspect(self):
-        print 'Tree:'
+        print('Tree:')
         self.root.inspect(1)
 
-        print
+        print()
         print('Routes:')
-        for item, nodes in self.items():
-            print '  %r' % item
+        for item, nodes in list(self.items()):
+            print('  %r' % item)
             for node in nodes:
-                print '    %r' % node
+                print('    %r' % node)
 
     def _removed(self, node):
         """Called when `node` is removed from the tree; performs cleanup."""
@@ -407,10 +407,10 @@ class FPNode(object):
     @property
     def children(self):
         """The nodes that are children of this node."""
-        return tuple(self._children.itervalues())
+        return tuple(self._children.values())
 
     def inspect(self, depth=0):
-        print ('  ' * depth) + repr(self)
+        print(('  ' * depth) + repr(self))
         for child in self.children:
             child.inspect(depth + 1)
 

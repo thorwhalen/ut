@@ -1,5 +1,3 @@
-_author__ = 'mattjmorris'
-
 from boto.dynamodb2.table import Table
 import boto.dynamodb2
 from ut.util.importing import get_environment_variable
@@ -61,9 +59,9 @@ class DDBParser(object):
         # TODO! make the search_term list a set so don't get duplicate error from dynamo
 
         # searchterm_ is a STRING
-        if isinstance(search_term_, basestring):
+        if isinstance(search_term_, str):
             if search_term_:
-                slurp_info = (self.slurps_table.get_item(searchterm=search_term_)).items()
+                slurp_info = list((self.slurps_table.get_item(searchterm=search_term_)).items())
             else:
                 slurp_info = []
 
@@ -73,7 +71,7 @@ class DDBParser(object):
                 list_of_searchterms = [{'searchterm': st} for st in search_term_ if st]
                 res = self.slurps_table.batch_get(list_of_searchterms)
                 try:
-                    slurp_info = [i.items() for i in res]
+                    slurp_info = [list(i.items()) for i in res]
                 except (StopIteration, IndexError):
                     # If res is empty, we get one of these errors when trying to iterate.
                     slurp_info = []
@@ -82,7 +80,7 @@ class DDBParser(object):
 
         # searchterm is an unexpected type
         else:
-            raise TypeError, "search_term_ must be a dict or a list of dicts, not a {}".format(type(search_term_))
+            raise TypeError("search_term_ must be a dict or a list of dicts, not a {}".format(type(search_term_)))
 
         return slurp_info
 

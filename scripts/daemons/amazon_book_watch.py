@@ -59,7 +59,7 @@ while True:
 
     if datetime.now().hour == time_of_day_to_send_email:
         try:
-            for author, ispec in spec.iteritems():
+            for author, ispec in spec.items():
                 html = abw.mk_html_report(title_country_list=ispec['title_country_list'])
                 amazon_sender = AmazonSender(to_addresses=ispec['subscriber_emails'])
                 amazon_sender.send_email(subject="{author}'s Book Watch".format(author=author), html=html)

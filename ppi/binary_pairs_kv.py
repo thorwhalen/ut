@@ -199,17 +199,17 @@ class KeyVal(Val):
     def add(self, kv):
         try:
             if hasattr(kv.v, 'keys'):
-                for k in kv.v.keys():
-                    if k in self.v.keys():
+                for k in list(kv.v.keys()):
+                    if k in list(self.v.keys()):
                         self.v[k].add(kv.v[k])
                     else:
                         self.v[k] = kv.v[k]
             else:
                 try:
-                    for k in self.v.keys():
+                    for k in list(self.v.keys()):
                         self.v[k].v = self.v[k].v + kv.v
                 except TypeError:
-                    for k in self.v.keys():
+                    for k in list(self.v.keys()):
                         self.v[k].add(kv)
         except AttributeError:
             self.add(Val(kv))
@@ -217,15 +217,15 @@ class KeyVal(Val):
     def sub(self, kv):
         try:
             if hasattr(kv.v, 'keys'):
-                for k in kv.v.keys():
-                    if k in self.v.keys():
+                for k in list(kv.v.keys()):
+                    if k in list(self.v.keys()):
                         self.v[k].sub(kv.v[k])
             else:
                 try:
-                    for k in self.v.keys():
+                    for k in list(self.v.keys()):
                         self.v[k].v = self.v[k].v - kv.v
                 except TypeError:
-                    for k in self.v.keys():
+                    for k in list(self.v.keys()):
                         self.v[k].sub(kv)
         except AttributeError:
             self.sub(Val(kv))
@@ -233,17 +233,17 @@ class KeyVal(Val):
     def mul(self, kv):
         try:
             if hasattr(kv.v, 'keys'):
-                for k in kv.v.keys():
-                    if k in self.v.keys():
+                for k in list(kv.v.keys()):
+                    if k in list(self.v.keys()):
                         self.v[k].mul(kv.v[k])
                     else:
                         self.v[k] = kv.v[k]
             else:
                 try:
-                    for k in self.v.keys():
+                    for k in list(self.v.keys()):
                         self.v[k].v = self.v[k].v * kv.v
                 except TypeError:
-                    for k in self.v.keys():
+                    for k in list(self.v.keys()):
                         self.v[k].mul(kv)
         except AttributeError:
             self.mul(Val(kv))
@@ -251,31 +251,31 @@ class KeyVal(Val):
     def div(self, kv):
         try:
             if hasattr(kv.v, 'keys'):
-                for k in kv.v.keys():
-                    if k in self.v.keys():
+                for k in list(kv.v.keys()):
+                    if k in list(self.v.keys()):
                         self.v[k].div(kv.v[k])
             else:
                 try:
-                    for k in self.v.keys():
+                    for k in list(self.v.keys()):
                         self.v[k].v = self.v[k].v / kv.v
                 except TypeError:
-                    for k in self.v.keys():
+                    for k in list(self.v.keys()):
                         self.v[k].div(kv)
         except AttributeError:
             self.div(Val(kv))
 
     def unwrapped(self):
-        return {k: v.unwrapped() for k, v in self.v.iteritems()}
+        return {k: v.unwrapped() for k, v in self.v.items()}
 
     def map(self, fun):
-        for v in self.v.itervalues():
+        for v in self.v.values():
             v.map(fun)
 
     def keys(self):
-        return self.v.keys()
+        return list(self.v.keys())
 
     def iteritems(self):
-        return self.v.iteritems()
+        return iter(self.v.items())
 
     def __getitem__(self, item):
         return self.v.get(item, None)
@@ -294,7 +294,7 @@ class KeyCount(KeyVal):
             super(KeyCount, self).__init__(v)
 
     def increment(self, k):
-        if self.v.has_key(k):
+        if k in self.v:
             self.v[k].add(Val(1.0))
         else:
             self.v[k] = Val(1.0)

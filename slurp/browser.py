@@ -3,7 +3,7 @@ import os
 from ut.util.importing import get_environment_variable
 import random
 from requests.auth import HTTPProxyAuth
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import requests
 import re
 
@@ -63,11 +63,11 @@ class Browser(object):
 
     @classmethod
     def options(cls):
-        print '''
+        print('''
             get_header_fun:
                 'header_with_random_firefox_user_agent' (default)
                 'fixed_header'
-        '''
+        ''')
 
     def get_header(self):
         if self.get_header_fun == 'header_with_random_firefox_user_agent':
@@ -93,14 +93,14 @@ class Browser(object):
         if not self.random_agents:
             self.random_agents = self.USER_AGENTS[:]
             if filter_in_user_agents:
-                self.random_agents = filter(re.compile(filter_in_user_agents).search, self.random_agents)
+                self.random_agents = list(filter(re.compile(filter_in_user_agents).search, self.random_agents))
         random.shuffle(self.random_agents)
         return self.random_agents.pop()
 
     def get_html_through_tor_unfinished(self, url):
         UserWarning("This hasn't really be coded yet...")
-        proxy_support = urllib2.ProxyHandler({"http": "127.0.0.1:8118"})
-        opener = urllib2.build_opener(proxy_support)
+        proxy_support = urllib.request.ProxyHandler({"http": "127.0.0.1:8118"})
+        opener = urllib.request.build_opener(proxy_support)
         opener.addheaders = [('User-agent', self.random_user_agent())]
         return opener.open(url).read()
 

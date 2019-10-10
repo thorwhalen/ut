@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -36,7 +36,7 @@ def mk_binary_bins_sequence_from_timestamp_array(ordered_timestamps, time_binnin
     array([ 1.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,
             1.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  1.])
     """
-    t = array(map(time_binning_func, ordered_timestamps - min(array(ordered_timestamps))))
+    t = array(list(map(time_binning_func, ordered_timestamps - min(array(ordered_timestamps)))))
     bin_sequence = zeros(t.max() + 1)
     bin_sequence[t] = 1
     return bin_sequence

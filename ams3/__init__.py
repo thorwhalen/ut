@@ -1,1 +1,1 @@
-__author__ = 'thorwhalen'
+"""s3 io stuff"""

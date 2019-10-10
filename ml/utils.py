@@ -7,7 +7,7 @@ import pickle
 from scipy.sparse import issparse
 import dill
 from copy import deepcopy
-from types import NoneType
+# from types import NoneType
 from sklearn.base import TransformerMixin
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import LabelEncoder
@@ -44,7 +44,7 @@ class ExtrapolateTransformation(TransformerMixin):
 
 # default_as_is_types = (list, np.ndarray, tuple, dict, float, int)
 default_as_is_types = (list, np.ndarray, tuple, dict, float, int, set, np.int32,
-                       basestring, np.matrixlib.defmatrix.matrix, NoneType)
+                       str, np.matrixlib.defmatrix.matrix, type(None))
 # default_as_is_types = (list, tuple, dict, float, int, set, np.int32,
 #                        basestring, NoneType)
 
@@ -77,7 +77,7 @@ def get_model_attributes(model,
         states = pickle.dumps(model)
     else:
         # getting the list of attributes to save
-        if isinstance(include, basestring):
+        if isinstance(include, str):
             if include == 'all':
                 if len(exclude) > 0:
                     attribute_set = [k for k in model.__dict__ if k not in exclude]
@@ -148,7 +148,7 @@ def export_model_params_to_json(model,
 
     if include_date:
         model_params['date'] = str(datetime.now())
-        if isinstance(include_date, basestring) and include_date == 'as string':
+        if isinstance(include_date, str) and include_date == 'as string':
             model_params['date'] = str(model_params['date'])
     if version:
         model_params['version'] = version
@@ -156,7 +156,7 @@ def export_model_params_to_json(model,
         if filepath == '':
             return dumps(model_params, indent=indent, cls=NumpyAwareJSONEncoder)
         else:
-            print("Saving the centroid_model_params to {}".format(filepath))
+            print(("Saving the centroid_model_params to {}".format(filepath)))
             dump(model_params, open(filepath, 'w'), indent=indent, cls=NumpyAwareJSONEncoder)
     else:
         return model_params
@@ -169,7 +169,7 @@ def import_model_from_spec(spec,
                            force_dict_wrap=False):
     if isinstance(spec, dict):
         model_dict_imported = dict()
-        for k, v in spec.iteritems():
+        for k, v in spec.items():
             # print k
             if k in objects:
                 obj = objects[k]
@@ -178,7 +178,7 @@ def import_model_from_spec(spec,
                 else:
                     obj = deepcopy(obj)
 
-                for kk, vv in v.iteritems():
+                for kk, vv in v.items():
                     setattr(obj, kk,
                             import_model_from_spec(vv, objects, type_conversions, field_conversions, force_dict_wrap))
                 model_dict_imported[k] = obj
@@ -189,17 +189,17 @@ def import_model_from_spec(spec,
                 model_dict_imported[k] = import_model_from_spec(v, objects, type_conversions, field_conversions,
                                                                 force_dict_wrap)
         if len(model_dict_imported) == 1 and not force_dict_wrap:
-            return model_dict_imported[model_dict_imported.keys()[0]]
+            return model_dict_imported[list(model_dict_imported.keys())[0]]
         else:
             return model_dict_imported
     else:
         if spec == 'kd_tree':
-            print spec
+            print(spec)
         if type_conversions:
             for _type, converter in type_conversions:
                 if isinstance(spec, _type):
                     return converter(spec)
-        if isinstance(spec, basestring) and spec.startswith('cdill.dill'):
+        if isinstance(spec, str) and spec.startswith('cdill.dill'):
             return dill.loads(spec)
         else:
             return spec
@@ -207,7 +207,7 @@ def import_model_from_spec(spec,
 
 def json_friendly_dict(obj):
     if isinstance(obj, dict):
-        return {k: json_friendly_dict(v) for k, v in obj.iteritems()}
+        return {k: json_friendly_dict(v) for k, v in obj.items()}
     elif hasattr(obj, 'tolist') and callable(obj.tolist):
         return obj.tolist()
     elif hasattr(obj, 'to_list') and callable(obj.to_list):
@@ -221,7 +221,7 @@ def json_friendly_dict(obj):
     elif issparse(obj):
         tt = obj.tocoo()
         ttt = tt.nonzero()
-        return zip(ttt[0], ttt[1], tt.data)
+        return list(zip(ttt[0], ttt[1], tt.data))
     else:
         return obj
 
@@ -244,7 +244,7 @@ class NumpyAwareJSONEncoder(JSONEncoder):
             elif issparse(obj):
                 tt = obj.tocoo()
                 ttt = tt.nonzero()
-                return map(zip(ttt[0], ttt[1], tt.data))
+                return list(map(list(zip(ttt[0], ttt[1], tt.data))))
             else:
                 return list(obj)
 

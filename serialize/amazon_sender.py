@@ -88,6 +88,6 @@ def _convert_to_strings(list_of_strs):
     return _encode_str(result)
 
 def _encode_str(s):
-    if type(s) == types.UnicodeType:
+    if type(s) == str:
         return s.encode('utf8')
     return s

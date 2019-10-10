@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from analyzer import Analyzer
-from params import default
+from .analyzer import Analyzer
+from .params import default
 
 from ut.daf.to import to_html
 
@@ -42,7 +42,7 @@ class TestAnalyzer(Analyzer):
         fig.savefig(image_path, **default['save_fig_params'])
         html = self.a['image_html'].format(image_url=image_path)
 
-        d = pd.DataFrame({'input': self.input.keys(), 'value': self.input.values()})
+        d = pd.DataFrame({'input': list(self.input.keys()), 'value': list(self.input.values())})
         html += "<br>\n" + to_html(d, template='box-table-c', index=False, float_format=lambda x: "{:,.0f}".format(x))
         return html
 

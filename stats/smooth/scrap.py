@@ -10,7 +10,7 @@ def sequential_ratios(d, **kwargs):
     if isinstance(specs, dict):
         specs = [specs]
     for s in specs:
-        if 'prior_weight' not in s.keys():
+        if 'prior_weight' not in list(s.keys()):
             s['prior_weight'] = prior_weight
     # computing level stats
 

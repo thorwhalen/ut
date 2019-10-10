@@ -45,8 +45,8 @@ def association_rules(dataset, min_confidence=0.2, min_support=None, output='dat
     elif output == 'dataframe':
         def set_to_string(s):
             return str(", ".join(s))
-        support_df = pd.DataFrame({'condition': map(set_to_string, support_data.keys()),
-                                  'condition_frequency': support_data.values()})
+        support_df = pd.DataFrame({'condition': list(map(set_to_string, list(support_data.keys()))),
+                                  'condition_frequency': list(support_data.values())})
         support_df['condition_count'] = len(dataset) * support_df['condition_frequency']
         d = pd.DataFrame([{'condition': set_to_string(condition),
                               'effect': set_to_string(effect),
@@ -90,7 +90,7 @@ def apriori(dataset, min_support=0.5, verbose=False):
 
     """
     C1 = create_candidates(dataset)
-    D = map(set, dataset)
+    D = list(map(set, dataset))
     F1, support_data = support_prune(D, C1, min_support, verbose=False) # prune candidate 1-itemsets
     F = [F1] # list of frequent itemsets; initialized to frequent 1-itemsets
     k = 2 # the itemset cardinality
@@ -105,11 +105,11 @@ def apriori(dataset, min_support=0.5, verbose=False):
         # Print a list of all the frequent itemsets.
         for kset in F:
             for item in kset:
-                print("" \
+                print(("" \
                     + "{" \
                     + "".join(str(i) + ", " for i in iter(item)).rstrip(', ') \
                     + "}" \
-                    + ":  sup = " + str(round(support_data[item], 3)))
+                    + ":  sup = " + str(round(support_data[item], 3))))
 
     return F, support_data
 
@@ -136,13 +136,13 @@ def create_candidates(dataset, verbose=False):
 
     if verbose:
         # Print a list of all the candidate items.
-        print("" \
+        print(("" \
             + "{" \
             + "".join(str(i[0]) + ", " for i in iter(c1)).rstrip(', ') \
-            + "}")
+            + "}"))
 
     # Map c1 to a frozenset because it will be the key of a dictionary.
-    return map(frozenset, c1)
+    return list(map(frozenset, c1))
 
 def support_prune(dataset, candidates, min_support, verbose=False):
     """Returns all candidate itemsets that meet a minimum support threshold.
@@ -194,14 +194,14 @@ def support_prune(dataset, candidates, min_support, verbose=False):
     if verbose:
         for kset in retlist:
             for item in kset:
-                print("{" + str(item) + "}")
+                print(("{" + str(item) + "}"))
         print("")
         for key in sscnt:
-            print("" \
+            print(("" \
                 + "{" \
                 + "".join([str(i) + ", " for i in iter(key)]).rstrip(', ') \
                 + "}" \
-                + ":  sup = " + str(support_data[key]))
+                + ":  sup = " + str(support_data[key])))
 
     return retlist, support_data
 
@@ -323,7 +323,7 @@ def calc_confidence(freq_set, H, support_data, rules, min_confidence=0.5, verbos
             pruned_H.append(conseq)
 
             if verbose:
-                print("" \
+                print(("" \
                     + "{" \
                     + "".join([str(i) + ", " for i in iter(freq_set-conseq)]).rstrip(', ') \
                     + "}" \
@@ -332,7 +332,7 @@ def calc_confidence(freq_set, H, support_data, rules, min_confidence=0.5, verbos
                     + "".join([str(i) + ", " for i in iter(conseq)]).rstrip(', ') \
                     + "}" \
                     + ":  conf = " + str(round(conf, 3)) \
-                    + ", sup = " + str(round(support_data[freq_set], 3)))
+                    + ", sup = " + str(round(support_data[freq_set], 3))))
 
     return pruned_H
 

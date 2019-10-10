@@ -1,6 +1,6 @@
 __author__ = 'thorwhalen'
 
-import time
+from . import time
 
 class Timer(object):
     def __init__(self):

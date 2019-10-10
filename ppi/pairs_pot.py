@@ -30,9 +30,9 @@ class EdgeCounter(object):
         s = ''
         s += "num of sets: %d\n" % self.num_of_sets
         s += "num of nodes: %d\n" % len(self.node)
-        s += "sum of node counts: %d\n" % sum([v for v in self.node.itervalues()])
+        s += "sum of node counts: %d\n" % sum([v for v in self.node.values()])
         s += "num of edges: %d\n" % len(self.edge)
-        s += "sum of edge counts: %d\n" % sum([v for v in self.edge.itervalues()])
+        s += "sum of edge counts: %d\n" % sum([v for v in self.edge.values()])
         return s
 
     def contingency_table(self, var, var2=None):
@@ -58,14 +58,14 @@ class EdgeCounter(object):
         contingency_table_stats_fun defaults to scipy.stats.chi2_contingency(contingency_table)[1]
         (the p-value of the chi square test.
         """
-        if isinstance(contingency_table_stats_fun, basestring):
+        if isinstance(contingency_table_stats_fun, str):
             if contingency_table_stats_fun == 'chi2_pvalue':
                 contingency_table_stats_fun = lambda x: chi2_contingency(x)[1]
             else:
                 ValueError("Unknown contingency_table_stats_fun")
 
         return {(var, var2): contingency_table_stats_fun(self.contingency_table(var, var2))
-                for var, var2 in self.edge.iterkeys()}
+                for var, var2 in self.edge.keys()}
 
 
 class NaiveGraph(object):
@@ -77,11 +77,11 @@ class NaiveGraph(object):
         self.propagation_depth = propagation_depth
 
     def assimilate_evidence(self, evidence):
-        if isinstance(evidence, basestring):
+        if isinstance(evidence, str):
             evidence = Pot.binary_pot(varname=evidence, prob=0.999999)
         evidence_var = evidence.vars()[0]
         self.post_pot[evidence_var] = self.post_pot[evidence_var].assimilate(evidence)
-        for adj_var, adj_pot in self.edge[evidence_var].iteritems():
+        for adj_var, adj_pot in self.edge[evidence_var].items():
             # print "+++ %s: %.09f" % (adj_var, self.post_pot[adj_var].tb.pval[1])
             self.post_pot[adj_var] = self.post_pot[adj_var].assimilate(adj_pot.__mul__(evidence))
 
@@ -101,18 +101,18 @@ class NaiveGraph(object):
         (by resetting everything, and reintroducing the remaining evidence
         (minus the one unassimilated) one by one).
         """
-        if isinstance(evidence, basestring):
+        if isinstance(evidence, str):
             evidence = Pot.binary_pot(varname=evidence, prob=0.999999)
         evidence_var = evidence.vars()[0]
         self.post_pot[evidence_var] = self.post_pot[evidence_var].unassimilate(evidence)
-        for adj_var, adj_pot in self.edge[evidence_var].iteritems():
+        for adj_var, adj_pot in self.edge[evidence_var].items():
             self.post_pot[adj_var] = (self.post_pot[adj_var] .__div__(
                 adj_pot.__mul__(evidence).project_to(adj_var))).normalize()
 
     def __repr__(self):
         s = ''
         s += "num of nodes: %d\n" % len(self.node)
-        s += "num of (directed) edges: %d\n" % sum([len(v) for v in self.edge.itervalues()])
+        s += "num of (directed) edges: %d\n" % sum([len(v) for v in self.edge.values()])
         return s
 
 
@@ -191,7 +191,7 @@ class BinaryNaiveGraph(NaiveGraph):
             self.post_pot = DictDefaultDict(self.node)
 
     def post_prob_sorted_vars(self):
-        t = [{'var': k, 'prob': self.post_pot[k].pval_of({k: 1})} for k in self.node.keys()]
+        t = [{'var': k, 'prob': self.post_pot[k].pval_of({k: 1})} for k in list(self.node.keys())]
         return pd.DataFrame(t, columns=['var', 'prob'])\
             .sort('prob', ascending=False)\
             .reset_index(drop=True)

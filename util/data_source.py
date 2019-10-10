@@ -110,43 +110,43 @@ class DataSource(object):
     def check(self):
         if self.location==LOCATION_LOCAL:
         # check existence of .dir directories
-            for k,v in self.dir.__dict__.items():
+            for k,v in list(self.dir.__dict__.items()):
                 if not os.path.exists(v):
-                    print "!!!Non existent directory: %s" % v
+                    print("!!!Non existent directory: %s" % v)
             # check existence of root directories of .a (accessors)
-            for k,v in self.a.__dict__.items():
+            for k,v in list(self.a.__dict__.items()):
                 root_directory = v.filepath('')
                 if not os.path.exists(root_directory):
-                    print "!!!Non existent accessor root directory: %s" % root_directory
+                    print("!!!Non existent accessor root directory: %s" % root_directory)
             # check existence of files of .f
-            for k,v in self.f.__dict__.items():
+            for k,v in list(self.f.__dict__.items()):
                 if not os.path.exists(v):
-                    print "!!!Non existent file: %s" % v
+                    print("!!!Non existent file: %s" % v)
         elif self.location==LOCATION_S3:
             raise ValueError("Don't know how to check S3 sources yet")
 
     def print_info(self, **kwargs):
-        print "---------------------------------"
-        print "-------  DataSource Info --------"
-        print ""
-        print "Location: %s" % self.location
-        print ""
-        print "------- .dir (directories) ------"
-        for k,v in self.dir.__dict__.items():
-                print "  %s: %s" % (k, v)
-        print ""
-        print "------- .a (accessors) ----------"
-        for k,v in self.a.__dict__.items():
-                print "  %s: %s" % (k, v.filepath(''))
-        print ""
-        print "------- .f (files) --------------"
-        for k,v in self.f.__dict__.items():
-                print "  %s: %s" % (k, v)
-        if not kwargs.has_key('print_data') or kwargs['print_data']==True:
-            print ""
-            print "------- .d (data) ---------------"
-            for k,v in self.d.__dict__.items():
-                    print "  %s: %s" % (k, v)
+        print("---------------------------------")
+        print("-------  DataSource Info --------")
+        print("")
+        print("Location: %s" % self.location)
+        print("")
+        print("------- .dir (directories) ------")
+        for k,v in list(self.dir.__dict__.items()):
+                print("  %s: %s" % (k, v))
+        print("")
+        print("------- .a (accessors) ----------")
+        for k,v in list(self.a.__dict__.items()):
+                print("  %s: %s" % (k, v.filepath('')))
+        print("")
+        print("------- .f (files) --------------")
+        for k,v in list(self.f.__dict__.items()):
+                print("  %s: %s" % (k, v))
+        if 'print_data' not in kwargs or kwargs['print_data']==True:
+            print("")
+            print("------- .d (data) ---------------")
+            for k,v in list(self.d.__dict__.items()):
+                    print("  %s: %s" % (k, v))
 
 class Directories(object):
     def __init__(self,
@@ -154,14 +154,14 @@ class Directories(object):
                  dir_dict=None):
         if mother_root[-1]!='/':
             mother_root = mother_root + '/'
-        for k,v in dir_dict.items():
+        for k,v in list(dir_dict.items()):
             self.__setattr__(k,mother_root+v)
 
 class Accessors(object):
     def __init__(self, location, a_dict, mother_root=''):
         if location==LOCATION_LOCAL:
-            for k,v in a_dict.items():
-                if isinstance(v, basestring):
+            for k,v in list(a_dict.items()):
+                if isinstance(v, str):
                     # if v is simply a string, take it as the directory relative_root of the accessor
                     self.__setattr__(k,pfile_accessor.for_local(relative_root=os.path.join(mother_root,v)))
                 elif isinstance(v, dict):
@@ -170,14 +170,14 @@ class Accessors(object):
 
 class Files(object):
     def __init__(self, f_dict, mother_root=''):
-        for k,v in f_dict.items():
+        for k,v in list(f_dict.items()):
             self.__setattr__(k,mother_root+v)
 
 class Data(object):
     def __init__(self, d_dict, load_if_existing_file=True, mother_root=''):
         if d_dict:
-            for k, v in d_dict.items():
-                if isinstance(v, basestring) and load_if_existing_file:
+            for k, v in list(d_dict.items()):
+                if isinstance(v, str) and load_if_existing_file:
                     # if v (or mother_root+v) exists as a file, load it in v
                     v_path = ''
                     if os.path.exists(v):

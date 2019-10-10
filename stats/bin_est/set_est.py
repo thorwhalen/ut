@@ -39,7 +39,7 @@ class SetEst(object):
         # init poset
         self._poset = None  # will be computes if and when used
         # vector to map bitmaps to ints
-        self.hash_base = array([2**i for i in xrange(self.n_elements)])
+        self.hash_base = array([2**i for i in range(self.n_elements)])
         self.hash_base_matrix = matrix(self.hash_base).T
         self.hash_to_value = dict()
 
@@ -61,9 +61,9 @@ class SetEst(object):
         return self._poset
 
     def add_stats(self):
-        self.d.loc[:, 'n_members'] = map(len, self.d.index.values)
+        self.d.loc[:, 'n_members'] = list(map(len, self.d.index.values))
         if self.trial in self.d.columns:
-            self.d.loc[:, self.rate] = self.d[self.success] / array(map(float, self.d[self.trial]))
+            self.d.loc[:, self.rate] = self.d[self.success] / array(list(map(float, self.d[self.trial])))
 
     def rm_bitmap(self):
         self.d = self.dd()
@@ -92,7 +92,7 @@ class SetEst(object):
 
     def subset_summed_d(self, cols=None):
         cols = cols or [self.success, self.trial]
-        if isinstance(cols, basestring):
+        if isinstance(cols, str):
             cols = [cols]
         t = self.d[cols].copy()
         return pd.DataFrame([sum(t[lidx]) for lidx in self.poset()], index=self.d.index)
@@ -113,7 +113,7 @@ class SetEst(object):
                                        list(set(kwargs.get('set_column', default['set_column']))
                                        .difference(df.columns))[0])
         df = df.copy()
-        df[kwargs['set_column']] = map(tuple, map(unique, df[kwargs['set_column']]))
+        df[kwargs['set_column']] = list(map(tuple, list(map(unique, df[kwargs['set_column']]))))
         return df, dict(default, **kwargs)
 
     @staticmethod
@@ -165,7 +165,7 @@ class Shapley(SetEst):
         self.compute_subset_val_map()
 
     def compute_subset_val_map(self):
-        self.subset_val_map = {tuple(k): v for k, v in itertools.izip(self.bitmap_matrix(), self.d[self.val_col])}
+        self.subset_val_map = {tuple(k): v for k, v in zip(self.bitmap_matrix(), self.d[self.val_col])}
 
     def get_subset_val(self, subset):
         return self.subset_val_map.get(tuple(subset), 0)
@@ -188,7 +188,7 @@ class Shapley(SetEst):
         subsets_intersecting_with_element = self.bitmap_matrix()[element_row_lidx, :]
         t['subset_sizes'] = sum(subsets_intersecting_with_element, axis=1)
         subsets_intersecting_with_element[:, element_col_lidx] = 0
-        t['success'] = t[self.val_col] - array(map(self.get_subset_val, subsets_intersecting_with_element))
+        t['success'] = t[self.val_col] - array(list(map(self.get_subset_val, subsets_intersecting_with_element)))
         return t
 
     def _compute_single_shapley_value_experimental(self, element):
@@ -244,6 +244,6 @@ class WithOrWithout(SetEst):
         for c in self.set_elements:
             t = self.with_and_without_stats_for_element(c)
             dd[c] = t[t.index == 1]['rate'].iloc[0] / t[t.index == 0]['rate'].iloc[0]
-        dd = pd.DataFrame({'element': dd.keys(), 'rate_lift': dd.values()})
+        dd = pd.DataFrame({'element': list(dd.keys()), 'rate_lift': list(dd.values())})
         dd = dd.sort('rate_lift', ascending=False).set_index('element')
         return dd

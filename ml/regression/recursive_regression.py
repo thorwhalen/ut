@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from sklearn.base import RegressorMixin, TransformerMixin
 from sklearn.linear_model import LinearRegression
@@ -14,7 +14,7 @@ class RecursiveRegressionTransformer(RegressorMixin, TransformerMixin):
     def fit(self, X, y, **kwargs):
         y = y.copy()  # because we're going to change y in here!
         self.models_ = list()
-        for i in xrange(self.n_cycles):
+        for i in range(self.n_cycles):
             if i != 0:
                 y -= model.predict(X)  # replace y by residues of last model computed
             model = self.model_class(**self.model_kwargs).fit(X, y, **kwargs)

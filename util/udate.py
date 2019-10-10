@@ -6,9 +6,9 @@ from pytz import timezone
 
 
 def function_to_convert_to_timezone_from_timezone(to_timezone, from_timezone='UTC'):
-    if isinstance(to_timezone, basestring):
+    if isinstance(to_timezone, str):
         to_timezone = timezone(to_timezone)
-    if isinstance(from_timezone, basestring):
+    if isinstance(from_timezone, str):
         from_timezone = timezone(from_timezone)
 
     return lambda x: from_timezone.localize(x).astimezone(to_timezone)
@@ -34,7 +34,7 @@ def mk_time_info_extractor(spec):
 
     def extractor(timestamp):
         time_struct = timestamp.timetuple()
-        return {k: time_struct.__getattribute__(v) for k, v in spec.iteritems()}
+        return {k: time_struct.__getattribute__(v) for k, v in spec.items()}
 
     return extractor
 

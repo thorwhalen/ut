@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import os
 from PIL import ImageFont
@@ -13,7 +13,7 @@ ttf_font_folder = os.path.join(folder_containing_current_file, 'data/fonts/ttf/'
 DEFAULT_FONT_FILE = 'courier.ttf'
 
 def local_font_files():
-    return filter(lambda f: f.endswith('.ttf'), os.listdir(ttf_font_folder))
+    return [f for f in os.listdir(ttf_font_folder) if f.endswith('.ttf')]
 
 
 def text2img(text,
@@ -54,7 +54,7 @@ def text2img(text,
     if font_file is not None and not os.path.isfile(font_file):
         font_file = os.path.join(ttf_font_folder, font_file)
 
-    REPLACEMENT_CHARACTER = u'\uFFFD'
+    REPLACEMENT_CHARACTER = '\uFFFD'
     NEWLINE_REPLACEMENT_STRING = ' ' + REPLACEMENT_CHARACTER + ' '
 
     font = ImageFont.load_default() if font_file == None \
@@ -62,18 +62,18 @@ def text2img(text,
     text = text.replace('\n', NEWLINE_REPLACEMENT_STRING)
 
     lines = []
-    line = u""
+    line = ""
 
     for word in text.split():
         if word == REPLACEMENT_CHARACTER:  # give a blank line
             lines.append(line[1:])  # slice the white space in the begining of the line
-            line = u""
-            lines.append(u"")  # the blank line
+            line = ""
+            lines.append("")  # the blank line
         elif font.getsize(line + ' ' + word)[0] <= (width):
             line += ' ' + word
         else:  # start a new line
             lines.append(line[1:])  # slice the white space in the begining of the line
-            line = u""
+            line = ""
 
             # TODO: handle too long words at this point
             line += ' ' + word  # for now, assume no word alone can exceed the line width
@@ -83,7 +83,7 @@ def text2img(text,
 
     line_height = font.getsize(text)[1]
     img_height = line_height * (len(lines) + 1)
-    img_width = max(map(lambda line: font.getsize(line)[0], lines))
+    img_width = max([font.getsize(line)[0] for line in lines])
     print(img_width)
 
     img = Image.new("RGBA", (img_width, img_height), bgcolor)

@@ -1,7 +1,7 @@
 import os
 from time import sleep
 import boto.dynamodb2
-from khan_logger import KhanLogger
+from .khan_logger import KhanLogger
 
 __author__ = 'mattjmorris'
 

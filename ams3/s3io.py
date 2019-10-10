@@ -103,7 +103,7 @@ class S3(object):
         if not filepath:
             filepath = key_name
         filepath = local_folder + prefix + filepath + suffix
-        print filepath
+        print(filepath)
         if not os.path.exists(filepath):
             k = self.bucket.lookup(s3_folder + key_name)
             k.get_contents_to_filename(filepath)

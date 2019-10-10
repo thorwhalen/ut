@@ -13,14 +13,14 @@ class ParallelTimeSeriesDacc(object):
     def __init__(self, data_source, date_var, index_var, ts_vars_name='vars', **kwargs):
         if isinstance(data_source, pd.DataFrame):
             self.df = data_source
-        elif isinstance(data_source, basestring):
+        elif isinstance(data_source, str):
             if data_source == 'elasticsearch':
                 from ut.dacc.es.com import ElasticCom
 
                 es_kwargs = kwargs.get('es_kwargs', {})
-                if 'index' in kwargs.keys():
+                if 'index' in list(kwargs.keys()):
                     es_kwargs['index'] = kwargs.pop('index')
-                if 'data_type' in kwargs.keys():
+                if 'data_type' in list(kwargs.keys()):
                     es_kwargs['data_type'] = kwargs.pop('data_type')
                 ec = ElasticCom(**es_kwargs)
 
@@ -70,11 +70,11 @@ class ParallelTimeSeriesDacc(object):
         """
         Drop columns that don't have a minimum number of non-NaN dates
         """
-        print("original shape: {}".format(d.shape))
+        print(("original shape: {}".format(d.shape)))
         num_of_dates = (~d.isnull()).sum()
         num_of_dates = num_of_dates[num_of_dates > min_num_of_dates].sort(inplace=False, ascending=False)
         d = d[num_of_dates.index.values].dropna(how='all')
-        print("shape with at least {} dates: {}".format(min_num_of_dates, d.shape))
+        print(("shape with at least {} dates: {}".format(min_num_of_dates, d.shape)))
         return d
 
     @staticmethod
@@ -96,9 +96,9 @@ class ParallelTimeSeriesDacc(object):
         t = df[[xvar, yvar]].dropna()
         t = t[t[yvar] >= min_y]
         n_xvar_more_than_yvar = sum(t[xvar] > t[yvar])
-        print("{:.2f}% ({}/{}) of '{}' > '{}'".format(100 * n_xvar_more_than_yvar / float(len(t)),
+        print(("{:.2f}% ({}/{}) of '{}' > '{}'".format(100 * n_xvar_more_than_yvar / float(len(t)),
                                                       n_xvar_more_than_yvar, len(t),
-                                                      xvar, yvar))
+                                                      xvar, yvar)))
 
     def plot_time_series(self, d, title=None, y_labels=None,
                          width_factor=2, length=18, only_first_non_null=True, with_plotly=False):
@@ -117,7 +117,7 @@ class ParallelTimeSeriesDacc(object):
         last_ax = None
         n = len(d.columns)
         fig = plt.figure(figsize=(length, min(n, 50) * width_factor))
-        for i, tt in enumerate(d.iteritems()):
+        for i, tt in enumerate(d.items()):
             plt.subplot(n, 1, i + 1)
             tt[1].index = tt[1].index.map(pd.to_datetime)
 
@@ -129,7 +129,7 @@ class ParallelTimeSeriesDacc(object):
             else:
                 if i == 0:
                     ax.set_title(title)
-                if isinstance(y_labels[i], basestring):
+                if isinstance(y_labels[i], str):
                     plt.ylabel(y_labels[i].replace('_', '\n'))
                 else:
                     plt.ylabel(y_labels[i])
@@ -150,7 +150,7 @@ class ParallelTimeSeriesDacc(object):
 def _choose_title_and_y_label(d):
     col_vals = d.columns.values
     try:
-        level_1_vals, level_2_vals = zip(*col_vals)
+        level_1_vals, level_2_vals = list(zip(*col_vals))
         if len(np.unique(level_1_vals)) == 1:
             return level_1_vals[1], level_2_vals
         elif len(np.unique(level_2_vals)) == 1:

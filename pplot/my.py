@@ -1,11 +1,11 @@
-from __future__ import division
+
 
 from numpy import *
 import matplotlib.pylab as plt
 
 
 def vlines(x, ymin=0, ymax=None, marker='o', marker_kwargs=None,
-           colors=u'k', linestyles=u'solid', label=u'', hold=None, data=None, **kwargs):
+           colors='k', linestyles='solid', label='', hold=None, data=None, **kwargs):
     if ymax is None:
         ymax = x
         x = arange(len(ymax))

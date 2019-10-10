@@ -2,9 +2,9 @@ __author__ = 'thor'
 
 import ut.pdict.get as pdict_get
 import ut.util.ulist as util_ulist
-from itertools import chain
+from optparse import OptionParser
 import inspect
-import cPickle
+import pickle
 import zlib
 import types
 
@@ -21,7 +21,7 @@ def list_of_properties_instancemethods_and_classmethods_for_class(class_):
     instance_methods = list()
     class_methods = list()
 
-    for attr_str in (x for x in class_.__dict__.keys() if not x.startswith('__')):
+    for attr_str in (x for x in list(class_.__dict__.keys()) if not x.startswith('__')):
         attr = getattr(class_, attr_str)
         if inspect.ismethod(attr):
             if getattr(attr, "__self__") == class_:
@@ -33,13 +33,12 @@ def list_of_properties_instancemethods_and_classmethods_for_class(class_):
 
     return props, instance_methods, class_methods
 
-
 def list_of_properties_instancemethods_and_classmethods_for_obj(obj):
     props = list()
     instance_methods = list()
     class_methods = list()
 
-    for attr_str in (x for x in obj.__dict__.keys() if not x.startswith('__')):
+    for attr_str in (x for x in list(obj.__dict__.keys()) if not x.startswith('__')):
         attr = getattr(obj, attr_str)
         if inspect.ismethod(attr):
             # if getattr(attr, "__self__") == obj.__class__:
@@ -52,13 +51,12 @@ def list_of_properties_instancemethods_and_classmethods_for_obj(obj):
 
     return props, instance_methods, class_methods
 
-
 def zpickle_dumps(obj):
-    return zlib.compress(cPickle.dumps(obj))
+    return zlib.compress(pickle.dumps(obj))
 
 
 def zpickle_loads(zpickle_string):
-    return cPickle.loads(zlib.decompress(zpickle_string))
+    return pickle.loads(zlib.decompress(zpickle_string))
 
 
 def inject_method(self, method_function, method_name=None):
@@ -70,7 +68,7 @@ def inject_method(self, method_function, method_name=None):
                 types.MethodType(method_function, self))
     else:
         if isinstance(method_function, dict):
-            method_function = [(func, func_name) for func_name, func in method_function.iteritems()]
+            method_function = [(func, func_name) for func_name, func in method_function.items()]
         for method in method_function:
             if isinstance(method, tuple) and len(method) == 2:
                 self = inject_method(self, method[0], method[1])
@@ -78,25 +76,6 @@ def inject_method(self, method_function, method_name=None):
                 self = inject_method(self, method)
 
     return self
-
-
-def add_method(obj, meth, name=None):
-    if isinstance(meth, basestring):
-        name = meth
-        meth = getattr(obj, name)
-    if name is None:
-        name = meth.__name__
-
-    base = type(obj)
-
-    cname = "_".join((base.__name__, name, "add_method"))
-    bases = (base.__bases__[1:]) + (base,)
-
-    new_keys = set(dir(obj)) - set(chain(*[dir(b) for b in bases]))
-
-    d = {a: getattr(obj, a) for a in new_keys}
-    d[name] = meth
-    return type(cname, bases, d)()
 
 
 def methods_of(obj_or_class):
@@ -122,7 +101,7 @@ def set_attributes(obj, attr_dict=None, default_attr_dict=None):
     if default_attr_dict:
         attr_dict = pdict_get.left_union(attr_dict, default_attr_dict)
     # loop through attr_dict and assign attributes to obj
-    for k, v in attr_dict.iteritems():
+    for k, v in attr_dict.items():
         setattr(obj, k, v)
     # return obj
     return obj
@@ -130,7 +109,7 @@ def set_attributes(obj, attr_dict=None, default_attr_dict=None):
 
 def has_attributes(obj, attr_list):
     attr_list = util_ulist.ascertain_list(attr_list)
-    return all([x in obj.__dict__.keys() for x in attr_list])
+    return all([x in list(obj.__dict__.keys()) for x in attr_list])
 
 
 def has_callable_attr(obj, attr):

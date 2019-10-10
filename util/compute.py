@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from functools import partial
 
@@ -34,10 +34,10 @@ class ComputationPipeline(object):
             setattr(self, func_name, obj)  # make an attribute with the func_name, pointing to object
             self.step_names.append(func_name)
             func = getattr(obj, call_method)
-            if isinstance(call_method, basestring):
+            if isinstance(call_method, str):
                 self.call_method_for_func_name[func_name] = func
             else:
-                if len(call_method) == 2 and isinstance(call_method[0], basestring):
+                if len(call_method) == 2 and isinstance(call_method[0], str):
                     partial_args_and_keywords = call_method[1]
                     call_method = call_method[0]
                     if isinstance(partial_args_and_keywords, dict):

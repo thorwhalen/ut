@@ -6,19 +6,19 @@ import warnings
 import numpy as np
 import scipy.sparse as sp
 
-from sklearn.base import BaseEstimator, ClusterMixin, TransformerMixin
+# from sklearn.base import BaseEstimator, ClusterMixin, TransformerMixin
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.utils.extmath import row_norms, squared_norm
-from sklearn.utils.sparsefuncs_fast import assign_rows_csr
+# from sklearn.utils.sparsefuncs_fast import assign_rows_csr
 from sklearn.utils.sparsefuncs import mean_variance_axis
-from sklearn.utils.fixes import astype
+# from sklearn.utils.fixes import astype
 from sklearn.utils import check_array
 from sklearn.utils import check_random_state
 from sklearn.utils import as_float_array
-from sklearn.utils import gen_batches
+# from sklearn.utils import gen_batches
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils.validation import FLOAT_DTYPES
-from sklearn.utils.random import choice
+# from sklearn.utils.random import choice
 from sklearn.externals.joblib import Parallel
 from sklearn.externals.joblib import delayed
 from sklearn.externals.six import string_types
@@ -418,7 +418,7 @@ def _kmeans_single_with_weights(X, weights, n_clusters, x_squared_norms, max_ite
         inertia = np.sum(weights * row_norms_diff)
 
         if verbose:
-            print("Iteration %2d, inertia %.3f" % (i, inertia))
+            print(("Iteration %2d, inertia %.3f" % (i, inertia)))
 
         if best_inertia is None or inertia < best_inertia:
             best_labels = labels.copy()
@@ -428,7 +428,7 @@ def _kmeans_single_with_weights(X, weights, n_clusters, x_squared_norms, max_ite
         shift = squared_norm(centers_old - centers)
         if shift <= tol:
             if verbose:
-                print("Converged at iteration %d" % i)
+                print(("Converged at iteration %d" % i))
 
             break
 
@@ -699,7 +699,7 @@ def k_means_with_weights(X, weights, n_clusters, init='kmeans++_with_weights', p
                                                  random_state=seed)
             for seed in seeds)
         # Get results with the lowest inertia
-        labels, inertia, centers, n_iters = zip(*results)
+        labels, inertia, centers, n_iters = list(zip(*results))
         best = np.argmin(inertia)
         best_labels = labels[best]
         best_inertia = inertia[best]
@@ -827,9 +827,9 @@ class KMeansWeighted(object):
         """
         random_state = np.random  # random_state is always np.random
         if debug:
-            print(type(X))
+            print((type(X)))
             print(X)
-            print(X.shape)
+            print((X.shape))
         X = self._check_fit_data(X)
 
         self.cluster_centers_, self.labels_, self.inertia_, self.n_iter_ = \

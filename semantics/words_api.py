@@ -74,7 +74,7 @@ class Words(object):
 
         # if word is not type(str):
         #     raise Words.entry_error
-        if not isinstance(word, basestring):
+        if not isinstance(word, str):
             raise Words.entry_error
 
         if detail not in Words._details:

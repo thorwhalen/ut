@@ -1,4 +1,4 @@
-from __future__ import division
+
 __author__ = 'thor'
 
 from ut.util.imports.data_analysis import *

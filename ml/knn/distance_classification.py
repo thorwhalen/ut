@@ -28,7 +28,7 @@ def multiple_similarity_alignment(simil_matrix, y):
                 )
             )
     aggregate_prob_of_alignment = \
-        np.sum(number_of_aligned_pairs.values()) / np.sum(total_num_of_error_possibilities.values())
+        np.sum(list(number_of_aligned_pairs.values())) / np.sum(list(total_num_of_error_possibilities.values()))
 
     return aggregate_prob_of_alignment, \
            probability_of_alignment, \
@@ -40,7 +40,7 @@ def similarity_alignment(simil_ordered_same_class_pairs_bitmap):
     # start with a bit map indexed by all possible 2-sets of items, ordered in increasing order of similarity,
     # and indicating with a 1/True when the items of the 2-set are of the same target class C,
     # and by 0/False if one is from C and the other not.
-    simil_ordered_same_class_pairs_bitmap = array(map(bool, simil_ordered_same_class_pairs_bitmap))
+    simil_ordered_same_class_pairs_bitmap = array(list(map(bool, simil_ordered_same_class_pairs_bitmap)))
 
     # The total number of error possibilities: The number of (0,1) or (1,0) pairs in
     total_num_of_error_possibilities = \
@@ -85,7 +85,7 @@ def mk_simil_ordered_same_class_pairs_bitmap(simil_matrix, class_idx):
     n = simil_matrix.shape[0]
     k = len(class_idx)
     band = _class_band(simil_matrix, class_idx)
-    permi = np.append(class_idx, [x for x in xrange(n) if x not in class_idx])
+    permi = np.append(class_idx, [x for x in range(n) if x not in class_idx])
     band = band[:, permi]
     simil_ordered_same_class_pairs_bitmap = np.append(np.ones((k, k)), np.zeros((k, n - k)), axis=1).astype(bool)
 

@@ -33,7 +33,7 @@ def formula_str(fit_func, params, num_format_or_precision=2):
 
     Note that to work, the formula of the fit function has to fit completely in the return line of the function.
     """
-    if not isinstance(num_format_or_precision, basestring):
+    if not isinstance(num_format_or_precision, str):
         num_format_or_precision = "{:." + str(num_format_or_precision) + "e}"
 
     # get the param names from the code of the function
@@ -44,7 +44,7 @@ def formula_str(fit_func, params, num_format_or_precision=2):
 
     # replace the param values in the formula string to get the result
     rep = dict((re.escape(k), num_format_or_precision.format(v)) for k, v in zip(param_names, params))
-    pattern = re.compile("|".join(rep.keys()))
+    pattern = re.compile("|".join(list(rep.keys())))
     formula_str_with_nums = pattern.sub(lambda m: rep[re.escape(m.group(0))], formula_str)
 
     return formula_str_with_nums

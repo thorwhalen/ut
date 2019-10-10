@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 # License: BSD 3-clause
 # Authors: Kyle Kastner
@@ -7,7 +7,7 @@ from __future__ import division
 # http://ml.cs.yamanashi.ac.jp/world/english/
 # MGC code based on r9y9 (Ryuichi Yamamoto) MelGeneralizedCepstrums.jl
 # Pieces also adapted from SPTK
-from __future__ import division
+
 import numpy as np
 import scipy as sp
 from numpy.lib.stride_tricks import as_strided
@@ -46,9 +46,9 @@ def download(url, server_fname, local_fname=None, progress_update_percentage=5,
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        u = urllib.urlopen(url, context=ctx)
+        u = urllib.request.urlopen(url, context=ctx)
     else:
-        u = urllib.urlopen(url)
+        u = urllib.request.urlopen(url)
     if local_fname is None:
         local_fname = server_fname
     full_path = local_fname
@@ -59,7 +59,7 @@ def download(url, server_fname, local_fname=None, progress_update_percentage=5,
         except TypeError:
             print("WARNING: Cannot get file size, displaying bytes instead!")
             file_size = 100
-        print("Downloading: %s Bytes: %s" % (server_fname, file_size))
+        print(("Downloading: %s Bytes: %s" % (server_fname, file_size)))
         file_size_dl = 0
         block_sz = int(1E7)
         p = 0
@@ -1711,8 +1711,8 @@ def hebbian_kmeans(X, n_clusters=10, n_epochs=10, W=None, learning_rate=0.01,
         if verbose:
             if e == 0 or e > (.05 * n_epochs + last_print):
                 last_print = e
-                print("Epoch %i of %i, cost %.4f" % (
-                    e + 1, n_epochs, D.min(axis=0).sum()))
+                print(("Epoch %i of %i, cost %.4f" % (
+                    e + 1, n_epochs, D.min(axis=0).sum())))
     return W
 
 
@@ -1944,7 +1944,7 @@ def iterate_invert_spectrogram(X_s, fftsize, step, n_iter=10, verbose=False,
     try:
         for i in range(n_iter):
             if verbose:
-                print("Runnning iter %i" % i)
+                print(("Runnning iter %i" % i))
             if i == 0 and not complex_input:
                 X_t = invert_spectrogram(X_best, step, calculate_offset=True,
                                         set_zero_phase=True)
@@ -3126,7 +3126,7 @@ def _mgc_b2mc(mc, alpha):
 
 
 def _mgc_mc2b(mc, alpha):
-    itr = range(len(mc) - 1)[::-1]
+    itr = list(range(len(mc) - 1))[::-1]
     for i in itr:
         mc[i] = mc[i] - alpha * mc[i + 1]
 
@@ -3144,7 +3144,7 @@ def _mgc_gc2gc(src_ceps, src_gamma=0., dst_order=None, dst_gamma=0.):
         ss1 = 0.
         ss2 = 0.
         min_1 = m1 if (m1 < m - 1) else m - 2
-        itr = range(2, min_1 + 2)
+        itr = list(range(2, min_1 + 2))
         if len(itr) < 1:
             if min_1 + 1 == 2:
                 itr = [2]
@@ -3397,11 +3397,11 @@ def _sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2, maxiter=30, criter
             """
             err = np.abs((eta_t - eta) / eta)
             if verbose:
-                print("iter %i, criterion: %f" % (i, err))
+                print(("iter %i, criterion: %f" % (i, err)))
             if i >= miniter:
                 if err < criteria:
                     if verbose:
-                        print("optimization complete at iter %i" % i)
+                        print(("optimization complete at iter %i" % i))
                     break
             eta_t = eta
     mgc_arr = _mgc_mgcepnorm(b_gamma, alpha, gamma, otype)
@@ -3452,7 +3452,7 @@ def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
         p = Pool()
         start = time.time()
         if verbose:
-            print("Starting conversion of %i frames" % sp.shape[0])
+            print(("Starting conversion of %i frames" % sp.shape[0]))
             print("This may take some time...")
 
         # takes ~360s for 630 frames, 1 process
@@ -3468,7 +3468,7 @@ def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
             if verbose:
                 if remaining != last_remaining:
                     last_remaining = remaining
-                    print("%i chunks of %i complete" % (sz - remaining, sz))
+                    print(("%i chunks of %i complete" % (sz - remaining, sz)))
             if itr.ready():
                 break
             time.sleep(.5)
@@ -3490,7 +3490,7 @@ def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
         p.join()
         stop = time.time()
         if verbose:
-            print("Processed %i frames in %s seconds" % (sp.shape[0], stop - start))
+            print(("Processed %i frames in %s seconds" % (sp.shape[0], stop - start)))
         # map_async result comes in chunks
         flat = [a_i for a in _sp_convert_results for a_i in a]
         final = [o[1] for o in sorted(flat, key=lambda x: x[0])]
@@ -3588,7 +3588,7 @@ def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
         f0_low_limit = 71
         fftlen = int(2 ** np.ceil(np.log2(3. * float(fs) / f0_low_limit + 1)))
         if verbose:
-            print("setting fftlen to %i" % fftlen)
+            print(("setting fftlen to %i" % fftlen))
 
     if len(mgc_arr.shape) == 1:
         c = _mgc_mgc2mgc(mgc_arr, alpha, gamma, fftlen // 2, 0., 0.)
@@ -3603,7 +3603,7 @@ def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
         p = Pool()
         start = time.time()
         if verbose:
-            print("Starting conversion of %i frames" % mgc_arr.shape[0])
+            print(("Starting conversion of %i frames" % mgc_arr.shape[0]))
             print("This may take some time...")
         #itr = p.map(functools.partial(_mgc_convert, alpha=alpha, gamma=gamma, fftlen=fftlen), c)
         #raise ValueError()
@@ -3621,7 +3621,7 @@ def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
             if verbose:
                 if last_remaining != remaining:
                     last_remaining = remaining
-                    print("%i chunks of %i complete" % (sz - remaining, sz))
+                    print(("%i chunks of %i complete" % (sz - remaining, sz)))
             if itr.ready():
                 break
             time.sleep(.5)
@@ -3629,7 +3629,7 @@ def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
         p.join()
         stop = time.time()
         if verbose:
-            print("Processed %i frames in %s seconds" % (mgc_arr.shape[0], stop - start))
+            print(("Processed %i frames in %s seconds" % (mgc_arr.shape[0], stop - start)))
         # map_async result comes in chunks
         flat = [a_i for a in _mgc_convert_results for a_i in a]
         final = [o[1] for o in sorted(flat, key=lambda x: x[0])]
@@ -4175,7 +4175,7 @@ class LTSD():
         self.amplitude = {}
 
     def get_amplitude(self,signal,l):
-        if self.amplitude.has_key(l):
+        if l in self.amplitude:
             return self.amplitude[l]
         else:
             amp = sp.absolute(sp.fft(get_frame(signal, self.winsize,l) * self.window))

@@ -61,7 +61,7 @@ def init():
         f.write(pdbrc_prefix)
 
 def add(s):
-    if not isinstance(s, basestring):
+    if not isinstance(s, str):
         s = "\n".join(s)
     with open(pdbrc_file, 'a') as f:
         f.write(s)
@@ -73,7 +73,7 @@ def init_and_add(s):
 
 def print_pdbrc():
     with open(pdbrc_file, 'r') as f:
-        print f.read()
+        print(f.read())
 
 # def break_and_go(command, filename, lineno=1):
 #     init()
@@ -87,9 +87,9 @@ def add_breakpoint(filename, lineno=1):
 class Bugger(object):
     def __init__(self, relative_root='', root_path=PROJECT_PATH):
         self.facc = pfile_accessor.for_local(root_folder=root_path, relative_root=relative_root, extension='.py', force_extension=True)
-        print "Bugger created for path: %s" % self.facc.root_folder()
+        print("Bugger created for path: %s" % self.facc.root_folder())
         if not os.path.exists(self.facc.root_folder()):
-            print "!!! This path doesn't exist: May want to verify it"
+            print("!!! This path doesn't exist: May want to verify it")
 
     def init(self):
         init()
@@ -109,7 +109,7 @@ class Bugger(object):
 
     def print_pdbrc(self):
         with open(pdbrc_file, 'r') as f:
-            print f.read()
+            print(f.read())
 
     def run(self, s):
         pdb.run(s)

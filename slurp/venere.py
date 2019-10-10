@@ -1,7 +1,7 @@
 __author__ = 'thorwhalen'
 
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from collections import OrderedDict
 import pandas as pd
 
@@ -12,7 +12,7 @@ HTTP_VENERE_ROOT_URL = "http://www.venere.com/"
 from bs4 import BeautifulSoup
 
 def get_destination_page_info(geoid):
-    response = urllib2.urlopen(geoid_to_destination_url(geoid))
+    response = urllib.request.urlopen(geoid_to_destination_url(geoid))
     finalurl = response.geturl()
     finalurl = finalurl.replace(VENERE_URL,'')
     finalurl = finalurl.replace(HTTP_PREFIX,'')

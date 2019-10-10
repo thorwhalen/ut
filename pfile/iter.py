@@ -1,16 +1,19 @@
-from __future__ import division
+
 
 import os
 import re
-from itertools import ifilter, imap
+
 from glob import iglob
 
 __author__ = 'thor'
 
+
 file_sep = os.sep
 
-NOT_HIDDEN_FILE = '^[^.].+'
-WAV_EXTENSION = '.wav$'
+
+class FilePatterns(object):
+    NOT_HIDDEN_FILE = '^[^.].+'
+    WAV_EXTENSION = '.wav$'
 
 
 def get_file_iterator(root_folder,
@@ -31,9 +34,9 @@ def get_filepath_iterator(root_folder,
 
 
 def iter_relative_files_and_folder(root_folder):
-    if root_folder[-1] != file_sep:
+    if not root_folder.endswith(file_sep):
         root_folder += file_sep
-    return imap(lambda x: x.replace(root_folder, ''), iglob(root_folder + '*'))
+    return map(lambda x: x.replace(root_folder, ''), iglob(root_folder + '*'))
 
 
 def pattern_filter(pattern):
@@ -46,7 +49,7 @@ def pattern_filter(pattern):
 
 
 def recursive_file_walk_iterator_with_name_filter(root_folder, filt='', return_full_path=True):
-    if isinstance(filt, basestring):
+    if isinstance(filt, str):
         filt = pattern_filter(filt)
     # if isinstance(pattern, basestring):
     #     pattern = re.compile(pattern)
@@ -65,7 +68,7 @@ def recursive_file_walk_iterator_with_name_filter(root_folder, filt='', return_f
 
 
 def recursive_file_walk_iterator_with_filepath_filter(root_folder, filt='', return_full_path=True):
-    if isinstance(filt, basestring):
+    if isinstance(filt, str):
         filt = pattern_filter(filt)
     for name in iter_relative_files_and_folder(root_folder):
         full_path = os.path.join(root_folder, name)

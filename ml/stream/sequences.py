@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from sklearn.base import BaseEstimator
 from collections import Counter
@@ -14,7 +14,7 @@ class NextElementPredictor(BaseEstimator):
         return [max(pred, key=lambda key: pred[key]) for pred in preds]
 
     def predict_proba(self, seqs):
-        return map(self._predict_proba_conditioned_on_recent_subseq, seqs)
+        return list(map(self._predict_proba_conditioned_on_recent_subseq, seqs))
 
     def _predict_proba_conditioned_on_recent_subseq(self, recent_subseq):
         raise NotImplementedError("Need to implement this method")
@@ -83,7 +83,7 @@ class MarkovNextElementPred(NextElementPredictor):
             return self.conditional_prob_
         else:
             conditional_prob_ = self._drop_empty_elements_of_sr(self.pair_prob, levels=[self.markov_window - 1])
-            conditional_levels = range(self.markov_window - 1)
+            conditional_levels = list(range(self.markov_window - 1))
             conditional_prob_ = conditional_prob_.div(
                 conditional_prob_.groupby(level=conditional_levels).sum(), level=0)  # TODO: Only works for two levels
             if self.keep_stats_in_memory:
@@ -111,7 +111,7 @@ class MarkovNextElementPred(NextElementPredictor):
         return self.partial_fit(snips_list)
 
     def partial_fit(self, snips_list):
-        if not set(['snip_tuples_counter_']).issubset(self.__dict__.keys()):
+        if not set(['snip_tuples_counter_']).issubset(list(self.__dict__.keys())):
             self._initialize_params()
         for snips in snips_list:
             self._partial_fit_of_a_single_snips(snips)
@@ -145,7 +145,7 @@ class MarkovNextElementPred(NextElementPredictor):
 
     def _drop_empty_elements_of_sr(self, sr, levels=None, renormalize=False):
         if levels is None:
-            levels = range(self.markov_window)
+            levels = list(range(self.markov_window))
         for level in levels:
             sr = sr.drop(labels=self.empty_element, level=level)
         if renormalize:

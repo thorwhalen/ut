@@ -1,7 +1,7 @@
 
 __author__ = 'mattjmorris'
 
-from dynamo import Dynamo
+from .dynamo import Dynamo
 from boto.dynamodb2.table import Table
 from pandas import DataFrame
 from datetime import datetime
@@ -24,7 +24,7 @@ class DDBToBeSlurped(Dynamo):
         search_terms can either be in the form of a list of dicts or else a single dict.
         If slurp_info is a list, batch write will be used
         """
-        if isinstance(search_terms, basestring):
+        if isinstance(search_terms, str):
             search_terms = [search_terms]
         # search_terms = {'searchterm': search_terms}
         search_terms = [{'searchterm': x} for x in search_terms]

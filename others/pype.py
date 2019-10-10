@@ -7,6 +7,7 @@
 # thorwhalen added a __call_ to Pype
 
 import sys, string, itertools, operator, copy, re
+from functools import reduce
 
 
 class Pype:
@@ -18,7 +19,7 @@ class Pype:
 
     def fix(self, *args, **kwargs):
         """use this function to supply more args at any time"""
-        return type(self)(self.func, *(self.args + args), **dict(self.kwargs.items() + kwargs.items()))
+        return type(self)(self.func, *(self.args + args), **dict(list(self.kwargs.items()) + list(kwargs.items())))
 
     def __or__(self, rhs):
         """combines two Pypes into a Chain"""
@@ -30,7 +31,7 @@ class Pype:
 
 class Map(Pype):
     def __ror__(self, lhs):
-        return itertools.imap(lambda x: self.func(x, *self.args, **self.kwargs), lhs)
+        return map(lambda x: self.func(x, *self.args, **self.kwargs), lhs)
 
 
 class Reduce(Pype):
@@ -45,7 +46,7 @@ class Sink(Pype):
 
 class Filter(Pype):
     def __ror__(self, lhs):
-        return itertools.ifilter(lambda x: self.func(x, *self.args, **self.kwargs), lhs)
+        return filter(lambda x: self.func(x, *self.args, **self.kwargs), lhs)
 
 
 class Chain(Pype):
@@ -61,7 +62,7 @@ def pypeThunk(pypeclass, func):
     return lambda *args, **kwargs: pypeclass(lambda line: func(line, *args, **kwargs))
 
 
-pFilter = lambda f: Sink(lambda x: itertools.ifilter(f, x))
+pFilter = lambda f: Sink(lambda x: filter(f, x))
 pDict = Sink(dict)
 pSplit = pypeThunk(Map, string.split)
 pReverse = Sink(lambda x: list(x)[::-1])
@@ -72,8 +73,8 @@ pLen = Sink(lambda x: len(list(x)))
 pSet = Sink(set)
 pStrip = Map(string.strip)
 pSort = pypeThunk(Sink, sorted)
-pValues = Sink(lambda dic: dic.itervalues())
-pItems = Sink(lambda dic: dic.iteritems())
+pValues = Sink(lambda dic: iter(dic.values()))
+pItems = Sink(lambda dic: iter(dic.items()))
 pList = Sink(list)
 pHead = lambda count: Sink(lambda iter: itertools.islice(iter, count))
 pTail = lambda n: pReverse | pHead(n) | pReverse  # FIXME: implement w/o memory
@@ -92,7 +93,7 @@ def _grep(line, word, invert=False, matchcase=True):
 def _fgrep(line, words, invert=False, matchcase=True):
     if matchcase:
         line = line.lower()
-        words = map(string.lower, words)
+        words = list(map(string.lower, words))
     found = reduce(operator.or_, (line.find(word) >= 0 for word in words))
     return invert ^ found
 
@@ -121,7 +122,7 @@ def getHist(values, mincount=0):
 
     for v in values:
         if isinstance(v, list):
-            map(add, v)
+            list(map(add, v))
         else:
             add(v)
     for key in copy.copy(hist):

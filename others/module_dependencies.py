@@ -8,12 +8,13 @@
 
 from types import ModuleType, FunctionType, ClassType
 import sys
+import imp
 
 
 def find_dependent_modules():
     """gets a one level inversed module dependence tree"""
     tree = {}
-    for module in sys.modules.values():
+    for module in list(sys.modules.values()):
         if module is None:
             continue
         tree[module] = set()
@@ -29,7 +30,7 @@ def find_dependent_modules():
 def get_reversed_first_level_tree(tree):
     """Creates a one level deep straight dependence tree"""
     new_tree = {}
-    for module, dependencies in tree.items():
+    for module, dependencies in list(tree.items()):
         for dep_module in dependencies:
             if dep_module is module:
                 continue
@@ -78,7 +79,7 @@ def get_reversed_tree():
     tree = find_dependent_modules()
     rev_tree = get_reversed_first_level_tree(tree)
     compl_tree = {}
-    for module, dependant_modules in rev_tree.items():
+    for module, dependant_modules in list(rev_tree.items()):
         compl_tree[module] = find_dependants_recurse(module, rev_tree)
     return compl_tree
 
@@ -88,6 +89,6 @@ def reload_dependences(module):
         depend on it, directly and otherwise.
     """
     tree = get_reversed_tree()
-    reload(module)
+    imp.reload(module)
     for dependant in tree[module]:
-        reload(dependant)
+        imp.reload(dependant)

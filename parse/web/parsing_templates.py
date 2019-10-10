@@ -10,7 +10,7 @@ import ut.pfile.to
 
 def get_multiple_template_dicts(source):
     templates = dict()
-    if isinstance(source, basestring):
+    if isinstance(source, str):
         if not re.compile('\n|\t').match(source) and len(source) < 150:  # assume it's a filepath or url...
             if os.path.exists(source):
                 source = ms.pfile.to.string(source)
@@ -18,14 +18,14 @@ def get_multiple_template_dicts(source):
                 source = requests.get(source).text  # ... and get the html
         soup = BeautifulSoup(source)
     table_soup_list = soup.find_all('table')
-    print "Found %d tables..." % len(table_soup_list)
+    print("Found %d tables..." % len(table_soup_list))
     for table_soup in table_soup_list:
         try:
             tt = mk_simple_template_dict(table_soup)
             templates[tt['table']['id']] = tt
         except Exception:
             raise
-    print "... could extract a template from %d of these" % len(templates)
+    print("... could extract a template from %d of these" % len(templates))
     return templates
 
 
@@ -61,8 +61,8 @@ def parse_style(style_string):
     if style_string:
         style_dict = dict()
         t = re.compile('[^:]+:[^;]+;').findall(style_string.replace('\n','').replace('\t',''))
-        t = map(lambda x: x.replace(';',''), t)
-        t = map(lambda x: x.split(':'), t)
+        t = [x.replace(';','') for x in t]
+        t = [x.split(':') for x in t]
         for i in range(len(t)):
             for ii in range(len(t[i])):
                 t[i][ii] = t[i][ii].strip()

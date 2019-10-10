@@ -1,12 +1,10 @@
-from __future__ import division
-
 from numpy import unique
 from collections import Counter
 import re
 import inspect
 import os
 import subprocess
-from StringIO import StringIO
+from io import StringIO
 import pandas as pd
 
 from ut.util.code.packages import get_module_name, read_requirements
@@ -23,9 +21,9 @@ def mk_single_package_import_regex(module_name):
 
 
 def mk_multiple_package_import_regex(module_names):
-    if isinstance(module_names, basestring):
+    if isinstance(module_names, str):
         module_names = [module_names]
-    return re.compile('|'.join(map(lambda x: mk_single_package_import_regex(x).pattern, module_names)))
+    return re.compile('|'.join([mk_single_package_import_regex(x).pattern for x in module_names]))
 
 
 def imports_in_module(module):
@@ -47,12 +45,13 @@ def imports_in_module(module):
     ut.util.code.packages.get_module_name
     ut.util.code.packages.read_requirements
     """
-    if not isinstance(module, basestring):
+    if not isinstance(module, str):
         module = inspect.getfile(module)
         if module.endswith('c'):
             module = module[:-1]  # remove the 'c' of '.pyc'
     t = subprocess.check_output(['sfood-imports', '-u', module])
-    return filter(lambda x: len(x) > 0, t.split('\n'))
+    return [x for x in t.split('\n') if len(x) > 0]
+
 
 
 def base_modules_used_in_module(module):
@@ -63,8 +62,7 @@ def base_modules_used_in_module(module):
     >>> base_modules_used_in_module(__file__)
     ['StringIO', 'collections', 'inspect', 'numpy', 'os', 'pandas', 're', 'subprocess', 'ut']
     """
-    return list(unique(map(lambda x: re.compile('\w+').findall(x)[0],
-                           imports_in_module(module))))
+    return list(unique([re.compile('\w+').findall(x)[0] for x in imports_in_module(module)]))
 
 
 def base_module_imports_in_module_recursive(module):
@@ -94,12 +92,16 @@ def base_module_imports_in_module_recursive(module):
     if os.path.isdir(module):
         c = Counter()
         it = get_filepath_iterator(module, pattern='.py$')
-        it.next()  # to skip the seed module itself, and not get into an infinite loop
+        next(it)  # to skip the seed module itself, and not get into an infinite loop
         for _module in it:
             try:
                 c.update(base_module_imports_in_module_recursive(_module))
             except Exception as e:
-                print("Error with module {}: {}".format(_module, e))
+                if 'sfood-imports' in e.args[1]:
+                    print("You don't have sfood-imports installed (snakefood), so I can't do my job.")
+                    return None
+                else:
+                    print(("Error with module {}: {}".format(_module, e)))
         return c
     elif not os.path.isfile(module):
         raise ValueError("module file not found: {}".format(module))
@@ -113,7 +115,7 @@ def base_module_imports_in_module_recursive(module):
 def requirements_packages_in_module(module, requirements=None):
     if requirements is None:
         requirements = list(pip_licenses_df(include_module_name=False)['package_name'])
-    elif isinstance(requirements, basestring) and os.path.isfile(requirements):
+    elif isinstance(requirements, str) and os.path.isfile(requirements):
         with open(requirements) as fp:
             requirements = fp.read().splitlines()
 
@@ -126,7 +128,7 @@ def requirements_packages_in_module(module, requirements=None):
                 module_name = get_module_name(xx[0])
                 module_names.append(module_name)
         except Exception as e:
-            print("Error with {}\n  {}".format(x, e))
+            print(("Error with {}\n  {}".format(x, e)))
 
     return base_module_imports_in_module_recursive(module, module_names=requirements)
 
@@ -142,17 +144,16 @@ def pip_licenses_df(package_names=None, include_module_name=True, on_module_sear
     """
     pip_licenses_output = subprocess.check_output(['pip-licenses'])
 
-    t = map(str.strip,
-            filter(word_or_letter_p.search,
-                   pip_licenses_output.split('\n')))
-    t = map(lambda x: at_least_two_spaces_p.sub('\t', x), t)
+    t = list(map(str.strip,
+                 list(filter(word_or_letter_p.search,
+                             pip_licenses_output.split('\n')))))
+    t = [at_least_two_spaces_p.sub('\t', x) for x in t]
     t = '\n'.join(t)
 
     df = pd.read_csv(StringIO(t), sep='\t')
     df = df.rename(columns={'Name': 'package_name', 'Version': 'version', 'License': 'license'})
     if include_module_name:
-        df['module'] = map(lambda x: get_module_name(x, on_error=on_module_search_error),
-                           df['package_name'])
+        df['module'] = [get_module_name(x, on_error=on_module_search_error) for x in df['package_name']]
         df = df[['module', 'package_name', 'version', 'license']]  # reorder
     if package_names is not None:
         df = df[df['package_name'].isin(package_names)]

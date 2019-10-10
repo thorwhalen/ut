@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -8,7 +8,7 @@ from sklearn.externals import six
 import numpy as np
 from pandas import DataFrame
 from collections import Counter
-from itertools import imap
+
 
 
 class IterDictVectorizer(DictVectorizer):
@@ -116,7 +116,7 @@ class IterDictVectorizer(DictVectorizer):
 
         if isinstance(X, DataFrame):
             counts_of = dict()
-            for col, val in X.iteritems():
+            for col, val in X.items():
                 counts_of[col] = Counter(val.dropna())
             self.feature_counts_ = {}
             _min_count = self.min_count
@@ -125,12 +125,12 @@ class IterDictVectorizer(DictVectorizer):
             else:
                 _min_count = self.min_count
             self.df_columns_ = set()
-            for k, v in counts_of.iteritems():
-                for kk, vv in v.iteritems():
+            for k, v in counts_of.items():
+                for kk, vv in v.items():
                     if vv >= _min_count:
                         self.feature_counts_[feature_template.format(k, kk)] = vv
                         self.df_columns_.add(k)
-            feature_names = self.feature_counts_.keys()
+            feature_names = list(self.feature_counts_.keys())
         else:
             for x in X:
                 for f, v in six.iteritems(x):
@@ -151,7 +151,7 @@ class IterDictVectorizer(DictVectorizer):
 
     def transform(self, X, y=None):
         if isinstance(X, DataFrame):
-            X = imap(lambda x: x[1].dropna().to_dict(), X.iterrows())
+            X = map(lambda x: x[1].dropna().to_dict(), X.iterrows())
 
         return super(IterDictVectorizer, self).transform(X)
 
@@ -176,20 +176,20 @@ class IterDictVectorizerWithText(object):
                          "  {}".format(set(self.text_vectorizers.keys()).difference(X.columns)))
 
         # carry out the normal IterDictVectorizer.fit() for columns not in text_vectorizers
-        self.dict_vectorizer_cols_ = set(X.columns).difference(self.text_vectorizers.keys())
+        self.dict_vectorizer_cols_ = set(X.columns).difference(list(self.text_vectorizers.keys()))
         self.dict_vectorizer.fit(X[self.dict_vectorizer_cols_])
         self.vocabulary_ = self.dict_vectorizer.vocabulary_
 
         # use the CounterVectorizers of text_vectorizers to fit the specified string columns
-        for col in set(X.columns).intersection(self.text_vectorizers.keys()):
+        for col in set(X.columns).intersection(list(self.text_vectorizers.keys())):
             self.text_vectorizers[col].fit(X[col])
             offset = len(self.vocabulary_)
             self.vocabulary_ = dict(self.vocabulary_,
-                                    **{k : v + offset for k, v in self.text_vectorizers[col].iteritems()})
+                                    **{k : v + offset for k, v in self.text_vectorizers[col].items()})
 
-        self.feature_names_ = self.vocabulary_.keys()
+        self.feature_names_ = list(self.vocabulary_.keys())
 
     def transform(self, X, y=None):
         X1 = self.dict_vectorizer.transform(X[self.dict_vectorizer_cols_])
-        X2 = np.hstack((imap(lambda col: self.text_vectorizers[col].transform(X[col]), self.text_vectorizers.keys())))
+        X2 = np.hstack((map(lambda col: self.text_vectorizers[col].transform(X[col]), list(self.text_vectorizers.keys()))))
         return np.hstack((X1, X2))

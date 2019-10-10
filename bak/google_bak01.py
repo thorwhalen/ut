@@ -9,7 +9,7 @@ import re
 from lxml import etree
 import tldextract
 import ut.parse.util as util
-from urlparse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 from ut.util import extract_section
 
 # RE_HAS_NEW_LINE = re.compile('\n|\r')
@@ -116,20 +116,20 @@ def parse_tag_dict(tag_dict):
         'rhs_ads_list':[],
         'related_search_list':[]
     }
-    if tag_dict.has_key('_top_ads_list'):
+    if '_top_ads_list' in tag_dict:
         for x in tag_dict['_top_ads_list']:
             xx = parse_ad(x)
             if xx: d['top_ads_list'].append(xx)
         # d['top_ads_list'] = [d['top_ads_list'].append(parse_ad(x)) for x in tag_dict['_top_ads_list'] if x!=None]
-    if tag_dict.has_key('_organic_results_list'):
+    if '_organic_results_list' in tag_dict:
         for x in tag_dict['_organic_results_list']:
             xx = parse_organic_result(x)
             if xx: d['organic_results_list'].append(xx)
-    if tag_dict.has_key('_rhs_ads_list'):
+    if '_rhs_ads_list' in tag_dict:
         for x in tag_dict['_rhs_ads_list']:
             xx = parse_ad(x)
             if xx: d['rhs_ads_list'].append(xx)
-    if tag_dict.has_key('_related_search'):
+    if '_related_search' in tag_dict:
         for x in tag_dict['_related_search']:
             xx = parse_related_search_list(x)
             if xx: d['related_search_list'].append(xx)
@@ -191,22 +191,22 @@ def parse_organic_result(search_ires_li_instance):
                 td = table_tds[0]
                 span = td.find(name='span')
                 if span:
-                    d = dict(d,**{'td0_span_text':span.get_text(separator=u"\n",strip=True)})
+                    d = dict(d,**{'td0_span_text':span.get_text(separator="\n",strip=True)})
                 fl = td.findAll(name='a',attrs={'class':'fl'})
                 if fl:
-                    d = dict(d,**{'td0_fl':[x.get_text(separator=u"\n",strip=True) for x in fl]})
+                    d = dict(d,**{'td0_fl':[x.get_text(separator="\n",strip=True) for x in fl]})
             if len(table_tds)>=2:
                 td1 = table_tds[1]
                 if td1:
                     d = dict(d,**{'td1':td1.find(name='a').get('href')})
-                    d = dict(d,**{'td1_text':td1.get_text(separator=u"\n",strip=True)})
+                    d = dict(d,**{'td1_text':td1.get_text(separator="\n",strip=True)})
 
     organic_result_type = 0 # will remain 0 if dict has no organic_results_parsed key
     if d:
         organic_result_type = 1 # default organic result type
         d = dict(d,**{'organic_result_type':1}) # default organic result type
-        if d.has_key('table_tds'):
-            if all([d.has_key(x) for x in ['td0_fl', 'td1_text']]):
+        if 'table_tds' in d:
+            if all([x in d for x in ['td0_fl', 'td1_text']]):
                 organic_result_type = 2 # a specific hotel google meta listing
             else:
                 organic_result_type = 3 # something else with a table in it
@@ -223,10 +223,10 @@ def parse_ad(rad):
         d = dict(d,**{'dest_url':dest_url})
         dest_url_parsed = parse_qs(dest_url)
         if dest_url_parsed:
-            dest_url_parsed = {k:v[0] for k,v in dest_url_parsed.iteritems()}
+            dest_url_parsed = {k:v[0] for k,v in dest_url_parsed.items()}
             if dest_url_parsed:
                 d['dest_url_parsed'] = dest_url_parsed
-                if dest_url_parsed.has_key('adurl'):
+                if 'adurl' in dest_url_parsed:
                     adurl = dest_url_parsed['adurl']
                     if adurl:
                         d['adurl'] = adurl
@@ -412,20 +412,20 @@ def mk_rhs_ads_dict(li_tag):
         'f':extract_section(li_tag,attrs={'class':'f'},name='div'),
         'extrares':extract_section(li_tag,attrs={'class':'ac'},name='span')
     }
-    return {i:j for i,j in d.items() if j != None}
+    return {i:j for i,j in list(d.items()) if j != None}
 
 def expand_node(node,expand_def):
     if isinstance(expand_def,str):
         return extract_section(node,attrs={'id':expand_def},name='div')
-    elif isinstance(expand_def,dict) and expand_def.has_key('attrs'):
-        if expand_def.has_key('name'):
+    elif isinstance(expand_def,dict) and 'attrs' in expand_def:
+        if 'name' in expand_def:
             return extract_section(node,expand_def['attrs'],name=expand_def['name'])
         else:
             return extract_section(node,expand_def['attrs'],name='div')
     # TODO: exception throwing
 
 def rm_empty_dict_values(d):
-    for k in d.keys():
+    for k in list(d.keys()):
         if not d[k]:
             d.pop(k)
     # TODO: test if the following dict comprehension accelerates things
@@ -436,7 +436,7 @@ def mk_tag_dict(soup):
     d = root_dict(soup)
     to_expand = ['center_col','rhscol','taw','res','extrares','rhscol']
     for t in to_expand:
-        if d.has_key(t): d = dict(d,**extract_tag_dict_from_node(d[t],t))
+        if t in d: d = dict(d,**extract_tag_dict_from_node(d[t],t))
 
 def root_dict(soup):
     soup = util.x_to_soup(soup)
@@ -487,7 +487,7 @@ def extract_tag_dict_from_node(node, dict_spec):
         }
     else:
         d = {}
-    d = {i:j for i,j in d.items() if j != None} # remove keys with empty values
+    d = {i:j for i,j in list(d.items()) if j != None} # remove keys with empty values
     return d
 
 
@@ -508,7 +508,7 @@ def get_section(soup, attrs={}, name='div', all=False):
         if isinstance(attrs,dict):
             return soup.findAll(name=name, attrs=attrs)
         else: # not sure how to handle this, so I'm forcing exit
-            print "haven't coded this yet"
+            print("haven't coded this yet")
             return None
 
 
@@ -612,7 +612,7 @@ def rhs_block(soup):
 
 
 if __name__ == "__main__":
-    print "you just ran ut.parse.google"
+    print("you just ran ut.parse.google")
     # is_none = lambda x : [xx==None for xx in x]
     # index_of_trues = lambda x : [idx for idx in range(len(x)) if x[idx]==True]
     # idx_of_nones_of = lambda x : index_of_trues(is_none(x))

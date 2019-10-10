@@ -1,15 +1,18 @@
 __author__ = 'thor'
 
-import functional
 import functools
 
 
+def compose(f, g):
+    return lambda *a, **kw: f(g(*a, **kw))
+
+
 def filter_kwargs_to_func_arguments(func, kwargs):
-    return dict([(k, v) for k, v in kwargs.iteritems() if k in func.func_code.co_varnames])
+    return dict([(k, v) for k, v in kwargs.items() if k in func.__code__.co_varnames])
 
 
 def multi_compose(x):
-    return functional.partial(functools.reduce, functional.compose)(x)
+    return functools.partial(functools.reduce, compose)(x)
 
 
 def return_none_on_error(func, *args, **kwargs):

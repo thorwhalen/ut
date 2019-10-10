@@ -88,7 +88,7 @@ def solve_weighted(A, b, w):
     -------
     x : ndarray, [M]
     """
-    A, b, w = map(np.asarray, (A, b, w))
+    A, b, w = list(map(np.asarray, (A, b, w)))
     ATw2 = A.T * w ** 2
     return np.linalg.solve(np.dot(ATw2, A),
                            np.dot(ATw2, b))

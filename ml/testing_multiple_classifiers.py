@@ -1,6 +1,5 @@
 __author__ = 'thor'
 
-
 import csv
 import itertools
 import matplotlib.pyplot as plt
@@ -10,7 +9,7 @@ import pandas as pd
 from datetime import datetime
 
 from sklearn.pipeline import Pipeline
-from sklearn import cross_validation
+from sklearn.model_selection import StratifiedKFold
 from sklearn import ensemble
 from sklearn.feature_extraction import text
 from sklearn import feature_extraction
@@ -56,8 +55,6 @@ _PLT_LEGEND_OPTIONS = dict(loc="upper center",
                            shadow=True,
                            ncol=3)
 
-
-
 colors = [ii.strip() for ii in '#30a2da, #fc4f30, #e5ae38, #6d904f, #8b8b8b'.split(',')]
 colors += ['#' + ii.strip() for ii in
            '348ABD, A60628, 7A68A6, 467821,D55E00,  CC79A7, 56B4E9, 009E73, F0E442, 0072B2'.split(',')]
@@ -81,15 +78,14 @@ def score_classifier(X, y, clf, nfeats=None,
     score_aggreg = score_aggreg or default_score_aggreg
     score_aggreg = mk_score_aggreg_dict(score_aggreg)
 
-
     if nfeats is None:
         nfeats = np.shape(X)[1]
 
     # X = X[:, :nfeats]
 
-    stratified_k_fold = cross_validation.StratifiedKFold(y, n_folds=nfolds,
-                                                         shuffle=shuffle,
-                                                         random_state=random_fold_state)
+    stratified_k_fold = StratifiedKFold(y, n_folds=nfolds,
+                                        shuffle=shuffle,
+                                        random_state=random_fold_state)
     score_info = list()
     for train, test in stratified_k_fold:
         d = dict()
@@ -117,35 +113,36 @@ def score_classifier(X, y, clf, nfeats=None,
         pipeline.fit(X_train, y_train)
         y_pred = pipeline.predict(X_test)
 
-        for score_name, score_fun in scoring.iteritems():
+        for score_name, score_fun in scoring.items():
             d[score_name] = score_fun(y_test, y_pred)
         score_info.append(d)
 
     # return score_info
     score_info = pd.DataFrame(score_info)
     score_result = pd.Series()
-    for score_aggreg_name, score_aggreg_fun in score_aggreg.iteritems():
+    for score_aggreg_name, score_aggreg_fun in score_aggreg.items():
         t = score_info.apply(score_aggreg_fun)
         t.set_axis(axis=0,
-                   labels=map(lambda score_name: mk_aggreg_score_name(score_aggreg_name, score_name), t.index.values))
+                   labels=[mk_aggreg_score_name(score_aggreg_name, score_name) for score_name in t.index.values])
         score_result = score_result.append(t)
 
     return score_result
 
 
 def test_classifiers(X, y,
-                 scoring=default_scorers,
-                 score_aggreg=default_score_aggreg,
-                 n_features=7,  # an int will be transformed to a list (with different num of features) of given size
-                 clfs=None,
-                 nfolds=10,
-                 scale=None,
-                 decompose=None,
-                 select=None,
-                 decompose_params={},
-                 print_progress=False,
-                 score_to_plot=None
-                 ):
+                     scoring=default_scorers,
+                     score_aggreg=default_score_aggreg,
+                     n_features=7,
+                     # an int will be transformed to a list (with different num of features) of given size
+                     clfs=None,
+                     nfolds=10,
+                     scale=None,
+                     decompose=None,
+                     select=None,
+                     decompose_params={},
+                     print_progress=False,
+                     score_to_plot=None
+                     ):
     """
     tests and scores (given by SCORING and SCORE_AGGREG) several classifiers (given by clfs) with several number of
     features, returning a pandas DataFrame of the results.
@@ -156,7 +153,7 @@ def test_classifiers(X, y,
     if isinstance(n_features, int):  # if n_features is an int, it's the number of different feature set lens to try out
         # ... so make this feature set len list
         total_n_features = np.shape(X)[1]
-        n_features = range(1, total_n_features + 1, int(np.floor(total_n_features / n_features)))[:n_features]
+        n_features = list(range(1, total_n_features + 1, int(np.floor(total_n_features / n_features))))[:n_features]
     y = np.asarray(y, dtype="|S6")
     n_features = np.array(n_features)
 
@@ -172,14 +169,15 @@ def test_classifiers(X, y,
         general_info_dict['scale'] = get_name(scale)
     if decompose is not None and decompose is not False:
         if decompose is True:
-            decompose = decomposition.PCA(**decompose_params)  # PCA, KernelPCA, ProbabilisticPCA, RandomizedPCA, TruncatedSVD
+            decompose = decomposition.PCA(
+                **decompose_params)  # PCA, KernelPCA, ProbabilisticPCA, RandomizedPCA, TruncatedSVD
         general_info_dict['decompose'] = get_name(decompose)
 
     clf_results = list()
 
     for i_nfeats, nfeats in enumerate(n_features):
         for i_clf, clf in enumerate(clfs):
-            clf_name = clf.keys()[0]
+            clf_name = list(clf.keys())[0]
             clf = clf[clf_name]
             d = dict(general_info_dict, **{'model': clf_name, 'nfeats': nfeats})
             if print_progress:
@@ -191,16 +189,16 @@ def test_classifiers(X, y,
             start_time = datetime.now()
             score_result = \
                 score_classifier(X,
-                   y,
-                   clf=clf,
-                   nfeats=nfeats,
-                   scoring=scoring,
-                   score_aggreg=score_aggreg,
-                   nfolds=nfolds,
-                   scale=scale,
-                   decompose=decompose,
-                   select=select,
-                   decompose_params=decompose_params)
+                                 y,
+                                 clf=clf,
+                                 nfeats=nfeats,
+                                 scoring=scoring,
+                                 score_aggreg=score_aggreg,
+                                 nfolds=nfolds,
+                                 scale=scale,
+                                 decompose=decompose,
+                                 select=select,
+                                 decompose_params=decompose_params)
             d.update({'seconds': (datetime.now() - start_time).total_seconds()})
             d.update(score_result.to_dict())
             # except ValueError as e:
@@ -213,8 +211,8 @@ def test_classifiers(X, y,
     clf_results = pd.DataFrame(clf_results)
     if score_to_plot:
         if score_to_plot is True:
-            score_to_plot = mk_aggreg_score_name(score_aggreg_name=mk_score_aggreg_dict(score_aggreg).keys()[0],
-                                                 score_name=mk_scoring_dict(scoring).keys()[0])
+            score_to_plot = mk_aggreg_score_name(score_aggreg_name=list(mk_score_aggreg_dict(score_aggreg).keys())[0],
+                                                 score_name=list(mk_scoring_dict(scoring).keys())[0])
         plot_score(clf_results, score_to_plot)
 
     return reorder_columns_as(clf_results, ['model', 'nfeats', 'seconds'])
@@ -233,7 +231,7 @@ def decompose_data(X, decompose, n_components=None, y=None, decompose_params={})
     try:
         decomposer = decompose(n_components=n_components, whiten=True, **decompose_params)
     except TypeError:
-        print("No whiten option in {}".format(decompose))
+        print(("No whiten option in {}".format(decompose)))
         decomposer = decompose(n_components=n_components, **decompose_params)
     try:
         if y is None:
@@ -241,7 +239,7 @@ def decompose_data(X, decompose, n_components=None, y=None, decompose_params={})
         else:
             decomposer.fit(X, y)
     except ValueError:
-        decomposer = decompose(n_components=n_components-1, **decompose_params)
+        decomposer = decompose(n_components=n_components - 1, **decompose_params)
         if y is None:
             decomposer.fit(X)
         else:
@@ -253,8 +251,8 @@ def plot_score(clf_results, score_to_plot, parameter='nfeats', **kwargs):
     # defaults
     kwargs = dict(dict(figsize=(7, 5)), **kwargs)
 
-    t = clf_results[['model', parameter, score_to_plot]]\
-            .set_index(['model', parameter]).unstack('model')[score_to_plot]
+    t = clf_results[['model', parameter, score_to_plot]] \
+        .set_index(['model', parameter]).unstack('model')[score_to_plot]
 
     ax = t.plot(**kwargs)
     plt.xlabel(parameter)
@@ -301,11 +299,10 @@ def __main__():
     X, y = iris.data, iris.target
 
     clf_results = test_classifiers(X, y,
-            scoring=metrics.accuracy_score,
-            n_features=range(1, np.shape(X)[1]),
-            clfs=None,
-            print_progress=False,
-            score_to_plot=None)
+                                   scoring=metrics.accuracy_score,
+                                   n_features=list(range(1, np.shape(X)[1])),
+                                   clfs=None,
+                                   print_progress=False,
+                                   score_to_plot=None)
 
-
-    print clf_results
+    print(clf_results)

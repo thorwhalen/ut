@@ -1,5 +1,3 @@
-from __future__ import division
-
 from numpy import ndarray
 from pandas import Series, DataFrame
 import re
@@ -91,17 +89,17 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
     elif isinstance(result, ndarray):
         return {result_field: result.tolist()}
     elif isinstance(result, dict) and len(result) > 0:
-        first_key, first_val = result.iteritems().next()  # look at the first key to determine what to do with the dict
+        first_key, first_val = next(iter(result.items()))  # look at the first key to determine what to do with the dict
         if isinstance(first_key, int):
-            key_trans = unichr
+            key_trans = chr
         else:
             key_trans = lambda x: x
         if isinstance(first_val, ndarray):
-            return {result_field: {key_trans(k): v.tolist() for k, v in result.iteritems()}}
+            return {result_field: {key_trans(k): v.tolist() for k, v in result.items()}}
         elif isinstance(first_val, dict):
-            return {result_field: {key_trans(k): default_to_jdict(v) for k, v in result.iteritems()}}
+            return {result_field: {key_trans(k): default_to_jdict(v) for k, v in result.items()}}
         else:
-            return {key_trans(k): v for k, v in result.iteritems()}
+            return {key_trans(k): v for k, v in result.items()}
     elif isinstance(result, (Series, DataFrame)):
         return json.loads(result.to_json())
         # return default_to_jdict(result.to_dict())
@@ -121,7 +119,7 @@ def extract_kwargs(request, convert_arg=None, file_var='file'):
     if convert_arg is None:
         convert_arg = {}
     kwargs = dict()
-    for k in request.args.keys():
+    for k in list(request.args.keys()):
         if k in convert_arg:
             if 'default' in convert_arg[k]:
                 kwargs[k] = request.args.get(k,
@@ -132,7 +130,7 @@ def extract_kwargs(request, convert_arg=None, file_var='file'):
         else:
             kwargs[k] = request.args.get(k)
     if request.json is not None:
-        for k, v in request.json.iteritems():
+        for k, v in request.json.items():
             if k in convert_arg:
                 _type = convert_arg[k].get('type', None)
                 if callable(_type):
@@ -182,7 +180,7 @@ class ObjWrapper(object):
 
         if obj_constructor_arg_names is None:
             obj_constructor_arg_names = []
-        elif isinstance(obj_constructor_arg_names, basestring):
+        elif isinstance(obj_constructor_arg_names, str):
             obj_constructor_arg_names = [obj_constructor_arg_names]
         self.obj_constructor_arg_names = obj_constructor_arg_names
 
@@ -257,18 +255,18 @@ class ObjWrapper(object):
         """
         kwargs = self._get_kwargs_from_request(request)
         if self.debug > 0:
-            print("robj: kwargs = {}".format(kwargs))
+            print(("robj: kwargs = {}".format(kwargs)))
         obj_kwargs = {k: kwargs.pop(k) for k in self.obj_constructor_arg_names if k in kwargs}
 
         attr = kwargs.pop('attr', None)
         if attr is None:
             raise err.MissingAttribute()
         elif not self._is_permissible_attr(attr):
-            print attr
-            print str(self.permissible_attr_pattern.pattern)
+            print(attr)
+            print(str(self.permissible_attr_pattern.pattern))
             raise err.ForbiddenAttribute(attr)
         if self.debug > 0:
-            print("robj: attr={}, obj_kwargs = {}, kwargs = {}".format(attr, obj_kwargs, kwargs))
+            print(("robj: attr={}, obj_kwargs = {}, kwargs = {}".format(attr, obj_kwargs, kwargs)))
         return self.obj(obj=obj_kwargs, attr=attr, **kwargs)
 
 

@@ -25,14 +25,14 @@ def sr_set_values(sr, values):
 
 def to_lu_col_names(df, cols_to_change=None):
     cols_to_change = cols_to_change or df.columns
-    new_cols = map(lambda x: x.lower(), cols_to_change)
-    new_cols = map(lambda x: non_w_letter_re.sub('_', x), new_cols)
+    new_cols = [x.lower() for x in cols_to_change]
+    new_cols = [non_w_letter_re.sub('_', x) for x in new_cols]
     return ch_col_names(df, new_cols, cols_to_change)
 
 
 def replace_nans_with_spaces_in_object_columns(df):
     col_and_dtypes = df.dtypes.apply(str)
-    for col, col_type in col_and_dtypes.iteritems():
+    for col, col_type in col_and_dtypes.items():
         if col_type == 'object':
             df[col] = df[col].fillna('')
     return df
@@ -40,8 +40,8 @@ def replace_nans_with_spaces_in_object_columns(df):
 
 def force_col_type_as_type_of_first_element(df):
     col_types = daf_get.column_types(df)
-    for k, v in col_types.iteritems():
-        print "%s %s" % (k, v)
+    for k, v in col_types.items():
+        print("%s %s" % (k, v))
         df[k] = df[k].astype(v)
     return df
 
@@ -64,7 +64,7 @@ def to_utf8(df, columns=None, inplace=False):
         if columns is None:
             # default to all basestring-valued columns that are not unicode
             columns = \
-                set(daf_get.column_names_whose_values_are_instances_of(df, basestring)) \
+                set(daf_get.column_names_whose_values_are_instances_of(df, str)) \
                 - set(daf_get.column_names_whose_values_are_instances_of(df, str))
         for c in columns:
             df[c] = df[c].apply(pstr_trans.str_to_utf8_or_bust)
@@ -77,12 +77,12 @@ def to_utf8(df, columns=None, inplace=False):
 def to_str(df, columns=None, inplace=False):
     if inplace is False:
         df = df.copy()
-    df.columns = map(str, df.columns)  # change columns to string
+    df.columns = list(map(str, df.columns))  # change columns to string
     if len(df) > 0:
         if columns is None:
             # default to all basestring-valued columns that are not unicode
             columns = \
-                set(daf_get.column_names_whose_values_are_instances_of(df, basestring)) \
+                set(daf_get.column_names_whose_values_are_instances_of(df, str)) \
                 - set(daf_get.column_names_whose_values_are_instances_of(df, str))
         for c in columns:
             df[c] = df[c].apply(str)
@@ -97,10 +97,10 @@ def to_unicode(df, columns=None, inplace=False):
         if columns is None:
             # default to all basestring-valued columns that are not unicode
             columns = \
-                set(daf_get.column_names_whose_values_are_instances_of(df, basestring)) \
-                - set(daf_get.column_names_whose_values_are_instances_of(df, unicode))
+                set(daf_get.column_names_whose_values_are_instances_of(df, str)) \
+                - set(daf_get.column_names_whose_values_are_instances_of(df, str))
         for c in columns:
-            df[c] = df[c].apply(unicode)
+            df[c] = df[c].apply(str)
     if inplace is False:
         return df
 
@@ -112,8 +112,8 @@ def to_unicode_with_sink(df, columns=None, inplace=False):
         if columns is None:
             # default to all basestring-valued columns that are not unicode
             columns = \
-                set(daf_get.column_names_whose_values_are_instances_of(df, basestring)) \
-                - set(daf_get.column_names_whose_values_are_instances_of(df, unicode))
+                set(daf_get.column_names_whose_values_are_instances_of(df, str)) \
+                - set(daf_get.column_names_whose_values_are_instances_of(df, str))
         for c in columns:
             df[c] = df[c].apply(_to_unicode_or_sink)
     if inplace is False:
@@ -121,10 +121,10 @@ def to_unicode_with_sink(df, columns=None, inplace=False):
 
 
 def _to_unicode_or_sink(obj, encoding='utf-8'):
-    if isinstance(obj, basestring):
-        if not isinstance(obj, unicode):
+    if isinstance(obj, str):
+        if not isinstance(obj, str):
             try:
-                obj = unicode(obj, encoding)
+                obj = str(obj, encoding)
             except UnicodeDecodeError:
                 obj = "_" * 10
     return obj
@@ -137,8 +137,8 @@ def to_unicode_or_delete_row(df, columns=None, inplace=False):
         if columns is None:
             # default to all basestring-valued columns that are not unicode
             columns = \
-                set(daf_get.column_names_whose_values_are_instances_of(df, basestring)) \
-                - set(daf_get.column_names_whose_values_are_instances_of(df, unicode))
+                set(daf_get.column_names_whose_values_are_instances_of(df, str)) \
+                - set(daf_get.column_names_whose_values_are_instances_of(df, str))
         for c in columns:
             df[c] = df[c].apply(_to_unicode_or_nan)
         # remove all rows that contain any nan in any of the columns
@@ -148,10 +148,10 @@ def to_unicode_or_delete_row(df, columns=None, inplace=False):
 
 
 def _to_unicode_or_nan(obj, encoding='utf-8'):
-    if isinstance(obj, basestring):
-        if not isinstance(obj, unicode):
+    if isinstance(obj, str):
+        if not isinstance(obj, str):
             try:
-                obj = unicode(obj, encoding)
+                obj = str(obj, encoding)
             except UnicodeDecodeError:
                 obj = np.nan
     return obj
@@ -171,12 +171,12 @@ def ch_col_names(df, new_names=[], old_names=None, inplace=False):
             old_names = _force_list(old_names)
         assert len(new_names) == len(old_names), "old_names and new_names must be the same length"
         #return df.rename(columns={k: v for (k, v) in zip(old_names, new_names)}, inplace=inplace)
-        return df.rename(columns=dict(zip(old_names, new_names)), inplace=inplace)
+        return df.rename(columns=dict(list(zip(old_names, new_names))), inplace=inplace)
 
 def ch_single_index_name(df, new_name):
     index_names = df.index.names
     if len(index_names) >= 2:
-        print "you can't use ch_single_index_name if there's more than ONE index!"
+        print("you can't use ch_single_index_name if there's more than ONE index!")
         return df
     else:
         index_name = index_names[0] or 'index'
@@ -187,7 +187,7 @@ def ch_single_index_name(df, new_name):
 
 
 def _force_list(list_wannabe):
-    if isinstance(list_wannabe, basestring):
+    if isinstance(list_wannabe, str):
         return [list_wannabe]
     elif not isinstance(list_wannabe, list):
         return list(list_wannabe)

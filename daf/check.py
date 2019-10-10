@@ -9,7 +9,7 @@ def has_columns(df, cols):
     returns True iff df has ALL columns listed in cols
     """
     df_cols = df.columns.tolist()
-    if isinstance(cols,basestring):
+    if isinstance(cols,str):
         return cols in df_cols
     else:
         if not isinstance(cols,list):

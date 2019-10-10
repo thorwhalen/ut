@@ -3,7 +3,7 @@ __author__ = 'thor'
 Based on code from Julien Palard.
 """
 
-from __future__ import division
+
 from argparse import ArgumentParser, FileType
 import json
 import requests
@@ -66,14 +66,14 @@ def change_mapping_and_reindex(elasticsearch, mapping_file, index):
     temporary_index = None
     for i in range(10):
         try_temporary_index = index + '-tmp-' + str(i)
-        print "Setting mapping to %s" % try_temporary_index
+        print("Setting mapping to %s" % try_temporary_index)
         response = es.set_mapping(try_temporary_index,
                                   json.loads(mapping_text))
         if 'acknowledged' in response and response['acknowledged']:
             temporary_index = try_temporary_index
             break
     if temporary_index is None:
-        print "Can't find a temporary index to work with."
+        print("Can't find a temporary index to work with.")
         return False
 
     old_index_count = es.count(index)
@@ -83,27 +83,27 @@ def change_mapping_and_reindex(elasticsearch, mapping_file, index):
         es.bulk_insert(temporary_index, bulk)
         new_index_count = es.count(temporary_index)
         percent = 100 * new_index_count / old_index_count
-        print ("\r%.2f%%" + 10 * " ") % percent,
-    print "\nDone"
+        print(("\r%.2f%%" + 10 * " ") % percent, end=' ')
+    print("\nDone")
 
     for i in range(100):
         new_index_count = es.count(temporary_index)
         if new_index_count == old_index_count:
-            print "OK, same number of raws in both index."
+            print("OK, same number of raws in both index.")
             break
-        print ("Not the same number of raws in old and new... "
+        print(("Not the same number of raws in old and new... "
                "waiting a bit..."
-               "(old=%d, new=%d)" % (old_index_count, new_index_count))
+               "(old=%d, new=%d)" % (old_index_count, new_index_count)))
         if i > 10:
-            print ("Oh fsck, not the same number of raws in old and new... "
+            print(("Oh fsck, not the same number of raws in old and new... "
                    "aborting."
-                   "(old=%d, new=%d)" % (old_index_count, new_index_count))
+                   "(old=%d, new=%d)" % (old_index_count, new_index_count)))
             return
         sleep(1)
 
-    print "Deleting %s" % index
+    print("Deleting %s" % index)
     es.drop(index)
-    print "Aliasing %s to %s" % (temporary_index, index)
+    print("Aliasing %s to %s" % (temporary_index, index))
     es.alias(temporary_index, index)
 
 

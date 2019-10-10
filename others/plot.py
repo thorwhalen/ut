@@ -19,7 +19,7 @@ def factor_scatter_matrix(df, factor, palette=None, **kwargs):
     from scipy.stats import gaussian_kde
     # from pyqt_fit import kde
 
-    if isinstance(factor, basestring):
+    if isinstance(factor, str):
         factor_name = factor  # save off the name
         factor = df[factor]  # extract column
         df = df.drop(factor_name, axis=1)  # remove from df, so it doesn't get a row and col in the plot.
@@ -31,7 +31,7 @@ def factor_scatter_matrix(df, factor, palette=None, **kwargs):
                    '#994fa1', '#ff8101', '#fdfc33',
                    '#a8572c', '#f482be', '#999999']
 
-    color_map = dict(zip(classes, palette))
+    color_map = dict(list(zip(classes, palette)))
 
     if len(classes) > len(palette):
         raise ValueError('''Too many groups for the number of colors provided.
@@ -44,7 +44,7 @@ groups.'''.format(len(palette), len(classes)))
     axarr = scatter_matrix(df, **scatter_matrix_kwargs)
 
     columns = list(df.columns)
-    for rc in xrange(len(columns)):
+    for rc in range(len(columns)):
         for group in classes:
             y = df[factor == group].icol(rc).values
             gkde = gaussian_kde(y)

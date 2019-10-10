@@ -69,9 +69,9 @@ def validate_kwargs(kwargs_to_validate,
     True
     """
     validation_funs = dict(base_validation_funs, **validation_funs)
-    for var, val in kwargs_to_validate.iteritems():  # for every (var, val) pair of kwargs
+    for var, val in kwargs_to_validate.items():  # for every (var, val) pair of kwargs
         if var in validation_dict:  # if var is in the validation_dict
-            for check, check_val in validation_dict[var].iteritems():  # for every (key, val) of this dict
+            for check, check_val in validation_dict[var].items():  # for every (key, val) of this dict
                 if check in base_validation_funs:  # if you have a validation check for it
                     if not validation_funs[check](val, check_val):  # check it's valid
                         raise AssertionError("{} must {} {}".format(var, check, check_val))  # and raise an error if not
@@ -93,7 +93,7 @@ def json_size_of_fields(d):
         * None if there was a problem json-izing the value
     """
     diag = dict()
-    for k, v in d.iteritems():
+    for k, v in d.items():
         try:
             diag[k] = len(json.dumps(v))
         except:
@@ -201,22 +201,22 @@ def example_dict_from_dict_list(dict_list, recursive=False):
         if not all([isinstance(x, dict) for x in dict_list]):
             raise TypeError("dict_list must be a dict or a list of dicts")
     all_keys = set([])
-    [all_keys.update(this_dict.keys()) for this_dict in
+    [all_keys.update(list(this_dict.keys())) for this_dict in
      dict_list]  # this constructs a list of all keys encountered in the list of dicts
     example_dict = dict()
     keys_remaining_to_find = all_keys
     for this_dict in dict_list:
-        new_keys = list(set(keys_remaining_to_find).intersection(this_dict.keys()))
+        new_keys = list(set(keys_remaining_to_find).intersection(list(this_dict.keys())))
         if not new_keys: continue
         new_dict = {k: this_dict[k] for k in new_keys if
                     this_dict[k] or this_dict[k] == 0 or this_dict[
                         k] == True}  # keep only keys with non-empty and non-none value
-        example_dict = dict(example_dict, **{k: v for k, v in new_dict.items()})
+        example_dict = dict(example_dict, **{k: v for k, v in list(new_dict.items())})
         keys_remaining_to_find = keys_remaining_to_find.difference(new_keys)
         if not keys_remaining_to_find: break  # if there's no more keys to be found, you can quit
 
     if recursive == True:
-        dict_list_keys = [k for k in example_dict.keys() if (k and is_dict_or_list_of_dicts(example_dict[k]))]
+        dict_list_keys = [k for k in list(example_dict.keys()) if (k and is_dict_or_list_of_dicts(example_dict[k]))]
         for k in dict_list_keys:
             example_dict[k] = example_dict_from_dict_list(example_dict[k], recursive=True)
     return example_dict
@@ -227,8 +227,8 @@ def dict_list_key_count(dict_list):
     returns a dict with all keys encoutered in the list of dicts, and values exhibiting
     how many times the key was encoutered in the dict list
     """
-    all_keys = example_dict_from_dict_list(dict_list).keys()
-    return {k: np.sum(np.array([d.has_key(k) for d in dict_list])) for k in all_keys}
+    all_keys = list(example_dict_from_dict_list(dict_list).keys())
+    return {k: np.sum(np.array([k in d for d in dict_list])) for k in all_keys}
 
 
 def dict_list_has_key_df(dict_list, index_names=None, use_0_1=False):
@@ -238,7 +238,7 @@ def dict_list_has_key_df(dict_list, index_names=None, use_0_1=False):
         * columns are all keys ever encoutered in the list of dicts, and
         * df[i,j] is True if dict i has key j
     """
-    df = pd.concat([pd.Series({k: True for k in d.keys()}) for d in dict_list], axis=1).transpose()
+    df = pd.concat([pd.Series({k: True for k in list(d.keys())}) for d in dict_list], axis=1).transpose()
     df.fillna(False, inplace=True)
     if use_0_1 == True:
         df.replace([True, False], [1, 0], inplace=True)
@@ -251,14 +251,14 @@ def dict_of_types_of_dict_values(x, recursive=False):
     if isinstance(x, list):  # if x is a list of dicts
         x = example_dict_from_dict_list(x, recursive=True)
     if not recursive:
-        return {k: typeof(x[k]) for k in x.keys()}
+        return {k: typeof(x[k]) for k in list(x.keys())}
     else:
         if isinstance(recursive, bool):
             next_recursive = recursive
         else:
             next_recursive = recursive - 1
         dict_of_types = dict()
-        for k in x.keys():
+        for k in list(x.keys()):
             if isinstance(x[k], dict):
                 dict_of_types = dict(dict_of_types,
                                      **{k: {'dict': dict_of_types_of_dict_values(x[k], recursive=next_recursive)}})

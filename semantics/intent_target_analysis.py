@@ -13,7 +13,7 @@ class IntentTargetAnalysis(object):
         self.get_intent_termstats = get_intent_termstats
         self.get_target_termstats = get_target_termstats
         self.similarity_measure = similarity_measure
-        for k,v in kwargs.items():
+        for k,v in list(kwargs.items()):
             self.__setattr__(k,v)
 
     def intent_target_similarity(self, intent, target):
@@ -29,7 +29,7 @@ class IntentTargetAnalysis(object):
 
     def close_stores(self):
         attrs = self.__dict__
-        for k,v in attrs.items():
+        for k,v in list(attrs.items()):
             if isinstance(attrs[k], pd.HDFStore):
-                print "closing %s" % k
+                print("closing %s" % k)
                 attrs[k].close()

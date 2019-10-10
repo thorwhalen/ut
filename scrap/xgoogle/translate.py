@@ -8,8 +8,8 @@
 # Code is licensed under MIT license.
 #
 
-from browser import Browser, BrowserError
-from urllib import quote_plus
+from .browser import Browser, BrowserError
+from urllib.parse import quote_plus
 
 try:    import json
 except: import simplejson as json
@@ -32,9 +32,9 @@ class Translator(object):
         """
 
         if lang_to not in _languages:
-            raise TranslationError, "Language %s is not supported as lang_to." % lang_to
+            raise TranslationError("Language %s is not supported as lang_to." % lang_to)
         if lang_from not in _languages and lang_from != '':
-            raise TranslationError, "Language %s is not supported as lang_from." % lang_from
+            raise TranslationError("Language %s is not supported as lang_from." % lang_from)
 
         message = quote_plus(message)
         real_url = Translator.translate_url % { 'message': message,
@@ -46,15 +46,15 @@ class Translator(object):
             data = json.loads(translation)
 
             if data['responseStatus'] != 200:
-                raise TranslationError, "Failed translating: %s" % data['responseDetails']
+                raise TranslationError("Failed translating: %s" % data['responseDetails'])
 
             return data['responseData']['translatedText']
-        except BrowserError, e:
-            raise TranslationError, "Failed translating (getting %s failed): %s" % (e.url, e.error)
-        except ValueError, e:
-            raise TranslationError, "Failed translating (json failed): %s" % e.message
-        except KeyError, e:
-            raise TranslationError, "Failed translating, response didn't contain the translation"
+        except BrowserError as e:
+            raise TranslationError("Failed translating (getting %s failed): %s" % (e.url, e.error))
+        except ValueError as e:
+            raise TranslationError("Failed translating (json failed): %s" % e.message)
+        except KeyError as e:
+            raise TranslationError("Failed translating, response didn't contain the translation")
 
         return None
 
@@ -91,17 +91,17 @@ class LanguageDetector(object):
             data = json.loads(detection)
 
             if data['responseStatus'] != 200:
-                raise DetectionError, "Failed detecting language: %s" % data['responseDetails']
+                raise DetectionError("Failed detecting language: %s" % data['responseDetails'])
 
             rd = data['responseData']
             return Language(rd['language'], rd['confidence'], rd['isReliable'])
 
-        except BrowserError, e:
-            raise DetectionError, "Failed detecting language (getting %s failed): %s" % (e.url, e.error)
-        except ValueError, e:
-            raise DetectionErrro, "Failed detecting language (json failed): %s" % e.message
-        except KeyError, e:
-            raise DetectionError, "Failed detecting language, response didn't contain the necessary data"
+        except BrowserError as e:
+            raise DetectionError("Failed detecting language (getting %s failed): %s" % (e.url, e.error))
+        except ValueError as e:
+            raise DetectionErrro("Failed detecting language (json failed): %s" % e.message)
+        except KeyError as e:
+            raise DetectionError("Failed detecting language, response didn't contain the necessary data")
 
         return None
 

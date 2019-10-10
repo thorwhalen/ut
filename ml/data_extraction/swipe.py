@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from ut.util.ulist import KeepMaxK
 
@@ -33,7 +33,7 @@ def highest_score_swipe(it, score_of=None, k=1, info_of=None, output=None):
 
     if output is None:
         return km
-    elif isinstance(output, basestring):
+    elif isinstance(output, str):
         if output == 'top_tuples':
             return sorted(km, reverse=True)
         elif output == 'items':

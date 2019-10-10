@@ -3,7 +3,18 @@ __author__ = 'thorwhalen'
 from ut.pcoll.ordered_set import OrderedSet
 
 
-def unique(X):
+def unique_list(x):
+    return list(dict.fromkeys(x))
+
+
+def unique_from_iter(it):
+    d = dict()
+    for item in it:
+        d.update(dict.fromkeys(item))
+    return list(d)
+
+
+def unique_for_non_hashables(X):
     seen = set()
     seen_add = seen.add
     return type(X)([x for x in X if x not in seen and not seen_add(x)])

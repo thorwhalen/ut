@@ -18,11 +18,11 @@ from collections import OrderedDict
 
 
 def sr_to_ordered_dict(sr):
-    return OrderedDict(sr.iteritems())
+    return OrderedDict(iter(sr.items()))
 
 
 def map_strings_to_their_mp5s(df, cols_to_map):
-    if isinstance(cols_to_map, basestring):
+    if isinstance(cols_to_map, str):
         cols_to_map = [cols_to_map]
 
     def md5_of(s):
@@ -59,18 +59,18 @@ def map_vals_to_ints_inplace(df, cols_to_map):
     """
     mapping_dict = dict()
 
-    if isinstance(cols_to_map, basestring):  # mapping a single column
+    if isinstance(cols_to_map, str):  # mapping a single column
         mapping_dict, df[cols_to_map] = np.unique(df[cols_to_map], return_inverse=True)
         mapping_dict = {cols_to_map: mapping_dict}
     elif isinstance(cols_to_map, dict):  # mapping with a user specified map
         assert set(cols_to_map.keys()).issubset(df.columns), "cols_to_map keys must be a subset of df columns"
-        for c in cols_to_map.keys():
+        for c in list(cols_to_map.keys()):
             this_map = cols_to_map[c]
             if isinstance(this_map, dict):
-                assert all(np.unique(this_map.values()) == np.array(range(len(this_map)))), \
+                assert all(np.unique(list(this_map.values())) == np.array(list(range(len(this_map))))), \
                     "you must map to consecutive integers starting at 0"
                 df[c] = df[c].apply(lambda x: this_map[x])
-                mapping_dict[c] = sort_as(this_map.keys(), this_map.values())
+                mapping_dict[c] = sort_as(list(this_map.keys()), list(this_map.values()))
             else:
                 df[c] = np.array(this_map)[list(df[c])]
                 mapping_dict[c] = this_map
@@ -86,15 +86,15 @@ def to_html(df, template='hor-minimalist-b', template_overwrites=None, **kwargs)
     enhancing pandas' to_html function to format html nicer
     """
     # getting the template
-    if isinstance(template, basestring):
+    if isinstance(template, str):
         template = copy.deepcopy(inline_html_table_template[template])
     # making some requested template changes
     recursive_update(template, template_overwrites)
     # serializing the styles
-    for k in template.keys():
-        if 'style' in template[k].keys():
-            if not isinstance(template[k]['style'], basestring):
-                template[k]['style'] = '; '.join([kk + ': ' + v for kk, v in template[k]['style'].items()])
+    for k in list(template.keys()):
+        if 'style' in list(template[k].keys()):
+            if not isinstance(template[k]['style'], str):
+                template[k]['style'] = '; '.join([kk + ': ' + v for kk, v in list(template[k]['style'].items())])
     # start with the pandas generated html (soup)
     b = BeautifulSoup(df.to_html(**kwargs))
     # update table formatting
@@ -139,10 +139,10 @@ def insert_in_mongdb(df, collection, delete_previous_contents=False, **kwargs):
 
 def dict_list_of_rows(df, dropna=False):
     if dropna:
-        return [{k: v for k, v in x.iteritems() if not isinstance(v, float) or not np.isnan(v)}
-                for x in df.transpose().to_dict().itervalues()]
+        return [{k: v for k, v in x.items() if not isinstance(v, float) or not np.isnan(v)}
+                for x in df.transpose().to_dict().values()]
     else:
-        return [x for x in df.transpose().to_dict().itervalues()]
+        return [x for x in df.transpose().to_dict().values()]
     # is 1.62 times faster than [dict(row) for i, row in df.iterrows()] in case you were wondering
 
 

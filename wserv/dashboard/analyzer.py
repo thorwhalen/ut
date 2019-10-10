@@ -35,7 +35,7 @@ class Analyzer(object):
         self.input_element_collection = InputElementCollection(form_elements, to_html_kwargs)
         self.button_methods = list()
         self.input = dict()
-        for k, v in self.input_element_collection.iteritems():
+        for k, v in self.input_element_collection.items():
             if v['type'] == 'button':
                 self.button_methods.append(v['name'])
             else:
@@ -54,7 +54,7 @@ class Analyzer(object):
         return methods_of(self)
 
     def set_inputs(self, **kwargs):
-        self.input.update(**{k: v for k, v in kwargs.iteritems() if k in self.input.keys()})
+        self.input.update(**{k: v for k, v in kwargs.items() if k in list(self.input.keys())})
 
     def call_button_function(self, name, **kwargs):
         self.set_inputs(**kwargs)
@@ -62,7 +62,7 @@ class Analyzer(object):
 
     def __repr__(self):
         s = ""
-        for k, v in self.input.iteritems():
+        for k, v in self.input.items():
             s += "{input}: {val}\n".format(input=k, val=v)
         return s
 
@@ -93,7 +93,7 @@ class InputElementCollection(OrderedDict):
     def to_html(self, **kwargs):
         kwargs.update(**self.to_html_kwargs)
         html = kwargs['prefix']
-        for k, v in self.iteritems():
+        for k, v in self.items():
             html += v.to_html(**kwargs) + kwargs['sep']
         html += kwargs['suffix']
         return html
@@ -119,7 +119,7 @@ class InputElement(dict):
         self.verify_inputs()
 
     def verify_inputs(self):
-        key_list = self.keys()
+        key_list = list(self.keys())
         assert 'name' in key_list, "you need to have a 'name' in a InputElement"
         assert 'type' in key_list, "you need to have a 'type' in a InputElement (see html input tag types)"
         if self['type'] == 'button':
@@ -149,7 +149,7 @@ class InputElement(dict):
                 html = ""
         html += '<input type="{type}" name="{name}"'.format(type=d.pop('type'), name=d.pop('name'))
         # d.pop('function', None)  # get rid of function
-        for k, v in d.iteritems():
+        for k, v in d.items():
             html += ' {}="{}"'.format(k, v)
         if element_type == 'button':
             html += ' onclick="getResult(\'{}\')"'.format(element_name)

@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from pymongo import MongoClient
 from pymongo.cursor import Cursor
-from itertools import imap
+
 
 from ut.sound import util as sutil
 from ut.daf.manip import reorder_columns_as
@@ -25,7 +25,7 @@ class MgDacc(object):
         return sutil.wf_and_sr_from_filepath(self.filepath_of(path), **kwargs)
 
     def get_sound(self, path_or_doc, **kwargs):
-        if not isinstance(path_or_doc, basestring):
+        if not isinstance(path_or_doc, str):
             path_or_doc = path_or_doc.copy()
             file_path = path_or_doc.pop(self.path_field)
             kwargs = dict(kwargs, **path_or_doc)
@@ -51,7 +51,7 @@ class MgDacc(object):
             cursor = self.mgc.find()
         else:
             cursor = self.mgc.find(*find_args, **find_kwargs)
-        return imap(lambda x: self.get_sound(path_or_doc=x[self.path_field]), cursor)
+        return map(lambda x: self.get_sound(path_or_doc=x[self.path_field]), cursor)
 
 
 class SegmentDacc(MgDacc):
@@ -79,7 +79,7 @@ class SegmentDacc(MgDacc):
         return d
 
     def get_data_with_kv_tags(self, *args, **kwargs):
-        if 'kv_tag_keys' in kwargs.keys():
+        if 'kv_tag_keys' in list(kwargs.keys()):
             kv_tag_keys = kwargs.get('kv_tag_keys')
             kwargs.pop('kv_tag_keys')
         else:
@@ -124,7 +124,7 @@ class SegmentDacc(MgDacc):
                         if fields is None:
                             yield dd
                         else:
-                            yield {k: v for k, v in dd.iteritems() if k in fields}
+                            yield {k: v for k, v in dd.items() if k in fields}
 
         return segment_iterator()
 
@@ -138,4 +138,4 @@ class SegmentDacc(MgDacc):
         """
 
         cursor = self.mgc.find(*args, **kwargs)
-        return imap(self.get_sound, cursor)
+        return map(self.get_sound, cursor)

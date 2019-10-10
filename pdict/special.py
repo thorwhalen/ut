@@ -1,6 +1,6 @@
 __author__ = 'thor'
 
-from collections import defaultdict
+from collections import defaultdict, UserDict
 from ut.pdict.get import set_value_in_nested_key_path
 
 val_unlikely_to_be_value_of_dict = (1987654321, 8239080923)
@@ -32,6 +32,8 @@ class DictDefaultDict(dict):
 
 class KeyPathDict(dict):
     """
+    NOTE: Might want to check out key_path.py (in https://github.com/i2mint/py2mint/) instead.
+
     A dict where you can get and set values from key_paths (i.e. dot-separated strings or lists of nested keys).
     Use with care.
     Some functionalities that would be expected from such a subclass of dict aren't implemented yet, or only partially.
@@ -57,7 +59,7 @@ class KeyPathDict(dict):
     >>>
     >>> d = KeyPathDict(input_dict)
     >>> d
-    {'a': {'c': 'val of a.c', 'b': 1, 'd': [1, 2]}, '10': 10, 10: 'val for 10', 'b': {'A': 'val of b.A', 'B': {'AA': 'val of b.B.AA'}}}
+    {'a': {'b': 1, 'c': 'val of a.c', 'd': [1, 2]}, 'b': {'A': 'val of b.A', 'B': {'AA': 'val of b.B.AA'}}, 10: 'val for 10', '10': 10}
     >>> d.get('a.c')
     'val of a.c'
     >>> d.get(['a', 'c']) == d['a.c']
@@ -90,7 +92,7 @@ class KeyPathDict(dict):
 
     def get(self, key_path, d=None):
         #         return get_value_in_key_path(dict(KeyPathDict), key_path, d)
-        if isinstance(key_path, basestring):
+        if isinstance(key_path, str):
             key_path = key_path.split('.')
         if isinstance(key_path, list):
             k_length = len(key_path)
@@ -119,7 +121,7 @@ class KeyPathDict(dict):
         :param val:
         :return:
         """
-        if isinstance(key_path, basestring):
+        if isinstance(key_path, str):
             key_path = key_path.split('.')
         if isinstance(key_path, list):
             first_key = key_path[0]
@@ -136,7 +138,7 @@ class KeyPathDict(dict):
             super(KeyPathDict, self).__setitem__(key_path, val)
 
     def __contains__(self, key_path):
-        if isinstance(key_path, basestring):
+        if isinstance(key_path, str):
             key_path = key_path.split('.')
         if isinstance(key_path, list):
             if len(key_path) == 1:

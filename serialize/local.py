@@ -107,7 +107,7 @@ class Local(object):
         """
         if filename.startswith('/'):
             filename = filename[1:]
-        if not kwargs.has_key('index'): # make the default index=False if not specified in input
+        if 'index' not in kwargs: # make the default index=False if not specified in input
             kwargs = dict({'index': False}, **kwargs)
         return df.to_excel(self.filepath(filename), **kwargs)
 
@@ -121,7 +121,7 @@ class Local(object):
         xd = pd.ExcelFile(self.filepath(filename))
         if sheetname is None:
             sheetname = xd.sheet_names[0]
-            print "No sheetname specified so I'm taking the first one: %s" % sheetname
+            print("No sheetname specified so I'm taking the first one: %s" % sheetname)
         elif isinstance(sheetname, int):
             sheetname = xd.sheet_names[sheetname]
         return xd.parse(sheetname, **kwargs)

@@ -41,7 +41,7 @@ def try_out_multiple_classifiers(datasets, classifiers=None, print_progress=True
         classifiers = default_classifiers[:(classifiers+1)]
     else:
         classifiers = classifiers or default_classifiers
-    classifier_names = map(lambda x: str(x.__class__).split('.')[-1][:-2], classifiers)
+    classifier_names = [str(x.__class__).split('.')[-1][:-2] for x in classifiers]
 
     if datasets is None:
         X, y = make_classification(n_features=2, n_redundant=0, n_informative=2,
@@ -69,7 +69,7 @@ def try_out_multiple_classifiers(datasets, classifiers=None, print_progress=True
                 "You should have the same number of dataset names as there are datasets"
         dataset_names = iter(dataset_names)
     else:
-        dataset_names = itertools.imap(lambda x: "Dataset #%d" % x, itertools.count())
+        dataset_names = map(lambda x: "Dataset #%d" % x, itertools.count())
         # dataset_names = map(lambda x: "Dataset #%d" % x, xrange(len(datasets)))
 
     figsize_multiplier = 3
@@ -83,7 +83,7 @@ def try_out_multiple_classifiers(datasets, classifiers=None, print_progress=True
     for dataset_num, ds in enumerate(datasets):
         row_num += 1
         col_num += 1
-        this_dataset_name = dataset_names.next()
+        this_dataset_name = next(dataset_names)
         if print_progress:
             printProgress('----- %s -----' % this_dataset_name)
         # preprocess dataset, split into training and test part

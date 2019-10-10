@@ -89,8 +89,8 @@ def rep_tags(df, rep_cols, with_cols, name_to_tag_fun=None):
         for t in tag_exp_with_col:
             w = t['with']
             tag_exp = t['tag_exp']
-            print w, tag_exp.pattern
-            df[r] = map(lambda x, y: tag_exp.sub(x, y), df[w], df[r])
+            print(w, tag_exp.pattern)
+            df[r] = list(map(lambda x, y: tag_exp.sub(x, y), df[w], df[r]))
     return df
 
 

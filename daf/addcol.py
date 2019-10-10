@@ -17,7 +17,7 @@ def group_count(df, gr_cols=None, count_col=None, keep_order=True):
     count_col = count_col or ut.daf.get.free_col_name(df, ['count', 'gr_count'])
     if keep_order:
         df = df.copy()
-        df['column_to_keep_original_order'] = range(len(df))
+        df['column_to_keep_original_order'] = list(range(len(df)))
     gr_cols = ulist.ascertain_list(gr_cols)
     gr_df = ut.daf.gr.group_and_count(df[gr_cols], count_col=count_col)
     df = df.merge(gr_df, left_on=gr_cols, right_on=gr_cols)

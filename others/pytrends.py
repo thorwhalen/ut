@@ -1,11 +1,11 @@
 
-import httplib
-import urllib
-import urllib2 
+import http.client
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse 
 import re
 import csv
 
-from cookielib import CookieJar
+from http.cookiejar import CookieJar
 
 class pyGTrends(object):
     """
@@ -46,7 +46,7 @@ class pyGTrends(object):
         """
         
         self.cj = CookieJar()                            
-        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
+        self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cj))
         self.opener.addheaders = self.headers
         
         galx = re.compile('<input type="hidden" name="GALX" value="(?P<galx>[a-zA-Z0-9_-]+)">')
@@ -56,7 +56,7 @@ class pyGTrends(object):
         if not m:
             raise Exception("Cannot parse GALX out of login page")
         self.login_params['GALX'] = m.group('galx')
-        params = urllib.urlencode(self.login_params)
+        params = urllib.parse.urlencode(self.login_params)
         self.opener.open(self.url_ServiceLoginBoxAuth, params)
         self.opener.open(self.url_CookieCheck)
         
@@ -69,7 +69,7 @@ class pyGTrends(object):
         if type(keywords) not in (type([]), type(('tuple',))):
             keywords = [keywords]
         
-        params = urllib.urlencode({
+        params = urllib.parse.urlencode({
             'q': ",".join(keywords),
             'date': date,
             'graph': graph,

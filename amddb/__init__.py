@@ -1,1 +1,1 @@
-__author__ = 'mattjmorris'
+"""DynamoDB experimentation."""

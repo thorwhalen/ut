@@ -8,13 +8,14 @@ import inspect
 from collections import Counter
 from ut.pfile.to import string as file_to_str
 from ut.pfile.iter import get_filepath_iterator
+import imp
 
 
 def extract_package_list_from_filepath(filepath):
     s = file_to_str(filepath)
     ss = s.split('\n')
     import_capture_p = re.compile('(import|from)\s([^\.\s\n]+)')
-    return map(lambda x: x.group(2), filter(None, map(import_capture_p.match, ss)))
+    return [x.group(2) for x in [_f for _f in map(import_capture_p.match, ss) if _f]]
 
 
 def count_packages_of_all_py_files_recursively_under(root_folder):
@@ -36,13 +37,13 @@ def put_pip_freeze_output_into_file(output_file_path, environment=None):
         os.system("workon ".format(environment))
     s = os.system(
         "pip freeze > {}".format(output_file_path))
-    print s
+    print(s)
 
 
 def import_subdirs_of(dir):
     subdirs = [x for x in get_immediate_subdirectories(dir) if x[0] != '.']
     for s in subdirs:
-        print "importing to sys path: {}".format(s)
+        print("importing to sys path: {}".format(s))
         sys.path.append(s)
 
 
@@ -58,7 +59,7 @@ def recursively_reload_all_submodules(module, loaded=None):
         if inspect.ismodule(member) and member not in loaded:
             recursively_reload_all_submodules(member, loaded)
     loaded.add(module)
-    reload(module)
+    imp.reload(module)
 
 
 def mk_list_file_name(computer_name, environment=None):
@@ -70,7 +71,7 @@ def mk_pip_freeze_list_file(computer_name, environment=None):
         os.system("workon ".format(environment))
     s = os.system(
         "pip freeze > {}".format(PIPFREEZE_LIST_FOLDER + mk_list_file_name(computer_name, environment=environment)))
-    print s
+    print(s)
 
 
 def pipfreeze_list(filepath, unversioned=True):
@@ -135,9 +136,9 @@ def pip_install_list(package_names, environment='sem'):
         os.system("workon ".format(environment))
     for pak in package_names:
         # TODO: Not sure this actually installs it in the appropriate environment...
-        print "------- pip install {}".format(pak)
+        print("------- pip install {}".format(pak))
         s = subprocess.check_output("pip install {}".format(pak).split(' '))
-        print s
+        print(s)
 
 
 def pip_install_missing(compare_set, environment='sem'):

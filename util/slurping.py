@@ -21,8 +21,8 @@ def slurp_with_login_and_pwd():
 
     # print forms on this page
     for form in forms:
-        print "***************************"
-        print form
+        print("***************************")
+        print(form)
 
     form = forms[0]
     form["login"]  = "yahoo-user-id" # use your userid

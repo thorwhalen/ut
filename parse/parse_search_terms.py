@@ -291,9 +291,9 @@ def diagnose_nres_and_organic_results(parse_result):
     if not isinstance(parse_result, dict):
         return 'parse_result not a dict' + suffix
     # MJM: put this back in!
-    elif not parse_result.has_key('number_of_results'):
+    elif 'number_of_results' not in parse_result:
         return 'no number_of_results key' + suffix
-    elif not parse_result.has_key('organic_results_list'):
+    elif 'organic_results_list' not in parse_result:
         return 'no organic_results_list key' + suffix
     else:
         return ''
@@ -306,7 +306,7 @@ def diagnose_nres_words_domains(info_dict):
         # MJM: put this back in!
         for k in ['number_of_results', 'term_stats', 'domain_names']:
         #for k in ['term_stats', 'domain_names']:
-            if not info_dict.has_key(k):
+            if k not in info_dict:
                 return 'no %s key'%k + suffix
             v = info_dict[k]
             if isinstance(v, pd.DataFrame):
@@ -322,7 +322,7 @@ def diagnose_organic_results(parse_result):
     if not isinstance(parse_result, dict):
         return 'parse_result not a dict' + suffix
     # MJM: put this back in!
-    elif not parse_result.has_key('organic_results_list'):
+    elif 'organic_results_list' not in parse_result:
         return 'no organic_results_list key' + suffix
     else:
         return ''
@@ -335,7 +335,7 @@ def diagnose_words_domains(info_dict):
         # MJM: put this back in!
         for k in ['term_stats', 'domain_names']:
         #for k in ['term_stats', 'domain_names']:
-            if not info_dict.has_key(k):
+            if k not in info_dict:
                 return 'no %s key'%k + suffix
             v = info_dict[k]
             if isinstance(v, pd.DataFrame):
@@ -358,7 +358,7 @@ class SaveDictLocally(object):
 
 class SaveDictToS3(object):
     def __init__(self, save_folder):
-        print "S3 pfile.Accessor created for %s" % save_folder
+        print("S3 pfile.Accessor created for %s" % save_folder)
         self.data_accessor = pfile_accessor.for_s3(relative_root=save_folder,
                                           extension='.dict',
                                           force_extension=True)
@@ -366,29 +366,29 @@ class SaveDictToS3(object):
         self.data_accessor.save(parse_result, name)
 
 def print_parse_success(search_term, parse_result):
-    print "-----------------------------------------"
-    print "%s" % search_term
-    print "  number of dict keys: %d" % len(parse_result)
-    print "-----------------------------------------"
-    print ""
+    print("-----------------------------------------")
+    print("%s" % search_term)
+    print("  number of dict keys: %d" % len(parse_result))
+    print("-----------------------------------------")
+    print("")
 
 def print_info_dict_success(search_term, info_dict):
-    print "-----------------------------------------"
-    print "%s" % search_term
-    print "  number_of_results: %d" % info_dict['number_of_results']
-    print "  # of unique terms: %d" % len(info_dict['term_stats'])
-    print "  # of unique domains: %d" % len(info_dict['domain_names'])
-    print "-----------------------------------------"
-    print ""
+    print("-----------------------------------------")
+    print("%s" % search_term)
+    print("  number_of_results: %d" % info_dict['number_of_results'])
+    print("  # of unique terms: %d" % len(info_dict['term_stats']))
+    print("  # of unique domains: %d" % len(info_dict['domain_names']))
+    print("-----------------------------------------")
+    print("")
 
 ##### Failure handlers
 class PrintFailure(object):
     def print_it(self, *args, **kwargs):
-        print "!!!!!!!!!!!!!!!!"
+        print("!!!!!!!!!!!!!!!!")
         for arg in args:
-            print arg
+            print(arg)
         for k, v in kwargs:
-            print "{}={}".format(k,v)
+            print("{}={}".format(k,v))
 
     def debug(self, *args, **kwargs):
         self.print_it(args, kwargs)
@@ -400,10 +400,10 @@ class PrintFailure(object):
         self.print_it(args, kwargs)
 
 def print_failure(search_term, failure_type):
-    print "!!!!!!!!!!!!!!!!"
-    print "FAILURE for %s" % search_term
-    print "  --> %s" % failure_type
-    print ""
+    print("!!!!!!!!!!!!!!!!")
+    print("FAILURE for %s" % search_term)
+    print("  --> %s" % failure_type)
+    print("")
 
 
 if __name__ == '__main__':
@@ -412,7 +412,7 @@ if __name__ == '__main__':
     # s3 = S3('ut-slurps', 'to-slurp_raw')
 
     # import os
-    print "begin"
+    print("begin")
     st = "5 star hotels leeds"
     pst = ParseSearchTerms.for_local(
         html_folder='s3/ut-slurps/html',
@@ -420,4 +420,4 @@ if __name__ == '__main__':
         info_dict_folder='s3/semantics-data/gresult_info_dict',
         log_filename='log_parse_search_terms_02.txt')
     pst.process(st)
-    print "done"
+    print("done")

@@ -26,11 +26,11 @@ def multiple_dfs_to_multiple_sheets(df_list, xls_filepath, sheet_list=None, **kw
     if sheet_list is None:
         if isinstance(df_list, dict):
             # df_list, sheet_list = zip(df_list.values(), df_list.keys())
-            df_list, sheet_list = df_list.values(), df_list.keys()
+            df_list, sheet_list = list(df_list.values()), list(df_list.keys())
 
         elif isinstance(df_list[0], tuple):
-            sheet_list = map(lambda x: x[0], df_list)
-            df_list = map(lambda x: x[1], df_list)
+            sheet_list = [x[0] for x in df_list]
+            df_list = [x[1] for x in df_list]
         else:
             sheet_list = []
             for i, df in enumerate(df_list):
@@ -81,7 +81,7 @@ def _replace_non_numeric_non_strings_with_strings(df):
     df = df.reset_index(drop=False, inplace=False)
     for c in df.columns:
         if df[c].dtype.name == 'object':
-            if not isinstance(df[c].iloc[0], basestring):
+            if not isinstance(df[c].iloc[0], str):
                 df[c] = df[c].apply(str)
     df = df.set_index(index_names)
     return df

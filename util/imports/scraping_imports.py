@@ -1,7 +1,7 @@
-from __future__ import division
+
 __author__ = 'thor'
 
-print '''
+print('''
     disp_html (but careful! save before use)
     BeautifulSoup
     bs3_BeautifulSoup
@@ -9,13 +9,13 @@ print '''
     ut.webscrape.util.*
     filename_from_url
     url_from_filename
-'''
+''')
 
 from ut.util.importing import get_environment_variable
 import logging
 
-import urllib2
-import urlparse
+import urllib.request, urllib.error, urllib.parse
+import urllib.parse
 from bs4 import BeautifulSoup
 from BeautifulSoup import BeautifulSoup as bs3_BeautifulSoup
 
@@ -35,4 +35,4 @@ from ut.parse.util import open_html_in_firefox
 
 logging.basicConfig(filename=get_environment_variable('DEFAULT_LOG_FILE'), filemode='w', level=logging.DEBUG)
 
-print "logging in use:\n   %s" % get_environment_variable('DEFAULT_LOG_FILE')
+print("logging in use:\n   %s" % get_environment_variable('DEFAULT_LOG_FILE'))

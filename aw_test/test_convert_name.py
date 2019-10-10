@@ -21,9 +21,9 @@ class TestConvertName(TestCase):
 
 
     def test_mappings_of_actual_variables(self):
-        lu_names = reporting.lu_name_x_dict.keys()
-        xml_names = reporting.xml_x_dict.keys()
-        disp_names = reporting.disp_x_dict.keys()
+        lu_names = list(reporting.lu_name_x_dict.keys())
+        xml_names = list(reporting.xml_x_dict.keys())
+        disp_names = list(reporting.disp_x_dict.keys())
         eq_(x_to_disp_name(['clicks']),['Clicks'])
         eq_(x_to_lu_name(x_to_xml_name(x_to_disp_name(lu_names))),lu_names)
         eq_(x_to_disp_name(x_to_lu_name(x_to_xml_name(disp_names))),disp_names)

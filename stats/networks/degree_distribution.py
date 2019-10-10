@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import pandas as pd
 from collections import Counter, defaultdict
@@ -25,10 +25,10 @@ def multiple_degree_distributions(df, from_cols=None, to_cols=None, group_degree
     return dict(degdist)
 
 def degree_distribution(df, from_cols, to_cols=None, name=None, group_degrees=True):
-    if isinstance(from_cols, basestring):
+    if isinstance(from_cols, str):
         from_cols = [from_cols]
     to_cols = to_cols or [x for x in df.columns if x not in from_cols]
-    if isinstance(to_cols, basestring):
+    if isinstance(to_cols, str):
         to_cols = [to_cols]
     # make a name if none
     if name is None:

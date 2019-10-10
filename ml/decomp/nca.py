@@ -52,7 +52,7 @@ class NCA(BaseMetricLearner):
         dX = X[:, None] - X[None]  # shape (n, n, d)
         tmp = np.einsum('...i,...j->...ij', dX, dX)  # shape (n, n, d, d)
         masks = y[:, None] == y[None]
-        for it in xrange(self.max_iter):
+        for it in range(self.max_iter):
             for i, label in enumerate(y):
                 mask = masks[i]
                 Ax = A.dot(X.T).T  # shape (n, d)

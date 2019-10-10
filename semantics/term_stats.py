@@ -156,8 +156,8 @@ def fd_to_series(fd):
     output: the pd.Series representation of the FreqDist
     """
     if isinstance(fd,nltk.FreqDist):
-        return pd.Series(fd.values(),fd.keys())
+        return pd.Series(list(fd.values()),list(fd.keys()))
     elif isinstance(fd,pd.Series):
-        return fd.map(lambda x:pd.Series(x.values(),x.keys()))
+        return fd.map(lambda x:pd.Series(list(x.values()),list(x.keys())))
     elif isinstance(fd,list):
-        return map(lambda x:pd.Series(x.values(),x.keys()))
+        return list(map(lambda x:pd.Series(list(x.values()),list(x.keys()))))

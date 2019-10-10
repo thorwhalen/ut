@@ -41,10 +41,24 @@ def max_common_prefix(a):
 def all_table_of_contents_html_from_notebooks(notebooks,
                                               title=None,
                                               link_root=default_link_root,
+                                              recursive: bool=False,
                                               save_to_file='table_of_contents.html'):
+    """
+    Make an html page containing the table of contents of the listed notebooks, with
+    links that will open the notebook and bring you to that section.
+    Just wow.
+
+    :param notebooks: List of notebook filepaths, or folder that contains notebooks.
+    :param title: Title of html page
+    :param link_root: Root url to use for links
+    :param recursive: Whether to explore subfolders recursively
+    :param save_to_file: File where the html should be saved.
+    :return:
+    """
+    folder = None
     if isinstance(notebooks, str) and os.path.isdir(notebooks):
-        folder = os.path.abspath(notebooks)
-        notebooks = ipynb_filepath_list(folder)
+        folder = os.path.abspath(os.path.expanduser(notebooks))
+        notebooks = ipynb_filepath_list(folder, recursive=recursive)
         title = title or folder
         s = "<b>{}</b><br><br>\n\n".format(title)
     elif title:
@@ -54,7 +68,11 @@ def all_table_of_contents_html_from_notebooks(notebooks,
             ''
 
     for f in notebooks:
-        ss = table_of_contents_html_from_notebook(f, link_root=link_root)
+        if folder is not None:
+            _link_root = os.path.join(link_root, os.path.dirname(f[(len(folder) + 1):]))
+        else:
+            _link_root = link_root
+        ss = table_of_contents_html_from_notebook(f, link_root=_link_root)
         if ss is not None:
             s += ss + '<br>\n\n'
     if save_to_file is None:
@@ -104,3 +122,15 @@ def ipynb_filepath_list(root_folder='.', recursive=False):
         return map(lambda x: os.path.abspath(os.path.join(root_folder, x)),
                    filter(lambda x: x.endswith('.ipynb'),
                           os.listdir(root_folder)))
+
+
+if __name__ == "__main__":
+    import argh
+
+    argh.dispatch_command(all_table_of_contents_html_from_notebooks)
+
+    # parser = argh.ArghParser()
+    # parser.add_commands([all_table_of_contents_html_from_notebooks,
+    #                      table_of_contents_html_from_notebook,
+    #                      ipynb_filepath_list])
+    # parser.dispatch()

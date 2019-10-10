@@ -3,6 +3,7 @@ __author__ = 'thor'
 import ut as ms
 import pandas as pd
 import ut.pcoll.order_conserving
+from functools import reduce
 
 
 class SquareMatrix(object):
@@ -34,17 +35,17 @@ class SquareMatrix(object):
         df.drop(labels=[self.index_vars[0] + '_y', self.index_vars[1] + '_y'], axis=1, inplace=True)
 
         if not isinstance(map_fun, dict) and broadcast_functions:
-            map_fun = dict(zip(self.value_vars, [map_fun] * len(self.value_vars)))
-        for k, v in map_fun.iteritems():
+            map_fun = dict(list(zip(self.value_vars, [map_fun] * len(self.value_vars))))
+        for k, v in map_fun.items():
             df[k] = v(df[k], df[k + '_y'])
-        df.drop(labels=map(lambda x: x + '_y', self.value_vars), axis=1, inplace=True)
+        df.drop(labels=[x + '_y' for x in self.value_vars], axis=1, inplace=True)
 
         if not reduce_fun:
             reduce_fun = dict()
-            for k, v in map_fun.iteritems():
+            for k, v in map_fun.items():
                 reduce_fun[k] = lambda x: reduce(v, x)
         elif not isinstance(reduce_fun, dict) and broadcast_functions:
-            reduce_fun = dict(zip(self.value_vars, [reduce_fun] * len(self.value_vars)))
+            reduce_fun = dict(list(zip(self.value_vars, [reduce_fun] * len(self.value_vars))))
         df = df.groupby(self.index_vars).agg(reduce_fun).reset_index(drop=False)
 
         return SquareMatrix(df=df, index_vars=self.index_vars)

@@ -1,42 +1,52 @@
 __author__ = 'thor'
 
+from bs4 import BeautifulSoup
+from functools import wraps
+
+
+@wraps(BeautifulSoup.find_all, assigned=('__module__', '__qualname__', '__annotations__', '__name__'))
+def gen_find(tag, *args, **kwargs):
+    """Does what BeautifulSoup.find_all does, but as an iterator.
+        See find_all documentation for more information."""
+    if isinstance(tag, str):
+        tag = BeautifulSoup(tag)
+    next_tag = tag.find(*args, **kwargs)
+    while next_tag is not None:
+        yield next_tag
+        next_tag = next_tag.find_next(*args, **kwargs)
+
+
 from ut.pdict.to import word_replacer
 
-url_encode_yboss_map = {u' ': u'%20',
-                 u'"': u'%22',
-                 u'#': u'%23',
-                 u'$': u'%24',
-                 u'%': u'%25',
-                 u'&': u'%26',
-                 u'(': u'%28',
-                 u')': u'%29',
-                 u'*': u'%2A',
-                 u'+': u'%2B',
-                 u',': u'%2C',
-                 u'/': u'%2F',
-                 u':': u'%3A',
-                 u';': u'%3B',
-                 u'<': u'%3C',
-                 u'=': u'%3D',
-                 u'>': u'%3E',
-                 u'?': u'%3F',
-                 u'@': u'%40',
-                 u'[': u'%5B',
-                 u'\\': u'%5C',
-                 u']': u'%5D',
-                 u'^': u'%5E',
-                 u'`': u'%60',
-                 u'{': u'%7B',
-                 u'|': u'%7C',
-                 u'}': u'%7D'}
+url_encode_yboss_map = {' ': '%20',
+                        '"': '%22',
+                        '#': '%23',
+                        '$': '%24',
+                        '%': '%25',
+                        '&': '%26',
+                        '(': '%28',
+                        ')': '%29',
+                        '*': '%2A',
+                        '+': '%2B',
+                        ',': '%2C',
+                        '/': '%2F',
+                        ':': '%3A',
+                        ';': '%3B',
+                        '<': '%3C',
+                        '=': '%3D',
+                        '>': '%3E',
+                        '?': '%3F',
+                        '@': '%40',
+                        '[': '%5B',
+                        '\\': '%5C',
+                        ']': '%5D',
+                        '^': '%5E',
+                        '`': '%60',
+                        '{': '%7B',
+                        '|': '%7C',
+                        '}': '%7D'}
 
 url_encode_yboss = word_replacer(url_encode_yboss_map, inter_token_re='')
-
-
-
-
-
-
 
 # def mk_url_encode_yboss_map():
 #     import requests

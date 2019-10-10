@@ -2,14 +2,17 @@ __author__ = 'thorwhalen'
 
 import matplotlib.pyplot as plt
 import tempfile
-from images2gif import writeGif
 from PIL import Image
 import os
 import fnmatch
+import numpy as np
+from matplotlib import animation
 
 
-def mk_2d_sequence_gif(x_seq, y_seq, filename='make_2d_sequence_gif.gif', plot_kwargs={}, edit_funs={},
-                       writeGif_kwargs={}, savefig_kwargs={}, **kwargs):
+def mk_2d_sequence_gif(x_seq, y_seq, filename='make_2d_sequence_gif.gif', plot_kwargs={},
+                       edit_funs={}, writeGif_kwargs={}, savefig_kwargs={}, **kwargs):
+    from images2gif import writeGif
+
     # handling defaults
     plot_kwargs = dict({'color': 'b', 'marker': 'o', 'linestyle': '-', 'linewidth': 0.2}, **plot_kwargs)
     savefig_kwargs = dict({'dpi': 200}, **savefig_kwargs)
@@ -22,7 +25,7 @@ def mk_2d_sequence_gif(x_seq, y_seq, filename='make_2d_sequence_gif.gif', plot_k
     else:
         # defining an edit function from the edit_funs dict
         def edit_fun():  # this function assumes keys of edit_funs are plt attributes, and tries to call the values on them
-            for k, v in edit_funs.iteritems():
+            for k, v in edit_funs.items():
                 if hasattr(plt, edit_funs[k]):
                     f = plt.__getattribute__(k)
                     try:
@@ -38,7 +41,7 @@ def mk_2d_sequence_gif(x_seq, y_seq, filename='make_2d_sequence_gif.gif', plot_k
     tmp_dir = tempfile.mkdtemp('mk_2d_sequence_gif')
 
     # get the axis limits
-    if 'xylims' in kwargs.keys():
+    if 'xylims' in list(kwargs.keys()):
         ax = kwargs['xylims']
     else:
         # plot the full sequences to get the axis limits from it
@@ -60,3 +63,44 @@ def mk_2d_sequence_gif(x_seq, y_seq, filename='make_2d_sequence_gif.gif', plot_k
     for im in images:
         im.thumbnail(size, Image.ANTIALIAS)
     writeGif(filename=filename, images=images, **writeGif_kwargs)
+
+
+def mk_rank_progression_bars(scores, save_filepath='rank_progression_bars.mp4',
+                             figsize=(16, 5), markersize=30, ms_between_frames=100, fps=10):
+    """
+
+    :param scores:
+    :param save_filepath:
+    :param figsize:
+    :param markersize:
+    :param ms_between_frames:
+    :param fps:
+    :return:
+    >>> scores = np.random.permutation(20)
+    >>> mk_rank_progression_bars(scores)
+    """
+
+    def barlist(i, scores):
+        return [len(scores) - score if score <= i else 0 for score in scores]
+
+    fig = plt.figure(figsize=figsize)
+
+    n = len(scores)
+    plt.xlim((-0.5, n))
+    plt.ylim((0, n))
+
+    def animate(i):
+        y = np.array(barlist(i, scores))
+        ax = plt.gca()
+        ax.clear()
+        plt.bar(range(len(y)), y, color='k')
+        if markersize > 0:
+            n = len(scores)
+            new_score = np.min(y[y > 0])
+            new_score_idx = np.where(y == new_score)[0][0]
+            plt.plot(new_score_idx, n * (1.05), 'vb', markersize=markersize)
+
+    anim = animation.FuncAnimation(
+        fig, animate, repeat=False, blit=False, frames=len(scores), interval=ms_between_frames)
+
+    anim.save(save_filepath, writer=animation.FFMpegWriter(fps=fps));

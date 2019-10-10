@@ -217,46 +217,46 @@ class KeyVal(Val):
 
     def add(self, kv):
         if hasattr(kv.v, 'keys'):
-            for k in kv.v.keys():
-                if k in self.v.keys():
+            for k in list(kv.v.keys()):
+                if k in list(self.v.keys()):
                     self.v[k].add(kv.v[k])
                 else:
                     self.v[k] = kv.v[k]
         else:
-            for k in self.v.keys():
+            for k in list(self.v.keys()):
                 self.v[k].v = self.v[k].v + kv.v
 
     def sub(self, kv):
         if hasattr(kv.v, 'keys'):
-            for k in kv.v.keys():
-                if k in self.v.keys():
+            for k in list(kv.v.keys()):
+                if k in list(self.v.keys()):
                     self.v[k].sub(kv.v[k])
         else:
-            for k in self.v.keys():
+            for k in list(self.v.keys()):
                 self.v[k].v = self.v[k].v - kv.v
 
     def mul(self, kv):
         if hasattr(kv.v, 'keys'):
-            for k in kv.v.keys():
-                if k in self.v.keys():
+            for k in list(kv.v.keys()):
+                if k in list(self.v.keys()):
                     self.v[k].mul(kv.v[k])
                 else:
                     self.v[k] = kv.v[k]
         else:
-            for k in self.v.keys():
+            for k in list(self.v.keys()):
                 self.v[k].v = self.v[k].v * kv.v
 
     def div(self, kv):
         if hasattr(kv.v, 'keys'):
-            for k in kv.v.keys():
-                if k in self.v.keys():
+            for k in list(kv.v.keys()):
+                if k in list(self.v.keys()):
                     self.v[k].div(kv.v[k])
         else:
-            for k in self.v.keys():
+            for k in list(self.v.keys()):
                 self.v[k].v = self.v[k].v / kv.v
 
     def unwrapped(self):
-        return {k: v.unwrapped() for k, v in self.v.iteritems()}
+        return {k: v.unwrapped() for k, v in self.v.items()}
         # d = dict()
         # for k in self.v.keys():
         #     this_v = self.v[k]
@@ -284,7 +284,7 @@ class KeyCount(KeyVal):
             super(KeyCount, self).__init__(v)
 
     def increment(self, k):
-        if self.v.has_key(k):
+        if k in self.v:
             self.v[k].add(Val(1.0))
         else:
             self.v[k] = Val(1.0)

@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import numpy as np
 import matplotlib.pylab as plt
@@ -12,8 +12,8 @@ def plot_cumul_explained_variance(model):
     :return:
     """
     n = len(model.explained_variance_ratio_)
-    plt.plot(range(1, n + 1), np.cumsum(model.explained_variance_ratio_), '-o');
-    plt.xticks(range(1, n + 1));
+    plt.plot(list(range(1, n + 1)), np.cumsum(model.explained_variance_ratio_), '-o');
+    plt.xticks(list(range(1, n + 1)));
     plt.xlabel("Num of components");
     plt.ylabel("Cumulative explained Variance");
 

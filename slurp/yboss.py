@@ -117,7 +117,7 @@ class Yboss(object):
     def content_to_results_df(self, content_dict):
         df = pd.DataFrame(content_dict['results'])
         start_position = int(content_dict['start'])
-        df['position'] = range(start_position, start_position+len(df))
+        df['position'] = list(range(start_position, start_position+len(df)))
         df._metadata = {'totalresults': int(content_dict['totalresults'])}
         return df
 
@@ -165,7 +165,7 @@ class Yboss(object):
     @classmethod
     def get_item(cls, content_dict):
         content_dict = content_dict['bossresponse']
-        return content_dict[content_dict.keys()[0]]
+        return content_dict[list(content_dict.keys())[0]]
 
     @classmethod
     def mk_fixed_coordinates_value_getter(cls, coord_list):
@@ -222,8 +222,8 @@ class Yboss(object):
     @classmethod
     def url_encode_params(cls, params):
         u = ''
-        for p, v in params.iteritems():
-            if isinstance(v, basestring):
+        for p, v in params.items():
+            if isinstance(v, str):
                 u += '&%s=%s' % (p, v)
             else:
                 u += '&%s=%s' % (p, str(v))
@@ -231,13 +231,13 @@ class Yboss(object):
 
     @classmethod
     def print_some_resources(cls):
-        print '''
+        print('''
             guide to yahoo BOSS: http://developer.yahoo.com/boss/search/boss_api_guide/index.html
             pricing (by service): http://developer.yahoo.com/boss/search/#pricing
             services: web, limitedweb, images, news, blogs, related
             response fields: http://developer.yahoo.com/boss/search/boss_api_guide/webv2_response.html
             market and languages: http://developer.yahoo.com/boss/search/boss_api_guide/supp_regions_lang.html
-                '''
+                ''')
 
     @classmethod
     def process_df(cls, df):

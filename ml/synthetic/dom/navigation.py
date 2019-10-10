@@ -32,7 +32,7 @@ def get_rand_function(params,
     elif isinstance(params, tuple):
         params = dict(loc=params[0], scale=params[1])
 
-    if isinstance(rand_class, basestring):
+    if isinstance(rand_class, str):
         if rand_class == 'random_hour':
             rand_class = RandomHour
         else:
@@ -71,7 +71,7 @@ class UserModel(object):
 
         hour_of_visit = hour_of_visit or default_hour_of_visit
         if isinstance(hour_of_visit, ndarray) and len(hour_of_visit) == 24:
-            hour_of_visit = random.choice(a=range(len(hour_of_visit)), p=hour_of_visit)
+            hour_of_visit = random.choice(a=list(range(len(hour_of_visit))), p=hour_of_visit)
         self.hour_of_visit = \
             get_rand_function(params={'loc': hour_of_visit, 'scale': 2.0},
                               rand_class=RandomHour)

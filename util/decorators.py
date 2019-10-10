@@ -1,99 +1,24 @@
-from __future__ import division
-
 from functools import update_wrapper
 from functools import wraps
 from inspect import getargspec, isfunction
-from itertools import izip, ifilter, starmap
+from itertools import starmap
 import inspect
 import functools
-import sys
 
 __author__ = 'thor'
-
-
-# TODO: refactor util/time.py to a different name so this hack isn't needed
-def import_non_local(name, custom_name=None):
-    """
-    https://stackoverflow.com/questions/6031584/importing-from-builtin-library-when-module-with-same-name-exists
-    :param name:
-    :param custom_name:
-    :return:
-    """
-    import imp, sys
-
-    custom_name = custom_name or name
-
-    f, pathname, desc = imp.find_module(name, sys.path[1:])
-    module = imp.load_module(custom_name, f, pathname, desc)
-    f.close()
-
-    return module
-
-
-def synchronized(lock):
-    """
-
-    :param lock: multiprocessing.Lock or threading.Lock
-    :return:
-    """
-
-    def wrapper(func):
-        @wraps(func)
-        def sync_func(*args, **kwargs):
-            with lock:
-                return func(*args, **kwargs)
-
-        return sync_func
-
-    return wrapper
-
-
-def real_time_it(func, output_func=sys.stdout.write):
-    time = import_non_local('time.time')
-
-    def wrapper(*args, **kwargs):
-        start = time()
-        ret = func(*args, **kwargs)
-        end = time()
-        msg = "{} with following args: {} and kwargs: {} took {}s (real_time).".format(func.func_name,
-                                                                                       args,
-                                                                                       kwargs,
-                                                                                       (end - start))
-        output_func(msg)
-        return ret
-
-    return wrapper
-
-
-def cpu_time_it(func, output_func=sys.stdout.write):
-    clock = import_non_local('time.clock')
-
-    def wrapper(*args, **kwargs):
-        start = clock()
-        ret = func(*args, **kwargs)
-        end = clock()
-        msg = "{} with following args: {} and kwargs: {} took {}s (cpu_time).".format(func.func_name,
-                                                                                      args,
-                                                                                      kwargs,
-                                                                                      (end - start))
-        output_func(msg)
-        return ret
-
-    return wrapper
 
 
 def decorate_all_methods(decorator, exclude=(), include=()):
     def decorate(obj):
         if not include:
-            inclusion_list = map(lambda x: x[0],
-                                 filter(lambda x: not x[0].startswith('__') and callable(x[1]),
-                                        inspect.getmembers(obj)))
+            inclusion_list = [x[0] for x in
+                              [x for x in inspect.getmembers(obj) if not x[0].startswith('__') and callable(x[1])]]
         else:
             inclusion_list = include
         inclusion_list = list(set(inclusion_list).difference(exclude))
-        inclusion_list = filter(lambda x: callable(getattr(obj, x)), inclusion_list)
+        inclusion_list = [x for x in inclusion_list if callable(getattr(obj, x))]
         inclusion_dict = {method_name: getattr(obj, method_name) for method_name in inclusion_list}
-        for method_name, method in inclusion_dict.iteritems():
+        for method_name, method in inclusion_dict.items():
             setattr(obj, method_name, decorator(method))
         return obj
 
@@ -195,7 +120,7 @@ def autoargs(*include, **kwargs):
                 if sieve(varargs): setattr(self, varargs, remaining_args)
             # handle varkw
             if kwargs:
-                for attr, val in kwargs.iteritems():
+                for attr, val in kwargs.items():
                     if sieve(attr): setattr(self, attr, val)
             return func(self, *args, **kwargs)
 
@@ -204,7 +129,66 @@ def autoargs(*include, **kwargs):
     return _autoargs
 
 
-def lazyprop(fn):
+class lazyprop:
+    """
+    A descriptor implementation of lazyprop (cached property) from David Beazley's "Python Cookbook" book.
+    It's
+    >>> class Test:
+    ...     def __init__(self, a):
+    ...         self.a = a
+    ...     @lazyprop
+    ...     def len(self):
+    ...         print('generating "len"')
+    ...         return len(self.a)
+    >>> t = Test([0, 1, 2, 3, 4])
+    >>> t.__dict__
+    {'a': [0, 1, 2, 3, 4]}
+    >>> t.len
+    generating "len"
+    5
+    >>> t.__dict__
+    {'a': [0, 1, 2, 3, 4], 'len': 5}
+    >>> t.len
+    5
+    >>> # But careful when using lazyprop that no one will change the value of a without deleting the property first
+    >>> t.a = [0, 1, 2]  # if we change a...
+    >>> t.len  # ... we still get the old cached value of len
+    5
+    >>> del t.len  # if we delete the len prop
+    >>> t.len  # ... then len being recomputed again
+    generating "len"
+    3
+    """
+
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        else:
+            value = self.func(instance)
+            setattr(instance, self.func.__name__, value)
+            return value
+
+
+def lazy_immutable_prop(func):
+    """ Slower version of lazyprop, but protects from assigning a value to the property """
+    name = '_lazy_' + func.__name__
+
+    @property
+    def lazy(self):
+        if hasattr(self, name):
+            return getattr(self, name)
+        else:
+            value = func(self)
+            setattr(self, name, value)
+            return value
+
+    return lazy
+
+
+def old_lazyprop(fn):
     """
     Instead of having to implement the "if hasattr blah blah" code for lazy loading, just write the function that
     returns the value and decorate it with lazyprop! See example below.
@@ -215,10 +199,10 @@ def lazyprop(fn):
     :return: a decorated lazy loading property
 
     >>> class Test(object):
-    ...     @lazyprop
+    ...     @old_lazyprop
     ...     def a(self):
-    ...         print 'generating "a"'
-    ...         return range(5)
+    ...         print('generating "a"')
+    ...         return list(range(5))
     >>> t = Test()
     >>> t.__dict__
     {}
@@ -274,11 +258,11 @@ def inject_param_initialization(inFunction):
         _self = args[0]
         _self.__dict__.update(kwargs)
         # Get all of argument's names of the inFunction
-        _total_names = inFunction.func_code.co_varnames[1:inFunction.func_code.co_argcount]
+        _total_names = inFunction.__code__.co_varnames[1:inFunction.__code__.co_argcount]
         # Get all of the values
         _values = args[1:]
         # Get only the names that don't belong to kwargs
-        _names = [n for n in _total_names if not kwargs.has_key(n)]
+        _names = [n for n in _total_names if n not in kwargs]
 
         # Match names with values and update __dict__
         d = {}
@@ -319,24 +303,24 @@ def autoassign(*names, **kwargs):
     """
     if kwargs:
         exclude, f = set(kwargs['exclude']), None
-        sieve = lambda l: ifilter(lambda nv: nv[0] not in exclude, l)
+        sieve = lambda l: filter(lambda nv: nv[0] not in exclude, l)
     elif len(names) == 1 and isfunction(names[0]):
         f = names[0]
         sieve = lambda l: l
     else:
         names, f = set(names), None
-        sieve = lambda l: ifilter(lambda nv: nv[0] in names, l)
+        sieve = lambda l: filter(lambda nv: nv[0] in names, l)
 
     def decorator(f):
         fargnames, _, _, fdefaults = getargspec(f)
         # Remove self from fargnames and make sure fdefault is a tuple
         fargnames, fdefaults = fargnames[1:], fdefaults or ()
-        defaults = list(sieve(izip(reversed(fargnames), reversed(fdefaults))))
+        defaults = list(sieve(zip(reversed(fargnames), reversed(fdefaults))))
 
         @wraps(f)
         def decorated(self, *args, **kwargs):
-            assigned = dict(sieve(izip(fargnames, args)))
-            assigned.update(sieve(kwargs.iteritems()))
+            assigned = dict(sieve(zip(fargnames, args)))
+            assigned.update(sieve(iter(kwargs.items())))
             for _ in starmap(assigned.setdefault, defaults): pass
             self.__dict__.update(assigned)
             return f(self, *args, **kwargs)

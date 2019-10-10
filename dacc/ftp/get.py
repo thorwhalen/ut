@@ -20,7 +20,7 @@ def get_ftp_files_I_dont_have(ftp_kwargs,
     if remote_filename_filter is not None:
         printProgress('Remote files: %d' % len(ftp_files))
         try:
-            ftp_files = filter(remote_filename_filter, ftp_files)
+            ftp_files = list(filter(remote_filename_filter, ftp_files))
         except Exception:
             ftp_files = remote_filename_filter(ftp_files)
         printProgress('... After filtering, only %d files left that will be processed' % len(ftp_files))

@@ -6,7 +6,7 @@
 #
 
 import GeoIP
-from urlparse import urlparse
+from urllib.parse import urlparse
 from xgoogle.search import GoogleSearch, SearchError
 
 class Geo(object):
@@ -20,7 +20,7 @@ class Geo(object):
       gir = self.geo.record_by_name(host)
       return {'country': gir['country_code'].lower(),
               'region': gir['region'].lower()}
-    except Exception, e:
+    except Exception as e:
       return {'country': 'none', 'region': 'none'}
 
 dst_country = 'us'
@@ -47,7 +47,7 @@ while len(final_results) < num_results:
       if len(final_results) == num_results:
         break
 
-print "Found %d websites:" % len(final_results)
+print("Found %d websites:" % len(final_results))
 for w in final_results:
-    print "%s (state: %s)" % w
+    print("%s (state: %s)" % w)
 

@@ -1,6 +1,4 @@
-from __future__ import division
 __author__ = 'thor'
-
 
 from numpy import hstack, vstack, zeros, shape, mean, random, linspace
 from numpy import argmax, argmin, flipud, percentile, ndarray, ceil
@@ -8,6 +6,7 @@ import numpy as np
 import os
 import re
 import librosa
+import librosa.display
 import soundfile as sf
 import wave
 import contextlib
@@ -41,14 +40,12 @@ def convert_to_wav(source_file, target_file=None, sample_rate=default_sr, print_
         return subprocess.call(['ffmpeg', '-nostats', '-i', source_file, '-ar', str(sample_rate), target_file])
 
 
-
-
 def complete_sref(sref):
     """
     Complete sref dict with missing fields, if any
     """
     sref = dict({'offset_s': 0.0}, **sref)  # takes care of making a copy (so doesn't overwrite sref)
-    if 'duration' not in sref.keys():
+    if 'duration' not in list(sref.keys()):
         if is_wav_file(sref['filepath']):
             sref['duration'] = get_duration_of_wav_file(sref['filepath'])
         else:
@@ -72,7 +69,7 @@ def sound_file_info_dict(filepath):
             d['frames'] = f.getnframes()
             d['frame_rate'] = f.getframerate()
             d['duration'] = d['frames'] / float(d['frame_rate'])
-        with file(filepath, 'r') as f:
+        with open(filepath, 'r') as f:
             text_info = get_wav_text_info(f)
             if text_info is not None:
                 d['inner_wav_text'] = text_info
@@ -147,8 +144,8 @@ def stereo_to_mono_and_extreme_silence_cropping(source, target, subtype=None, pr
 
 
 def get_wav_text_info(filespec):
-    if isinstance(filespec, basestring):
-        with file(filespec, 'r') as fd:
+    if isinstance(filespec, str):
+        with open(filespec, 'r') as fd:
             m = wav_text_info_exp.match(fd.read())
             if m is not None:
                 return m.groups()[0]
@@ -165,11 +162,11 @@ def get_wav_text_info(filespec):
 def wf_and_sr(*args, **kwargs):
     if len(args) > 0:
         args_0 = args[0]
-        if isinstance(args_0, basestring):
+        if isinstance(args_0, str):
             kwargs['filepath'] = args_0
         elif isinstance(args_0, tuple):
             kwargs['wf'], kwargs['sr'] = args_0
-    kwargs_keys = kwargs.keys()
+    kwargs_keys = list(kwargs.keys())
     if 'filepath' in kwargs_keys:
         return wf_and_sr_from_filepath(filepath=kwargs['filepath'])
     if 'wf' in kwargs_keys:
@@ -191,7 +188,7 @@ def hear_sound(*args, **kwargs):
 
 def plot_wf(*args, **kwargs):
     wf, sr = wf_and_sr(*args, **kwargs)
-    plt.plot(linspace(start=0, stop=len(wf)/float(sr), num=len(wf)), wf)
+    plt.plot(linspace(start=0, stop=len(wf) / float(sr), num=len(wf)), wf)
 
 
 def display_sound(*args, **kwargs):
@@ -208,12 +205,11 @@ def n_wf_points_from_duration_and_sr(duration, sr):
 
 
 def get_consecutive_zeros_locations(wf, sr, thresh_consecutive_zeros_seconds=0.1):
-
     thresh_consecutive_zeros = thresh_consecutive_zeros_seconds * sr
     list_of_too_many_zeros_idx_and_len = list()
     cum_of_zeros = 0
 
-    for i in xrange(len(wf)):
+    for i in range(len(wf)):
         if wf[i] == 0:
             cum_of_zeros += 1  # accumulate
         else:
@@ -238,7 +234,7 @@ def is_wav_file(filepath):
 
 
 def wav_file_framerate(file_pointer_or_path):
-    if isinstance(file_pointer_or_path, basestring):
+    if isinstance(file_pointer_or_path, str):
         file_pointer_or_path = wave.open(file_pointer_or_path)
         frame_rate = file_pointer_or_path.getframerate()
         file_pointer_or_path.close()
@@ -248,12 +244,11 @@ def wav_file_framerate(file_pointer_or_path):
 
 
 def wf_and_sr_from_filepath(filepath, **kwargs):
-
     must_ensure_mono = kwargs.pop('ensure_mono', True)
 
     if is_wav_file(filepath):
         kwargs = dict({'always_2d': False}, **kwargs)
-        if 'offset_s' in kwargs.keys() or 'duration' in kwargs.keys():
+        if 'offset_s' in list(kwargs.keys()) or 'duration' in list(kwargs.keys()):
             sample_rate = wave.Wave_read(filepath).getframerate()
             start = int(round(kwargs.pop('offset_s', 0) * sample_rate))
             kwargs['start'] = start
@@ -287,11 +282,11 @@ def weighted_mean(yw1, yw2):
 
 
 def mk_transformed_copies_of_sound_files(source_path_iterator,
-                          file_reader=wf_and_sr_from_filepath,
-                          transform_fun=None,
-                          source_path_to_target_path=None,
-                          save_fun=None,
-                          onerror_fun=None):
+                                         file_reader=wf_and_sr_from_filepath,
+                                         transform_fun=None,
+                                         source_path_to_target_path=None,
+                                         save_fun=None,
+                                         onerror_fun=None):
     """
     Gets every filepath
         fed by source_path_iterator one by one,
@@ -302,7 +297,7 @@ def mk_transformed_copies_of_sound_files(source_path_iterator,
         If there's any errors and a onerror_fun(source_path, e) is given, it will be called instead of raising error
     """
     assert source_path_to_target_path is not None, "You must provide a save_fun (function or target folder)"
-    if isinstance(source_path_to_target_path, basestring):
+    if isinstance(source_path_to_target_path, str):
         target_folder = source_path_to_target_path
         assert os.path.exists(target_folder), \
             "The folder {} doesn't exist".format(target_folder)
@@ -358,7 +353,6 @@ class Sound(object):
     def copy(self):
         return Sound(wf=self.wf.copy(), sr=self.sr, name=self.name)
 
-
     ####################################################################################################################
     # CREATION
 
@@ -406,7 +400,7 @@ class Sound(object):
     def from_(cls, sound):
         if isinstance(sound, tuple) and len(sound) == 2:  # then it's a (wf, sr) tuple
             return Sound(sound[0], sound[1])
-        elif isinstance(sound, basestring) and os.path.isfile(sound):
+        elif isinstance(sound, str) and os.path.isfile(sound):
             return Sound.from_file(sound)
         elif isinstance(sound, dict):
             if 'wf' in sound and 'sr' in sound:
@@ -433,7 +427,6 @@ class Sound(object):
         #     kwargs = {'stop': int(start + round(duration * sample_rate))}
         # wf, sr = sf.read(filepath, always_2d=False, start=start, **kwargs)
         return Sound(wf, sr, name=sref.get('name', sref['filepath']))
-
 
     @classmethod
     def from_sound_iter(cls, sound_iter):
@@ -473,9 +466,9 @@ class Sound(object):
             sound_mix_spec_default = dict(sound=None, offset_s=0, weight=1)
             _sound_mix_spec = _sound_mix_spec.copy()
             if isinstance(_sound_mix_spec, dict):  # if sound_mix_spec is a dict...
-                if 'filepath' in _sound_mix_spec.keys():  # ... and it has a 'filepath' key...
+                if 'filepath' in list(_sound_mix_spec.keys()):  # ... and it has a 'filepath' key...
                     sref = _sound_mix_spec  # ... assume it's an sref...
-                    sound = Sound.from_sref(sref) # ... and get the sound from it, and make an actual sound_mix_spec
+                    sound = Sound.from_sref(sref)  # ... and get the sound from it, and make an actual sound_mix_spec
                     _sound_mix_spec = dict(sound_mix_spec_default, sound=sound)
                 else:  # If it's not an sref...
                     sound = _sound_mix_spec['sound']  # ... assume it has a sound key
@@ -488,20 +481,21 @@ class Sound(object):
                 _sound_mix_spec = dict(sound_mix_spec_default, sound=_sound_mix_spec)
             else:
                 _sound_mix_spec = dict(sound_mix_spec_default, **_sound_mix_spec)
-            _sound_mix_spec['sound'] = _sound_mix_spec['sound'].copy()  # to make sure the we don't overwrite it in manip
+            _sound_mix_spec['sound'] = _sound_mix_spec[
+                'sound'].copy()  # to make sure the we don't overwrite it in manip
             _sound_mix_spec['sound'].wf = ensure_mono(_sound_mix_spec['sound'].wf)
             # print(sound_mix_spec)
             return _sound_mix_spec
 
         # if the sound_iterator is a dict, take its values (ignore the keys)
         if isinstance(sound_mix_spec, dict):
-            sound_mix_spec = sound_mix_spec.values()
+            sound_mix_spec = list(sound_mix_spec.values())
         sound_mix_spec = iter(sound_mix_spec)
         # compute the weight factor. All input weights will be multiplied by this factor to avoid last sounds having
         # more volume than the previous ones
 
         # take the first sound as the sound to begin (and accumulate) with. As a result, the sr will be taken from there
-        spec = _mk_sound_mix_spec(sound_mix_spec.next())
+        spec = _mk_sound_mix_spec(next(sound_mix_spec))
         result_sound = spec['sound']
         result_sound_sr = result_sound.sr  # will be the final sr, and all other sounds will be resampled to it
         result_sound.name = name
@@ -517,7 +511,7 @@ class Sound(object):
         sounds_mixed_so_far = 1
         try:
             while True:
-                spec = _mk_sound_mix_spec(sound_mix_spec.next())
+                spec = _mk_sound_mix_spec(next(sound_mix_spec))
 
                 # resample sound to match self, if necessary
                 #    (mix_in() method does it, but better do it before,
@@ -615,52 +609,46 @@ class Sound(object):
 
     def melspectr_matrix(self, **mel_kwargs):
         mel_kwargs = dict({'n_fft': 2048, 'hop_length': 512, 'n_mels': 128}, **mel_kwargs)
-        S = librosa.feature.melspectrogram(self.wf, sr=self.sr, **mel_kwargs)
+        S = librosa.feature.melspectrogram(np.array(self.wf).astype(float), sr=self.sr, **mel_kwargs)
         # Convert to log scale (dB). We'll use the peak power as reference.
-        return librosa.logamplitude(S, ref_power=np.max)
+        return librosa.amplitude_to_db(S, ref=np.max)
 
     ####################################################################################################################
     # DISPLAY FUNCTIONS
 
-    def plot_wf(self):
-        plot_wf(wf=self.wf.copy(), sr=self.sr, alpha=0.8)
+    def plot_wf(self, **kwargs):
+        kwargs = dict(alpha=0.8, **kwargs)
+        plot_wf(wf=self.wf.copy(), sr=self.sr, **kwargs)
 
-    def hear_sound(self, **kwargs):
-        if kwargs.pop('print_name', True):
-            print("{}".format(self.name))
-        wf = ensure_mono(self.wf)
-        wf[random.randint(len(wf))] *= 1.001  # hack to avoid having exactly the same sound twice (creates an Audio bug)
-        return Audio(data=wf, rate=self.sr, **kwargs)
+    def hear(self, autoplay=False, **kwargs):
+        wf = np.array(ensure_mono(self.wf)).astype(float)
+        wf[np.random.randint(
+            len(wf))] *= 1.001  # hack to avoid having exactly the same sound twice (creates an Audio bug)
+        return Audio(data=wf, rate=self.sr, autoplay=autoplay, **kwargs)
 
     def display_sound(self, **kwargs):
         self.plot_wf()
-        return self.hear_sound(**kwargs)
+        return self.hear(**kwargs)
 
-    def display(self, **kwargs):
-        self.melspectrogram(plot_it=True)
-        return self.hear_sound(**kwargs)
+    def display(self, sound_plot='mel', autoplay=False, **kwargs):
+        """
 
-    def melspectrogram(self, mel_kwargs=None, plot_it=False):
-        if mel_kwargs is None:
-            mel_kwargs = {}
+        :param sound_plot: 'mel' (default) to plot melspectrogram, 'wf' to plot wave form, and None to plot nothing at all
+        :param kwargs:
+        :return:
+        """
+        if sound_plot == 'mel':
+            self.melspectrogram(plot_it=True, **kwargs)
+        elif sound_plot == 'wf':
+            self.plot_wf(**kwargs)
+        return self.hear(autoplay=autoplay)
+
+    def melspectrogram(self, plot_it=False, **mel_kwargs):
         mel_kwargs = dict({'n_fft': 2048, 'hop_length': 512, 'n_mels': 128}, **mel_kwargs)
         log_S = self.melspectr_matrix(**mel_kwargs)
         if plot_it:
-            plot_melspectrogram(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'], name=self.name)
+            plot_melspectrogram(log_S, sr=self.sr, hop_length=mel_kwargs['hop_length'])
         return log_S
-
-    def specshow(self, data=None, hop_length=512, x_axis=None, y_axis=None,
-                 n_xticks=5, n_yticks=5, fmin=None, fmax=None, bins_per_octave=12,
-                 tmin=16, tmax=240, freq_fmt='Hz', time_fmt=None, **kwargs):
-
-        if data is None:
-            data = self.melspectrogram(plot_it=False)
-
-        return librosa.display.specshow(
-            data, sr=self.sr, hop_length=hop_length, x_axis=x_axis, y_axis=y_axis,
-            n_xticks=n_xticks, n_yticks=n_yticks, fmin=fmin, fmax=fmax, bins_per_octave=bins_per_octave,
-            tmin=tmin, tmax=tmax, freq_fmt=freq_fmt, time_fmt=time_fmt, **kwargs
-        )
 
     ####################################################################################################################
     # MISC

@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from numpy import inf, random, array, ravel, amin, amax, ndim, vectorize
 from ut.ml.util.feature_analysis import plot_feat_ranges
@@ -203,14 +203,14 @@ class Range(object):
 
     @classmethod
     def plot(cls, array_of_ranges, **kwargs):
-        plot_feat_ranges(map(tuple, ravel(array_of_ranges)), **kwargs)
+        plot_feat_ranges(list(map(tuple, ravel(array_of_ranges))), **kwargs)
 
     @classmethod
     def from_array(cls, a, axis=None):
         if ndim(a) == 1 or axis is None:
             return cls(amin(a), amax(a))
         else:
-            return array(map(cls, ravel(amin(a, axis=axis)), ravel(amax(a, axis=axis))))
+            return array(list(map(cls, ravel(amin(a, axis=axis)), ravel(amax(a, axis=axis)))))
 
     @classmethod
     def lower_bound_array(cls, range_array):

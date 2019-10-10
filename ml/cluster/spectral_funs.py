@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 __doc__ = """
@@ -38,7 +38,7 @@ def _how_spectral_library_expects_data_and_distance(X, distance):
     if distance not in [spectral.clustering.L1, spectral.clustering.L2]:
         if callable(distance):
             distance = distance.__name__
-        if isinstance(distance, basestring):
+        if isinstance(distance, str):
             if distance.lower() in ['euclidean', 'l2']:
                 distance = spectral.clustering.L2
             elif distance.lower() in ['cityblock', 'manhattan', 'l1']:

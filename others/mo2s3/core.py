@@ -1,5 +1,5 @@
 from datetime import datetime
-import ConfigParser
+import configparser
 import argparse
 import envoy
 import boto
@@ -9,7 +9,7 @@ import shutil
 from boto.s3.key import Key
 from ut.others.mo2s3 import default_conf
 
-cfg = ConfigParser.SafeConfigParser()
+cfg = configparser.SafeConfigParser()
 cfg_file = os.path.expanduser("~/.mo2s3.cfg")
 if not os.path.isfile(cfg_file):
     with open(cfg_file, "w") as f:
@@ -50,24 +50,24 @@ def main():
 
     # Configure action
     if args["action"] == "configure":
-        cfg_parser = ConfigParser.SafeConfigParser()
+        cfg_parser = configparser.SafeConfigParser()
         cfg_parser.add_section("aws")
-        cfg_parser.set("aws", "access_key", raw_input("AWS Access Key: "))
-        cfg_parser.set("aws", "secret_key", raw_input("AWS Secret Key: "))
-        cfg_parser.set("aws", "s3_bucket", raw_input("S3 Bucket Name: "))
-        cfg_parser.set("aws", "folder", raw_input("folder: "))
+        cfg_parser.set("aws", "access_key", input("AWS Access Key: "))
+        cfg_parser.set("aws", "secret_key", input("AWS Secret Key: "))
+        cfg_parser.set("aws", "s3_bucket", input("S3 Bucket Name: "))
+        cfg_parser.set("aws", "folder", input("folder: "))
 
         cfg_parser.add_section("mongodb")
-        cfg_parser.set("mongodb", "host", raw_input("MongoDB Host: "))
-        cfg_parser.set("mongodb", "username", raw_input("MongoDB Username: "))
-        cfg_parser.set("mongodb", "password", raw_input("MongoDB Password: "))
+        cfg_parser.set("mongodb", "host", input("MongoDB Host: "))
+        cfg_parser.set("mongodb", "username", input("MongoDB Username: "))
+        cfg_parser.set("mongodb", "password", input("MongoDB Password: "))
         cfg_parser.write(open(os.path.expanduser("~/.mo2s3.cfg"), "w"))
 
-        print "Config written in %s" % os.path.expanduser("~/.mo2s3.cfg")
+        print("Config written in %s" % os.path.expanduser("~/.mo2s3.cfg"))
         sys.exit(0)
 
     if not args["access_key"] or not args["secret_key"]:
-        print "S3 credentials not set, run 'mo2s3 configure' or specify --access-key/--secret-key, 'mo2s3 -h' to show the help"
+        print("S3 credentials not set, run 'mo2s3 configure' or specify --access-key/--secret-key, 'mo2s3 -h' to show the help")
         sys.exit(0)
 
     # Amazon S3 connection
@@ -77,8 +77,8 @@ def main():
 
     now = datetime.now().strftime("%Y%m%d%H%M%S")
 
-    print "S3 Bucket: " + args["bucket"]
-    print "S3 Folder: " + args["folder"]
+    print("S3 Bucket: " + args["bucket"])
+    print("S3 Folder: " + args["folder"])
 
     def key_for_filename(filename):
         if folder:
@@ -88,19 +88,19 @@ def main():
 
     # Backup action
     if args["action"] == "backup":
-        print "MongoDB: " + args["host"]
+        print("MongoDB: " + args["host"])
 
         # Run mongodump
         dump_directory = "mongodump_" + now
         mongo_cmd = "mongodump" + make_mongo_params(args) + " -o " + dump_directory
         if not args["db"]:
             mongo_cmd += " --oplog"
-        print mongo_cmd
+        print(mongo_cmd)
 
         mongodump = envoy.run(mongo_cmd)
         if mongodump.status_code != 0:
-            print mongodump.std_err
-        print mongodump.std_out
+            print(mongodump.std_err)
+        print(mongodump.std_out)
 
         # Create dump archive
         tar_filename = "mongodump"
@@ -111,27 +111,27 @@ def main():
         tar_filename += "_" + now + ".tgz"
         tar = envoy.run("tar czf " + tar_filename + " " + dump_directory)
         if tar.status_code != 0:
-            print tar.std_err
-        print tar.std_out
+            print(tar.std_err)
+        print(tar.std_out)
 
         # Upload to S3
         k = Key(bucket)
         k.key = key_for_filename(tar_filename)
         k.set_contents_from_filename(tar_filename)
 
-        print tar_filename + " uploaded"
+        print(tar_filename + " uploaded")
         os.remove(tar_filename)
         try:
             shutil.rmtree(dump_directory)
         except Exception:
-            print "shutil.rmtree({dump_directory}) got an error (does {dump_directory} really exist?)"\
-                .format(dump_directory=dump_directory)
+            print("shutil.rmtree({dump_directory}) got an error (does {dump_directory} really exist?)"\
+                .format(dump_directory=dump_directory))
 
     # List action
     elif args["action"] == "list":
         # List bucket files
         for key in bucket.list(prefix=folder):
-                print key.name
+                print(key.name)
         # print folder
         # if folder:
         #     for key in bucket.list(prefix=folder):
@@ -144,38 +144,38 @@ def main():
     elif args["action"] == "drop":
         # Delete every file in the bucket
         for key in bucket.list(folder):
-            print "deleting " + key.name
+            print("deleting " + key.name)
             key.delete()
 
     # Delete action
     elif args["action"] == "delete":
         # Delete the backup on S3
         if not args["filename"]:
-            print "No filename specified (--filename), 'mo2s3 -h' to show the help"
+            print("No filename specified (--filename), 'mo2s3 -h' to show the help")
             sys.exit(0)
         k = Key(bucket)
         k.key = key_for_filename(args["filename"])
-        print "deleting " + args["filename"]
+        print("deleting " + args["filename"])
         k.delete()
 
     # Restore action
     elif args["action"] == "restore":
-        print "MongoDB: " + args["host"]
+        print("MongoDB: " + args["host"])
 
         if not args["filename"]:
-            print "No filename specified (--filename), 'mo2s3 -h' to show the help"
+            print("No filename specified (--filename), 'mo2s3 -h' to show the help")
             sys.exit(0)
 
         # Download backup file from S3
         k = Key(bucket)
         k.key = key_for_filename(args["filename"])
-        print "restoring " + args["filename"]
+        print("restoring " + args["filename"])
         k.get_contents_to_filename(args["filename"])
         dump_date = args["filename"][-18:-4]
         tar = envoy.run("tar xvzf " + args["filename"])
         if tar.status_code != 0:
-            print tar.std_err
-        print tar.std_out
+            print(tar.std_err)
+        print(tar.std_out)
 
         # Run mongorestore
         restore_cmd = "mongorestore" + make_mongo_params(args) + " mongodump_" + dump_date
@@ -185,7 +185,7 @@ def main():
                 restore_cmd += "/" + args["collection"]
         else:
             restore_cmd += " --oplogReplay"
-        print restore_cmd
+        print(restore_cmd)
         # mongorestore = envoy.run(restore_cmd)
         # if mongorestore.status_code != 0:
         #     print mongorestore.std_err

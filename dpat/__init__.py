@@ -1,2 +1,2 @@
-from __future__ import division
+"""A framework to work with DAGs of buffers."""
 

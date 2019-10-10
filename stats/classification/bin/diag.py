@@ -41,7 +41,7 @@ class ProbAndRateAnalysis(object):
         df = pd.DataFrame()
         df['decision threshold'] = decision_thresh
         df = pd.concat([df,
-                        pd.DataFrame(map(self.trials_and_successes_at_decision_threshold, decision_thresh),
+                        pd.DataFrame(list(map(self.trials_and_successes_at_decision_threshold, decision_thresh)),
                                      columns=['trials', 'successes'])],
                        axis=1)
         df['rate'] = df['successes'] / df['trials']
@@ -58,8 +58,7 @@ class ProbAndRateAnalysis(object):
     def bootstrap_samples_df(self, n_samples=500, sample_size=None, replace=True):
         if sample_size is None:
             sample_size = int(10 / self.profitable_ratio)
-        return pd.DataFrame(data=map(lambda x: self.d.ix[random.choice(self.d.index, sample_size, replace)].mean(),
-                                     xrange(n_samples)),
+        return pd.DataFrame(data=[self.d.ix[random.choice(self.d.index, sample_size, replace)].mean() for x in range(n_samples)],
                             columns=self.d.columns)
 
     def plot_bootstrap_scatter(self, n_samples=500, sample_size=None, replace=True, alpha=0.2):
@@ -131,11 +130,11 @@ class ModelDiagnosis01(object):
     def compute_metrics(self, model):
         metrics = dict()
         pred_y = model.predict(self.test_x)
-        for metric_name, metric_function in self.classification_metrics.iteritems():
+        for metric_name, metric_function in self.classification_metrics.items():
             metrics[metric_name] = metric_function(self.test_y, pred_y)
         try:
             pred_proba_y = model.predict_proba(self.test_x)
-            for metric_name, metric_function in self.proba_metrics.iteritems():
+            for metric_name, metric_function in self.proba_metrics.items():
                 metrics[metric_name] = metric_function(self.test_y, pred_proba_y)
         except NotImplementedError:
             pred_proba_y = None
@@ -145,25 +144,25 @@ class ModelDiagnosis01(object):
         model.fit(self.train_x, self.train_y)
 
     def print_comparison_triple(self, metrics, metric):
-        print "%s:  %.04f (%.2f%% of bench (%.04f))" % \
+        print("%s:  %.04f (%.2f%% of bench (%.04f))" % \
             (metric,
              metrics[metric],
              100. * metrics[metric] / self.bench_metrics[metric],
-             self.bench_metrics[metric])
+             self.bench_metrics[metric]))
 
     def test(self, model):
         metrics, pred_y, pred_proba_Y = self.compute_metrics(model)
-        print "confusion_matrix:\n%s " % metrics['confusion_matrix']
-        for metric_name, metric_value in metrics.iteritems():
+        print("confusion_matrix:\n%s " % metrics['confusion_matrix'])
+        for metric_name, metric_value in metrics.items():
             try:
-                print "%s:  %.04f (%.2f%% of bench (%.04f))" % \
+                print("%s:  %.04f (%.2f%% of bench (%.04f))" % \
                     (metric_name,
                      metric_value,
                      100. * metric_value / self.bench_metrics[metric_name],
-                     self.bench_metrics[metric_name])
+                     self.bench_metrics[metric_name]))
             except TypeError:
                 continue
-        print sk.metrics.classification_report(self.test_y, pred_y)
+        print(sk.metrics.classification_report(self.test_y, pred_y))
 
     def train_and_test(self, model):
         self.train(model=model)
@@ -178,11 +177,11 @@ class ModelDiagnosis01(object):
 
     def multiple_predict(self, model, prob_thresh=None):
         pred_probs, prob_thresh = self._process_prob_thresh(model, prob_thresh)
-        return map(lambda p: (pred_probs > p).astype(float), prob_thresh)
+        return [(pred_probs > p).astype(float) for p in prob_thresh]
 
     def multiple_confusion_matrices(self, model, prob_thresh=linspace(0, 1, 0.1)):
         pred_probs, prob_thresh = self._process_prob_thresh(model, prob_thresh)
-        return map(lambda p: sk.metrics.confusion_matrix((pred_probs > p).astype(float)), prob_thresh)
+        return [sk.metrics.confusion_matrix((pred_probs > p).astype(float)) for p in prob_thresh]
 
 
 

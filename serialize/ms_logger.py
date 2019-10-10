@@ -77,15 +77,15 @@ class Logger(object):
                 try:
                     if os.path.isfile(file_path):
                         os.unlink(file_path)
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
 
         for the_file in os.listdir(logdir):
             try:
                 if the_file.endswith(".log"):
                     os.rename(os.path.join(logdir, the_file), os.path.join(backup_folder, the_file))
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
 
     def __init__(self, level=logging.INFO, file_name='default_log', make_file_name_unique=False, mode='a', origin=''):
         """

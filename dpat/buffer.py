@@ -72,7 +72,7 @@
     flush_all() output: 12
     """
 
-from __future__ import division
+
 
 from collections import defaultdict
 
@@ -107,7 +107,7 @@ def inject_post_flush_func(buf, post_flush_func):
 
 def print_buf_pre_push(buf):
     def print_buf(item):
-        print(buf._buf)
+        print((buf._buf))
         return item
 
     return inject_pre_push_func(buf, print_buf)

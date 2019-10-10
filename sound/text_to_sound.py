@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import os
 from numpy import array
@@ -36,7 +36,7 @@ class TextToSound(object):
         return TextToSound(char_wf=char_wf, sr=sr)
 
     def text_to_wf(self, txt):
-        assert set(txt + ' ').issubset(self.char_wf.keys()), \
+        assert set(txt + ' ').issubset(list(self.char_wf.keys())), \
             "Your text needs to only use space and the following characters:\n{}".format(''.join(char_wf))
         wf = []
         for c in txt:

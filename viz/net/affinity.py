@@ -40,13 +40,13 @@ def affinity_propagation_network(X, names=None):
     X = X.copy()
 
     if isinstance(X, pd.DataFrame):
-        if isinstance(names, basestring):
+        if isinstance(names, str):
             names = X.pop(names)
         elif names is None:
             names = X.index.values
         X = X.as_matrix().T
     elif names is None:
-        names = range(X.shape[0])
+        names = list(range(X.shape[0]))
 
     ###############################################################################
     # Learn a graphical structure from the correlations
@@ -65,7 +65,7 @@ def affinity_propagation_network(X, names=None):
     n_labels = labels.max()
 
     for i in range(n_labels + 1):
-        print('Cluster %i: %s' % ((i + 1), ', '.join(names[labels == i])))
+        print(('Cluster %i: %s' % ((i + 1), ', '.join(names[labels == i]))))
 
     ###############################################################################
     # Find a low-dimension embedding for visualization: find the best position of

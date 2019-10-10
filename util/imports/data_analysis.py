@@ -1,4 +1,3 @@
-from __future__ import division
 __author__ = 'thor'
 
 import ut
@@ -40,5 +39,6 @@ import ut.pdict.manip
 from collections import Counter, defaultdict
 import itertools
 
-
 from ut.pplot.matrix import heatmap
+
+import matplotlib.pylab as plt

@@ -8,7 +8,7 @@ from ut.util.time import utc_ms_to_utc_datetime
 
 
 def count_hist(sr, sort_by='value', reverse=True, horizontal=None, ratio=False, **kwargs):
-    horizontal = horizontal or isinstance(sr.iloc[0], basestring)
+    horizontal = horizontal or isinstance(sr.iloc[0], str)
     ut.pplot.hist.count_hist(np.array(sr), sort_by=sort_by, reverse=reverse, horizontal=horizontal, ratio=ratio,
                              **kwargs)
 
@@ -37,7 +37,7 @@ def plot_timeseries(data, time_field='index', time_type='utc_ms', legend=False, 
         "time_field couldn't be resolved (neither in columns, nor index.name, nor 'index')"
     if time_type == 'utc_ms':
         data[time_field] = pd.to_datetime(
-            np.array(map(utc_ms_to_utc_datetime, data.index.values)))
+            np.array(list(map(utc_ms_to_utc_datetime, data.index.values))))
         data = data.set_index(time_field)
 
     if time_field == 'index':

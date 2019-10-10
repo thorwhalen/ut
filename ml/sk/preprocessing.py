@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -8,7 +8,7 @@ from numpy import allclose
 
 from statsmodels.stats.weightstats import DescrStatsW
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing.data import (DEPRECATION_MSG_1D, FLOAT_DTYPES, check_array, warnings, sparse,
+from sklearn.preprocessing.data import ( FLOAT_DTYPES, check_array, warnings, sparse,
                                         _incremental_mean_and_var, mean_variance_axis, incr_mean_variance_axis,
                                         _handle_zeros_in_scale)
 

@@ -13,6 +13,6 @@ def test_shapley():
         index=[('A',), ('B',), ('C',), ('A','B'), ('A','C'), ('B','C'), ('A','B','C')],
         data={'success': [4, 4, 4, 9, 10, 11, 15]}
     )
-    print w
+    print(w)
     se = Shapley(d=w)
     assert se.compute_shapley_values() == {'A': 4.5, 'B': 5.0, 'C': 5.5}, "test_shapley FAILED!"

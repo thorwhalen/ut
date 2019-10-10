@@ -121,10 +121,10 @@ class Geopop(object):
         d = pd.DataFrame([x for x in cursor])
         center = (lat, lon)
         if len(d) != 0:
-            distance = map(lambda xlat, xlon: vincenty((xlat, xlon), center).kilometers,
+            distance = list(map(lambda xlat, xlon: vincenty((xlat, xlon), center).kilometers,
                                                     [x[1] for x in d[self.coordinate_field]],
-                                                    [x[0] for x in d[self.coordinate_field]])
-            membership = map(lambda x: max(0, (radius_km - x) / radius_km), distance)
+                                                    [x[0] for x in d[self.coordinate_field]]))
+            membership = [max(0, (radius_km - x) / radius_km) for x in distance]
             return sum(membership * d[self.pop_field])
         else:
             d = self.mdacc.find_nearest_one(lat=lat, lon=lon, fields=[self.pop_field, self.area_field])
@@ -172,7 +172,7 @@ def _import_data_into_mongo(filepath='gl_centroids_utf8.csv',
         try:
             mg_collection.insert(ddi, w=0)
         except InvalidStringData:
-            ddi = {k: str_to_utf8_or_bust(v) for k, v in ddi.iteritems()}
+            ddi = {k: str_to_utf8_or_bust(v) for k, v in ddi.items()}
             mg_collection.insert(ddi, w=0)
 
     printProgress("ensuring GEOSPHERE index with %d bits (for a precision of %d meters or more"
@@ -190,9 +190,9 @@ def _process_dict(d):
     d['country'] = d['countrynm']  # I prefer to use country then countrynm
     d.pop('countrynm')
     # remove first and last single quotes from string values
-    d.update({k: str_to_utf8_or_bust(d[k]) for k in d.keys() if isinstance(d[k], basestring)})
+    d.update({k: str_to_utf8_or_bust(d[k]) for k in list(d.keys()) if isinstance(d[k], str)})
     # do the same for keys, and while we're at it, remove "N.A" keys (and while we're at it, lower case keys)
-    d = {k.lower(): v for k, v in d.iteritems() if v != "N.A."}
+    d = {k.lower(): v for k, v in d.items() if v != "N.A."}
     # make location keys
     try:
         if not isinstance(d["lat_cen"], float) \

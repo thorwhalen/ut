@@ -101,7 +101,7 @@ class S3(object):
         return:
           number of bytes
         """
-        if isinstance(f, basestring) and os.path.exists(f):
+        if isinstance(f, str) and os.path.exists(f):
             f = open(f, 'r')
         bucket = self._get_new_bucket_or_default(bucket_name)
         s3_key = self._get_s3_key_for_dump(key_name, folder, bucket)
@@ -121,7 +121,7 @@ class S3(object):
           number of bytes
         """
         assert isinstance(the_str,
-                          basestring), 'the_str must be an instance of basestring, but was an instance of {}'.format(type(the_str))
+                          str), 'the_str must be an instance of basestring, but was an instance of {}'.format(type(the_str))
         bucket = self._get_new_bucket_or_default(bucket_name)
         s3_key = self._get_s3_key_for_dump(key_name, folder, bucket)
         return s3_key.set_contents_from_string(the_str)
@@ -191,7 +191,7 @@ class S3(object):
 
     def mk_key_name(self, key_name, folder=None, bucket=None, **kwargs):
         # have bucket_name overwrite existing bucket
-        if 'bucket_name' in kwargs.keys():
+        if 'bucket_name' in list(kwargs.keys()):
             bucket = self.connection.get_bucket(kwargs['bucket_name'])
         else:
             bucket = bucket or self.bucket
@@ -201,8 +201,8 @@ class S3(object):
         """
         Takes care of the process of getting an s3 key
         """
-        if isinstance(key_name, basestring):
-            if 'bucket_name' in kwargs.keys():
+        if isinstance(key_name, str):
+            if 'bucket_name' in list(kwargs.keys()):
                 bucket = self.connection.get_bucket(kwargs['bucket_name'])
             else:
                 bucket = bucket or self.bucket

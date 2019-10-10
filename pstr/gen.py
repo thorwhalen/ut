@@ -1,7 +1,211 @@
-from __future__ import division
-
 import re
 import string
+
+dflt_formatter = string.Formatter()
+
+
+def compile_str_from_parsed(parsed):
+    """The (quasi-)inverse of string.Formatter.parse.
+
+    Args:
+        parsed: iterator of (literal_text, field_name, format_spec, conversion) tuples,
+        as yield by string.Formatter.parse
+
+    Returns:
+        A format string that would produce such a parsed input.
+
+    >>> s =  "ROOT/{}/{0!r}/{1!i:format}/hello{:0.02f}TAIL"
+    >>> assert compile_str_from_parsed(string.Formatter().parse(s)) == s
+    >>>
+    >>> # Or, if you want to see more details...
+    >>> parsed = list(string.Formatter().parse(s))
+    >>> for p in parsed:
+    ...     print(p)
+    ('ROOT/', '', '', None)
+    ('/', '0', '', 'r')
+    ('/', '1', 'format', 'i')
+    ('/hello', '', '0.02f', None)
+    ('TAIL', None, None, None)
+    >>> compile_str_from_parsed(parsed)
+    'ROOT/{}/{0!r}/{1!i:format}/hello{:0.02f}TAIL'
+    """
+    result = ''
+    for literal_text, field_name, format_spec, conversion in parsed:
+        # output the literal text
+        if literal_text:
+            result += literal_text
+
+        # if there's a field, output it
+        if field_name is not None:
+            result += '{'
+            if field_name != '':
+                result += field_name
+            if conversion:
+                result += '!' + conversion
+            if format_spec:
+                result += ':' + format_spec
+            result += '}'
+    return result
+
+
+def transform_format_str(format_str, parsed_tuple_trans_func):
+    return compile_str_from_parsed(
+        map(lambda args: parsed_tuple_trans_func(*args), dflt_formatter.parse(format_str)))
+
+
+def _empty_field_name(literal_text, field_name, format_spec, conversion):
+    if field_name is not None:
+        return literal_text, '', format_spec, conversion
+    else:
+        return literal_text, field_name, format_spec, conversion
+
+
+def auto_field_format_str(format_str):
+    """Get an auto field version of the format_str
+
+    Args:
+        format_str: A format string
+
+    Returns:
+        A transformed format_str
+    >>> auto_field_format_str('R/{0}/{one}/{}/{two}/T')
+    'R/{}/{}/{}/{}/T'
+    """
+    return transform_format_str(format_str, _empty_field_name)
+
+
+def _mk_naming_trans_func(names=None):
+    if names is None:
+        names = map(str, range(99999))
+    _names = iter(names)
+
+    def trans_func(literal_text, field_name, format_spec, conversion):
+        if field_name is not None:
+            return literal_text, next(_names), format_spec, conversion
+        else:
+            return literal_text, field_name, format_spec, conversion
+
+    return trans_func
+
+
+def name_fields_in_format_str(format_str, field_names=None):
+    """Get a manual field version of the format_str
+
+    Args:
+        format_str: A format string
+        names: An iterable that produces enough strings to fill all of format_str fields
+
+    Returns:
+        A transformed format_str
+    >>> name_fields_in_format_str('R/{0}/{one}/{}/{two}/T')
+    'R/{0}/{1}/{2}/{3}/T'
+    >>> # Note here that we use the field name to inject a field format as well
+    >>> name_fields_in_format_str('R/{foo}/{0}/{}/T', ['42', 'hi:03.0f', 'world'])
+    'R/{42}/{hi:03.0f}/{world}/T'
+    """
+    return transform_format_str(format_str, _mk_naming_trans_func(field_names))
+
+
+def match_format_string(format_str, s):
+    """Match s against the given format string, return dict of matches.
+
+    We assume all of the arguments in format string are named keyword arguments (i.e. no {} or
+    {:0.2f}). We also assume that all chars are allowed in each keyword argument, so separators
+    need to be present which aren't present in the keyword arguments (i.e. '{one}{two}' won't work
+    reliably as a format string but '{one}-{two}' will if the hyphen isn't used in {one} or {two}).
+
+    We raise if the format string does not match s.
+
+    Author: https://stackoverflow.com/users/2593383/nonagon
+    Found here: https://stackoverflow.com/questions/10663093/use-python-format-string-in-reverse-for-parsing
+
+    Example:
+    >>> fs = '{test}-{flight}-{go}'
+    >>> s = fs.format(test='first', flight='second', go='third')
+    >>> match_format_string(fs, s)
+    {'test': 'first', 'flight': 'second', 'go': 'third'}
+    """
+
+    # First split on any keyword arguments, note that the names of keyword arguments will be in the
+    # 1st, 3rd, ... positions in this list
+    tokens = re.split(r'\{(.*?)\}', format_str)
+    keywords = tokens[1::2]
+
+    # Now replace keyword arguments with named groups matching them. We also escape between keyword
+    # arguments so we support meta-characters there. Re-join tokens to form our regexp pattern
+    tokens[1::2] = map(u'(?P<{}>.*)'.format, keywords)
+    tokens[0::2] = map(re.escape, tokens[0::2])
+    pattern = ''.join(tokens)
+
+    # Use our pattern to match the given string, raise if it doesn't match
+    matches = re.match(pattern, s)
+    if not matches:
+        raise Exception("Format string did not match")
+
+    # Return a dict with all of our keywords and their values
+    return {x: matches.group(x) for x in keywords}
+
+
+def _is_not_none(x):
+    return x is not None
+
+
+def format_params_in_str_format(format_string):
+    """
+    Get the "parameter" indices/names of the format_string
+
+    Args:
+        format_string: A format string (i.e. a string with {...} to mark parameter placement and formatting
+
+    Returns:
+        A list of parameter indices used in the format string, in the order they appear, with repetition.
+        Parameter indices could be integers, strings, or None (to denote "automatic field numbering".
+    >>> format_string = '{0} (no 1) {2}, and {0} is a duplicate, {} is unnamed and {name} is string-named'
+    >>> list(format_params_in_str_format(format_string))
+    [0, 2, 0, None, 'name']
+    """
+    return map(lambda x: int(x) if str.isnumeric(x) else x if x != '' else None,
+               filter(_is_not_none, (x[1] for x in dflt_formatter.parse(format_string))))
+
+
+def n_format_params_in_str_format(format_string):
+    """ The number of parameters"""
+    return len(set(format_params_in_str_format(format_string)))
+
+
+def arg_and_kwargs_indices(format_string):
+    """
+
+    Args:
+        format_string: A format string (i.e. a string with {...} to mark parameter placement and formatting
+
+    Returns:
+
+    >>> format_string = '{0} (no 1) {2}, {see} this, {0} is a duplicate (appeared before) and {name} is string-named'
+    >>> assert arg_and_kwargs_indices(format_string) == ({0, 2}, {'name', 'see'})
+    >>> format_string = 'This is a format string with only automatic field specification: {}, {}, {} etc.'
+    >>> arg_and_kwargs_indices(format_string)
+    (None, None)
+    """
+    d = {True: set(), False: set()}
+    for x in format_params_in_str_format(format_string):
+        d[isinstance(x, int)].add(x)
+    args_keys, kwargs_keys = _validate_str_format_arg_and_kwargs_keys(d[True], d[False])
+    return args_keys, kwargs_keys
+
+
+def _validate_str_format_arg_and_kwargs_keys(args_keys, kwargs_keys):
+    """check that str_format is entirely manual or entirely automatic field specification"""
+    if any(not x for x in kwargs_keys):  # {} (automatic field numbering) show up as '' in args_keys
+        # so need to check that args_keys is empty and kwargs has only None (no "manual" names)
+        if (len(args_keys) != 0) or (len(kwargs_keys) != 1):
+            raise ValueError(
+                f"cannot switch from manual field specification (i.e. {{number}} or {{name}}) "
+                "to automatic (i.e. {}) field numbering. But you did:\n{str_format}")
+        return None, None
+    else:
+        return args_keys, kwargs_keys
+
 
 pipe_split_p = re.compile("\s*\|\s*")
 func_and_arg_p = re.compile('(?P<func>\w+)\((?P<args>.*)\)', flags=re.DOTALL)
@@ -96,7 +300,7 @@ class PipelineTemplate(string.Formatter):
         ...     'add_10': lambda x: x + 10
         ... }
         >>> s = '''{x:
-        ...         lambda x: map(lambda xx: xx + 2, x)
+        ...         lambda x: list(map(lambda xx: xx + 2, x))
         ...         | lambda x: __import__('numpy').array(x) * 10
         ...         | __import__('numpy').sum
         ...         | add_10}'''
@@ -128,10 +332,9 @@ def wrapper(prefix='', suffix=''):
 
 
 def mapper(func):
-    return lambda x: map(func, x)
+    return lambda x: list(map(func, x))
 
 
 def templater(template):
     template = template.replace("{{}}", "{}")
     return template.format
-

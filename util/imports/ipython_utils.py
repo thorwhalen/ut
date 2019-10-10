@@ -1,13 +1,13 @@
-from __future__ import division
+
 __author__ = 'thor'
 
-print '''
+print('''
 Remember to use these useful utils:
     pickle_dump, pickle_load
     print_progress
     numof_trues
     ppr
-'''
+''')
 
 import sys
 if sys.platform == 'darwin':
@@ -44,6 +44,7 @@ from ut.util.pstore import pickle_dump, pickle_load
 
 from ut.pplot.matrix import heatmap
 
+
 class PPR(object):
     indent = 2
     pretty_printer = PrettyPrinter(indent=indent)
@@ -61,16 +62,16 @@ class PPR(object):
 
     @classmethod
     def pjson(cls, x):
-        print json.dumps(x, indent=cls.indent)
+        print(json.dumps(x, indent=cls.indent))
 
     @classmethod
     def pdict(cls, x):
-        print cls.format_str(x)
+        print(cls.format_str(x))
 
     @classmethod
     def format_str(cls, x, tab=0):
         s = ['{\n']
-        for k, v in x.items():
+        for k, v in list(x.items()):
             if isinstance(v, dict):
                 v = cls.format_str(v, tab+cls.indent)
             else:

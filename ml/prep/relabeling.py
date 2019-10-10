@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from sklearn.cluster import SpectralClustering, AgglomerativeClustering, KMeans
 from sklearn.neighbors import KNeighborsClassifier
@@ -65,17 +65,17 @@ class BiDistanceDataBasedLabeling(DataBasedLabeling):
     def fit(self, X, y):
         if self.label_distance_weight > 1:  # then normalize considering that feature weight is 1
             self.label_distance_weight = self.label_distance_weight / (self.label_distance_weight + 1)
-        if isinstance(self.label_distance, basestring):
+        if isinstance(self.label_distance, str):
             if self.label_distance == 'equal':
                 label_distance = lambda two_labels_tuple: float(two_labels_tuple[0] != two_labels_tuple[1])
             else:
                 raise ValueError("Unknow label_distance: {}".format(self.label_distance))
-        if isinstance(self.feature_distance, basestring):
+        if isinstance(self.feature_distance, str):
             feature_distance = lambda pt_mat_1, pt_mat_2: cdist(pt_mat_1, pt_mat_2, metric=self.feature_distance)
 
         feature_dist_mat = feature_distance(X, X)
         feature_dist_mat /= max(feature_dist_mat)
-        label_distance_mat = array(list(itertools.imap(label_distance, itertools.product(y, y)))) \
+        label_distance_mat = array(list(map(label_distance, itertools.product(y, y)))) \
             .reshape((len(y), len(y)))
         label_distance_mat /= max(label_distance_mat)
 

@@ -1,11 +1,11 @@
-from __future__ import division
 
 import operator
 from functools import partial
 
-from pdict.get import get_value_in_key_path
+from ut.pdict.get import get_value_in_key_path
 
-print("This is a partial implementation of mongoquery before I knew it existed. Might want to use mongoquery instead.")
+print("This is a partial implementation of mongoquery (https://pypi.org/project/mongoquery/) "
+      "before I knew it existed. Might want to use mongoquery instead.")
 
 
 def nor(*args):
@@ -82,7 +82,7 @@ def _disjunction_key_func_for_func_list_and_key_path(func_list, key_path):
 def _func_list_of_val_condition(val_condition):
     func_list = list()
     if isinstance(val_condition, dict):
-        for k, v in val_condition.iteritems():
+        for k, v in val_condition.items():
             if k.startswith('$'):
                 func_list.append(partial(mg_op_key_to_op[k], v))
     return func_list
@@ -100,7 +100,7 @@ def mg_filt_kv_to_func(key_path, val_condition):
     """
     if isinstance(val_condition, dict):
         func_list = list()
-        for k, v in val_condition.iteritems():
+        for k, v in val_condition.items():
             if k.startswith('$'):
                 func_list.append(partial(mg_op_key_to_op[k], v))
         if func_list:
@@ -127,7 +127,7 @@ def key_func_list_from_mg_filt(mg_filt):
     :param mg_filt: A mongo-query-like dict (can have several fields
     :return: A list of functions
     """
-    return map(lambda x: mg_filt_kv_to_func(*x), mg_filt.iteritems())
+    return [mg_filt_kv_to_func(*x) for x in iter(mg_filt.items())]
 
 
 def dict_filt_from_mg_filt(mg_filt):

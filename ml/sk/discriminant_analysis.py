@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from sklearn.cluster import SpectralClustering, AgglomerativeClustering
 from sklearn.neighbors import KNeighborsClassifier
@@ -30,7 +30,7 @@ class FLDA(object):
         self.knn_ = KNeighborsClassifier(n_neighbors=self.knn_n_neighs)
         self.knn_.fit(XX, self.y_)
 
-        yy = map(lambda nn: y[nn], self.knn_.kneighbors(XX)[1])
+        yy = [y[nn] for nn in self.knn_.kneighbors(XX)[1]]
         self.cv_ = CountVectorizer(input='content', tokenizer=lambda x: x, lowercase=False)
         XXX = self.cv_.fit_transform(array(yy))
         self.tfidf_transformer_ = TfidfTransformer()
@@ -48,7 +48,7 @@ class FLDA(object):
     def transform(self, X):
         #         return self.lda_.transform(self.pca_.fit_transform(self.scaler_.fit_transform(X)))
         X = self.pca_.transform(self.scaler_.transform(X))
-        yy = map(lambda nn: self.y_[nn], self.knn_.kneighbors(X)[1])
+        yy = [self.y_[nn] for nn in self.knn_.kneighbors(X)[1]]
         X = self.cv_.transform(array(yy))
         X = self.tfidf_transformer_.transform(X)
         return self.lda_.transform(X.todense())
@@ -57,7 +57,7 @@ class FLDA(object):
         return self.fit(X, y).transform(X)
 
     def set_params(self, **kwargs):
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             setattr(self, k, v)
 
 
@@ -70,7 +70,7 @@ class FldaLite(FLDA):
         self.knn_ = KNeighborsClassifier(n_neighbors=self.knn_n_neighs)
         self.knn_.fit(XX, y)
 
-        yy = map(lambda nn: y[nn], self.knn_.kneighbors(XX)[1])
+        yy = [y[nn] for nn in self.knn_.kneighbors(XX)[1]]
         self.cv_ = CountVectorizer(input='content', tokenizer=lambda x: x, lowercase=False)
         XXX = self.cv_.fit_transform(array(yy))
         self.tfidf_transformer_ = TfidfTransformer()

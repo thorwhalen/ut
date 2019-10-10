@@ -1,10 +1,10 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
 from numpy import *
 import numpy as np
-from itertools import imap, product
+from itertools import product
 from collections import defaultdict, Counter
 
 DEBUG_LEVEL = 0
@@ -50,7 +50,7 @@ def wp_iter_with_sliding_discrete_step(data_range,  # length of the interval we'
                                  x_range,
                                  x_range + offset,
                                  x_range + offset + y_range])
-        for step in xrange(n_steps):
+        for step in range(n_steps):
             yield base_window_idx + step
         raise StopIteration()
 
@@ -232,7 +232,7 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
     idx, dur, timestamp_seq = _idx_and_duration(timestamp_seq, timestamps_are_sorted)
     dur = hstack((dur, 0))
     if DEBUG_LEVEL:
-        print("idx={}\ndur={}\ntimestamp_seq={}".format(idx, dur, timestamp_seq))
+        print(("idx={}\ndur={}\ntimestamp_seq={}".format(idx, dur, timestamp_seq)))
     first_timestamp = timestamp_seq[0]
     # dur = diff(timestamp_seq)
     # idx = arange(len(timestamp_seq)).astype(int)
@@ -253,7 +253,7 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
             timestamp_seq[ppf_idx[_future] + 1] - first_timestamp - past_range - future_range
 
         if DEBUG_LEVEL:
-            print("time_to_next={}".format(time_to_next))
+            print(("time_to_next={}".format(time_to_next)))
         return present_timestamp, time_to_next.argsort()
 
     def _shift_dimension(this_idx, shift_by):
@@ -266,15 +266,15 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
                 if this_idx != 0:
                     time_to_next[this_idx] = dur[ppf_idx[this_idx]]
                     if DEBUG_LEVEL:
-                        print("ppf_idx={}".format(ppf_idx))
-                        print("time_to_next[{}] = dur[{}] = {}".format(
-                            this_idx, ppf_idx[this_idx], dur[ppf_idx[this_idx]]))
+                        print(("ppf_idx={}".format(ppf_idx)))
+                        print(("time_to_next[{}] = dur[{}] = {}".format(
+                            this_idx, ppf_idx[this_idx], dur[ppf_idx[this_idx]])))
                 else:
                     time_to_next[this_idx] = dur[ppf_idx[this_idx] - 1]
                     if DEBUG_LEVEL:
-                        print("--ppf_idx={}".format(ppf_idx))
-                        print("--time_to_next[{}] = dur[{}] = {}".format(
-                            this_idx, ppf_idx[this_idx] - 1, dur[ppf_idx[this_idx] - 1]))
+                        print(("--ppf_idx={}".format(ppf_idx)))
+                        print(("--time_to_next[{}] = dur[{}] = {}".format(
+                            this_idx, ppf_idx[this_idx] - 1, dur[ppf_idx[this_idx] - 1])))
         else:
             time_to_next[this_idx] -= shift_by
 
@@ -283,7 +283,7 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
     def _shift_state(time_to_next_order, present_timestamp):
         shift_by = time_to_next[time_to_next_order[0]]
         if DEBUG_LEVEL:
-            print('---> shifting by {}'.format(shift_by))
+            print(('---> shifting by {}'.format(shift_by)))
         present_timestamp += shift_by
 
         if _shift_dimension(time_to_next_order[0], shift_by) is None:  # shift smallest dimension...
@@ -304,10 +304,10 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
 
     if DEBUG_LEVEL:
         print("---------------")
-        print("ppf_idx: {}".format(ppf_idx))
-        print("time_to_next: {}".format(time_to_next))
-        print("time_to_next_order: {}".format(_time_to_next_order))
-        print("present_timestamp: {}".format(_present_timestamp))
+        print(("ppf_idx: {}".format(ppf_idx)))
+        print(("time_to_next: {}".format(time_to_next)))
+        print(("time_to_next_order: {}".format(_time_to_next_order)))
+        print(("present_timestamp: {}".format(_present_timestamp)))
     _duration = time_to_next[_time_to_next_order[0]]
     if _duration != 0:
         yield (idx[ppf_idx[_past]][0], idx[ppf_idx[_present]][-1], idx[ppf_idx[_future]][-1]), \
@@ -320,10 +320,10 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
         else:
             if DEBUG_LEVEL:
                 print("---------------")
-                print("ppf_idx: {}".format(ppf_idx))
-                print("time_to_next: {}".format(time_to_next))
-                print("time_to_next_order: {}".format(_time_to_next_order))
-                print("present_timestamp: {}".format(_present_timestamp))
+                print(("ppf_idx: {}".format(ppf_idx)))
+                print(("time_to_next: {}".format(time_to_next)))
+                print(("time_to_next_order: {}".format(_time_to_next_order)))
+                print(("present_timestamp: {}".format(_present_timestamp)))
             _duration = time_to_next[_time_to_next_order[0]]
             if _duration != 0:
                 yield (idx[ppf_idx[_past]][0], idx[ppf_idx[_present]][-1], idx[ppf_idx[_future]][-1]), \
@@ -416,14 +416,14 @@ def extract_series(df,  # data to extract from
         window_iterator = wp_iter_with_sliding_discrete_step(data_range=len(df))
 
     # return the extractor iterator
-    return imap(_extractor, window_iterator)
+    return map(_extractor, window_iterator)
 
 
 def agg_counts(pairs_of_series_iter):
     accum = defaultdict(Counter)
 
     for pair in pairs_of_series_iter:
-        pair_iter = imap(lambda x: zip(*x), product(pair[0].to_dict().iteritems(), pair[1].to_dict().iteritems()))
+        pair_iter = map(lambda x: list(zip(*x)), product(iter(pair[0].to_dict().items()), iter(pair[1].to_dict().items())))
         for x in pair_iter:
             accum[x[0]].update([x[1]])
 

@@ -85,8 +85,8 @@ class SOM(object):
             elif len(mapsize) == 1:
                 s =  int (mapsize[0]/2)
                 self.mapsize = [1 ,mapsize[0]]
-                print 'input was considered as the numbers of nodes'
-                print 'map size is [{0},{1}]'.format(s,s) 
+                print('input was considered as the numbers of nodes')
+                print('map size is [{0},{1}]'.format(s,s)) 
             self.nnodes = self.mapsize[0]*self.mapsize[1]
                 
         # to set component names
@@ -98,17 +98,17 @@ class SOM(object):
                     self.compname = np.asarray(cc)[np.newaxis,:]
             except:
                 pass
-                print 'no data yet: plesae first set trainign data to the SOM'
+                print('no data yet: plesae first set trainign data to the SOM')
         else:
             try:
                 dim =  getattr(self,'dim')
                 if  len(compname) == dim:
                     self.compname = np.asarray(compname)[np.newaxis,:]
                 else:
-                    print 'compname should have the same size'
+                    print('compname should have the same size')
             except:
                 pass
-                print 'no data yet: plesae first set trainign data to the SOM'
+                print('no data yet: plesae first set trainign data to the SOM')
      
      
     #Set labels of the training data
@@ -123,7 +123,7 @@ class SOM(object):
                     self.dlabel = np.asarray(cc)[:, np.newaxis]
             except:
                 pass
-                print 'no data yet: plesae first set trainign data to the SOM'
+                print('no data yet: plesae first set trainign data to the SOM')
         else: 
             try:
                 dlen =  (getattr(self,'dlen'))
@@ -134,10 +134,10 @@ class SOM(object):
                 elif dlabel.shape == (dlen,):
                     self.dlabel = dlabel[:, np.newaxis]
                 else:
-                    print 'wrong lable format' 
+                    print('wrong lable format') 
             except:
                 pass
-                print 'no data yet: plesae first set trainign data to the SOM'
+                print('no data yet: plesae first set trainign data to the SOM')
          
     #calculating the grid distance, which will be called during the training steps
     #currently just works for planar grids
@@ -194,9 +194,9 @@ class SOM(object):
             codebooktmp = lininit(self) #it is based on two largest eigenvalues of correlation matrix
             setattr(self, 'codebook', codebooktmp)
         else:
-            print 'please select a corect initialization method'
-            print 'set a correct one in SOM. current SOM.initmethod:  ', getattr(self, 'initmethod')
-            print "possible init methods:'random', 'pca'"
+            print('please select a corect initialization method')
+            print('set a correct one in SOM. current SOM.initmethod:  ', getattr(self, 'initmethod'))
+            print("possible init methods:'random', 'pca'")
      
     
     #Main loop of training
@@ -215,41 +215,41 @@ class SOM(object):
         #######################################
         #initialization
         if verbose=='on':
-            print 
-            print 'initialization method = %s, initializing..' %getattr(self, 'initmethod')
-            print
+            print() 
+            print('initialization method = %s, initializing..' %getattr(self, 'initmethod'))
+            print()
             t0 = time()
         self.init_map()
         if verbose=='on':
-            print 'initialization done in %f seconds' % round(time()-t0 , 3 )
+            print('initialization done in %f seconds' % round(time()-t0 , 3 ))
         
         ########################################
         #rough training
         if verbose=='on':
-            print
+            print()
         batchtrain(self, njob = n_job, phase = 'rough', shared_memory = 'no',verbose=verbose)
         if verbose=='on':
-            print
+            print()
         #######################################
         #Finetuning
         if verbose=='on':
-            print
+            print()
         batchtrain(self, njob = n_job, phase = 'finetune', shared_memory = 'no',verbose=verbose)
         err = np.mean(getattr(self, 'bmu')[1])
         if verbose=='on': 
 #         or verbose == 'off':
 #             print
             ts = round(time() - t0, 3)
-            print
-            print "Total time elapsed: %f secodns" %ts
-            print "final quantization error: %f" %err 
+            print()
+            print("Total time elapsed: %f secodns" %ts)
+            print("final quantization error: %f" %err) 
         if verbose=='final': 
 #         or verbose == 'off':
 #             print
             ts = round(time() - t0, 3)
-            print
-            print "Total time elapsed: %f secodns" %ts
-            print "final quantization error: %f" %err 
+            print()
+            print("Total time elapsed: %f secodns" %ts)
+            print("final quantization error: %f" %err) 
     
     #to project a data set to a trained SOM and find the index of bmu 
     #It is based on nearest neighborhood search module of scikitlearn, but it is not that fast.
@@ -413,7 +413,7 @@ class SOM(object):
     		codebook = getattr(self, 'cluster_labels')
 #     		print 'yesyy'
     	else:
-    		print 'clustering based on default parameters...'
+    		print('clustering based on default parameters...')
     		codebook = self.cluster()
     	msz =  getattr(self, 'mapsize')
     	fig = plt.figure(figsize=(msz[1]/2.5,msz[0]/2.5))
@@ -484,7 +484,7 @@ class SOM(object):
 				fig.savefig(save_dir, transparent=False, dpi=200) 
 			else:
 				add = '/Users/itadmin/Desktop/SOM_dot.png'
-				print 'save directory: ', add
+				print('save directory: ', add)
 				fig.savefig(add, transparent=False, dpi=200)    
 
     
@@ -577,7 +577,7 @@ class SOM(object):
         t_temp  = time()
         b  = Parallel(n_jobs=njb, pre_dispatch='3*n_jobs')(delayed(chunk_based_bmu_find)\
         (self, x[i*dlen // njb:min((i+1)*dlen // njb, dlen)],y, Y2) \
-        for i in xrange(njb))
+        for i in range(njb))
         
         #print 'bmu finding: %f seconds ' %round(time() - t_temp, 3)
         t1 = time()
@@ -732,8 +732,8 @@ def batchtrain(self, njob = 1, phase = None, shared_memory = 'no', verbose='on')
     #Since it is a fixed value we can skip it during bmu finding for each data point, but later we need it calculate quantification error
     X2 = np.einsum('ij,ij->i', data, data)
     if verbose=='on':
-        print '%s training...' %phase
-        print 'radius_ini: %f , radius_final: %f, trainlen: %d' %(radiusin, radiusfin, trainlen)
+        print('%s training...' %phase)
+        print('radius_ini: %f , radius_final: %f, trainlen: %d' %(radiusin, radiusfin, trainlen))
     neigh_func = getattr(self,'neigh')
     for i in range(trainlen):
     	if neigh_func == 'Guassian':
@@ -750,13 +750,13 @@ def batchtrain(self, njob = 1, phase = None, shared_memory = 'no', verbose='on')
         bmu = None
         bmu = self.para_bmu_find(data, New_Codebook_V, njb = njob)
         if verbose=='on':
-            print
+            print()
         #updating the codebook
         t2 = time()
         New_Codebook_V = self.update_codebook_voronoi(data, bmu, H, radius)
         #print 'updating nodes: ', round (time()- t2, 3)            
         if verbose=='on':
-            print "epoch: %d ---> elapsed time:  %f, quantization error: %f " %(i+1, round(time() - t1, 3),np.mean(np.sqrt(bmu[1] + X2)))          
+            print("epoch: %d ---> elapsed time:  %f, quantization error: %f " %(i+1, round(time() - t1, 3),np.mean(np.sqrt(bmu[1] + X2))))          
     setattr(self, 'codebook', New_Codebook_V)
     bmu[1] = np.sqrt(bmu[1] + X2)
     setattr(self, 'bmu', bmu)
@@ -774,7 +774,7 @@ def grid_dist(self,bmu_ind):
         lattice = getattr(self, 'lattice')
     except:
         lattice = 'hexa'
-        print 'lattice not found! Lattice as hexa was set'
+        print('lattice not found! Lattice as hexa was set')
    
     if lattice == 'rect':
         return rect_dist(self,bmu_ind)
@@ -789,7 +789,7 @@ def grid_dist(self,bmu_ind):
             pass 
        
         #needs to be implemented
-        print 'to be implemented' , rows , cols
+        print('to be implemented' , rows , cols)
         return np.zeros((rows,cols))
 
 def rect_dist(self,bmu):
@@ -808,7 +808,7 @@ def rect_dist(self,bmu):
         c_bmu = int(bmu%cols)
         r_bmu = int(bmu/cols)
     else:
-      print 'wrong bmu'  
+      print('wrong bmu')  
       
     #calculating the grid distance
     if np.logical_and(rows>0 , cols>0): 
@@ -816,7 +816,7 @@ def rect_dist(self,bmu):
         dist2 = (r-r_bmu)**2 + (c-c_bmu)**2
         return dist2.ravel()
     else:
-        print 'please consider the above mentioned errors'
+        print('please consider the above mentioned errors')
         return np.zeros((rows,cols)).ravel()
         
             
@@ -830,7 +830,7 @@ def view_2d(self, text_size,which_dim='all', what = 'codebook'):
             data_raw = getattr(self,'data_raw') 
             codebook = denormalize_by(data_raw, codebook)
         else:
-            print 'first initialize codebook'
+            print('first initialize codebook')
         if which_dim == 'all':
             dim = getattr(self, 'dim')
             indtoshow = np.arange(0,dim).T
@@ -892,7 +892,7 @@ def view_2d_Pack(self, text_size,which_dim='all', what = 'codebook',save='No', g
             data_raw = getattr(self,'data_raw') 
             codebook = denormalize_by(data_raw, codebook)
         else:
-            print 'first initialize codebook'
+            print('first initialize codebook')
         if which_dim == 'all':
             dim = getattr(self, 'dim')
             indtoshow = np.arange(0,dim).T
@@ -968,7 +968,7 @@ def view_2d_Pack(self, text_size,which_dim='all', what = 'codebook',save='No', g
     	if hasattr(self, 'cluster_labels'):
     		codebook = getattr(self, 'cluster_labels')
     	else:
-    		print 'clustering based on default parameters...'
+    		print('clustering based on default parameters...')
     		codebook = self.cluster()
         h = .2
         w= .001
@@ -1022,7 +1022,7 @@ def view_1d(self, text_size, which_dim ='all', what = 'codebook'):
             data_raw = getattr(self,'data_raw') 
             codebook = denormalize_by(data_raw, codebook)
         else:
-            print 'first initialize codebook'
+            print('first initialize codebook')
         if which_dim == 'all':
             dim = getattr(self, 'dim')
             indtoshow = np.arange(0,dim).T
@@ -1179,7 +1179,7 @@ def denormalize_by(data_by, n_vect, n_method = 'var'):
         vect = n_vect* st + me
         return vect 
     else:
-        print 'data is not normalized before'
+        print('data is not normalized before')
         return n_vect  
 
 

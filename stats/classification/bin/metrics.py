@@ -53,7 +53,7 @@ alternative_rate_metric_names = {
     'accuracy': ['ACC'],
     'f1_score': ['f1']
 }
-for root_name, alternatives in alternative_rate_metric_names.iteritems():
+for root_name, alternatives in alternative_rate_metric_names.items():
     for alt in alternatives:
         rate_metric_mats.update({alt: rate_metric_mats[root_name]})
 
@@ -73,7 +73,7 @@ class SingleMetricGauger(object):
         if percentile_thresh:  # interpret prob_thresh as percentiles of y_preds
             self.prob_thresh = percentile(self.probs, list(100 * self.prob_thresh))
         self.prob_thresh = array(self.prob_thresh)
-        if isinstance(metric, basestring):
+        if isinstance(metric, str):
             self.metric_name = self.metric_name or metric
             self.metric = rate_metric_mats[metric]
         else:
@@ -134,7 +134,7 @@ class SingleMetricGauger(object):
         plt.ylabel(self.metric_name)
 
     def set_metric(self, metric):
-        if isinstance(metric, basestring):
+        if isinstance(metric, str):
             self.metric = rate_metric_mats[metric]
         else:
             self.metric = metric

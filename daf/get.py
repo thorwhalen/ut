@@ -13,9 +13,9 @@ import re
 
 
 def lidx_of_rows_whose_col_values_match_pattern(df, col, pattern):
-    if isinstance(pattern, basestring):
+    if isinstance(pattern, str):
         pattern = re.compile(pattern)
-    return df[col].isin(filter(pattern.match, df[col]))
+    return df[col].isin(list(filter(pattern.match, df[col])))
 
 
 def rows_whose_col_values_match_pattern(df, col, pattern):
@@ -27,7 +27,7 @@ def from_zip(zipfilename, data_reader=pickle.load, **kwargs):
     loads a dataframe from a zip file
     """
     z = zipfile.ZipFile(zipfilename)
-    if 'filename' in kwargs.keys():
+    if 'filename' in list(kwargs.keys()):
         filename = kwargs['filename']
     else:
         filename = z.filelist
@@ -113,14 +113,14 @@ def column_types(df):
     """
     df = pd.DataFrame()
     df.to_excel()
-    return {k :v for (k, v) in zip(df.columns, map(type, [df[c].iloc[0] for c in df.columns]))}
+    return {k :v for (k, v) in zip(df.columns, list(map(type, [df[c].iloc[0] for c in df.columns])))}
 
 
 def unique(d, cols=None):
     if cols is None: cols = d.columns.tolist()
-    d = d.reindex(index=range(len(d)))
+    d = d.reindex(index=list(range(len(d))))
     grouped = d.groupby(cols)
-    index = [gp_keys[0] for gp_keys in grouped.groups.values()]
+    index = [gp_keys[0] for gp_keys in list(grouped.groups.values())]
     return d.reindex(index)
 
 
@@ -154,9 +154,9 @@ def mk_series(df, indexColName,dataColName):
 
 
 def duplicates(df, cols):
-    df = df.reindex(index=range(len(df)))
+    df = df.reindex(index=list(range(len(df))))
     grouped = df.groupby(cols)
-    unique_index = [gp_keys[0] for gp_keys in grouped.groups.values()]
+    unique_index = [gp_keys[0] for gp_keys in list(grouped.groups.values())]
     non_unique_index = list(set(df.index) - set(unique_index))
     duplicates_df = unique(df.irow(non_unique_index),cols)
     duplicates_df = duplicates_df[cols]
@@ -187,14 +187,14 @@ def rand(nrows=9, ncols=None, values_spec=None, columnTypes=None, columns=None):
     if not isinstance(columnTypes, list):
         columnTypes = [columnTypes for x in range(ncols)]
     if columns is None:
-        columns = list(string.uppercase[:ncols])
+        columns = list(string.ascii_uppercase[:ncols])
 
     values_list = []
     for i in range(ncols):
         if hasattr(values_spec[i], '__getitem__'):
             n_values = len(values_spec[i])
             new_values_idx = np.random.randint(0, n_values, nrows)
-            new_values = map(values_spec[i].__getitem__, new_values_idx)
+            new_values = list(map(values_spec[i].__getitem__, new_values_idx))
         else:
             if columnTypes[i] == 'int' or columnTypes[i] == int:
                 new_values = np.random.randint(1, values_spec[i]+1, nrows)
@@ -203,9 +203,9 @@ def rand(nrows=9, ncols=None, values_spec=None, columnTypes=None, columns=None):
             elif columnTypes[i] == 'char':
                 assert values_spec[i] <= 26, "can only get a max of 26 distinct chars at this point"
                 letter_idx = np.random.randint(0, values_spec[i]-1, nrows)
-                new_values = [string.lowercase[:10][x] for x in letter_idx]
-            elif columnTypes[i] in [str, unicode, basestring, 'str', 'string']:
-                word_bag = np.array([''.join(random.choice(string.lowercase) for i in range(3))
+                new_values = [string.ascii_lowercase[:10][x] for x in letter_idx]
+            elif columnTypes[i] in [str, str, str, 'str', 'string']:
+                word_bag = np.array([''.join(random.choice(string.ascii_lowercase) for i in range(3))
                                   for i in range(values_spec[i])])
                 new_values = word_bag[np.random.randint(0, values_spec[i], nrows)]
                 # new_values = [''.join(random.choice(string.lowercase) for i in range(3)) for i in range(nrows)]
@@ -228,8 +228,8 @@ def chunks(df, chk_size):
     """
     A generator that yields a dataframe in chunks
     """
-    for i in xrange(0, len(df), chk_size):
+    for i in range(0, len(df), chk_size):
         if i + chk_size < len(df):
-            yield df.iloc[range(i, i + chk_size)]
+            yield df.iloc[list(range(i, i + chk_size))]
         else:
-            yield df.iloc[range(i, len(df))]
+            yield df.iloc[list(range(i, len(df)))]

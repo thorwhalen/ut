@@ -14,15 +14,15 @@ def to_lower_ascii(d):
         d = d.copy()
         d = d.convert_objects(convert_dates=True, convert_numeric=True)
         lower_ascii = lambda x: strip_accents(x).lower()
-        d.columns = map(lower_ascii, d.columns)
+        d.columns = list(map(lower_ascii, d.columns))
         for c in d.columns:
             if d[c].dtype == 'O':
                 d[c].fillna('', inplace=True)
             if d[c].dtype != 'float' and d[c].dtype != 'int':
                 try:
-                    d[c] = map(lower_ascii, map(unicode, d[c]))
+                    d[c] = list(map(lower_ascii, list(map(str, d[c]))))
                 except TypeError as e:
-                    print e.message
+                    print(e.message)
         return d
     else:
         raise NotImplementedError("the input format '{}' is not handled".format(type(d)))
@@ -39,24 +39,24 @@ def smallest_unik_prefix(tok_lists, min_prefix_len=1, tok_list_col=None, list_se
         tok_lists = pd.DataFrame({'tok_lists': tok_lists})
 
     original_cols = tok_lists.columns
-    tok_lists['len_of_tok_lists'] = map(len, tok_lists[tok_list_col])
-    tok_lists['list_idx'] = map(lambda x: np.min(min_prefix_len, x), tok_lists['len_of_tok_lists'])
-    tok_lists['tok_str'] = map(lambda tok, idx: ' '.join(tok[:idx]))
-    tok_lists['look_further'] = map(lambda x: x > min_prefix_len, tok_lists['len_of_tok_lists'])
+    tok_lists['len_of_tok_lists'] = list(map(len, tok_lists[tok_list_col]))
+    tok_lists['list_idx'] = [np.min(min_prefix_len, x) for x in tok_lists['len_of_tok_lists']]
+    tok_lists['tok_str'] = list(map(lambda tok, idx: ' '.join(tok[:idx])))
+    tok_lists['look_further'] = [x > min_prefix_len for x in tok_lists['len_of_tok_lists']]
 
 
     original_cols = tok_lists.columns
-    tok_lists['tok_lists_original_order'] = range(len(tok_lists))
-    tok_lists['len_of_tok_lists'] = map(len, tok_lists[tok_list_col])
+    tok_lists['tok_lists_original_order'] = list(range(len(tok_lists)))
+    tok_lists['len_of_tok_lists'] = list(map(len, tok_lists[tok_list_col]))
     tok_lists['is_unik'] = False
 
     def add_is_unik():
         tok_str_count = daf_ch.ch_col_names(tok_lists[['tok_str']].groupby('tok_str').count(), 'tok_str')
     def expand_tok_prefix(idx):
-        list_idx = map(lambda x: np.min(idx, x), tok_lists['len_of_tok_lists'])
+        list_idx = [np.min(idx, x) for x in tok_lists['len_of_tok_lists']]
         lidx = tok_lists['is_unik'] == False
         tok_lists['tok_str'][lidx] = \
-            map(lambda tok, idx: list_sep.join(tok[:idx]), tok_lists[tok_list_col][lidx], list_idx[lidx])
+            list(map(lambda tok, idx: list_sep.join(tok[:idx]), tok_lists[tok_list_col][lidx], list_idx[lidx]))
 
     expand_tok_prefix(min_prefix_len)
     extra_cols_df = \

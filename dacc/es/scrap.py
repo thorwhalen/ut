@@ -38,10 +38,10 @@ def get_search_hits(es_response, _id=True, data_key=None):
     if len(response_hits) > 0:
         if data_key is None:
             for hit in response_hits:
-                if '_source' in hit.keys():
+                if '_source' in list(hit.keys()):
                     data_key = '_source'
                     break
-                elif 'fields' in hit.keys():
+                elif 'fields' in list(hit.keys()):
                     data_key = 'fields'
                     break
             if data_key is None:

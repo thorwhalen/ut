@@ -1,7 +1,7 @@
 
 __author__ = 'mattjmorris'
 
-from dynamo import Dynamo
+from .dynamo import Dynamo
 from boto.dynamodb2.table import Table
 from datetime import datetime, date, timedelta
 from pandas import DataFrame
@@ -75,7 +75,7 @@ class DDBRuns(Dynamo):
         """
         Returns all table as dataframe, sorted with most recent entry on bottom (ascending order)
         """
-        df = DataFrame([{k: v for k, v in r.items()} for r in self.table.scan()])
+        df = DataFrame([{k: v for k, v in list(r.items())} for r in self.table.scan()])
         if df.empty:
             return df
         else:
@@ -100,7 +100,7 @@ class DDBRuns(Dynamo):
     def thors_start_end_date_strings(self, new_run=True, days_ago_start=30):
         if new_run:
             if days_ago_start is not None:
-                print days_ago_start
+                print(days_ago_start)
                 start_date_str = self._days_ago_str(days_ago_start)
             else:
                 start_date_str = self.most_recent_end_date_str()

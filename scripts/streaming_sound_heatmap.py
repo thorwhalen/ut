@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -54,7 +54,7 @@ def _get_raw_prob_df_from_json_data(data):
         if raw_probs:
             return dict(createdDate=d['createdDate'], **raw_probs)
 
-    data = pd.DataFrame(filter(None, itertools.imap(extract_from_single_entry, data)))
+    data = pd.DataFrame([_f for _f in map(extract_from_single_entry, data) if _f])
     data['createdDate'] = pd.to_datetime(data['createdDate'])
     data = data.sort_values(by='createdDate')
     data = data.set_index('createdDate')
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args = vars(args)
 
-    print args
+    print(args)
 
     account = args['account']
     sensitivity = args['sensitivity']
@@ -134,8 +134,8 @@ if __name__ == "__main__":
 
     # (@) Send fig to Plotly, initialize streaming plot, open new tab
     unique_url = py.plot(fig, filename='s7_first-stream', auto_open=False)
-    print("Json request REST url:\n\t{}".format(_get_request_url(minutes=windows_minutes, account=account)))
-    print("Stream image URL:\n\t{}".format(unique_url))
+    print(("Json request REST url:\n\t{}".format(_get_request_url(minutes=windows_minutes, account=account))))
+    print(("Stream image URL:\n\t{}".format(unique_url)))
 
     # (@) Make instance of the Stream link object,
     # with same stream id as Stream id object

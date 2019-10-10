@@ -29,11 +29,11 @@ def add_min_unique_prefix(df, token_list_col,
     """
     # preparing resources
     dup = df.copy()
-    if isinstance(df[token_list_col].iloc[0], basestring):
+    if isinstance(df[token_list_col].iloc[0], str):
         token_list_col_was_string = True
         sep_string = sep_string or join_string # use join_string as default sep_string
         dup['original_token_list_col'] = dup[token_list_col]
-        dup[token_list_col] = map(lambda x : x.split(sep_string), dup[token_list_col])
+        dup[token_list_col] = [x.split(sep_string) for x in dup[token_list_col]]
     else:
         token_list_col_was_string = False
     join_string = join_string or sep_string or ' '
@@ -42,13 +42,13 @@ def add_min_unique_prefix(df, token_list_col,
         token_count_col = token_count_col or token_list_col + '_tok_count'
     original_number_of_rows = len(dup)
     if print_info:
-        print ""
-        print "original number of rows: %d" % original_number_of_rows
+        print("")
+        print("original number of rows: %d" % original_number_of_rows)
     dup[min_unik_tok_str_col] = ''
-    dup['number_of_tokens_in_token_list'] = map(len, dup[token_list_col])
+    dup['number_of_tokens_in_token_list'] = list(map(len, dup[token_list_col]))
     # initiate iterative process
     dup[min_unik_tok_str_col] = \
-        map(lambda y : y[0], dup[token_list_col])
+        [y[0] for y in dup[token_list_col]]
     dup, ndup_accum = dup_and_nondup_dataframes(dup, dup_cols=min_unik_tok_str_col)
     if include_token_count:
         ndup_accum[token_count_col] = 1
@@ -60,25 +60,24 @@ def add_min_unique_prefix(df, token_list_col,
                 break # if there's no more potential dups, stop the process
             lidx = dup['number_of_tokens_in_token_list'] > i
             dup[min_unik_tok_str_col][lidx] = \
-                map(lambda x, y : join_string.join([x, y[i]]), dup[min_unik_tok_str_col][lidx], dup[token_list_col][lidx])
+                list(map(lambda x, y : join_string.join([x, y[i]]), dup[min_unik_tok_str_col][lidx], dup[token_list_col][lidx]))
             dup, ndup = dup_and_nondup_dataframes(dup, dup_cols=min_unik_tok_str_col)
             if include_token_count:
                 ndup[token_count_col] = i+1
             ndup_accum = pd.concat([ndup_accum, ndup])
             if print_info:
-                print "--- phase %d ---" % i
-                print "ndup: %d" % len(ndup)
-                print "dup: %d" % len(dup)
+                print("--- phase %d ---" % i)
+                print("ndup: %d" % len(ndup))
+                print("dup: %d" % len(dup))
     # assuring that there's at least min_toks tokens (if possible)
     if min_toks > 1:
-        ndup_accum['n_toks_in_min_unique_prefix'] = map(lambda x: len(x.split(join_string)),
-                                                        ndup_accum[min_unik_tok_str_col])
-        lidx = map(lambda mup_n_toks, n_toks, min_toks: (mup_n_toks < min_toks) and (min_toks <= n_toks),
+        ndup_accum['n_toks_in_min_unique_prefix'] = [len(x.split(join_string)) for x in ndup_accum[min_unik_tok_str_col]]
+        lidx = list(map(lambda mup_n_toks, n_toks, min_toks: (mup_n_toks < min_toks) and (min_toks <= n_toks),
                    ndup_accum['n_toks_in_min_unique_prefix'],
                    ndup_accum['number_of_tokens_in_token_list'],
-                   [min_toks] * len(ndup_accum))
+                   [min_toks] * len(ndup_accum)))
         ndup_accum[min_unik_tok_str_col][lidx] = \
-            map(lambda s: join_string.join(s[:min_toks]), ndup_accum[token_list_col][lidx])
+            [join_string.join(s[:min_toks]) for s in ndup_accum[token_list_col][lidx]]
     # clean up temp columns
     ndup_accum = \
         daf_manip.rm_cols_if_present(ndup_accum, ['number_of_tokens_in_token_list', 'n_toks_in_min_unique_prefix'])
@@ -125,15 +124,15 @@ def ad_group_info_cols(d, grp_keys=None, grp_fun_dict={'grp_size': lambda x: len
     # define the function that will be applied to every group
     if grp_id_type=='name':
         def add_grp_info(grp):
-            print [ulist.ascertain_list(my_counter.next()) for i in range(len(grp))]
+            print([ulist.ascertain_list(next(my_counter)) for i in range(len(grp))])
             grp[grp_id_name] = 0 #[ulist.ascertain_list(my_counter.next()) for i in range(len(grp))]
-            for grp_fun_name,grp_fun in grp_fun_dict.items():
+            for grp_fun_name,grp_fun in list(grp_fun_dict.items()):
                 grp[grp_fun_name] = grp_fun(grp)
             return grp
     elif grp_id_type=='int':
         def add_grp_info(grp):
-            grp[grp_id_name] = my_counter.next()
-            for grp_fun_name,grp_fun in grp_fun_dict.items():
+            grp[grp_id_name] = next(my_counter)
+            for grp_fun_name,grp_fun in list(grp_fun_dict.items()):
                 grp[grp_fun_name] = grp_fun(grp)
             return grp
 

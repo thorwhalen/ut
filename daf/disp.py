@@ -5,7 +5,7 @@ def show(d,nlines=None,cols=None):
     if nlines is None: nlines=len(d)
     if cols is None: cols = d.columns
     if isinstance(cols,str): cols = [cols]
-    print d[:nlines][cols].to_string()
+    print(d[:nlines][cols].to_string())
 
 
 def sw(df, up_rows=10, down_rows=5, left_cols=4, right_cols=3, return_df=False):
@@ -39,6 +39,6 @@ def sw(df, up_rows=10, down_rows=5, left_cols=4, right_cols=3, return_df=False):
         down_pt.insert(left_cols, '..', '..')
 
     overlap_qty = len(up_pt) + len(down_pt) - len(df)
-    down_pt = down_pt.drop(down_pt.index[range(overlap_qty)]) # remove overlap rows
+    down_pt = down_pt.drop(down_pt.index[list(range(overlap_qty))]) # remove overlap rows
 
     dt_str_list = down_pt.to_string().split('\n') # transfer down_pt to string list

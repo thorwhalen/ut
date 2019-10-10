@@ -30,7 +30,7 @@ class KeepMaxUnikK(object):
             self.min_val_items.push((val, item))
 
     def items_sorted(self):
-        dists, items = zip(*self.min_val_items)
+        dists, items = list(zip(*self.min_val_items))
         return array(items)[argsort(dists)]
 
 
@@ -60,7 +60,7 @@ class KeepMinK(list):
             heappush(self, (-item[0], item[1]))
 
     def get_list(self):
-        return map(lambda item: (-item[0], item[1]), self)
+        return [(-item[0], item[1]) for item in self]
 
 
 def first_non_zero(arr):

@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import numpy as np
 import pandas as pd
@@ -26,7 +26,7 @@ def class_freqs_df(y):
 
 def rescale_dict(dictionary, scalar):
     res_dict = {}
-    res_dict.update((key, value * float(scalar)) for (key, value) in dictionary.items())
+    res_dict.update((key, value * float(scalar)) for (key, value) in list(dictionary.items()))
     return res_dict
 
 
@@ -55,7 +55,7 @@ def get_projection_dimension(X, tol=1e-08):
 
 
 def _preprocess(X, y, sample_weight):
-    all_labels = list(set().union(*(d.keys() for d in y)))
+    all_labels = list(set().union(*(list(d.keys()) for d in y)))
     return pd.DataFrame(X), pd.DataFrame.from_dict(list(y)).fillna(value=0.), \
            pd.Series(sample_weight, name='X_weight'), \
            all_labels, \
@@ -239,7 +239,7 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
                     new_y.append(yy)
             y = np.array(new_y)
 
-        self.classes_ = list(set().union(*(d.keys() for d in y)))
+        self.classes_ = list(set().union(*(list(d.keys()) for d in y)))
         self.X_df, self.y_df, self.df_weights, self.all_labels, self.num_labels = \
             _preprocess(X, y, sample_weight)
 

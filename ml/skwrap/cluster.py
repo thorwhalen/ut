@@ -42,7 +42,7 @@ class SpectralClustering(sk_SpectralClustering):
 
     def fit(self, X, y=None):
         super(SpectralClustering, self).fit(X=X, y=y)
-        self.cluster_centers_ = vstack(map(lambda i: mean(X[self.labels_ == i], axis=0), sorted(unique(self.labels_))))
+        self.cluster_centers_ = vstack([mean(X[self.labels_ == i], axis=0) for i in sorted(unique(self.labels_))])
 
 
 class MiniBatchKMeans(MiniBatchKMeans_sk):
@@ -98,7 +98,7 @@ class MiniBatchKMeans(MiniBatchKMeans_sk):
         return state
 
     def __setstate__(self, state):
-        for k, v in state.iteritems():
+        for k, v in state.items():
             self.__setattr__(k, v)
         if hasattr(self, 'verbose'):
             self.__setattr__('verbose', self.verbose)

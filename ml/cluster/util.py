@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -65,10 +65,10 @@ def order_clus_idx_and_centers_by_decreasing_frequencies(clus_idx, clus_centers)
     a clus_idx) clus_centers will be removed.
     """
     clus_idx_freqs = Counter(clus_idx)  # count the clus_idx occurences
-    most_common_first_clus_idx = zip(*clus_idx_freqs.most_common())[0]
-    clus_idx_map = {k: v for k, v in zip(most_common_first_clus_idx, range(len(most_common_first_clus_idx)))}
+    most_common_first_clus_idx = list(zip(*clus_idx_freqs.most_common()))[0]
+    clus_idx_map = {k: v for k, v in zip(most_common_first_clus_idx, list(range(len(most_common_first_clus_idx))))}
 
-    clus_idx = array(map(lambda idx: clus_idx_map[idx], clus_idx))
+    clus_idx = array([clus_idx_map[idx] for idx in clus_idx])
     clus_centers = clus_centers[array(most_common_first_clus_idx)]
 
     return clus_idx, clus_centers
@@ -83,9 +83,9 @@ def order_clus_idx_by_decreasing_frequencies(clus_idx):
     a clus_idx) clus_centers will be removed.
     """
     clus_idx_freqs = Counter(clus_idx)  # count the clus_idx occurences
-    most_common_first_clus_idx = zip(*clus_idx_freqs.most_common())[0]
-    clus_idx_map = {k: v for k, v in zip(most_common_first_clus_idx, range(len(most_common_first_clus_idx)))}
+    most_common_first_clus_idx = list(zip(*clus_idx_freqs.most_common()))[0]
+    clus_idx_map = {k: v for k, v in zip(most_common_first_clus_idx, list(range(len(most_common_first_clus_idx))))}
 
-    clus_idx = array(map(lambda idx: clus_idx_map[idx], clus_idx))
+    clus_idx = array([clus_idx_map[idx] for idx in clus_idx])
 
     return clus_idx

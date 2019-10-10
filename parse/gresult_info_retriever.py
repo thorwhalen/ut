@@ -44,39 +44,39 @@ class GResultInfoRetriever(object):
 
     @classmethod
     def for_nres_words_domains(cls, data_getter=None, info_parsers_dict=OrderedDict()):
-        if not info_parsers_dict.has_key('number_of_results'):
+        if 'number_of_results' not in info_parsers_dict:
             info_parsers_dict['number_of_results'] = get_number_of_results
-        if not info_parsers_dict.has_key('term_stats'):
+        if 'term_stats' not in info_parsers_dict:
             info_parsers_dict['term_stats'] = TermStatsMaker.mk_term_stats_maker().term_stats
-        if not info_parsers_dict.has_key('domain_names'):
+        if 'domain_names' not in info_parsers_dict:
             info_parsers_dict['domain_names'] = get_domain_term_count_from_google_results
         return GResultInfoRetriever(data_getter=data_getter, info_parsers_dict=info_parsers_dict)
 
     @classmethod
     def for_nres_words_domains_for_hotels(cls, data_getter=None, info_parsers_dict=OrderedDict(), location=LOCATION_LOCAL):
-        if not info_parsers_dict.has_key('number_of_results'):
+        if 'number_of_results' not in info_parsers_dict:
             info_parsers_dict['number_of_results'] = get_number_of_results
-        if not info_parsers_dict.has_key('term_stats'):
+        if 'term_stats' not in info_parsers_dict:
             info_parsers_dict['term_stats'] = TermStatsMaker.mk_term_stats_maker_for_hotels(location=location).term_stats
-        if not info_parsers_dict.has_key('domain_names'):
+        if 'domain_names' not in info_parsers_dict:
             info_parsers_dict['domain_names'] = get_domain_term_count_from_google_results
         return GResultInfoRetriever(data_getter=data_getter, info_parsers_dict=info_parsers_dict)
 
 
 
 def get_number_of_results(gresults):
-    if gresults.has_key('number_of_results'):
+    if 'number_of_results' in gresults:
         return gresults['number_of_results']
-    elif gresults.has_key('_resultStats'):
+    elif '_resultStats' in gresults:
         return parse_google.parse_number_of_results(gresults['_resultStats'])
 
 def get_domain_term_count_from_google_results(gresults):
     domain_list = []
     # if not, assume the input is a info_dict
-    if gresults.has_key('organic_results_list'):
-        domain_list = domain_list + [x['domain'] for x in gresults['organic_results_list'] if x.has_key('domain')]
-    if gresults.has_key('top_ads_list'):
-        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['top_ads_list'] if x.has_key('disp_url_domain')]
-    if gresults.has_key('organic_results_list'):
-        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['organic_results_list'] if x.has_key('disp_url_domain')]
+    if 'organic_results_list' in gresults:
+        domain_list = domain_list + [x['domain'] for x in gresults['organic_results_list'] if 'domain' in x]
+    if 'top_ads_list' in gresults:
+        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['top_ads_list'] if 'disp_url_domain' in x]
+    if 'organic_results_list' in gresults:
+        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['organic_results_list'] if 'disp_url_domain' in x]
     return term_stats_maker.list_to_term_count(domain_list)

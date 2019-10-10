@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import networkx as nx
 from matplotlib.pylab import figure, tight_layout, subplots

@@ -1,7 +1,7 @@
 
 __author__ = 'mattjmorris'
 
-from dynamo import Dynamo
+from .dynamo import Dynamo
 from boto.dynamodb2.table import Table
 from datetime import datetime
 from khan_utils.encoding import to_unicode_or_bust, to_utf8_or_bust
@@ -41,7 +41,7 @@ class DDBSlurps(Dynamo):
                 for s in slurp_info_:
                     batch.put_item(data=s, overwrite=overwrite)
         else:
-            raise TypeError, "slurp_info must be a dict or a list of dicts, not a {}".format(type(slurp_info_))
+            raise TypeError("slurp_info must be a dict or a list of dicts, not a {}".format(type(slurp_info_)))
 
     def save_failed_slurp(self, searchterm):
         self.failed_slurps_table.put_item(data={'searchterm': searchterm, 'datetime': datetime.now().isoformat()},
@@ -57,9 +57,9 @@ class DDBSlurps(Dynamo):
         """
 
         # searchterm_ is a STRING
-        if isinstance(search_term_, basestring):
+        if isinstance(search_term_, str):
             if search_term_:
-                slurp_info = (self.slurps_table.get_item(searchterm=search_term_)).items()
+                slurp_info = list((self.slurps_table.get_item(searchterm=search_term_)).items())
             else:
                 slurp_info = []
 
@@ -72,7 +72,7 @@ class DDBSlurps(Dynamo):
                 list_of_st_dicts = [{'searchterm': st} for st in set_of_sts]
                 res = self.slurps_table.batch_get(list_of_st_dicts)
                 try:
-                    slurp_info = [i.items() for i in res]
+                    slurp_info = [list(i.items()) for i in res]
                 except (StopIteration, IndexError):
                     # If res is empty, we get one of these errors when trying to iterate.
                     slurp_info = []
@@ -81,7 +81,7 @@ class DDBSlurps(Dynamo):
 
         # searchterm is an unexpected type
         else:
-            raise TypeError, "search_term_ must be a dict or a list of dicts, not a {}".format(type(search_term_))
+            raise TypeError("search_term_ must be a dict or a list of dicts, not a {}".format(type(search_term_)))
 
         return slurp_info
 

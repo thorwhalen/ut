@@ -9,12 +9,12 @@
 #
 
 import re
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import random
-from htmlentitydefs import name2codepoint
-from BeautifulSoup import BeautifulSoup
+from html.entities import name2codepoint
+from .BeautifulSoup import BeautifulSoup
 
-from browser import Browser, BrowserError
+from .browser import Browser, BrowserError
 
 class GSError(Exception):
     """ Google Sets Error """
@@ -68,7 +68,7 @@ class GoogleSets(object):
         else:
             url = GoogleSets.URL_SMALL
 
-        safe_items = [urllib.quote_plus(i) for i in self.items]
+        safe_items = [urllib.parse.quote_plus(i) for i in self.items]
         blank_items = 5 - len(safe_items)
         if blank_items > 0:
             safe_items += ['']*blank_items
@@ -77,8 +77,8 @@ class GoogleSets(object):
 
         try:
             page = self.browser.get_page(safe_url)
-        except BrowserError, e:
-            raise GSError, "Failed getting %s: %s" % (e.url, e.error)
+        except BrowserError as e:
+            raise GSError("Failed getting %s: %s" % (e.url, e.error))
 
         return BeautifulSoup(page)
 

@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from collections import defaultdict
 import numpy as np
@@ -13,7 +13,7 @@ class MatrixDataFrame(object):
             data = data._d
 
         if isinstance(data, dict):
-            self._d = np.hstack(data.values())
+            self._d = np.hstack(list(data.values()))
         elif isinstance(data, (np.ndarray, list, np.matrix)):
             n = len(data)
             if n == 0:
@@ -22,7 +22,7 @@ class MatrixDataFrame(object):
                 if isinstance(data[0], dict):
                     col_data = defaultdict(list)
                     for d in data:
-                        for k, v in d.iteritems():
+                        for k, v in d.items():
                             col_data[k].append(v)
                     self._d = np.array(col_data)
                 else:

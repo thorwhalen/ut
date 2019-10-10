@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from numpy import array, ndim, argsort
 import sys
@@ -13,7 +13,7 @@ non_methods_set = set(dir(sys.modules[__name__]))
 def cumul_before_partial_fit(self, min_data_len):
     raise DeprecationWarning("Don't use. Dangerous.")
     if not isinstance(min_data_len, (int, float)):
-        if isinstance(min_data_len, basestring):
+        if isinstance(min_data_len, str):
             if min_data_len in self.__dict__:
                 min_data_len = self.__dict__[min_data_len]
             else:
@@ -33,7 +33,7 @@ def cumul_before_partial_fit(self, min_data_len):
         if got_enough_data[0]:
             original_partial_fit(X, *args, **kwargs)
         else:
-            cumul.extend(map(list, X))
+            cumul.extend(list(map(list, X)))
             if len(cumul) >= min_data_len:
                 got_enough_data[0] = True
                 original_partial_fit(array(cumul), *args, **kwargs)
@@ -48,10 +48,10 @@ def predict_proba_with_labels(self, X):
     """ returns a list of dicts of {label: predict_proba_score} entries """
     if ndim(X) == 1:
         pred = self.predict_proba(X.reshape(1, -1))
-        return dict(zip(self.classes_, array(pred)[0]))
+        return dict(list(zip(self.classes_, array(pred)[0])))
     else:
         pred = self.predict_proba(X)
-        return map(lambda row: dict(zip(self.classes_, row)), array(pred))
+        return [dict(list(zip(self.classes_, row))) for row in array(pred)]
 
 
 def predict_proba_of_label(self, X, label, normalize_preds=False):

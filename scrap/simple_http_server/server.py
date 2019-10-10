@@ -1,5 +1,5 @@
 # server.py
-from __future__ import division
+
 import json
 
 data = [{'title': 'Hello World!', 'body': "Your big, blue, roundness impresses us all."}]

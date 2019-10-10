@@ -24,8 +24,8 @@ class DistanceClf(object):
         self.dist_df = self.dist_df.loc[self.labels.index, self.labels.index]
         if self.dist_df.shape != original_dist_df_shape:
             print("Indices of labels and dist_df weren't aligned. Kept only records present in labels")
-            print("--> original_dist_df_shape={}, new_dist_df_shape={}"
-                  .format(original_dist_df_shape, self.dist_df.shape))
+            print(("--> original_dist_df_shape={}, new_dist_df_shape={}"
+                  .format(original_dist_df_shape, self.dist_df.shape)))
 
     def sort_records(self, record_order=None):
         if record_order is None:

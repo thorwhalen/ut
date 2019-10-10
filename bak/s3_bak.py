@@ -98,11 +98,11 @@ class S3(object):
           number of bytes
         """
         assert isinstance(the_str,
-                          basestring), 'the_str must be an instance of basestring, but was an instance of {}'.format(type(the_str))
+                          str), 'the_str must be an instance of basestring, but was an instance of {}'.format(type(the_str))
         encoding = encoding or self.encoding
         bucket = self._get_new_bucket_or_default(bucket_name)
         s3_key = self._get_s3_key_for_dump(self.filepath(key_name), folder, bucket)
-        return unicode(s3_key.set_contents_from_string(the_str),encoding)
+        return str(s3_key.set_contents_from_string(the_str),encoding)
 
     def loado(self, key_name, folder=None, bucket_name='', deserialize_f=lambda x: pickle.load(x)):
         """
@@ -140,7 +140,7 @@ class S3(object):
         encoding = encoding or self.encoding
         bucket = self._get_new_bucket_or_default(bucket_name)
         s3_key = self._get_s3_key_for_load(self.filepath(key_name), folder, bucket)
-        return unicode(s3_key.get_contents_as_string(),encoding)
+        return str(s3_key.get_contents_as_string(),encoding)
 
     def get_all_keys(self, folder, clean=True, bucket_name=''):
         """

@@ -1,6 +1,6 @@
 import requests
 
-from browser import Browser
+from .browser import Browser
 
 
 class Dogpile(Browser):
@@ -33,6 +33,6 @@ class Dogpile(Browser):
         r = requests.get(self.URL, headers=headers, params=search_params, timeout=10.0, proxies=self.proxies, auth=self.auth)
 
         if not r.ok:
-            print('HTTP Error: {} for query {}'.format(r.status_code, query))
+            print(('HTTP Error: {} for query {}'.format(r.status_code, query)))
         else:
             return r.text

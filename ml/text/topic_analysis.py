@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -37,7 +37,7 @@ class TopicExplorer(object):
 
         topic_components = self.topic_model.components_
         if topic_weight_normalization is not None:
-            if isinstance(topic_weight_normalization, basestring):
+            if isinstance(topic_weight_normalization, str):
                 if topic_weight_normalization == 'tf_normal':
 
                     def topic_weight_normalization(topic_components):
@@ -59,12 +59,12 @@ class TopicExplorer(object):
 
         self.topic_color = ["hsl(0, 100%, 100%)"]
 
-        h_list = map(int, linspace(0, 360, len(self.topic_model.components_)))[:-1]
+        h_list = list(map(int, linspace(0, 360, len(self.topic_model.components_))))[:-1]
         for h in h_list:
             self.topic_color.append("hsl({}, 100%, 50%)".format(h))
 
     def topic_weights(self, text_collection):
-        if isinstance(text_collection, basestring):
+        if isinstance(text_collection, str):
             urls = [text_collection]
         return self.topic_model.transform(self.url_vectorizer.transform(text_collection))
 
@@ -97,8 +97,8 @@ class TopicExplorer(object):
             if color_func is None:
                 color_func = self.word_art_params.get('color_func', self.topic_color[topic_idx])
             if isinstance(color_func, tuple):
-                color_func = "rgb({}, {}, {})".format(*map(int, color_func))
-            if isinstance(color_func, basestring):
+                color_func = "rgb({}, {}, {})".format(*list(map(int, color_func)))
+            if isinstance(color_func, str):
                 color = color_func
                 def color_func(word, font_size, position, orientation, random_state=None, **kwargs):
                     return color
@@ -108,7 +108,7 @@ class TopicExplorer(object):
             # kwargs = dict(self.word_art_params, **kwargs)
             wc = WordCloud(random_state=random_state, **kwargs)
             wc.fit_words([(self.word_preprocessor(k), v)
-                          for k, v in self.topic_word_weights[topic_idx].iloc[:n_words].to_dict().iteritems()])
+                          for k, v in self.topic_word_weights[topic_idx].iloc[:n_words].to_dict().items()])
             # wc.recolor(color_func=kwargs['color_func'], random_state=random_state)
             plt.imshow(wc.recolor(color_func=color_func, random_state=random_state))
             plt.grid(False)

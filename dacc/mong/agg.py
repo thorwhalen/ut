@@ -9,11 +9,11 @@ def drop_duplicates_pipe(val_cols, gr_cols=None, take_last=False, no_id=True):
     else:
         first_or_last = '$first'
     # making the util dicts
-    group_dict = dict({'_id': x_to_x_dict(gr_cols)}.items() +
-                      {k: {first_or_last: '$' + k} for k in val_cols}.items())
-    project_dict = dict({'_id': 0}.items() +
-                        {k: '$_id.' + k for k in gr_cols}.items() +
-                        x_to_x_dict(val_cols).items())
+    group_dict = dict(list({'_id': x_to_x_dict(gr_cols)}.items()) +
+                      list({k: {first_or_last: '$' + k} for k in val_cols}.items()))
+    project_dict = dict(list({'_id': 0}.items()) +
+                        list({k: '$_id.' + k for k in gr_cols}.items()) +
+                        list(x_to_x_dict(val_cols).items()))
     return [{'$group': group_dict}, {'$project': project_dict}]
 
 
@@ -26,7 +26,7 @@ def popped_unwind_pipe(unwind_field, unwind_sub_fields, other_fields=None, no_id
                 unwind_field=unwind_field, unwind_subfield=k) for k in unwind_sub_fields}
     other_projection = {k: 1 for k in other_fields}
     return [{'$unwind': '$' + unwind_field},
-            {'$project': dict(unwind_projection.items() + other_projection.items())}]
+            {'$project': dict(list(unwind_projection.items()) + list(other_projection.items()))}]
 
 
 ###### UTILS #######################################################
@@ -47,17 +47,17 @@ def get_fields(c, no_id=True):
         return list()
     else:
         if isinstance(c, list):
-            if isinstance(c[0], basestring):
+            if isinstance(c[0], str):
                 fields = c
             else:
                 fields = get_fields(c[0])
         elif isinstance(c, dict):
-            fields = c.keys()
+            fields = list(c.keys())
         else:
             try:  # assume it's a collection
-                fields = c.find_one().keys()
+                fields = list(c.find_one().keys())
             except AttributeError:  # assume it's a cursor
-                fields = c.collection.find_one().keys()
+                fields = list(c.collection.find_one().keys())
         if no_id:
             return list(set(fields).difference(['_id']))
         else:
@@ -65,7 +65,7 @@ def get_fields(c, no_id=True):
 
 
 def get_subfields(c, field=None, no_id=True):
-    if isinstance(c, list) and isinstance(c[0], basestring):
+    if isinstance(c, list) and isinstance(c[0], str):
         if no_id:
             return list(set(c).difference(['_id']))
         else:
@@ -77,11 +77,11 @@ def get_subfields(c, field=None, no_id=True):
         elif isinstance(c, dict):
             if field:
                 try:
-                    c = c[field].keys()
+                    c = list(c[field].keys())
                 except AttributeError:
-                    c = c[field][0].keys()
+                    c = list(c[field][0].keys())
             else:
-                c = c.keys()
+                c = list(c.keys())
         else:
             try:  # assume it's a collection
                 c = c.find_one()

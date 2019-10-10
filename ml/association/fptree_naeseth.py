@@ -8,7 +8,7 @@ Basic usage of the module is very simple:
 """
 
 from collections import defaultdict, namedtuple
-from itertools import imap
+
 
 __author__ = 'Eric Naeseth <eric@naeseth.com>'
 __copyright__ = 'Copyright © 2009 Eric Naeseth'
@@ -39,23 +39,23 @@ def find_frequent_itemsets(transactions, minimum_support, include_support=False)
         processed_transactions.append(processed)
 
     # Remove infrequent items from the item support dictionary.
-    items = dict((item, support) for item, support in items.iteritems()
+    items = dict((item, support) for item, support in items.items()
         if support >= minimum_support)
 
     # Build our FP-tree. Before any transactions can be added to the tree, they
     # must be stripped of infrequent items and their surviving items must be
     # sorted in decreasing order of frequency.
     def clean_transaction(transaction):
-        transaction = filter(lambda v: v in items, transaction)
+        transaction = [v for v in transaction if v in items]
         transaction.sort(key=lambda v: items[v], reverse=True)
         return transaction
 
     master = FPTree()
-    for transaction in imap(clean_transaction, processed_transactions):
+    for transaction in map(clean_transaction, processed_transactions):
         master.add(transaction)
 
     def find_with_suffix(tree, suffix):
-        for item, nodes in tree.items():
+        for item, nodes in list(tree.items()):
             support = sum(n.count for n in nodes)
             if support >= minimum_support and item not in suffix:
                 # New winner!
@@ -139,7 +139,7 @@ class FPTree(object):
         element of the tuple is the item itself, and the second element is a
         generator that will yield the nodes in the tree that belong to the item.
         """
-        for item in self._routes.iterkeys():
+        for item in self._routes.keys():
             yield (item, self.nodes(item))
 
     def nodes(self, item):
@@ -170,15 +170,15 @@ class FPTree(object):
         return (collect_path(node) for node in self.nodes(item))
 
     def inspect(self):
-        print 'Tree:'
+        print('Tree:')
         self.root.inspect(1)
 
-        print
-        print 'Routes:'
-        for item, nodes in self.items():
-            print '  %r' % item
+        print()
+        print('Routes:')
+        for item, nodes in list(self.items()):
+            print('  %r' % item)
             for node in nodes:
-                print '    %r' % node
+                print('    %r' % node)
 
     def _removed(self, node):
         """Called when `node` is removed from the tree; performs cleanup."""
@@ -370,10 +370,10 @@ class FPNode(object):
     @property
     def children(self):
         """The nodes that are children of this node."""
-        return tuple(self._children.itervalues())
+        return tuple(self._children.values())
 
     def inspect(self, depth=0):
-        print ('  ' * depth) + repr(self)
+        print(('  ' * depth) + repr(self))
         for child in self.children:
             child.inspect(depth + 1)
 

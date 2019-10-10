@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -29,7 +29,7 @@ def group_event_info_by_id(df, event_extractor, id_field='id'):
             # pop the id_field into a key of seq and append the remaining to the list
             seq[event_item.pop(id_field)].append(event_item)
 
-    return {k: array(sorted(v)) for k, v in seq.iteritems()}
+    return {k: array(sorted(v)) for k, v in seq.items()}
 
 
 def mk_id_keyed_dict_of_event_timestamps(df, event_extractor, id_field='id', timestamp_field='timestamp'):
@@ -46,7 +46,7 @@ def mk_id_keyed_dict_of_event_timestamps(df, event_extractor, id_field='id', tim
         if event_item:
             seq[event_item[id_field]].append(event_item[timestamp_field])
 
-    return {k: array(sorted(v)) for k, v in seq.iteritems()}
+    return {k: array(sorted(v)) for k, v in seq.items()}
 
 
 

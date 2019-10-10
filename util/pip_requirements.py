@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from ut.pfile.to import string as file_to_string
 import pandas as pd
@@ -9,8 +9,8 @@ from warnings import warn
 
 def requirement_file_to_df(filepath):
     s = file_to_string(filepath)
-    t = filter(lambda xx: len(xx) == 2, map(lambda x: x.split('=='), s.split('\n')))
-    return pd.DataFrame(map(lambda x: {'pkg': x[0], 'version': x[1]}, t))
+    t = [xx for xx in [x.split('==') for x in s.split('\n')] if len(xx) == 2]
+    return pd.DataFrame([{'pkg': x[0], 'version': x[1]} for x in t])
 
 
 def requirements_comparison_df_only_when_different(requirements_filepath_1, requirements_filepath_2):
@@ -31,7 +31,7 @@ str_to_num_key = array([1e12, 1e6, 1e3, 1]).astype(int)
 
 def version_str_to_num(version_str):
     try:
-        if isinstance(version_str, basestring):
+        if isinstance(version_str, str):
             num = 0
             for i, v in enumerate(version_str.split('.')):
                 num += int(v) * str_to_num_key[i]
@@ -56,7 +56,7 @@ def requirements_comparison_objects(requirements_filepath_1, requirements_filepa
             v1_num.append(v1)
             v2_num.append(v2)
         else:
-            print("!!! Couldn't get the version NUMBER for {}\n".format(dict(row)))
+            print(("!!! Couldn't get the version NUMBER for {}\n".format(dict(row))))
     v1_num = array(v1_num)
     v2_num = array(v2_num)
 
@@ -105,17 +105,17 @@ def print_requirements_comparison(requirements_filepath_1, requirements_filepath
 
     name1, name2 = file_unique_identifiers(requirements_filepath_1, requirements_filepath_2)
 
-    print("\n-------- Missing in {}:".format(name1))
+    print(("\n-------- Missing in {}:".format(name1)))
     print(missing_1)
 
-    print("\n-------- Missing in {}:".format(name2))
+    print(("\n-------- Missing in {}:".format(name2)))
     print(missing_2)
 
-    print("\n-------- {} in advance of {}:".format(name1, name2))
-    print(v1_greater_than_v2_df.rename(columns={'version_x': name1, 'version_y': name2}))
+    print(("\n-------- {} in advance of {}:".format(name1, name2)))
+    print((v1_greater_than_v2_df.rename(columns={'version_x': name1, 'version_y': name2})))
 
-    print("\n-------- {} in advance of {}:".format(name2, name1))
-    print(v2_greater_than_v1_df.rename(columns={'version_x': name1, 'version_y': name2}))
+    print(("\n-------- {} in advance of {}:".format(name2, name1)))
+    print((v2_greater_than_v1_df.rename(columns={'version_x': name1, 'version_y': name2})))
 
 
 def get_requirements_to_update_second_requirements_when_behind_first(
@@ -136,7 +136,7 @@ def updated_requirements_2_with_requirements_1_that_are_ahead(
     r2 = requirement_file_to_df(requirements_filepath_2).set_index('pkg')['version']
 
     s = ''
-    for pkg, v2_str in r2.iteritems():
+    for pkg, v2_str in r2.items():
         v2 = version_str_to_num(v2_str)
         v1_str = r1.get(pkg)
         v1 = version_str_to_num(v1_str)

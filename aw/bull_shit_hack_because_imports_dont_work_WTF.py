@@ -10,9 +10,9 @@ import ut.util
 
 
 def get_unique(d,cols):
-    d = d.reindex(index=range(len(d)))
+    d = d.reindex(index=list(range(len(d))))
     grouped = d.groupby(cols)
-    index = [gp_keys[0] for gp_keys in grouped.groups.values()]
+    index = [gp_keys[0] for gp_keys in list(grouped.groups.values())]
     return d.reindex(index)
 
 
@@ -22,10 +22,10 @@ def get_non_low_str_of_col(d,col):
 
 def print_unique_counts(d):
     column_list = d.columns.tolist()
-    print "number of rows: {}".format(len(d[column_list[0]]))
-    print ""
+    print("number of rows: {}".format(len(d[column_list[0]])))
+    print("")
     for c in column_list:
-        print "number of unique {}: {}".format(c,len(arraysetops.unique(d[c])))
+        print("number of unique {}: {}".format(c,len(arraysetops.unique(d[c]))))
 
 
 def get_kw_duplicates(df):
@@ -34,9 +34,9 @@ def get_kw_duplicates(df):
 
 
 def get_duplicates(df,cols):
-    df = df.reindex(index=range(len(df)))
+    df = df.reindex(index=list(range(len(df))))
     grouped = df.groupby(cols)
-    unique_index = [gp_keys[0] for gp_keys in grouped.groups.values()]
+    unique_index = [gp_keys[0] for gp_keys in list(grouped.groups.values())]
     non_unique_index = list(set(df.index)-set(unique_index))
     duplicates_df = ut.aw.diagnosis.get_unique(df.irow(non_unique_index),cols)
     duplicates_df = duplicates_df[cols]
@@ -66,7 +66,7 @@ def add_col(df,colname,overwrite=True):
     return df
 
 def index_with_range(df):
-    return df.reindex(index=range(len(df)))
+    return df.reindex(index=list(range(len(df))))
 
 def lower_series(sr):
     return sr.apply(lambda x: x.lower())

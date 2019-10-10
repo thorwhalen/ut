@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from metric_learn.lmnn import LMNN as _LMNN
 

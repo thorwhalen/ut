@@ -11,7 +11,7 @@ import ut.daf.ch as daf_ch
 import os
 import re
 from ut.pstr.trans import toascii
-import reporting
+from . import reporting
 from datetime import datetime
 from ut.util.ulist import ascertain_list
 from ut.util.ulist import all_true
@@ -48,7 +48,7 @@ def google_light_parse(gresult):
 
 
 def save_search_term_that_does_not_have_num_of_results(search_term):
-    print "no num_of_results in: %s" % search_term
+    print("no num_of_results in: %s" % search_term)
 
 def add_travel_score(query_report_df, html_folder=datapath(),ext='.html'):
     pass
@@ -61,7 +61,7 @@ def mk_search_term_domains_df(query_report_df, html_folder=datapath(),ext='.html
     search_term_list = []
     for st in search_terms:
         filename = os.path.join(html_folder,st+ext)
-        print filename
+        print(filename)
         if os.path.exists(filename):
             search_term_list.append(st)
             domain_lists.append(get_domain_list_from_google_results(filename))
@@ -123,12 +123,12 @@ def get_domain_list_from_google_results(gresults):
     if not isinstance(gresults,dict): # assume it's a soup, html, or filename thereof
         gresults = google.parse_tag_dict(google.mk_gresult_tag_dict(gresults))
     # if not, assume the input is a info_dict
-    if gresults.has_key('organic_results_list'):
-        domain_list = domain_list + [x['domain'] for x in gresults['organic_results_list'] if x.has_key('domain')]
-    if gresults.has_key('top_ads_list'):
-        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['top_ads_list'] if x.has_key('disp_url_domain')]
-    if gresults.has_key('organic_results_list'):
-        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['organic_results_list'] if x.has_key('disp_url_domain')]
+    if 'organic_results_list' in gresults:
+        domain_list = domain_list + [x['domain'] for x in gresults['organic_results_list'] if 'domain' in x]
+    if 'top_ads_list' in gresults:
+        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['top_ads_list'] if 'disp_url_domain' in x]
+    if 'organic_results_list' in gresults:
+        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['organic_results_list'] if 'disp_url_domain' in x]
     return domain_list
 
 
@@ -177,14 +177,14 @@ def process_text_for_word_count(text):
 def mk_text_from_google_results(gresults):
     if not isinstance(gresults,dict): # if not a dict assume it's a soup, html, or filename thereof
         gresults = google.parse_tag_dict(google.mk_gresult_tag_dict(gresults))
-    if gresults.has_key('organic_results_list'):
-        title_text_concatinated = ' '.join([x['title_text'] for x in gresults['organic_results_list'] if x.has_key('title_text')])
-        snippet_text_concatinated = ' '.join([x['st_text'] for x in gresults['organic_results_list'] if x.has_key('st_text')])
+    if 'organic_results_list' in gresults:
+        title_text_concatinated = ' '.join([x['title_text'] for x in gresults['organic_results_list'] if 'title_text' in x])
+        snippet_text_concatinated = ' '.join([x['st_text'] for x in gresults['organic_results_list'] if 'st_text' in x])
         text_concatinated = title_text_concatinated + ' ' + snippet_text_concatinated
     else:
         search_for_tag = ['_ires','_search','_res','_center_col']
         for t in search_for_tag:
-            if gresults.has_key(t):
+            if t in gresults:
                 text_concatinated = soup_to_text(gresults[t])
                 break
         if not text_concatinated: # if you still don't have anything
@@ -192,7 +192,7 @@ def mk_text_from_google_results(gresults):
     return text_concatinated
 
 def soup_to_text(element):
-    return filter(visible, element.findAll(text=True))
+    return list(filter(visible, element.findAll(text=True)))
 
 def visible(element):
     if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
@@ -230,23 +230,23 @@ def mk_df_of_travel_domains():
     tads_domain_list = []
     for rr in r:
         rrr = rr['organic_results_list']
-        org_domain_list = org_domain_list + [x['domain'] for x in rrr if x.has_key('domain')]
+        org_domain_list = org_domain_list + [x['domain'] for x in rrr if 'domain' in x]
         rrr = rr['rhs_ads_list']
-        ads_domain_list = ads_domain_list + [x['disp_url_domain'] for x in rrr if x.has_key('disp_url_domain')]
+        ads_domain_list = ads_domain_list + [x['disp_url_domain'] for x in rrr if 'disp_url_domain' in x]
         rrr = rr['top_ads_list']
-        ads_domain_list = ads_domain_list + [x['disp_url_domain'] for x in rrr if x.has_key('disp_url_domain')]
+        ads_domain_list = ads_domain_list + [x['disp_url_domain'] for x in rrr if 'disp_url_domain' in x]
     domain_list = org_domain_list + ads_domain_list
-    print "number of org_domain_list entries = %d" % len(org_domain_list)
-    print "number of ads_domain_list entries = %d" % len(ads_domain_list)
-    print "number of (all) domain_list entries = %d" % len(domain_list)
+    print("number of org_domain_list entries = %d" % len(org_domain_list))
+    print("number of ads_domain_list entries = %d" % len(ads_domain_list))
+    print("number of (all) domain_list entries = %d" % len(domain_list))
     # make a dataframe counting the number of times we encouter each domain
     df = pd.DataFrame(domain_list,columns=['domain'])
     dg = df.groupby('domain').count() #agg([('domain_count','len')])
     dg = daf_ch.ch_col_names(dg,'count','domain')
     thresh = 4
-    print "length before removing count<%d entries = %d" % (thresh,len(dg))
+    print("length before removing count<%d entries = %d" % (thresh,len(dg)))
     dg = dg[dg['count']>=thresh]
-    print "length before removing count<%d entries = %d" % (thresh,len(dg))
+    print("length before removing count<%d entries = %d" % (thresh,len(dg)))
     dg['frequency'] = dg['count']/float(max(dg['count']))
     dg = dg.sort(columns=['count'],ascending=False)
     dg.head(30)

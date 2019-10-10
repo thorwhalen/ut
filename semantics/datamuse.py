@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import unittest
 import requests
@@ -171,19 +171,19 @@ class DatamuseTestCase(unittest.TestCase):
         args = {'sl': 'orange', 'max': self.max}
         data = self.api.words(**args)
         self.assertTrue(type(data), list)
-        print("sounds like", data)
+        print(("sounds like", data))
 
     def test_rhymes(self):
         args = {'rel_rhy': 'orange', 'max': self.max}
         data = self.api.words(**args)
         self.assertTrue(len(data) <= self.max)
-        print("rhyme", data)
+        print(("rhyme", data))
 
     def test_near_rhymes(self):
         args = {'rel_nry': 'orange', 'max': self.max}
         data = self.api.words(**args)
         self.assertTrue(len(data) <= self.max)
-        print("near rhyme", data)
+        print(("near rhyme", data))
 
     def test_bad_request(self):
         args = {'foo': 42}

@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -7,6 +7,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from pandas import DataFrame
 import numpy as np
 from nltk import word_tokenize
+from functools import reduce
 
 
 class HourOfDayTransformer(TransformerMixin):
@@ -101,10 +102,10 @@ class AttributeTransformer(BaseEstimator, TransformerMixin):
         import collections
 
         items = []
-        for k, v in d.items():
+        for k, v in list(d.items()):
             new_key = parent_key + sep + k if parent_key else k
             if isinstance(v, collections.MutableMapping):
-                items.extend(self._flatten(v, new_key, sep=sep).items())
+                items.extend(list(self._flatten(v, new_key, sep=sep).items()))
             else:
                 new_v = 1 if v == True else 0
                 items.append((new_key, new_v))
@@ -137,7 +138,7 @@ class KNNImputer(TransformerMixin):
         """
         rows, features = X.shape
 
-        mask = list(map(lambda x: reduce(lambda h, t: h or t, x), np.isnan(X)))
+        mask = list([reduce(lambda h, t: h or t, x) for x in np.isnan(X)])
         criteria_for_bad = np.where(mask)[0]
         criteria_for_good = np.where(mask == np.zeros(len(mask)))[0]
 

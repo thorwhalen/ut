@@ -20,12 +20,12 @@ def count_hist(x, sort_by=None, reverse=False, horizontal=False, ratio=False, **
     h = ms.pcoll.ordered_dict.ordered_counter(x=collections.Counter(x), sort_by=sort_by, reverse=reverse)
     if ratio:
         total = float(sum(h.values()))
-        [h.__setitem__(k, v / total) for k, v in h.iteritems()]
-    h_range = range(len(h))
+        [h.__setitem__(k, v / total) for k, v in h.items()]
+    h_range = list(range(len(h)))
     if horizontal:
-        plt.barh(h_range, h.values(), **kwargs)
-        plt.yticks(h_range, h.keys())
+        plt.barh(h_range, list(h.values()), **kwargs)
+        plt.yticks(h_range, list(h.keys()))
     else:
-        plt.bar(h_range, h.values(), **kwargs)
-        plt.xticks(h_range, h.keys())
+        plt.bar(h_range, list(h.values()), **kwargs)
+        plt.xticks(h_range, list(h.keys()))
 

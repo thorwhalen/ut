@@ -1,6 +1,6 @@
 __author__ = 'thor'
 
-import json
+from . import json
 
 
 class NumpyAwareJSONEncoder(json.JSONEncoder):

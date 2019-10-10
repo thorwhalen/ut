@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 df9_for_dedup = pd.DataFrame(
-    {'keyword': ['rome hotel','Rome Hotel', u'rome hôtel', ' rome * **  hotel $ ', 'hotel rome', 'rome hotel', 'hotel rome', u'hôtel rome', 'rome hotel', 'rome hotel', 'matt monkey'],
+    {'keyword': ['rome hotel','Rome Hotel', 'rome hôtel', ' rome * **  hotel $ ', 'hotel rome', 'rome hotel', 'hotel rome', 'hôtel rome', 'rome hotel', 'rome hotel', 'matt monkey'],
      'match_type':          ['Broad',      'Broad',     'Broad',  'Broad',       'Broad',      'Exact',      'Exact',     'Exact',      'Phrase',      'Broad',      'Broad'],
      'ad_group':            ['AG',         'AG',        'AG',   'AG',          'AG',         'AG',         'AG',        'AG',         'AG',          'AG_2',       'AG_2'],
      'campaign':            ['CP',         'CP',        'CP',  'CP',          'CP',         'CP',         'CP',        'CP',         'CP',          'CP',         'CP_X']},

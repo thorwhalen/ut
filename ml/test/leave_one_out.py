@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from ut.ml.sk.model_selection import SupervisedLeaveOneOut
 from ut.util.log import printProgress

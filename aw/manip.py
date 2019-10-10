@@ -33,8 +33,8 @@ def process_aw_column_names(df):
     replaces all non \w characters by an underscore.
     """
     df.columns = ms.aw.reporting.x_to_lu_name(list(df.columns))
-    df.columns = map(lambda x: x.lower(), df.columns)
-    df.columns = map(lambda x: non_w_re.sub('_', x), df.columns)
+    df.columns = [x.lower() for x in df.columns]
+    df.columns = [non_w_re.sub('_', x) for x in df.columns]
     df.columns = ms.aw.reporting.x_to_lu_name(list(df.columns))
 
 
@@ -92,7 +92,7 @@ def semantics_term_stats_maker_mk_terms_df(df, text_cols, id_cols=None, tokenize
     dd = pd.DataFrame()
     for c in text_cols:
         d = df[id_cols]
-        d['term'] = map(lambda x : re.findall(tokenizer_re, x), df[c])
+        d['term'] = [re.findall(tokenizer_re, x) for x in df[c]]
         d = daf_manip.rollout_cols(d, cols_to_rollout='term')
         dd = pd.concat([dd, d])
     return dd
@@ -103,18 +103,18 @@ def kw_str(keyword):
         produces a kw_str version of the input keyword (or list of keywords), i.e. lower ascii and strip_kw are applied
     """
     #return strip_kw(pstr_trans.lower(pstr_trans.toascii(pstr_trans.to_unicode_or_bust(keyword))))
-    if isinstance(keyword, basestring):
+    if isinstance(keyword, str):
         return str(
             strip_kw(
                 pstr_trans.lower(
                     pstr_trans.toascii(
                         pstr_trans.to_unicode_or_bust(keyword)))))
     else:
-        return map(lambda x: str(
+        return [str(
             strip_kw(
                 pstr_trans.lower(
                     pstr_trans.toascii(
-                        pstr_trans.to_unicode_or_bust(x))))), keyword)
+                        pstr_trans.to_unicode_or_bust(x))))) for x in keyword]
 
 
 def strip_kw(keyword):
@@ -124,10 +124,10 @@ def strip_kw(keyword):
         never show up (they shouldn't since google doesn't allow them, or if they do, that we can just leave these)
     """
     exp = re.compile('[^\w&]', re.UNICODE)
-    if isinstance(keyword, basestring):
+    if isinstance(keyword, str):
         return ' '.join(re.sub(exp, ' ', keyword).split())
     else: # assume it's an iterable collection of keywords
-        return map(lambda kw: ' '.join(re.sub(exp, ' ', kw).split()), keyword)
+        return [' '.join(re.sub(exp, ' ', kw).split()) for kw in keyword]
 
 def order_words(keyword):
     """
@@ -138,7 +138,7 @@ def order_words(keyword):
     try: # assume keyword is a string
         return ' '.join(np.sort(keyword.split(' ')))
     except: # assume it's an iterable collection of keywords
-        return map(lambda kw: ' '.join(np.sort(kw.split(' '))), keyword)
+        return [' '.join(np.sort(kw.split(' '))) for kw in keyword]
 
 
 def add_col(df, colname=None, overwrite=True, **kwargs):
@@ -148,13 +148,13 @@ def add_col(df, colname=None, overwrite=True, **kwargs):
     The overwrite flag (defaulted to True) specified whether
     """
     if colname is None:
-        print "colname choices: "
-        print "%s" % str(['pos_impressions', 'pos', 'day_of_week_num', 'day_of_week', 'week_of_year',
+        print("colname choices: ")
+        print("%s" % str(['pos_impressions', 'pos', 'day_of_week_num', 'day_of_week', 'week_of_year',
                           'cvr', 'ctr', 'cpc', 'spc', 'kw_lower', 'kw_lower_ascii', 'kw_lower_ascii_ordered',
-                          'destination'])
+                          'destination']))
         return None
     df_columns = df.columns
-    if isinstance(colname, basestring):
+    if isinstance(colname, str):
         if overwrite is False and has_columns(df, colname):
             return df # just return the df as is
         else:
@@ -168,7 +168,7 @@ def add_col(df, colname=None, overwrite=True, **kwargs):
                 elif 'date' in df.columns:
                     df['day_of_week_num'] = df['date'].apply(pd.datetime.weekday)
                 else:
-                    days = [u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday', u'Sunday']
+                    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                     key_col = 'day_of_week'
                     day_2_num = pd.DataFrame({'day_of_week': days, 'day_of_week_num': np.arange(len(days))})
                     if key_col in df.index.names:
@@ -184,7 +184,7 @@ def add_col(df, colname=None, overwrite=True, **kwargs):
                         if kwargs.get('rm_key_cols', False):
                             df.drop(key_col, axis=1, inplace=True)
             elif colname == 'day_of_week':
-                days = [u'Monday', u'Tuesday', u'Wednesday', u'Thursday', u'Friday', u'Saturday', u'Sunday']
+                days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                 key_col = 'day_of_week_num'
                 day_2_num = pd.DataFrame({'day_of_week': days, 'day_of_week_num': np.arange(len(days))})
                 if key_col in df.index.names:
@@ -205,12 +205,12 @@ def add_col(df, colname=None, overwrite=True, **kwargs):
                     date_col = get_first_item_contained_in_intersection_of(['day', 'date'], df.columns, None)
                 if date_col is None:
                     raise KeyError("Couldn't find a date_col to work with: Tell me what it is")
-                if isinstance(date_col, basestring):
+                if isinstance(date_col, str):
                     date_col = df[date_col]
                 try:
-                    df['week_of_year'] = map(lambda t: t.isocalendar()[1], date_col)
+                    df['week_of_year'] = [t.isocalendar()[1] for t in date_col]
                 except AttributeError:
-                    df['week_of_year'] = map(lambda t: t.weekofyear, date_col)
+                    df['week_of_year'] = [t.weekofyear for t in date_col]
 
             elif colname == 'cvr':
                 df['cvr'] = df['conversions'] / df['clicks']
@@ -234,10 +234,10 @@ def add_col(df, colname=None, overwrite=True, **kwargs):
             elif colname == 'destination':
                 if 'ad_group' in df_columns:
                     #ag_triad = map(lambda x: x.split('|'), pstr_trans.lower(pstr_trans.toascii(list(df['ad_group']))))
-                    ag_triad = map(lambda x: x.split('|'), df['ad_group'])
+                    ag_triad = [x.split('|') for x in df['ad_group']]
                     ag_triad_0 = kw_str([x[0] for x in ag_triad])
                     ag_triad_2 = kw_str([x[2] for x in ag_triad])
-                    df[colname] = map(lambda x2, x0: '|'.join([x2, x0]), ag_triad_2, ag_triad_0)
+                    df[colname] = list(map(lambda x2, x0: '|'.join([x2, x0]), ag_triad_2, ag_triad_0))
                 elif 'campaign' in df_columns:
                     df[colname] = kw_str(df['campaign'])
                 else:
@@ -245,7 +245,7 @@ def add_col(df, colname=None, overwrite=True, **kwargs):
             else:
                 raise RuntimeError("unknown colname requested")
             # remove columns?
-            if 'remove_cols' in kwargs.keys():
+            if 'remove_cols' in list(kwargs.keys()):
                 df.drop(set(kwargs.get('remove_cols', None)).union(df.columns), axis=1, inplace=True)
     else:
         try:

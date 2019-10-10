@@ -17,7 +17,7 @@ def xy_boxplot(X, y=None, col_labels=None, grid_size=None):
         plt.boxplot(X)
         if col_labels is not None:
             assert n_cols == len(col_labels), "the number of items in col_labels should be equal to the num of cols"
-            plt.xticks(range(1, n_cols + 1), col_labels)
+            plt.xticks(list(range(1, n_cols + 1)), col_labels)
     else:
         unik_ys = np.unique(y)
         n_unik_ys = len(unik_ys)
@@ -67,7 +67,7 @@ def vlines_of_matrix(X, y=None, col_labels=None, padding=0.05,
             assert len(
                 col_labels) == n_cols, "number of col_labels didn't match the number of columns in the input matrix"
 
-        for i in xrange(n_cols):
+        for i in range(n_cols):
             ax.vlines(np.linspace(i + padding, i + 1 - padding, n_items), 0, np.ravel(X[:, i]), colors='k', alpha=alpha)
             ax.hlines(0, i + padding, i + 1 - padding, colors='b', alpha=1)
 
@@ -103,10 +103,15 @@ def vlines_of_matrix(X, y=None, col_labels=None, padding=0.05,
             ax.set_ylabel(item_label)
 
 
-def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=False, ax=None, **kwargs):
+def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=False, ax=None,
+            xlabel_top=True, ylabel_left=True, xlabel_bottom=True, ylabel_right=True, **kwargs):
     n_items, n_cols = X.shape
     if col_labels is not None:
-        assert len(col_labels) == n_cols, "col_labels length should be the same as the number of columns in the matrix"
+        if col_labels is not False:
+            assert len(col_labels) == n_cols, \
+                "col_labels length should be the same as the number of columns in the matrix"
+    elif isinstance(X, pd.DataFrame):
+        col_labels = list(X.columns)
 
     if figsize is None:
         x_size, y_size = X.shape
@@ -116,7 +121,7 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=Fals
             figsize = (min(18, 6 * y_size / x_size), 6)
 
     if cmap is None:
-        if np.array(X).min() < 0:
+        if X.min(axis=0).min(axis=0) < 0:
             cmap = 'RdBu_r'
         else:
             cmap = 'hot_r'
@@ -142,14 +147,17 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=Fals
             plt.hlines(i - 0.5, 0 - 0.5, n_cols - 0.5, colors='b', linestyles='dotted', alpha=0.5)
         plt.hlines(n_items - 0.5, 0 - 0.5, n_cols - 0.5, colors='b', linestyles='dotted', alpha=0.5)
         plt.yticks(unik_ys_idx + np.diff(np.hstack((unik_ys_idx, n_items))) / 2, unik_ys)
+    elif isinstance(X, pd.DataFrame):
+        y_tick_labels = list(X.index)
+        plt.yticks(list(range(len(y_tick_labels))), y_tick_labels);
 
-        if col_labels is not None:
-            assert len(
-                col_labels) == n_cols, "col_labels length should be the same as the number of columns in the matrix"
-            plt.xticks(range(len(col_labels)), col_labels);
-        else:
-            plt.xticks([])
-        plt.gca().xaxis.set_tick_params(labeltop='on')
+    if col_labels is not None:
+        plt.xticks(list(range(len(col_labels))), col_labels)
+    else:
+        plt.xticks([])
+
+    plt.gca().xaxis.set_tick_params(labeltop=xlabel_top, labelbottom=xlabel_bottom)
+    plt.gca().yaxis.set_tick_params(labelleft=ylabel_left, labelright=ylabel_right)
 
     if return_gcf:
         return plt.gcf()
@@ -173,7 +181,7 @@ def labeled_heatmap(X, y=None, col_labels=None):
 
     if col_labels is not None:
         assert len(col_labels) == n_cols, "col_labels length should be the same as the number of columns in the matrix"
-        plt.xticks(range(len(col_labels)), col_labels);
+        plt.xticks(list(range(len(col_labels))), col_labels);
     else:
         plt.xticks([])
     plt.gca().xaxis.set_tick_params(labeltop='on');

@@ -41,7 +41,7 @@ class MongoStruct:
         # elif isinstance(self.obj, mg.database.Database):
         #     for coll_name in self.obj.collection_names():
         #         setattr(self, coll_name, self.obj[coll_name])
-        if isinstance(self.obj, basestring):
+        if isinstance(self.obj, str):
             self.obj = getattr(mg.MongoClient(), self.obj)
 
         self.refresh()
@@ -50,7 +50,7 @@ class MongoStruct:
         return self.__dict__[val]
 
     def __str__(self):
-        return '{}'.format(str(', '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.iteritems())))
+        return '{}'.format(str(', '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.items())))
 
     def __repr__(self):
         return PPR.format_str(mdb_info(self.obj))

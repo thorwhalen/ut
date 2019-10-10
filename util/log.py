@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 __author__ = 'thorwhalen'
 
@@ -21,7 +21,7 @@ def print_progress(msg, refresh=None, display_time=True):
     if display_time:
         msg = hms_message(msg)
     if refresh is not False:
-        print(msg, end='\r')
+        print(msg, '\r')
         # stdout.write('\r' + msg)
         # stdout.write(refresh)
         # stdout.flush()

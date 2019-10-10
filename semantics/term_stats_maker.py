@@ -29,7 +29,7 @@ def mk_terms_df(df, text_cols, id_cols=None, tokenizer_re=tokenizer_re):
     dd = pd.DataFrame()
     for c in text_cols:
         d = df[id_cols]
-        d['term'] = map(lambda x : re.findall(tokenizer_re, x), df[c])
+        d['term'] = [re.findall(tokenizer_re, x) for x in df[c]]
         d = daf_manip.rollout_cols(d, cols_to_rollout='term')
         dd = pd.concat([dd, d])
     return dd
@@ -61,14 +61,14 @@ def get_text_from_source_gresult(gresults):
         gresults = google.parse_tag_dict(google.mk_gresult_tag_dict(gresults))
     elif is_tag_dict(gresults): # if gresults is a tag_dict, and make it a info dict
         gresults = google.parse_tag_dict(gresults)
-    if gresults.has_key('organic_results_list'):
-        title_text_concatinated = ' '.join([x['title_text'] for x in gresults['organic_results_list'] if x.has_key('title_text')])
-        snippet_text_concatinated = ' '.join([x['st_text'] for x in gresults['organic_results_list'] if x.has_key('st_text')])
+    if 'organic_results_list' in gresults:
+        title_text_concatinated = ' '.join([x['title_text'] for x in gresults['organic_results_list'] if 'title_text' in x])
+        snippet_text_concatinated = ' '.join([x['st_text'] for x in gresults['organic_results_list'] if 'st_text' in x])
         text_concatinated = title_text_concatinated + ' ' + snippet_text_concatinated
     else:
         search_for_tag = ['_ires','_search','_res','_center_col']
         for t in search_for_tag:
-            if gresults.has_key(t):
+            if t in gresults:
                 text_concatinated = soup_to_text(gresults[t])
                 break
         if not text_concatinated: # if you still don't have anything
@@ -77,7 +77,7 @@ def get_text_from_source_gresult(gresults):
 
 def is_tag_dict(x):
     try:
-        if isinstance(x[x.keys()[0]][0],Tag):
+        if isinstance(x[list(x.keys())[0]][0],Tag):
             return True
         else:
             return False
@@ -85,7 +85,7 @@ def is_tag_dict(x):
         return False
 
 def soup_to_text(element):
-    return filter(visible, element.findAll(text=True))
+    return list(filter(visible, element.findAll(text=True)))
 
 def visible(element):
     if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
@@ -169,7 +169,7 @@ class TermStatsMaker(object):
 
     @classmethod
     def mk_term_stats_maker_for_hotels(cls, term_map=None, location=LOCATION_LOCAL):
-        print "oh no! you commented this out!!"
+        print("oh no! you commented this out!!")
         #if term_map is None:
         #    import msvenere.factories as venere_factories
         #    if location==LOCATION_LOCAL:

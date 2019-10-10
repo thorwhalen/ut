@@ -25,7 +25,7 @@ def balanced_data(X, y, method='sample'):
     min_yc = min(yc.values())
     new_X = list()
     new_y = list()
-    for yi in yc.keys():
+    for yi in list(yc.keys()):
         yi_lidx = y == yi
         XX = X[yi_lidx, :]
         yy = y[yi_lidx]

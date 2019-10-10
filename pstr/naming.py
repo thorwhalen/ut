@@ -1,9 +1,3 @@
-"""
-generate parametrized strings and parse out the parameters of templated strings
-"""
-
-from __future__ import division
-
 import re
 from ut.pdict.diagnosis import validate_kwargs, base_validation_funs
 
@@ -31,7 +25,6 @@ named_capture_template = '(?P<{name}>{format})'
 names_re = re.compile('(?<={)[^}]+(?=})')
 
 
-
 def get_names_from_template(template):
     """
     Get list from {item} items of template string
@@ -54,7 +47,7 @@ def mk_format_mapping_dict(format_dict, required_keys, default_format=until_slas
 
 def mk_capture_patterns(mapping_dict):
     new_mapping_dict = dict()
-    for k, v in mapping_dict.iteritems():
+    for k, v in mapping_dict.items():
         new_v = capture_template.format(format=v)
         new_mapping_dict[k] = new_v
     return new_mapping_dict
@@ -62,21 +55,21 @@ def mk_capture_patterns(mapping_dict):
 
 def mk_named_capture_patterns(mapping_dict):
     new_mapping_dict = dict()
-    for k, v in mapping_dict.iteritems():
+    for k, v in mapping_dict.items():
         new_v = named_capture_template.format(name=k, format=v)
         new_mapping_dict[k] = new_v
     return new_mapping_dict
 
 
 def template_to_pattern(mapping_dict, template):
-    p = re.compile("{}".format("|".join(map(lambda x: '{' + re.escape(x) + '}', mapping_dict.keys()))))
+    p = re.compile("{}".format("|".join(['{' + re.escape(x) + '}' for x in list(mapping_dict.keys())])))
     return p.sub(lambda x: mapping_dict[x.string[(x.start() + 1):(x.end() - 1)]], template)
 
 
 def mk_extract_pattern(template, format_dict, named_capture_patterns, name):
     mapping_dict = dict(format_dict, **{name: named_capture_patterns[name]})
     p = re.compile("{}".format("|".join(
-        map(lambda x: '{' + re.escape(x) + '}', mapping_dict.keys()))))
+        ['{' + re.escape(x) + '}' for x in list(mapping_dict.keys())])))
 
     return re.compile(p.sub(lambda x: mapping_dict[x.string[(x.start() + 1):(x.end() - 1)]], template))
 
@@ -124,7 +117,7 @@ def example_process_kwargs(**kwargs):
     if 'day' in kwargs:
         day = kwargs['day']
         # get the day in the expected format
-        if isinstance(day, basestring):
+        if isinstance(day, str):
             if day == 'now':
                 day = datetime.utcfromtimestamp(int(utcnow_ms() / second_ms)).strftime(day_format)
             elif day == 'from_s_ums':
@@ -190,8 +183,8 @@ class LinearNaming(object):
         self.prefix_template_including_name, self.prefix_template_excluding_name = \
             mk_prefix_templates_dicts(self.template)
 
-        _prefix_pattern = '$|'.join(map(lambda x: x.format(**self.format_dict),
-                                        sorted(self.prefix_template_including_name.values(), key=len)))
+        _prefix_pattern = '$|'.join(
+            [x.format(**self.format_dict) for x in sorted(list(self.prefix_template_including_name.values()), key=len)])
         _prefix_pattern += '$'
         self.prefix_pattern = re.compile(_prefix_pattern)
 
@@ -376,7 +369,7 @@ class LinearNaming(object):
         's3://bucket-NEW_GROUP/example/files/NEW_USER/ozeip/2008-11-04/1225779243969_1225779246969'
         """
         sref_info_dict = self.info_dict(sref)
-        for k, v in elements_kwargs.iteritems():
+        for k, v in elements_kwargs.items():
             sref_info_dict[k] = v
         return self.mk(**sref_info_dict)
 
@@ -390,7 +383,7 @@ class LinearNaming(object):
         s += "  * {}: {}\n\n".format('template', kv.pop('template'))
         s += "  * {}: {}\n\n".format('format_dict', kv.pop('format_dict'))
 
-        for k, v in kv.iteritems():
+        for k, v in kv.items():
             if hasattr(v, 'pattern'):
                 v = v.pattern
             s += "  * {}: {}\n\n".format(k, v)
@@ -407,12 +400,12 @@ class NamingInterface(object):
         if params is None:
             params = {}
 
-        validation_dict = {var: info.get('validation', {}) for var, info in params.iteritems()}
-        default_dict = {var: info.get('default', None) for var, info in params.iteritems()}
-        arg_pattern = {var: info.get('arg_pattern', dflt_arg_pattern) for var, info in params.iteritems()}
-        named_arg_pattern = {var: '(?P<' + var + '>' + pat + ')' for var, pat in arg_pattern.iteritems()}
-        to_str = {var: info['to_str'] for var, info in params.iteritems() if 'to_str' in info}
-        to_val = {var: info['to_val'] for var, info in params.iteritems() if 'to_val' in info}
+        validation_dict = {var: info.get('validation', {}) for var, info in params.items()}
+        default_dict = {var: info.get('default', None) for var, info in params.items()}
+        arg_pattern = {var: info.get('arg_pattern', dflt_arg_pattern) for var, info in params.items()}
+        named_arg_pattern = {var: '(?P<' + var + '>' + pat + ')' for var, pat in arg_pattern.items()}
+        to_str = {var: info['to_str'] for var, info in params.items() if 'to_str' in info}
+        to_val = {var: info['to_val'] for var, info in params.items() if 'to_val' in info}
 
         self.validation_dict = validation_dict
         self.default_dict = default_dict
@@ -441,10 +434,10 @@ class NamingInterface(object):
             return default['func'](*args)
 
     def str_kwargs_from(self, **kwargs):
-        return {k: self.to_str[k](v) for k, v in kwargs.iteritems() if k in self.to_str}
+        return {k: self.to_str[k](v) for k, v in kwargs.items() if k in self.to_str}
 
     def val_kwargs_from(self, **kwargs):
-        return {k: self.to_val[k](v) for k, v in kwargs.iteritems() if k in self.to_val}
+        return {k: self.to_val[k](v) for k, v in kwargs.items() if k in self.to_val}
 
     def name_for(self, **kwargs):
         raise NotImplementedError("Interface method: Method needs to be implemented")

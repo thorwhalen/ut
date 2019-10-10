@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 __author__ = 'thor'
 
@@ -6,7 +6,7 @@ import json
 
 
 def more_like(_index, _type, item_list, similarity_fields, item_field='_id', **more_like_this_kwargs):
-    if isinstance(similarity_fields, basestring):
+    if isinstance(similarity_fields, str):
         similarity_fields = [similarity_fields]
     like_these = [{'_index': _index, '_type': _type, item_field: x} for x in item_list]
 
@@ -26,7 +26,7 @@ def more_like(_index, _type, item_list, similarity_fields, item_field='_id', **m
 def match_field(field, value=None):
     if value is None:
         assert isinstance(field, dict), "you must specify a field and value, or field={field: value}"
-        field, value = field.iteritems().next()
+        field, value = next(iter(field.items()))
     return {
         "query": {
             "match": {

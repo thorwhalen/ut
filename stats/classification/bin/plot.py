@@ -44,7 +44,7 @@ def bell(actual, probs, failure_color='red', success_color='blue',
     # ax.fill_between(success_d['x'], 0, success_d['probs'], color=success_color)
 
     if log_scale:
-        print "Yeah, there's still a bug here. Wanna repair it?"
+        print("Yeah, there's still a bug here. Wanna repair it?")
         ax.set_yscale('log', basex=2)
         min_val = min(t['probs'][t['probs'] > 0])
     else:

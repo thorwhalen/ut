@@ -1,37 +1,12 @@
 __author__ = 'thorwhalen'
 
-from collections import MutableMapping, defaultdict
-from itertools import chain, imap
+from collections import MutableMapping
+from itertools import chain
 
 from ut.pdict.get import iter_key_path_items, set_value_in_nested_key_path
 
 ASIS = '_keep_val_as_is'
 DROP = '_drop_key_path_entry'
-
-
-# TODO: Find a more opt way for this (e.g. pre allocation of list size, different way of dealing with gaps (fillna))
-def key_vals_dict_from_dict_list(dict_list, fillna=None):
-    """
-    Get a {key: val_list, ...} dict from a [{key: val, ...}, ...] list of dicts.
-    :param dict_list: a [{key: val, ...}, ...] list of dicts.
-    :param fillna: The value to use if a key is missing.
-    :return: {key: val_list, ...} dict
-    >>> key_vals_dict_from_dict_list([{'a': 1, 'b': 10}, {'a': 2, 'b': 20}, {'a': 3, 'b': 30}])
-    {'a': [1, 2, 3], 'b': [10, 20, 30]}
-    >>> key_vals_dict_from_dict_list([{'a': 1, 'b': 10}, {'a': 2}, {'b': 30}], fillna=None)
-    {'a': [1, 2, None], 'b': [10, None, 30]}
-    """
-    all_keys = set()
-    for d in dict_list:
-        all_keys.update(d.keys())
-
-    key_vals_dict = {k: [] for k in all_keys}
-    for d in dict_list:
-        for k in all_keys:
-            key_vals_dict[k].append(d.get(k, fillna))
-
-    return key_vals_dict
-
 
 def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
     """
@@ -70,7 +45,7 @@ def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
     {'a': {'b': 3, 'd': 'this should remain as is'}, 'new_ac': 'I am a.c', 'b': {'A': 10, 'B': 20}}
     """
     new_d = dict()
-    wildcard_prefixes = map(lambda k: k[:-1], filter(lambda k: k.endswith('*'), key_path_trans.keys()))
+    wildcard_prefixes = [k[:-1] for k in [k for k in list(key_path_trans.keys()) if k.endswith('*')]]
 
     def to_trans_key(key_path):
         for prefix in wildcard_prefixes:
@@ -93,14 +68,15 @@ def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
                 trans_func = trans_func[1]
                 set_value_in_nested_key_path(new_d, new_key_path, trans_func(val))  # apply trans_func to val
             else:
-                if isinstance(trans_func, basestring):  # assume trans_func is a field name...
+                if isinstance(trans_func, str):  # assume trans_func is a field name...
                     set_value_in_nested_key_path(new_d, trans_func, val)  # ... which we want to rename key_path by.
                 else:
                     raise TypeError("trans_func must be a callable or a string")
         else:  # if trans_key is not listed in key_path_trans keys...
             if keep_unspecified_key_paths:  # then consider it as a "_keep_key_path"
                 set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
-                # else will ignore it (same effect as "ignore_entry"
+            # else will ignore it (same effect as "ignore_entry"
+
 
     return new_d
 
@@ -114,17 +90,17 @@ def rollout(d, key, sep='.', copy=True):
             prefix = ''
         else:
             prefix = key + sep
-        return [dict({prefix + k: v for k, v in element.iteritems()}, **d) for element in key_value]
+        return [dict({prefix + k: v for k, v in element.items()}, **d) for element in key_value]
     else:
-        return list(chain(*imap(lambda x: rollout(x, key=key, sep=sep, copy=copy), d)))
+        return list(chain(*map(lambda x: rollout(x, key=key, sep=sep, copy=copy), d)))
 
 
 def flatten(d, parent_key='', sep='.'):
     items = []
-    for k, v in d.items():
+    for k, v in list(d.items()):
         new_key = parent_key + sep + k if parent_key else k
         if isinstance(v, MutableMapping):
-            items.extend(flatten(v, new_key, sep=sep).items())
+            items.extend(list(flatten(v, new_key, sep=sep).items()))
         else:
             items.append((new_key, v))
     return dict(items)

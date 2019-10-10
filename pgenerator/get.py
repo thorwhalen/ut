@@ -31,7 +31,7 @@ def last_element(g):
 
 
 def dict_vals_product(dict_of_arrays):
-    return (dict(itertools.izip(dict_of_arrays, x)) for x in itertools.product(*dict_of_arrays.itervalues()))
+    return (dict(zip(dict_of_arrays, x)) for x in itertools.product(*iter(dict_of_arrays.values())))
 
 
 def chunks(n, iterable):

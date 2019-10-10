@@ -7,7 +7,7 @@ from collections import Counter, OrderedDict, defaultdict
 import string
 import random as rnd
 import itertools
-from itertools import imap
+
 from scipy.misc import factorial
 
 from ut.util.uiter import all_subsets_of, powerset
@@ -38,7 +38,7 @@ def compute_shapley_values_from_coalition_values_using_formula(coalition_values,
     n = len(players)
     factorial_n = float(factorial(n))
     if verbose:
-        print("Normalizing factor: {}".format(factorial_n))
+        print(("Normalizing factor: {}".format(factorial_n)))
 
     def _shapley_unnormalized_weight(s):
         return factorial(s) * factorial(n - s - 1)  # all possible permutations of players before and after
@@ -49,9 +49,9 @@ def compute_shapley_values_from_coalition_values_using_formula(coalition_values,
     shapley_values = dict()
     for player in players:
         if verbose:
-            print("\n-------------------- {} ----------------------".format(player))
+            print(("\n-------------------- {} ----------------------".format(player)))
         shapley_values[player] = 0.0
-        for s in imap(_coalition_of, powerset(players - {player})):
+        for s in map(_coalition_of, powerset(players - {player})):
             shapley_values[player] += \
                 _shapley_unnormalized_weight(len(s)) \
                 * (coalition_values[_coalition_of(list(set(s).union({player})))] - coalition_values[s])
@@ -59,7 +59,7 @@ def compute_shapley_values_from_coalition_values_using_formula(coalition_values,
                 weight = _shapley_unnormalized_weight(len(s))
                 s_with_player = coalition_values[_coalition_of(list(set(s).union({player})))]
                 s_alone = coalition_values[s]
-                print("... contributed {} * ({} - {}) = {} \tto {} \t(running sum is {})"
+                print(("... contributed {} * ({} - {}) = {} \tto {} \t(running sum is {})"
                       .format(weight,
                               s_with_player,
                               s_alone,
@@ -67,7 +67,7 @@ def compute_shapley_values_from_coalition_values_using_formula(coalition_values,
                               _coalition_of(list(set(s).union({player}))),
                               shapley_values[player]
                               )
-                      )
+                      ))
         shapley_values[player] /= factorial_n  # normalize according to all possible permutations
 
     if normalize:
@@ -82,8 +82,8 @@ def _shapley_weight(s, n):
 
 def compute_shapley_values_from_coalition_values_01(coalition_values, normalize=False, verbose=False):
     _complete_missing_coalitions_with_zero_valued_coalitions_in_place(coalition_values)
-    coalition_values = pd.DataFrame(index=coalition_values.keys(),
-                                    data=coalition_values.values(),
+    coalition_values = pd.DataFrame(index=list(coalition_values.keys()),
+                                    data=list(coalition_values.values()),
                                     columns=['value'])
     se = Shapley_1(coalition_values, success='value')
     se.change_type_of_d_index(tuple)
@@ -111,30 +111,30 @@ def compute_shapley_values_from_unit_valued_sequences(sequences, normalize=False
 
 
 def _normalize_dict_values(d):
-    value_sum = float(np.sum(d.values()))
-    return {k: v / value_sum for k, v in d.items()}
+    value_sum = float(np.sum(list(d.values())))
+    return {k: v / value_sum for k, v in list(d.items())}
 
 
 def all_proper_subsets_iterator(superset):
     return itertools.chain(
-        *itertools.imap(lambda subset_size: itertools.combinations(superset, subset_size),
-                        range(1, len(superset))))
+        *map(lambda subset_size: itertools.combinations(superset, subset_size),
+                        list(range(1, len(superset)))))
 
 
 def all_subsets_or_eq_iterator(superset):
     return itertools.chain(
-        *itertools.imap(lambda subset_size: itertools.combinations(superset, subset_size),
-                        range(1, len(superset) + 1)))
+        *map(lambda subset_size: itertools.combinations(superset, subset_size),
+                        list(range(1, len(superset) + 1))))
 
 
 def all_superset_iterator(subset, universe_set):
     subset = set(subset)
     remaining_set = set(universe_set).difference(subset)
-    return itertools.imap(lambda x: tuple(subset.union(x)), all_subsets_or_eq_iterator(remaining_set))
+    return map(lambda x: tuple(subset.union(x)), all_subsets_or_eq_iterator(remaining_set))
 
 
 def _universe_set_of_keys_of_dict(d):
-    return set(itertools.chain(*d.keys()))
+    return set(itertools.chain(*list(d.keys())))
 
 
 def _complete_missing_coalitions_with_zero_valued_coalitions_in_place(coalition_values, universe_set=None):
@@ -142,10 +142,10 @@ def _complete_missing_coalitions_with_zero_valued_coalitions_in_place(coalition_
     complete coalition_contributions with missing combinations (assigning 0.0 to them)
     """
     if universe_set is None:
-        universe_set = set(itertools.chain(*coalition_values.keys()))
+        universe_set = set(itertools.chain(*list(coalition_values.keys())))
     superset = ShapleyDataModel.coalition_of(list(universe_set))
     coalition_values[superset] = coalition_values.get(superset, 0.0)
-    for subset in itertools.imap(_coalition_of, all_proper_subsets_iterator(universe_set)):
+    for subset in map(_coalition_of, all_proper_subsets_iterator(universe_set)):
         coalition_values[subset] = coalition_values.get(subset, 0.0)
 
 
@@ -204,7 +204,7 @@ class ShapleyDataModel(object):
         Updates the self.coalition_obs with the input dict of {coalition: obs_value}
         """
         try:
-            for coalition, value in coalition_obs_data.iteritems():
+            for coalition, value in coalition_obs_data.items():
                 self.absorb_coalition_and_value(coalition, value)
         except AttributeError:
             try:
@@ -241,7 +241,7 @@ class ShapleyDataModel(object):
 
         universe_set = set(self.mk_item_list(coalition_obs=coalition_obs))
 
-        for coalition, count in coalition_obs.iteritems():  # for every coalition
+        for coalition, count in coalition_obs.items():  # for every coalition
             # ... get all non-empty strict subsets of this coalition, and assign the mother coalition count
             superset_counts = {
                 self.coalition_of(sub_coalition): count
@@ -251,7 +251,7 @@ class ShapleyDataModel(object):
             coalition_contributions.update(superset_counts)
 
             if verbose:
-                print("  after {} contributions:\n     {}".format(coalition, coalition_contributions))
+                print(("  after {} contributions:\n     {}".format(coalition, coalition_contributions)))
 
         # # complete coalition_contributions with missing combinations (assigning 0.0 to them)
         # _complete_missing_coalitions_with_zero_valued_coalitions_in_place(coalition_contributions)
@@ -261,9 +261,9 @@ class ShapleyDataModel(object):
     def coalition_size_map(self):
         if not self._coalition_size_map:
             self._coalition_size_map = defaultdict(dict)
-            for coalition, count in self.coalition_obs.iteritems():
+            for coalition, count in self.coalition_obs.items():
                 self._coalition_size_map[len(coalition)].update({coalition: count})
-        self._coalition_size_map = OrderedDict(sorted(self._coalition_size_map.items(), key=lambda t: t[0]))
+        self._coalition_size_map = OrderedDict(sorted(list(self._coalition_size_map.items()), key=lambda t: t[0]))
         return self._coalition_size_map
 
     def mk_poset(self):
@@ -275,7 +275,7 @@ class ShapleyDataModel(object):
     def mk_item_list(self, coalition_obs=None):
         if coalition_obs is None:
             coalition_obs = self.coalition_obs
-        item_list = unique(concatenate(coalition_obs.keys()))
+        item_list = unique(concatenate(list(coalition_obs.keys())))
         self.item_list = item_list
         return item_list
 
@@ -318,7 +318,7 @@ class LinearValuedCoalitionGenerator(object):
         return sum([self.shapley_values[item] for item in coalition])
 
     def rand_coalition(self):
-        return self.coalition_of(rnd.sample(self.shapley_values.keys(), rnd.randint(1, len(self.shapley_values))))
+        return self.coalition_of(rnd.sample(list(self.shapley_values.keys()), rnd.randint(1, len(self.shapley_values))))
 
     def rand_coalition_obs(self):
         coalition = self.rand_coalition()
@@ -333,7 +333,7 @@ class LinearValuedCoalitionGenerator(object):
 
     def coalition_values(self):
         return {self.coalition_of(coalition): self.coalition_value(coalition)
-                for coalition in all_subsets_of(self.shapley_values.keys(), include_empty_set=False)}
+                for coalition in all_subsets_of(list(self.shapley_values.keys()), include_empty_set=False)}
 
 
 

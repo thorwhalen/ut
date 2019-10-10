@@ -67,7 +67,7 @@ def mk_arg_val_dict_from_sys_argv(sys_argv,
 
 
 def to_bool(x):
-    if isinstance(x, basestring):
+    if isinstance(x, str):
         if x.lower() == 'true':
             return True
         elif x.lower() == 'false':
@@ -95,16 +95,16 @@ def print_info(x, max_depth=30, print_contents=False, depth=0, tab=''):
     if depth <= max_depth:
         class_info = x.__class__
         if hasattr(x,'__name__'):
-            print "%s%s %s" % (tab+'  ', x.__name__, type.mro(class_info)[0])
+            print("%s%s %s" % (tab+'  ', x.__name__, type.mro(class_info)[0]))
         else:
-            print "%s%s" % (tab+'  ',type.mro(class_info)[0])
+            print("%s%s" % (tab+'  ',type.mro(class_info)[0]))
         new_depth = depth + 1
         if hasattr(x, '__dict__'):
             dict_info = x.__dict__
             if dict_info:
                 tab = tab + '    '
-                for k,v in dict_info.items():
-                    print tab + '.' + k + ":"
+                for k,v in list(dict_info.items()):
+                    print(tab + '.' + k + ":")
                     # print "%s%s: %s" (tab, k, v.__class__)
                     print_info(v, max_depth=max_depth, print_contents=print_contents, depth=new_depth, tab=tab)
         if hasattr(x, '__self__'):
@@ -112,12 +112,12 @@ def print_info(x, max_depth=30, print_contents=False, depth=0, tab=''):
         if print_contents:
             contents_to_print = []
             if isinstance(x, dict):
-                contents_to_print = x.keys()
+                contents_to_print = list(x.keys())
             elif isinstance(x, list):
                 contents_to_print = x
             if contents_to_print:
                 contents_to_print = contents_to_print[:min(5,len(contents_to_print))]
-                print tab + str(contents_to_print)
+                print(tab + str(contents_to_print))
 
 
 def is_an_iter(x):
@@ -138,7 +138,7 @@ def my_to_list(x):
     Use: This is useful when a function expects a list, but you want to also input a single element without putting this
     this element in a list
     """
-    print "util.var.my_to_list() DEPRECIATED!!!: use util.ulist.ascertain_list() instead!!!"
+    print("util.var.my_to_list() DEPRECIATED!!!: use util.ulist.ascertain_list() instead!!!")
     if not isinstance(x,list):
         if is_an_iter(x):
             x = list(x)

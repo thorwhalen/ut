@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import os
 from glob import glob
@@ -74,10 +74,10 @@ class FilesAccess(object):
 
     def filepath_list(self, file_pattern=None):
         if file_pattern is None:
-            return filter(self.file_pattern.match, self.fs.listdir(self.root))
+            return list(filter(self.file_pattern.match, self.fs.listdir(self.root)))
         else:
             file_pattern = re.compile(file_pattern)
-            return filter(file_pattern.match, self.fs.listdir(self.root))
+            return list(filter(file_pattern.match, self.fs.listdir(self.root)))
 
     # TODO: if the import script is run on a directory that has 'can' subdirectory, causes problems
     def folderpath(self, foldername):

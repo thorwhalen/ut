@@ -17,7 +17,7 @@ def find_closest_geo_locations(latlons, geo_location_latlons, n_neighbors=1, ear
     if earth_radius:
         distances = distances * earth_radius
     if max_radius:
-        distances, indices = zip(*map(_radius_filter, distances, indices, [max_radius]*len(distances)))
+        distances, indices = list(zip(*list(map(_radius_filter, distances, indices, [max_radius]*len(distances)))))
     return distances, indices
 
 
@@ -28,8 +28,8 @@ def _radius_filter(distances, indices, max_radius):
 
 def keep_only_distances_and_indices_within_radius(max_radius, distances, indices):
     lidx = distances < max_radius
-    distances = map(lambda x, y: x[y], distances, lidx)
-    indices = map(lambda x, y: x[y], indices, lidx)
+    distances = list(map(lambda x, y: x[y], distances, lidx))
+    indices = list(map(lambda x, y: x[y], indices, lidx))
     return (distances, indices)
 
 

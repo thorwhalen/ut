@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from sklearn.model_selection import BaseCrossValidator
 from collections import defaultdict
@@ -30,7 +30,7 @@ class SupervisedLeaveOneOut(BaseCrossValidator):
         """Generates integer indices corresponding to test sets."""
         self._mk_attrs(X=X, y=y, groups=groups)
 
-        for yy, idx in self.y_idx_.iteritems():
+        for yy, idx in self.y_idx_.items():
             yy_idx = choice(idx, self.n_to_choose_from_y_[yy], replace=False)
             for this_yy_idx in yy_idx:
                 yield this_yy_idx
@@ -47,9 +47,9 @@ class SupervisedLeaveOneOut(BaseCrossValidator):
 
     def _mk_attrs(self, X=None, y=None, groups=None):
         self.y_idx_ = defaultdict(list)
-        map(lambda i, y_item: self.y_idx_[y_item].append(i), *zip(*enumerate(y)));
-        self.y_count_ = {k: len(v) for k, v in self.y_idx_.iteritems()}
-        weights = self.y_count_.values()
+        list(map(lambda i, y_item: self.y_idx_[y_item].append(i), *list(zip(*enumerate(y)))));
+        self.y_count_ = {k: len(v) for k, v in self.y_idx_.items()}
+        weights = list(self.y_count_.values())
         self.min_n_samples_per_unik_y = min(min(weights), self.min_n_samples_per_unik_y)
 
         self.n_unik_ys_ = len(weights)
@@ -61,4 +61,4 @@ class SupervisedLeaveOneOut(BaseCrossValidator):
             _choose_distribution_according_to_weights(array(weights) - self.min_n_samples_per_unik_y,
                                                       self.n_splits - self.min_n_samples_per_unik_y * self.n_unik_ys_) \
             + self.min_n_samples_per_unik_y * ones(self.n_unik_ys_)
-        self.n_to_choose_from_y_ = {k: int(v) for k, v in zip(self.y_count_.keys(), n_to_choose_from_each_unique_y)}
+        self.n_to_choose_from_y_ = {k: int(v) for k, v in zip(list(self.y_count_.keys()), n_to_choose_from_each_unique_y)}

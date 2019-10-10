@@ -51,7 +51,7 @@ futures==3.0.5
 gevent==1.1.2
 gitdb2==2.0.0
 GitPython==2.1.0
-graphkit==1.2.4
+graphkit==1.0.3
 greenlet==0.4.10
 grin==1.2.1
 h5py==2.6.0

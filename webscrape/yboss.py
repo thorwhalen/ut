@@ -65,7 +65,9 @@ class YbossText(object):
         # return html2text_formated.html2text(text).replace('**', '')
 
 
-import functional
+def compose(f, g):
+    return lambda *a, **kw: f(g(*a, **kw))
+
 from ut.semantics.text_processors import TermReplacer
 from oto.data_access.default_data_access_params import DefaultDataAccessParams
 # from ut.semantics.termstats import TermStats
@@ -79,12 +81,12 @@ class YbossSemantics(object):
             'yb_to_tc': self.tc_flat_from_yb,
             'yboss_kwargs': dict()
         }, **kwargs)
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             setattr(self, k, v)
         for w in self.key_terms:
             self.term_map = dict(self.term_map, **{w: '_' + w.replace(' ', '_')})
-        self.key_terms_ts = TermStats.from_terms(self.term_map.values())
-        self.text_preprocess = functional.compose(
+        self.key_terms_ts = TermStats.from_terms(list(self.term_map.values()))
+        self.text_preprocess = compose(
             TermReplacer(self.term_map, term_padding_exp=r'\b').replace_terms, YbossText.toascii_lower)
         self.yb = Yboss(**self.yboss_kwargs)
         delattr(self, 'yboss_kwargs')
@@ -96,7 +98,7 @@ class YbossSemantics(object):
         return TermStats.from_html(html, text_preprocess=self.text_preprocess)
 
     def ss_key_term_kernel(self, tc):
-        if isinstance(tc, basestring):
+        if isinstance(tc, str):
             tc = TermStats.from_html(tc, text_preprocess=self.text_preprocess)
         return self.key_terms_ts.dot(tc.normalize())
 
@@ -121,13 +123,13 @@ class YbossSemantics(object):
     #         d['term_info']['']
 
     def cos_of_terms(self, term1, term2):
-        if isinstance(term1, basestring):
+        if isinstance(term1, str):
             term1 = self.yb.slurp_content_as_dict(term1, service='limitedweb')['bossresponse']['limitedweb']
         if isinstance(term1, dict):
             term1 = self.yb.content_to_results_df(term1)
         if not isinstance(term1, TermStats):
             term1 = self.tc_flat_from_yb(term1)
-        if isinstance(term2, basestring):
+        if isinstance(term2, str):
             term2 = self.yb.slurp_content_as_dict(term2, service='limitedweb')['bossresponse']['limitedweb']
         if isinstance(term2, dict):
             term2 = self.yb.content_to_results_df(term2)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, absolute_import, unicode_literals
+
 
 __all__ = ["corner", "hist2d", "error_ellipse"]
 __version__ = "0.1.1"

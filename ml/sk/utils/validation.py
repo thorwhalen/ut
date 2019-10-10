@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from numpy import reshape, ones, allclose, tile, random, vstack, array, isnan, all, any
 import re
@@ -99,14 +99,14 @@ def compare_model_attributes(model_1, model_2, exclude_attr=None, only_attr=None
     or an "all fitted attributes were close" message if all was good.
     """
     if only_attr is not None:
-        if isinstance(only_attr, basestring):
+        if isinstance(only_attr, str):
             only_attr = [only_attr]
         model_attributes_to_check = only_attr
     else:
         model_attributes_to_check = \
-            {attr for attr in model_1.__dict__.keys() if attr.endswith('_') and attr in model_2.__dict__}
+            {attr for attr in list(model_1.__dict__.keys()) if attr.endswith('_') and attr in model_2.__dict__}
     if exclude_attr is not None:
-        if isinstance(exclude_attr, basestring):
+        if isinstance(exclude_attr, str):
             exclude_attr = [exclude_attr]
         model_attributes_to_check = {attr for attr in model_attributes_to_check if attr not in exclude_attr}
 
@@ -118,10 +118,10 @@ def compare_model_attributes(model_1, model_2, exclude_attr=None, only_attr=None
         except AssertionError as e:
             not_close_attribs.append(attr)
     if len(not_close_attribs) > 0:
-        print(msg_prefix + "Fitted attributes whose values weren't close enough:")
-        print("  " + "\n  ".join(not_close_attribs))
+        print((msg_prefix + "Fitted attributes whose values weren't close enough:"))
+        print(("  " + "\n  ".join(not_close_attribs)))
     else:
-        print(msg_prefix + "all fitted attributes were close")
+        print((msg_prefix + "all fitted attributes were close"))
 
 
 def repeat_rows(X, row_repetition=None):
@@ -139,5 +139,4 @@ def repeat_rows(X, row_repetition=None):
     if row_repetition is None:
         row_repetition = random.rand(1, 5, len(X))
     row_repetition = array(row_repetition).astype(int)
-    return vstack(map(lambda row_and_weight: tile(row_and_weight[0], (row_and_weight[1], 1)),
-                      zip(X, row_repetition)))
+    return vstack([tile(row_and_weight[0], (row_and_weight[1], 1)) for row_and_weight in zip(X, row_repetition)])

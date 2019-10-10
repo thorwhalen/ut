@@ -1,7 +1,7 @@
 
 __author__ = 'mattjmorris'
 
-from dynamo import Dynamo
+from .dynamo import Dynamo
 from boto.dynamodb2.table import Table
 
 class DDBKids(Dynamo):

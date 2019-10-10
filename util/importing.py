@@ -14,7 +14,7 @@ def get_environment_variable(var, ignore=True):
             warn(RuntimeWarning("You don't have the environment variable {}. Ignoring...".format(var)))
             return "You don't have the environment variable {}".format(var)
         else:
-            raise(RuntimeError("You don't have the environment variable {}.".format(var)))
+            raise RuntimeError
 
 
 def module_import_from_string(import_path_string, params_file):

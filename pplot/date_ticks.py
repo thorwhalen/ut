@@ -1,6 +1,3 @@
-from __future__ import division
-
-from matplotlib.pylab import gca
 import numpy as np
 from datetime import datetime as dt
 
@@ -44,7 +41,7 @@ strftime_format_for_unit = {
 
 
 def utc_datetime_from_val_and_unit(val, unit):
-    if isinstance(unit, basestring):
+    if isinstance(unit, str):
         unit = unit_str_to_unit_in_seconds[unit]
     return dt.utcfromtimestamp(val * unit)
 
@@ -62,7 +59,7 @@ def largest_unit_that_changes_at_every_tick(ticks, ticks_unit):
     :return:
     """
     ticks = np.array(ticks)
-    if isinstance(ticks_unit, basestring):
+    if isinstance(ticks_unit, str):
         ticks_unit = unit_str_to_unit_in_seconds[ticks_unit]
     min_tick_diff = min(np.diff(ticks))
     min_tick_diff *= ticks_unit  # convert to seconds
@@ -116,25 +113,18 @@ def strftime_with_precision(tick, format, sub_secs_precision=2):
 
 def str_ticks(ticks, ticks_unit, sub_secs_precision=2):
     t_format = strftime_format_for_ticks(ticks, ticks_unit)
-    return map(
-        lambda x: strftime_with_precision(
-            utc_datetime_from_val_and_unit(x, ticks_unit), t_format, sub_secs_precision),
-        ticks)
+    return [strftime_with_precision(utc_datetime_from_val_and_unit(x, ticks_unit), t_format, sub_secs_precision) for x
+            in ticks]
 
 
-def format_ticks_as_time(ticks_unit, axis='x', ax=None, sub_secs_precision=2,
-                         fontdict=None, minor=False, **kwargs):
+def use_time_ticks(ax=None, ticks_unit=0.001):
+    from matplotlib.pylab import gca
     if ax is None:
         ax = gca()
-    if axis == 'y':
-        tick_vals = ax.get_yticks()
-    else:
-        tick_vals = ax.get_xticks()
-    tick_labels = str_ticks(tick_vals, ticks_unit, sub_secs_precision=sub_secs_precision)
-    if axis == 'y':
-        ax.set_yticklabels(tick_labels, fontdict=fontdict, minor=minor, **kwargs)
-    else:
-        ax.set_xticklabels(tick_labels, fontdict=fontdict, minor=minor, **kwargs)
+    _xticks = ax.get_xticks()
+    ax.set_xticks(_xticks)
+    ax.set_xticklabels(str_ticks(ticks=_xticks, ticks_unit=ticks_unit))
+    ax.margins(x=0)
 
 
 def unit_aligned_ticks(ticks, ticks_unit):

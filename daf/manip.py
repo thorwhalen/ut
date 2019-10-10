@@ -23,7 +23,7 @@ def digitize_and_group(df, digit_cols=None, digit_agg_fun='mean', agg_fun='mean'
     mapping = {k: df[[k]].groupby(t[k]).agg(digit_agg_fun) for k in t.columns}
     return mapping
 
-    return df.groupby(t.to_dict(outtype='list').values()).agg(agg_fun)
+    return df.groupby(list(t.to_dict(outtype='list').values())).agg(agg_fun)
 
 
 def digitize(df, bins=2, index='both int and mapping', **kwargs):
@@ -37,7 +37,7 @@ def digitize(df, bins=2, index='both int and mapping', **kwargs):
     kwargs['right'] = kwargs.get('right', False)
     digit_map = _mk_bins_spec(df, bins)
     d = dict()
-    for c in digit_map.keys():
+    for c in list(digit_map.keys()):
         try:
             d[c] = np.digitize(df[c], bins=digit_map[c][1:-1], right=kwargs['right'])
         except Exception:
@@ -45,7 +45,7 @@ def digitize(df, bins=2, index='both int and mapping', **kwargs):
     # if hasattr(index, '__call__'):
     #
     if index == 'by_lower_bin_val':
-        d = {c: [digit_map[c][x] for x in d[c]] for c in d.keys()}
+        d = {c: [digit_map[c][x] for x in d[c]] for c in list(d.keys())}
         return pd.DataFrame(d, index=df.index)
     elif index == 'int':
         return pd.DataFrame(d, index=df.index)
@@ -55,10 +55,10 @@ def digitize(df, bins=2, index='both int and mapping', **kwargs):
 
 def _mk_bins_spec(df, bins):
     if isinstance(bins, dict):
-        return {c: _mk_single_variable_bin_spec(df[c], bins[c]) for c in bins.keys()}
+        return {c: _mk_single_variable_bin_spec(df[c], bins[c]) for c in list(bins.keys())}
     else:
         bin_spec = {c: _mk_single_variable_bin_spec(df[c], bins) for c in df.columns}
-        return {c: v for c, v in bin_spec.iteritems() if v is not None}
+        return {c: v for c, v in bin_spec.items() if v is not None}
 
 
 def _mk_single_variable_bin_spec(sr, bin_spec):
@@ -76,7 +76,7 @@ def _unique_quantiles_bins(x, num_of_quantiles=2):
         return u
     else:
         p = x.quantile(q=np.linspace(0, 1, num=num_of_quantiles))
-        dups = [i for i, j in collections.Counter(p).items() if j > 1]
+        dups = [i for i, j in list(collections.Counter(p).items()) if j > 1]
         if len(dups) > 0:
             num_of_quantiles = num_of_quantiles - len(dups)
             if num_of_quantiles >= 2:
@@ -95,14 +95,14 @@ def _unique_quantiles_bins(x, num_of_quantiles=2):
 def recursive_update(d, u, inplace=True):
     if inplace:
         if u:
-            for k, v in u.items():
+            for k, v in list(u.items()):
                 if isinstance(v, collections.Mapping):
                     recursive_update(d.get(k, {}), v, inplace=True)
                 else:
                     d[k] = u[k]
     else:
         if u:
-            for k, v in u.items():
+            for k, v in list(u.items()):
                 if isinstance(v, collections.Mapping):
                     r = recursive_update(d.get(k, {}), v, inplace=False)
                     d[k] = r
@@ -157,7 +157,7 @@ def gather_col_values(df,
         df[gathered_col_name] = [list(x[1:]) for x in df[cols_to_gather].itertuples()]
     else:
         df[gathered_col_name] = \
-            map(lambda x: [xx for xx in x if xx], [list(x[1:]) for x in df[cols_to_gather].itertuples()])
+            [[xx for xx in x if xx] for x in [list(x[1:]) for x in df[cols_to_gather].itertuples()]]
     if keep_cols_that_were_gathered==False:
         df = df[colloc.setdiff(df.columns, cols_to_gather)]
     return df
@@ -169,7 +169,7 @@ def rollin_col(df, col_to_rollin):
     Groups by those columns that are not in col_to_rollin and gathers the values of col_to_rollin in a list.
     """
     # cols = df.columns
-    if isinstance(col_to_rollin, basestring):
+    if isinstance(col_to_rollin, str):
         grouby_cols = list(set(df.columns) - {col_to_rollin})
     else:
         grouby_cols = list(set(df.columns) - set(col_to_rollin))
@@ -216,7 +216,7 @@ def rollout_cols(df, cols_to_rollout=None):
     # all cols_to_rollout have the same list lengths
     rollout_lengths = np.array(df[cols_to_rollout[0]].apply(len))
     # create a rollout_df dataframe (this will be the output)
-    rollout_df = pd.DataFrame(range(np.sum(rollout_lengths)))  # TODO: I CANNOT F**ING BELIEVE I'M DOING THIS!!! But found no other way to make a dataframe empty, and then construct it on the fly!
+    rollout_df = pd.DataFrame(list(range(np.sum(rollout_lengths))))  # TODO: I CANNOT F**ING BELIEVE I'M DOING THIS!!! But found no other way to make a dataframe empty, and then construct it on the fly!
     # rollout cols_to_rollout
     for c in cols_to_rollout:
         rollout_df[c] = np.concatenate(list(df[c]))
@@ -249,7 +249,7 @@ def rollout_cols_alt(d, key):
 
 
 def extract_dict_col(df, col_to_extract):
-    d = map(lambda x: pd.DataFrame([x]), df[col_to_extract])
+    d = [pd.DataFrame([x]) for x in df[col_to_extract]]
     return rm_cols_if_present(pd.concat([df, pd.concat(d, axis=0).reset_index(drop=True)], axis=1), col_to_extract)
 
     # accum_df = pd.DataFrame(columns=df.columns)
@@ -273,7 +273,7 @@ def reorder_columns_as(df, col_order, inplace=False):
     if not inplace:
         return df[col_order]
     else:
-        col_idx_map = dict(zip(col_order, range(len(col_order))))
+        col_idx_map = dict(list(zip(col_order, list(range(len(col_order))))))
         col_idx = [col_idx_map[c] for c in df.columns]
         df.columns = col_idx
         df.sort_index(axis=1, inplace=True)
@@ -294,7 +294,7 @@ def flatten_hierarchical_columns(df, sep='_'):
     returns the same dataframe with hierarchical columns flattened to names obtained
     by concatinating the hierarchical names together, using sep as a seperator
     """
-    df.columns = map(str.strip, map(sep.join, df.columns.values))
+    df.columns = list(map(str.strip, list(map(sep.join, df.columns.values))))
     return df
 
 
@@ -303,12 +303,12 @@ def flatten_hierarchical_rows(df, sep='_'):
     returns the same dataframe with hierarchical rows flattened to names obtained
     by concatinating the hierarchical names together, using sep as a seperator
     """
-    df.index = map(str.strip, map(sep.join, df.index.values))
+    df.index = list(map(str.strip, list(map(sep.join, df.index.values))))
     return df
 
 
 def index_with_range(df):
-    return df.reindex(index=range(len(df)))
+    return df.reindex(index=list(range(len(df))))
 
 
 def lower_series(sr):

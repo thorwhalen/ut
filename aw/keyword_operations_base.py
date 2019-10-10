@@ -68,7 +68,7 @@ class KeywordOperationsBase(object):
         job_ids = job_ids or self.job_ids_completed
         jr = JobResults(adwords_connection=self.conn, job_ids=job_ids, logging_level=logging.ERROR)
         errors_by_job = jr.get_errors()
-        for job_id in errors_by_job.keys():
+        for job_id in list(errors_by_job.keys()):
             locations = [t[0] for t in errors_by_job[job_id]]
             errors = [t[1] for t in errors_by_job[job_id]]
             df = self.store['jobs/_' + job_id.replace('-', 'N')]
@@ -76,4 +76,4 @@ class KeywordOperationsBase(object):
             error_df['error']=errors
             self.store.put('failed_jobs/_' + job_id.replace('-', 'N'), error_df)
         # return all of the job_ids that had errors
-        return errors_by_job.keys()
+        return list(errors_by_job.keys())
