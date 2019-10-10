@@ -40,7 +40,6 @@ class YbossText(object):
             else:
                 raise NotImplementedError("Didn't implement this case yet")
 
-
     ########################################################################################
     ########### TEXT PROCESSING ############################################################
 
@@ -68,8 +67,11 @@ class YbossText(object):
 def compose(f, g):
     return lambda *a, **kw: f(g(*a, **kw))
 
+
 from ut.semantics.text_processors import TermReplacer
 from oto.data_access.default_data_access_params import DefaultDataAccessParams
+
+
 # from ut.semantics.termstats import TermStats
 
 
@@ -141,15 +143,17 @@ class YbossSemantics(object):
         N = 2210000000  # took that to be the number of results for "the", but should be total number of pages indexed
         # http://arxiv.org/pdf/cs/0412098.pdf
         term1_total_results = np.log(
-            int(self.yb.slurp_content_as_dict(term1, service='limitedweb')['bossresponse']['limitedweb']['totalresults']))
+            int(self.yb.slurp_content_as_dict(term1, service='limitedweb')['bossresponse']['limitedweb'][
+                    'totalresults']))
         term2_total_results = np.log(
-            int(self.yb.slurp_content_as_dict(term2, service='limitedweb')['bossresponse']['limitedweb']['totalresults']))
+            int(self.yb.slurp_content_as_dict(term2, service='limitedweb')['bossresponse']['limitedweb'][
+                    'totalresults']))
         term1_term2_total_total_results = np.log(
             int(self.yb.slurp_content_as_dict(term1 + ' ' + term2, service='limitedweb')
-        ['bossresponse']['limitedweb']['totalresults']))
+                ['bossresponse']['limitedweb']['totalresults']))
         term2_term1_total_total_results = np.log(
             int(self.yb.slurp_content_as_dict(term2 + ' ' + term1, service='limitedweb')
-        ['bossresponse']['limitedweb']['totalresults']))
+                ['bossresponse']['limitedweb']['totalresults']))
         min_log = np.min([term1_total_results, term2_total_results])
         max_log = np.min([term1_total_results, term2_total_results])
         t12 = (max_log - term1_term2_total_total_results) / (np.log(N) - min_log)
