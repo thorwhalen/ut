@@ -7,6 +7,76 @@ import functools
 
 __author__ = 'thor'
 
+from contextlib import contextmanager
+
+
+@contextmanager
+def make_sure_to_close(closeable_obj, close_method='close'):
+    """Make an ad hoc context manager for the given object.
+
+    Args:
+        closeable_obj: An object that has a close method
+        close_method: The name of the close method (if different from 'close', the default)
+
+    Returns: The very same object, but now, it's "registered" as a context manager that will call 'close()'
+    (or another wrap up method, if you specify it)
+
+    *Motivation*: Made this because I always forget the art and science of opening and closing resources,
+    especially when dealing with various exceptions etc.
+
+    *Solution*: Context managers (you've seen them: it's with you do `with SOME_RESOURCE as resource: ...`)
+    take care of this.
+
+    *Problem*: Sometimes you're using 3rd party code that is not using context managers where (in my opinion)
+    they should.
+
+    *Final Solution*: Make a context manager on the fly.
+
+    *Example*: Before (and often fickle to manage exceptions and wrap up)
+    ```window = Window(...)  # this actually creates the window and opens it (no explicit open() here,
+    but you need to close() when you're done anyway)
+    # do stuff with window (involving some try/except/finally that makes sure to pass on to window.close() eventually).
+    window.close()```
+
+    With the `make_sure_to_close` function:
+
+    ```with make_sure_to_close(Window(...)) as window:
+        # do stuff with window (without having to think of close())```
+
+    The doctest below uses the builtin `open` to demonstrate/test. Of course, in most cases, you won't need
+    make_sure_to_close for open, since it already returns a context manager. One case you may want to use it is
+    if you're writing a function that takes a file pointer, and needs to close it when it's finish with it's work
+    (or if an exception occurs).
+
+    >>> from tempfile import mktemp
+    >>>
+    >>> temp_filepath = mktemp()
+    >>> fp = open(temp_filepath, 'w')
+    >>> fp.write('this is just a test');
+    19
+    >>> assert not fp.closed  # file is still open
+    >>> fp.close()
+    >>> assert fp.closed  # but now file is closed
+    >>> temp_filepath = mktemp()
+    >>> fp = open(temp_filepath, 'w')
+    >>> with make_sure_to_close(fp) as _fp:
+    ...     _fp.write('this is another test')
+    20
+    >>> assert _fp.closed  # _fp is indeed closed
+    >>> assert fp.closed  # and so is fp (because really, they are pointing to the same thing)
+    >>> # This is just to show that you didn't even really need an _fp and a fp (you can just reuse the fp name)
+    ... temp_filepath = mktemp()
+    >>> fp = open(temp_filepath, 'w')
+    >>> with make_sure_to_close(fp) as fp:
+    ...     fp.write('this is yet another test')
+    24
+    >>> assert fp.closed
+    """
+    try:
+        yield closeable_obj
+    finally:
+        getattr(closeable_obj, close_method)()
+
 
 def decorate_all_methods(decorator, exclude=(), include=()):
     def decorate(obj):
