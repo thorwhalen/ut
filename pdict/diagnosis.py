@@ -4,6 +4,19 @@ import pprint
 import numpy as np
 import pandas as pd
 import json
+from ut.pdict.get import iter_key_path_items
+
+
+def print_key_paths(d):
+    print('\n'.join(k for k, _ in iter_key_path_items(d)))
+
+
+def print_key_paths_and_val_peep(d, n_characters_in_val_peep=15):
+    if n_characters_in_val_peep is not None:
+        print('\n'.join(f"{k}: " + f"{v}..."[:n_characters_in_val_peep] for k, v in iter_key_path_items(d)))
+    else:
+        print('\n'.join(f"{k}: " + f"{v}" for k, v in iter_key_path_items(d)))
+
 
 base_validation_funs = {
     "be a": isinstance,
@@ -16,11 +29,11 @@ base_validation_funs = {
 
 
 def validate_kwargs(kwargs_to_validate,
-                     validation_dict,
-                     validation_funs=base_validation_funs,
-                     all_kwargs_should_be_in_validation_dict=False,
-                     ignore_misunderstood_validation_instructions=False
-                     ):
+                    validation_dict,
+                    validation_funs=base_validation_funs,
+                    all_kwargs_should_be_in_validation_dict=False,
+                    ignore_misunderstood_validation_instructions=False
+                    ):
     """
     Utility to validate a dict. It's main use is to validate function arguments (expressing the validation checks
     in validation_dict) by doing validate_kwargs(locals()), usually in the beginning of the function
