@@ -60,7 +60,7 @@ def x_to_pil_image(x, **kwargs):
 
 
 def write_images(images, fp='test.pdf', pil_write_format=None, to_pil_image_kwargs=None, **pil_save_kwargs):
-    """Write images into pdf pages (one image per page)
+    """Write images or figs into pdf pages (one image per page)
 
     Args:
         images: iterable of "images" (should be a matplotlib figure, a PIL.Image,
