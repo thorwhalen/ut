@@ -28,10 +28,10 @@ from ut.daf.diagnosis import diag_df, pr_numof
 
 import ut.pplot.distrib
 
-import ut.dacc.mong.agg
-import ut.dacc.mong.com
-import ut.dacc.mong.queries
-import ut.dacc.mong.util
+# import ut.dacc.mong.agg
+# import ut.dacc.mong.com
+# import ut.dacc.mong.queries
+# import ut.dacc.mong.util
 
 import ut.pdict.get
 import ut.pdict.manip
@@ -40,5 +40,9 @@ from collections import Counter, defaultdict
 import itertools
 
 from ut.pplot.matrix import heatmap
+from ut.pplot.my import vlines
+from ut.pplot.misc import pplot
 
 import matplotlib.pylab as plt
+
+pjoin = os.path.join  # alias for os.path.join
