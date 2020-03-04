@@ -1,4 +1,3 @@
-
 import itertools
 
 # Some of these recipes were taken from
@@ -29,36 +28,57 @@ def running_mean(it, chk_size=2, chk_step=1):  # TODO: A version of this with ch
     :param it: iterable
     :param chk_size: width of the window to take means from
     :return:
+
+    >>> list(running_mean([1, 3, 5, 7, 9], 2))
+    [2.0, 4.0, 6.0, 8.0]
+    >>> list(running_mean([1, 3, 5, 7, 9], 2, chk_step=2))
+    [2.0, 6.0]
+    >>> list(running_mean([1, 3, 5, 7, 9], 2, chk_step=3))
+    [2.0, 8.0]
+    >>> list(running_mean([1, 3, 5, 7, 9], 3))
+    [3.0, 5.0, 7.0]
+    >>> list(running_mean([1, -1, 1, -1], 2))
+    [0.0, 0.0, 0.0]
+    >>> list(running_mean([-1, -2, -3, -4], 3))
+    [-2.0, -3.0]
     """
-    it = iter(it)
-    if chk_size > 1:
-        c = 0
-        fifo = deque([], maxlen=chk_size)
-        for i, x in enumerate(it, 1):
-            fifo.append(x)
-            c += x
-            if i >= chk_size:
-                break
 
-        yield c / chk_size
-
-        if chk_step == 1:
-            for x in it:
-                c += x - fifo[0]  # NOTE: seems faster than fifo.popleft
-                fifo.append(x)
-                yield c / chk_size
-        else:
-            raise NotImplementedError("Not yet implemented (correctly)")
-            for chk in chunker(it, chk_size=chk_size, chk_step=chk_step, return_tail=False):
-                print(chk)
-                for x in chk:
-                    c += x - fifo.popleft()
-                fifo.extend(chk)
-                yield c / chk_size
-
+    if chk_step > 1:
+        # TODO: perhaps there's a more efficient way. A way that would sum the values of every step and add them in bulk
+        yield from itertools.islice(running_mean(it, chk_size), None, None, chk_step)
     else:
-        for x in it:
-            yield x
+        it = iter(it)
+        if chk_size > 1:
+
+            c = 0
+            fifo = deque([], maxlen=chk_size)
+            for i, x in enumerate(it, 1):
+                fifo.append(x)
+                c += x
+                if i >= chk_size:
+                    break
+
+            yield c / chk_size
+
+            if chk_step == 1:
+                for x in it:
+                    c += x - fifo[0]  # NOTE: seems faster than fifo.popleft
+                    fifo.append(x)
+                    yield c / chk_size
+            else:
+                raise RuntimeError("This should really never happen, by design.")
+                # Below was an attempt at a faster solution than using the islice as is done above.
+                # raise NotImplementedError("Not yet implemented (correctly)")
+                # for chk in chunker(it, chk_size=chk_size, chk_step=chk_step, return_tail=False):
+                #     print(chk)
+                #     for x in chk:
+                #         c += x - fifo.popleft()
+                #     fifo.extend(chk)
+                #     yield c / chk_size
+
+        else:
+            for x in it:
+                yield x
 
 
 def _inefficient_indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
@@ -912,7 +932,7 @@ def print_iter_progress(iterator,
                     print((print_template.format(hour=t.hour, minute=t.minute, second=t.second, iteration=i)))
                 else:
                     print((print_template.format(hour=t.hour, minute=t.minute, second=t.second, iteration=i,
-                                                data_str=data_to_string(x))))
+                                                 data_str=data_to_string(x))))
             yield x
 
 
