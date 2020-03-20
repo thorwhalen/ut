@@ -1,12 +1,13 @@
 __author__ = 'thorwhalen'
 
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from itertools import chain
 
 from ut.pdict.get import iter_key_path_items, set_value_in_nested_key_path
 
 ASIS = '_keep_val_as_is'
 DROP = '_drop_key_path_entry'
+
 
 def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
     """
@@ -76,7 +77,6 @@ def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
             if keep_unspecified_key_paths:  # then consider it as a "_keep_key_path"
                 set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
             # else will ignore it (same effect as "ignore_entry"
-
 
     return new_d
 

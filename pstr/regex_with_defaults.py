@@ -31,7 +31,10 @@ def add_dflt(func, dflt_if_none):
         if result is not None:
             return result
         else:
-            return dflt_if_none
+            if callable(dflt_if_none):
+                return dflt_if_none()
+            else:
+                return dflt_if_none
 
     return wrapped_func
 
@@ -43,8 +46,10 @@ def re_compile(pattern, flags=0, **dflt_if_none):
     >>> dflt_result = type('dflt_search_result', (), {'groupdict': lambda x: {}})()
     >>> p = re_compile('.*(?P<president>obama|bush|clinton)', search=dflt_result, match=dflt_result)
     >>>
+    >>> # trying p.search
     >>> p.search('I am beating around the bush, am I?').groupdict().get('president', 'Not found')
     'bush'
+    >>> # trying p.match
     >>> p.match('I am beating around the bush, am I?').groupdict().get('president', 'Not found')
     'bush'
     >>>
