@@ -141,15 +141,21 @@ def ad_group_info_cols(d, grp_keys=None, grp_fun_dict={'grp_size': lambda x: len
 
 
 def get_duplicates(d, dup_cols=None, keep_count=False):
-    dup_cols = dup_cols or d.columns.tolist()
-    t = dup_and_nondup_groups(d, dup_cols)
-    try:
-        t = t.get_group(True)
-        if not keep_count:
-            del t['dup_count']
-        return t
-    except:
-        return pd.DataFrame(columns=d.columns)
+    if isinstance(d, pd.Series):
+        t = pd.DataFrame(d)
+        tt = get_duplicates(t)
+        if len(tt) > 0:
+            return tt[t.columns[0]]
+    else:
+        dup_cols = dup_cols or d.columns.tolist()
+        t = dup_and_nondup_groups(d, dup_cols)
+        try:
+            t = t.get_group(True)
+            if not keep_count:
+                del t['dup_count']
+            return t
+        except:
+            return pd.DataFrame(columns=d.columns)
 
 
 def get_non_duplicates(d, dup_cols=None, keep_count=False):
