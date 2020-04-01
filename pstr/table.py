@@ -1,3 +1,6 @@
+"""
+Utils that related tables to strings.
+"""
 import csv
 from io import StringIO
 
