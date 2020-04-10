@@ -75,7 +75,7 @@ def dict_filt_from_mg_filt(mg_filt):
     return Query(mg_filt).match
 
 
-def iter_key_path_items(d, key_path_prefix=None):
+def iter_key_path_items(d, key_path_prefix=None, path_sep='.'):
     """
     iterate through items of dict recursively, yielding (key_path, val) pairs for all nested values that are not dicts.
     That is, if a value is a dict, it won't generate a yield, but rather, will be iterated through recursively.
@@ -94,22 +94,22 @@ def iter_key_path_items(d, key_path_prefix=None):
     ...     'c': 3
     ... }
     >>> list(iter_key_path_items(input_dict))
-    [('a.a', 'a.a'), ('a.c.a', 'a.c.a'), ('a.b', 'a.b'), ('c', 3), ('b', 'b')]
+    [('a.a', 'a.a'), ('a.b', 'a.b'), ('a.c.a', 'a.c.a'), ('b', 'b'), ('c', 3)]
     """
     if key_path_prefix is None:
         for k, v in d.items():
             if not isinstance(v, dict):
                 yield k, v
             else:
-                for kk, vv in iter_key_path_items(v, k):
+                for kk, vv in iter_key_path_items(v, k, path_sep):
                     yield kk, vv
     else:
         for k, v in d.items():
             if not isinstance(v, dict):
-                yield key_path_prefix + '.' + k, v
+                yield key_path_prefix + path_sep + k, v
             else:
-                for kk, vv in iter_key_path_items(v, k):
-                    yield key_path_prefix + '.' + kk, vv
+                for kk, vv in iter_key_path_items(v, k, path_sep):
+                    yield key_path_prefix + path_sep + kk, vv
 
 
 def extract_key_paths(d, key_paths, field_naming='full', use_default=False, default_val=None):
