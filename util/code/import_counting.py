@@ -53,7 +53,6 @@ def imports_in_module(module):
     return [x for x in t.split('\n') if len(x) > 0]
 
 
-
 def base_modules_used_in_module(module):
     """
     Get a list of strings showing what base modules that are imported in a module.
@@ -98,8 +97,7 @@ def base_module_imports_in_module_recursive(module):
                 c.update(base_module_imports_in_module_recursive(_module))
             except Exception as e:
                 if 'sfood-imports' in e.args[1]:
-                    print("You don't have sfood-imports installed (snakefood), so I can't do my job.")
-                    return None
+                    raise RuntimeError("You don't have sfood-imports installed (snakefood), so I can't do my job")
                 else:
                     print(("Error with module {}: {}".format(_module, e)))
         return c
