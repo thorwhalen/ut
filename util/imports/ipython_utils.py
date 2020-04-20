@@ -1,4 +1,3 @@
-
 __author__ = 'thor'
 
 print('''
@@ -10,11 +9,23 @@ Remember to use these useful utils:
 ''')
 
 import sys
+
 if sys.platform == 'darwin':
     from IPython.display import set_matplotlib_formats
+
     set_matplotlib_formats('retina')
 
 from numpy import *
+from py2store import set_obj, get_obj
+
+from py2store import QuickStore
+from py2store.my.grabbers import grabber_for as _grabber_for
+
+igrab = _grabber_for('ipython')
+
+from py2mint.doc_mint import doctest_string_print, doctest_string
+
+
 import os
 import re
 import pandas as pd
@@ -73,12 +84,12 @@ class PPR(object):
         s = ['{\n']
         for k, v in list(x.items()):
             if isinstance(v, dict):
-                v = cls.format_str(v, tab+cls.indent)
+                v = cls.format_str(v, tab + cls.indent)
             else:
                 v = repr(v)
 
-            s.append('%s%r: %s,\n' % ('  '*tab, k, v))
-        s.append('%s}' % ('  '*tab))
+            s.append('%s%r: %s,\n' % ('  ' * tab, k, v))
+        s.append('%s}' % ('  ' * tab))
         return ''.join(s)
 
 
