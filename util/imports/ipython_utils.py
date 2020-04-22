@@ -2,10 +2,9 @@ __author__ = 'thor'
 
 print('''
 Remember to use these useful utils:
-    pickle_dump, pickle_load
-    print_progress
-    numof_trues
-    ppr
+    igrab, QuickStore, set_obj, get_obj, doctest_string_print
+    heatmap, vlines
+    print_progress, ppr, pickle_dump, pickle_load, numof_trues
 ''')
 
 import sys
@@ -24,7 +23,6 @@ from py2store.my.grabbers import grabber_for as _grabber_for
 igrab = _grabber_for('ipython')
 
 from py2mint.doc_mint import doctest_string_print, doctest_string
-
 
 import os
 import re
@@ -54,6 +52,7 @@ import json
 from ut.util.pstore import pickle_dump, pickle_load
 
 from ut.pplot.matrix import heatmap
+from ut.pplot.my import vlines
 
 
 class PPR(object):
