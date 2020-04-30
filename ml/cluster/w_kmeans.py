@@ -23,7 +23,12 @@ from sklearn.externals.joblib import Parallel
 from sklearn.externals.joblib import delayed
 from sklearn.externals.six import string_types
 
-from sklearn.cluster import _k_means
+import sys
+
+if sys.version_info >= (3, 5):
+    from sklearn.cluster import _k_means_fast as _k_means
+else:
+    from sklearn.cluster import _k_means
 
 
 ###############################################################################
@@ -545,7 +550,6 @@ def _k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=None):
 
 
 #########kmeans with weights###########
-
 
 
 def k_means_with_weights(X, weights, n_clusters, init='kmeans++_with_weights', precompute_distances='auto',
