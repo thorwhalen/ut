@@ -75,3 +75,6 @@ with module_not_found_ignore:
 
 with module_not_found_ignore:
     from ut.sh.py import add_to_pythonpath_if_not_there
+
+with module_not_found_ignore:
+    from ut.util.importing import import_from_dot_string

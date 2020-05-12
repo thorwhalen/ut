@@ -17,7 +17,7 @@ def get_environment_variable(var, ignore=True):
             raise RuntimeError
 
 
-def module_import_from_string(import_path_string, params_file):
+def module_import_from_string(import_path_string, params_file, verbose=False):
     if params_file.endswith('.py'):
         module_dir, params_filename = os.path.split(params_file)
         params_module, module_ext = os.path.splitext(params_filename)
@@ -25,9 +25,8 @@ def module_import_from_string(import_path_string, params_file):
         params_module = params_file
         params_file = params_module + '.py'
 
-    print("")
-    print(params_file)
-    print(params_module)
+    if verbose:
+        print(f"params_file={params_file}, params_module={params_module}")
 
     try:
         p = importlib.import_module(import_path_string + '.' + params_module)
@@ -38,9 +37,6 @@ def module_import_from_string(import_path_string, params_file):
         p = importlib.import_module(params_module)
 
     return p
-
-
-import importlib
 
 
 def import_from_dot_string(dot_string):
