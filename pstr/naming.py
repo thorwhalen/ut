@@ -108,7 +108,7 @@ def process_info_dict_for_example(info_dict):
 
 def example_process_kwargs(**kwargs):
     from datetime import datetime
-    from ut.util.time import second_ms, utcnow_ms
+    from ut.util.utime import second_ms, utcnow_ms
     if 's_ums' in kwargs:
         kwargs['s_ums'] = int(kwargs['s_ums'])
     if 'e_ums' in kwargs:

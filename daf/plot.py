@@ -4,7 +4,7 @@ import numpy as np
 import ut.pplot.hist
 import pandas as pd
 import matplotlib.pylab as plt
-from ut.util.time import utc_ms_to_utc_datetime
+from ut.util.utime import utc_ms_to_utc_datetime
 
 
 def count_hist(sr, sort_by='value', reverse=True, horizontal=None, ratio=False, **kwargs):
