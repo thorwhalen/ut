@@ -6,6 +6,41 @@ from numpy import isnan
 from mongoquery import Query, QueryError
 
 
+class Subdict(dict):
+    """A dict that w
+    >>> d = {'a': 1, 'b': 2, 'c': 3}
+    >>> dd = Subdict(d)
+    >>> dd['a']
+    1
+    >>> dd[['a', 'b']]
+    [1, 2]
+    >>> assert dd[{'b', 'a'}] == {1, 2}
+    >>>
+    >>> dd('a')
+    {'a': 1}
+    >>> dd('a', 'b')
+    {'a': 1, 'b': 2}
+    >>> dd('a', 'b', c=100, d=100)  # get c and d too, and default to 100 if not found
+    {'a': 1, 'b': 2, 'c': 3, 'd': 100}
+
+    """
+
+    def __getitem__(self, k):
+        if isinstance(k, (set, list)):
+            cls = type(k)
+            return cls(super(Subdict, self).__getitem__(kk) for kk in k)
+        else:
+            return super(Subdict, self).__getitem__(k)
+
+    def __call__(self, *args, **kwargs):
+        d = {}
+        for k in args:
+            d[k] = self[k]
+        for k, dflt in kwargs.items():
+            d[k] = self.get(k, dflt)
+        return d
+
+
 def dict_filt_from_mg_filt(mg_filt):
     """
     The final intent is to do what a mongo query does on a collection, but with a dict iterator instead.
