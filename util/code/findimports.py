@@ -1,6 +1,8 @@
 #!/usr/bin/python
 """
-Note: Copied from and edited.
+Note: Copied from https://github.com/mgedmin/findimports and edited.
+
+
 
 FindImports is a script that processes Python module dependencies.  Currently
 it can be used for finding unused imports and graphing module dependencies
@@ -68,24 +70,7 @@ this program; if not, write to the Free Software Foundation, Inc., 675 Mass
 Ave, Cambridge, MA 02139, USA.
 """
 
-from __future__ import print_function
-
-import ast
-import doctest
-import linecache
-import optparse
 import os
-import pickle
-import re
-import sys
-import zipfile
-from operator import attrgetter
-
-__version__ = '1.5.3.dev0'
-__author__ = 'Marius Gedminas <marius@gedmin.as>'
-__licence__ = 'GPL v2 or later'
-__url__ = 'https://github.com/mgedmin/findimports'
-
 from collections import Counter
 from glob import iglob
 from typing import Union, Callable
@@ -147,6 +132,79 @@ def count_imports(rootdir: str,
     :return: A collections.Counter instance
     """
     return Counter(import_obj_func(x) for x in re_find_imports(rootdir, pathfilt))
+
+
+from py2store import Collection, KvReader, lazyprop, wrap_kvs
+
+
+class ModulesColl(Collection):
+    def __init__(self, rootpath):
+        assert isinstance(rootpath, str) and os.path.exists(rootpath)
+        self._rootpath = rootpath
+        self._source = ModuleGraph()
+        self._source.parsePathname(rootpath)
+
+    @lazyprop
+    def _modules(self):
+        return {module: module.modname for module in self._source.listModules()}
+
+    @lazyprop
+    def _modobj_of_modname(self):
+        return {modname: module for module, modname in self._modules.items()}
+
+    def __len__(self):
+        return len(self._modules)
+
+    def __contains__(self, k):
+        return k in self._modules
+
+    def __iter__(self):
+        for module in self._modules:
+            yield module
+
+
+class ModuleImportsBase(KvReader, ModulesColl):
+    @staticmethod
+    def _key_to_val(k):
+        return k.imported_names
+
+    def __getitem__(self, k):
+        return self._key_to_val(k)
+
+
+def modobj_to_modname(self, modobj):
+    return self.store._modules[modobj]
+
+
+def modname_to_modobj(self, modname):
+    return self.store._modobj_of_modname[modname]
+
+
+@wrap_kvs(name='ModuleImports', key_of_id=modobj_to_modname, id_of_key=modname_to_modobj, __module__=__name__)
+class ModuleImports(ModuleImportsBase):
+    @staticmethod
+    def _key_to_val(k):
+        return k.imports
+
+
+# ========================================================================================================
+# ================= The (more or less) original stuff ====================================================
+
+import ast
+import doctest
+import linecache
+import optparse
+import os
+import pickle
+import re
+import sys
+import zipfile
+from operator import attrgetter
+
+__version__ = '1.5.3.dev0'
+__author__ = 'Marius Gedminas <marius@gedmin.as>'
+__licence__ = 'GPL v2 or later'
+__url__ = 'https://github.com/mgedmin/findimports'
 
 
 def adjust_lineno(filename, lineno, name):
