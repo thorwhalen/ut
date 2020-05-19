@@ -1,8 +1,9 @@
 import re
 from typing import Optional
 import json
+from collections import defaultdict
 
-from graphviz import Digraph
+from graphviz import Digraph, Source
 
 
 class DDigraph(Digraph):
@@ -15,6 +16,7 @@ class ModifiedDot:
     class rx:
         lines = re.compile('\n|\r|\n\r|\r\n')
         comments = re.compile('#.+$')
+        non_space = re.compile('\S')
         nout_nin = re.compile(r'(\w+)\W+(\w+)')
         arrow = re.compile(r"\s*->\s*")
         instruction = re.compile(r"(\w+):\s+(.+)")
@@ -32,7 +34,7 @@ class ModifiedDot:
     shape_for_chars = {
         ('[', ']'): 'box',
         ('(', ')'): 'circle',
-        ('#', '#'): 'box',
+        (']', '['): 'square',
         ('/', '/'): 'parallelogram',
         ('<', '>'): 'diamond',
         ('([', '])'): 'cylinder',
@@ -51,6 +53,7 @@ class ModifiedDot:
         csv_items = lambda x: ModifiedDot.rx.csv.split(x.strip())
         pipeline_items = lambda s: list(map(csv_items, s))
         for line in ModifiedDot.rx.lines.split(s):
+            line = ModifiedDot.rx.comments.sub('', line)
             statements = ModifiedDot.rx.arrow.split(line)
             if len(statements) > 1:
                 pipeline = pipeline_items(statements)
@@ -60,38 +63,42 @@ class ModifiedDot:
                             yield 'edge', nout, nin
             else:
                 statement = statements[0].strip()
-                if statement.startswith('--'):  # it's a special instruction (typically, overriding a default)
-                    statement = statement[2:]
-                    instruction, specs = ModifiedDot.rx.node_def.search(statement)
-                    if instruction == 'dflt_node_attr':
-                        dflt_node_attr = specs.strip()
-                    else:
-                        dflt_specs[instruction] = specs.strip()
-                else:  # it's a node definition (or just some stuff to ignore)
-                    if statement.startswith('#'):
-                        continue  # ignore, it's just a comment
-                    g = ModifiedDot.rx.node_def.search(statement)
-                    if g is None:
-                        continue
-                    nodes, specs = g.groups()
-                    nodes = csv_items(nodes)
-                    if specs.startswith('{'):
-                        specs = json.loads(specs)
-                    else:
-                        specs = {dflt_node_attr: specs}
-                    for node in nodes:
-                        assert isinstance(specs, dict), \
-                            f"specs for {node} be a dict at this point: {specs}"
-                        yield 'node', node, dict(dflt_specs, **specs)
+                if ':' in statement:
+                    if statement.startswith('--'):  # it's a special instruction (typically, overriding a default)
+                        statement = statement[2:]
+                        instruction, specs = ModifiedDot.rx.node_def.search(statement)
+                        if instruction == 'dflt_node_attr':
+                            dflt_node_attr = specs.strip()
+                        else:
+                            dflt_specs[instruction] = specs.strip()
+                    else:  # it's a node definition (or just some stuff to ignore)
+                        if statement.startswith('#'):
+                            continue  # ignore, it's just a comment
+                        g = ModifiedDot.rx.node_def.search(statement)
+                        if g is None:
+                            continue
+                        nodes, specs = g.groups()
+                        nodes = csv_items(nodes)
+                        if specs.startswith('{'):
+                            specs = json.loads(specs)
+                        else:
+                            specs = {dflt_node_attr: specs}
+                        for node in nodes:
+                            assert isinstance(specs, dict), \
+                                f"specs for {node} be a dict at this point: {specs}"
+                            yield 'node', node, dict(dflt_specs, **specs)
+                elif ModifiedDot.rx.non_space.search(statement):
+                    yield 'source', statement, None
 
     @staticmethod
     def parser(s, **dflt_specs):
         return list(ModifiedDot._modified_dot_gen(s, **dflt_specs))
 
     @staticmethod
-    def interpreter(d, commands, node_shapes, attrs_for_node):
+    def interpreter(commands, node_shapes, attrs_for_node, engine, **digraph_kwargs):
         _edges = list()
-        _nodes = {}
+        _nodes = defaultdict(dict)
+        _sources = list()
         for kind, arg1, arg2 in commands:
             if kind == 'edge':
                 from_node, to_node = arg1, arg2
@@ -100,7 +107,7 @@ class ModifiedDot:
                     pref, name, suff = ModifiedDot.rx.pref_name_suff.search(node).groups()
                     if ((pref, suff) in node_shapes
                             and name not in _nodes):  # implies that only first formatting (existence of pref and suff) counts
-                        _nodes[name] = {'shape': node_shapes[(pref, suff)]}
+                        _nodes[name].update(shape=node_shapes[(pref, suff)])
                         _edge.append(name)
                     else:
                         _edge.append(name)
@@ -108,12 +115,19 @@ class ModifiedDot:
                 _edges.append(_edge)
             elif kind == 'node':
                 node, specs = arg1, arg2
-                d.node(name=node, **arg2)
+                _nodes[node].update(**arg2)
+            elif kind == 'source':
+                _sources.append(arg1)
+
+        digraph_kwargs['body'] = digraph_kwargs.get('body', []) + _sources
+        d = Digraph(engine=engine, **digraph_kwargs)
+
         d.edges(_edges)
         for node, attrs in attrs_for_node.items():
             d.node(name=node, **attrs)
         for node, attrs in _nodes.items():
             d.node(name=node, **attrs)
+
         return d
 
 
@@ -123,6 +137,10 @@ def dagdisp(commands, node_shapes: Optional[dict] = None,
             engine=None, **digraph_kwargs):
     """
     Make a Dag image flexibly.
+
+    Quick links:
+    - attributes: https://www.graphviz.org/doc/info/attrs.html
+    - shapes: https://www.graphviz.org/doc/info/shapes.html#polygon
 
     Has a mini-language by default (called `ModifiedDot`).
 
@@ -139,6 +157,17 @@ def dagdisp(commands, node_shapes: Optional[dict] = None,
         )
     ```
 
+    ```
+    d = dagdisp(\"\"\"
+        group_tags, orig_tags -> [mapping] -> tags  # many-to-1 and path (chain) example
+        predicted_tags, \\tags/ -> /confusion_matrix/  # you can format the shape of nodes inplace
+        predict_proba, tag_list -> [[predict]] -> /predicted_tags\\
+        group_tags: {"fillcolor": "red", "fontcolor": "red"}  # you can specify node attributes as json
+        orig_tags [fontsize=30 fontcolor=blue]  # you can write graphviz lines as is
+        # tag_list [shape=invhouse fontcolor=green]  # you can comment out lines
+        \"\"\", format='svg')
+        d.render('svg')
+    ```
     With ModifiedDot you can:
 
     - specify a bunch of edges at once in a path. For example, a line such as this:
@@ -199,9 +228,8 @@ def dagdisp(commands, node_shapes: Optional[dict] = None,
         node_shapes = dict(ModifiedDot.shape_for_chars, **(node_shapes or {}))
     if isinstance(commands, str):
         commands = minilang.parser(commands)
-    d = Digraph(engine=engine, **digraph_kwargs)
 
-    minilang.interpreter(d, commands, node_shapes, attrs_for_node)
+    d = minilang.interpreter(commands, node_shapes, attrs_for_node, engine=engine, **digraph_kwargs)
 
     return d
 

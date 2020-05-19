@@ -8,7 +8,7 @@ from types import MethodType
 class Returns:
     """
     Makes an object that pretends to have all possible methods, but returns the same value (default None)
-    no matter what this method, or it's arguments, is.
+    no matter what this method, or its arguments, is.
 
     This is useful when you're dealing with objects that may or may not have a given method,
     and/or to handle cases where a function resorts to returning None as a fallback.
