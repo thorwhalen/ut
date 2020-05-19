@@ -1,10 +1,63 @@
 __author__ = 'thorwhalen'
 
-import numpy as np
+from types import MethodType
+
+
+# Note: Note used anywhere in the module anymore, but was
+
+class Returns:
+    """
+    Makes an object that pretends to have all possible methods, but returns the same value (default None)
+    no matter what this method, or it's arguments, is.
+
+    This is useful when you're dealing with objects that may or may not have a given method,
+    and/or to handle cases where a function resorts to returning None as a fallback.
+
+    This happens in the `re` builtin package quite often.
+
+    >>> import re
+    >>> p = re.compile(r'(\d+)\W+(\w+)')
+    >>>
+    >>> # when all goes well...
+    >>> m = p.search('The number 42 is mentioned often')
+    >>> num, next_word = m.groups()
+    >>> num, next_word
+    ('42', 'is')
+    >>>
+    >>> # when the pattern is not found...
+    >>> m = p.search('No number here')
+    >>> assert m is None  # m is None so...
+    >>> num, next_word = m.groups()  # ... this is going to choke
+    Traceback (most recent call last):
+      ...
+    AttributeError: 'NoneType' object has no attribute 'groups'
+    >>>
+    >>> # Returns to the rescue
+    >>> num, next_word = (p.search('No number here') or Returns((None, 'default_word'))).groups()
+    >>> assert num is None
+    >>> next_word
+    'default_word'
+    """
+
+    def __init__(self, return_val=None):
+        self.return_val = return_val
+
+        def the_only_method_there_is(*args, **kwargs):
+            return return_val
+
+        self.the_only_method_there_is = MethodType(the_only_method_there_is, self)
+
+    def __getattr__(self, item):
+        if not item.startswith('_') and item not in {'return_val', 'the_only_method_there_id'}:
+            return self.the_only_method_there_is
+        else:
+            return getattr(self, item)
+
+
 from os import getcwd
 from os.path import join
-from numpy import mod
 import json
+
 
 def mk_arg_val_dict_from_sys_argv(sys_argv,
                                   convert_values_to_number_if_possible=False,
@@ -77,6 +130,7 @@ def to_bool(x):
     else:
         return bool(x)
 
+
 def convert_to_number_if_possible(x):
     try:
         x = float(x)
@@ -94,16 +148,16 @@ def full_filepath(rel_path):
 def print_info(x, max_depth=30, print_contents=False, depth=0, tab=''):
     if depth <= max_depth:
         class_info = x.__class__
-        if hasattr(x,'__name__'):
-            print("%s%s %s" % (tab+'  ', x.__name__, type.mro(class_info)[0]))
+        if hasattr(x, '__name__'):
+            print("%s%s %s" % (tab + '  ', x.__name__, type.mro(class_info)[0]))
         else:
-            print("%s%s" % (tab+'  ',type.mro(class_info)[0]))
+            print("%s%s" % (tab + '  ', type.mro(class_info)[0]))
         new_depth = depth + 1
         if hasattr(x, '__dict__'):
             dict_info = x.__dict__
             if dict_info:
                 tab = tab + '    '
-                for k,v in list(dict_info.items()):
+                for k, v in list(dict_info.items()):
                     print(tab + '.' + k + ":")
                     # print "%s%s: %s" (tab, k, v.__class__)
                     print_info(v, max_depth=max_depth, print_contents=print_contents, depth=new_depth, tab=tab)
@@ -116,7 +170,7 @@ def print_info(x, max_depth=30, print_contents=False, depth=0, tab=''):
             elif isinstance(x, list):
                 contents_to_print = x
             if contents_to_print:
-                contents_to_print = contents_to_print[:min(5,len(contents_to_print))]
+                contents_to_print = contents_to_print[:min(5, len(contents_to_print))]
                 print(tab + str(contents_to_print))
 
 
@@ -126,11 +180,13 @@ def is_an_iter(x):
     """
     return hasattr(x, '__iter__')
 
+
 def is_callable(x):
     """
     this function identifies variables that are callable
     """
-    return hasattr(x,'__call__')
+    return hasattr(x, '__call__')
+
 
 def my_to_list(x):
     """
@@ -139,18 +195,19 @@ def my_to_list(x):
     this element in a list
     """
     print("util.var.my_to_list() DEPRECIATED!!!: use util.ulist.ascertain_list() instead!!!")
-    if not isinstance(x,list):
+    if not isinstance(x, list):
         if is_an_iter(x):
             x = list(x)
         else:
             x = [x]
     return x
 
+
 def typeof(x):
-    if isinstance(x,list):
+    if isinstance(x, list):
         if len(x) > 0:
-            unik_types = list(np.lib.unique([typeof(xx) for xx in x]))
-            if len(unik_types)==1:
+            unik_types = list({typeof(xx) for xx in x})
+            if len(unik_types) == 1:
                 return "list of " + unik_types[0]
             elif len(unik_types) <= 3:
                 return "list of " + ", ".join(unik_types)
@@ -161,7 +218,5 @@ def typeof(x):
     else:
         return type(x).__name__
 
-
 # if __name__=="__main__":
 #     print my_to_list('asdf')
-
