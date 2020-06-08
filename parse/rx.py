@@ -240,7 +240,8 @@ class Rx:
 
     """
 
-    def __init_subclass__(cls, interpreter=RxPipe):
+    def __init_subclass__(cls, interpreter=RxPipe, **kwargs):
+        super().__init_subclass__(**kwargs)
         for attr_name in (a for a in dir(cls) if not a.startswith('__')):
             attr_obj = getattr(cls, attr_name)
             if interpreter.is_pipeline_tuple(attr_obj):
@@ -249,3 +250,5 @@ class Rx:
                 setattr(cls, attr_name, interpreter(attr_obj))
             elif isinstance(attr_obj, Literal):
                 setattr(cls, attr_name, attr_obj.val)
+
+    Literal = Literal  # just to have Literal available as Rx.Literal

@@ -2,14 +2,108 @@ import re
 from typing import Optional
 import json
 from collections import defaultdict
-
+from functools import wraps
 from graphviz import Digraph, Source
+
+from types import MethodType
+
+# Note: Note used anywhere in the module anymore, but was
+"""Get a `re.Pattern` instance (as given by re.compile()) with control over defaults of it's methods.
+Useful to reduce if/else boilerplate when handling the output of search functions (match, search, etc.)
+
+See [regex_search_hack.md](https://gist.github.com/thorwhalen/6c913e9be35873cea6efaf6b962fde07) for more explanatoins of the 
+use case.
+
+Example;
+>>> dflt_result = type('dflt_search_result', (), {'groupdict': lambda x: {}})()
+>>> p = re_compile('.*(?P<president>obama|bush|clinton)', search=dflt_result, match=dflt_result)
+>>>
+>>> p.search('I am beating around the bush, am I?').groupdict().get('president', 'Not found')
+'bush'
+>>>
+>>> # if not match is found, will return 'Not found', as requested
+>>> p.search('This does not contain a president').groupdict().get('president', 'Not found')
+'Not found'
+>>>
+>>> # see that other non-wrapped re.Pattern methods still work
+>>> p.findall('I am beating arcached_keysound the bush, am I?')
+['bush']
+"""
+
+import re
+from functools import wraps
+
+
+def add_dflt(func, dflt_if_none):
+    @wraps(func)
+    def wrapped_func(*args, **kwargs):
+        result = func(*args, **kwargs)
+        if result is not None:
+            return result
+        else:
+            return dflt_if_none
+
+    return wrapped_func
+
+
+def re_compile(pattern, flags=0, **dflt_if_none):
+    """Get a `re.Pattern` instance (as given by re.compile()) with control over defaults of it's methods.
+    Useful to reduce if/else boilerplate when handling the output of search functions (match, search, etc.)
+
+    Example;
+    >>> dflt_result = type('dflt_search_result', (), {'groupdict': lambda x: {}})()
+    >>> p = re_compile('.*(?P<president>obama|bush|clinton)', search=dflt_result, match=dflt_result)
+    >>>
+    >>> p.search('I am beating around the bush, am I?').groupdict().get('president', 'Not found')
+    'bush'
+    >>> p.match('I am beating around the bush, am I?').groupdict().get('president', 'Not found')
+    'bush'
+    >>>
+    >>> # if not match is found, will return 'Not found', as requested
+    >>> p.search('This does not contain a president').groupdict().get('president', 'Not found')
+    'Not found'
+    >>>
+    >>> # see that other non-wrapped re.Pattern methods still work
+    >>> p.findall('I am beating around the bush, am I?')
+    ['bush']
+    """
+    compiled_regex = re.compile(pattern, flags=flags)
+    intercepted_names = set(dflt_if_none)
+
+    my_regex_compilation = type('MyRegexCompilation', (object,), {})()
+
+    for _name, _dflt in dflt_if_none.items():
+        setattr(my_regex_compilation, _name, add_dflt(getattr(compiled_regex, _name), _dflt))
+    for _name in filter(lambda x: not x.startswith('__') and x not in intercepted_names,
+                        dir(compiled_regex)):
+        setattr(my_regex_compilation, _name, getattr(compiled_regex, _name))
+
+    return my_regex_compilation
+
+
+class rx:
+    name = re.compile('^:(\w+)')
+    lines = re.compile('\n|\r|\n\r|\r\n')
+    comments = re.compile('#.+$')
+    non_space = re.compile('\S')
+    nout_nin = re.compile(r'(\w+)\W+(\w+)')
+    arrow = re.compile(r"\s*->\s*")
+    instruction = re.compile(r"(\w+):\s+(.+)")
+    node_def = re.compile(r"([\w\s,]+):\s+(.+)")
+    wsc = re.compile(r"[\w\s,]+")
+    csv = re.compile(r"[\s,]+")
+    pref_name_suff = re.compile(r"(\W*)(\w+)(\W*)")
 
 
 class DDigraph(Digraph):
-    def edges(self, *args, **kwargs):
-        super().edges(*args, **kwargs)
-        return self
+    @wraps(Digraph.__init__)
+    def __init__(self, *args, **kwargs):
+        if args:
+            first_arg = args[0]
+            if first_arg.startswith(':'):
+                lines = rx.lines.split(first_arg)
+                first_line = lines[0]
+                name = (rx.name.search(first_line).group(1))
 
 
 class ModifiedDot:
@@ -235,3 +329,12 @@ def dagdisp(commands, node_shapes: Optional[dict] = None,
 
 
 dagdisp.shape_for_chars = ModifiedDot.shape_for_chars
+
+
+class Struct:
+    def __init__(self, **kwargs):
+        for attr, val in kwargs.items():
+            setattr(self, attr, val)
+
+
+dagdisp.engines = Struct(**{x: x for x in ['dot', 'neato', 'fdp', 'sfdp', 'twopi', 'circo']})

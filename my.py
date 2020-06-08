@@ -78,3 +78,6 @@ with module_not_found_ignore:
 
 with module_not_found_ignore:
     from ut.util.importing import import_from_dot_string
+
+with module_not_found_ignore:
+    from ut.net.viz import dagdisp
