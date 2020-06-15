@@ -319,7 +319,7 @@ def dgdisp(commands, node_shapes: Optional[dict] = None,
     else:
         if node_shapes is True:
             node_shapes = {}
-        node_shapes = dict(ModifiedDot.shape_for_chars, **(node_shapes or {}))
+        node_shapes = dict(minilang.shape_for_chars, **(node_shapes or {}))
     if isinstance(commands, str):
         commands = minilang.parser(commands)
 
