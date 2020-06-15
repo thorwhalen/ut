@@ -225,10 +225,10 @@ class ModifiedDot:
         return d
 
 
-def dagdisp(commands, node_shapes: Optional[dict] = None,
-            attrs_for_node=None,
-            minilang=ModifiedDot,
-            engine=None, **digraph_kwargs):
+def dgdisp(commands, node_shapes: Optional[dict] = None,
+           attrs_for_node=None,
+           minilang=ModifiedDot,
+           engine=None, **digraph_kwargs):
     """
     Make a Dag image flexibly.
 
@@ -240,7 +240,7 @@ def dagdisp(commands, node_shapes: Optional[dict] = None,
 
     Example:
     ```
-    dagdisp(\"\"\"
+    dgdisp(\"\"\"
         key, wf: circle
         chk: doublecircle
         fv: {"shape": "plaintext", "fontcolor": "blue"}
@@ -252,7 +252,7 @@ def dagdisp(commands, node_shapes: Optional[dict] = None,
     ```
 
     ```
-    d = dagdisp(\"\"\"
+    d = dgdisp(\"\"\"
         group_tags, orig_tags -> [mapping] -> tags  # many-to-1 and path (chain) example
         predicted_tags, \\tags/ -> /confusion_matrix/  # you can format the shape of nodes inplace
         predict_proba, tag_list -> [[predict]] -> /predicted_tags\\
@@ -293,7 +293,7 @@ def dagdisp(commands, node_shapes: Optional[dict] = None,
 
     :param commands: The commands (edge and node specifications)
     :param node_shapes: Extra tuple-to-shape mappings.
-        Used to add to, or override the existing defaults (see them here: `dagdisp.shape_for_chars`).
+        Used to add to, or override the existing defaults (see them here: `dgdisp.shape_for_chars`).
         This dict constitutes the mini-language used to give shapes to nodes on the fly.
     :param attrs_for_node: See https://www.graphviz.org/doc/info/attrs.html
     :param minilang: Object that populates the graph. Needs a parser and an interpreter method.
@@ -328,7 +328,7 @@ def dagdisp(commands, node_shapes: Optional[dict] = None,
     return d
 
 
-dagdisp.shape_for_chars = ModifiedDot.shape_for_chars
+dgdisp.shape_for_chars = ModifiedDot.shape_for_chars
 
 
 class Struct:
@@ -337,4 +337,6 @@ class Struct:
             setattr(self, attr, val)
 
 
-dagdisp.engines = Struct(**{x: x for x in ['dot', 'neato', 'fdp', 'sfdp', 'twopi', 'circo']})
+dgdisp.engines = Struct(**{x: x for x in ['dot', 'neato', 'fdp', 'sfdp', 'twopi', 'circo']})
+
+dagdisp = dgdisp
