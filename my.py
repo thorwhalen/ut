@@ -37,7 +37,7 @@ with module_not_found_ignore:
     igrab = _grabber_for('ipython')
 
 with module_not_found_ignore:
-    from py2mint.doc_mint import doctest_string_print, doctest_string
+    from i2.doc_mint import doctest_string_print, doctest_string
 
 with module_not_found_ignore:
     import ut.daf.ch

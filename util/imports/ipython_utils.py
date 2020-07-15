@@ -22,7 +22,7 @@ from py2store.my.grabbers import grabber_for as _grabber_for
 
 igrab = _grabber_for('ipython')
 
-from py2mint.doc_mint import doctest_string_print, doctest_string
+from i2.doc_mint import doctest_string_print, doctest_string
 
 import os
 import re
