@@ -21,7 +21,7 @@ from sklearn.utils.validation import FLOAT_DTYPES
 # from sklearn.utils.random import choice
 from joblib import Parallel
 from joblib import delayed
-from sklearn.externals.six import string_types
+from six import string_types
 
 import sys
 
