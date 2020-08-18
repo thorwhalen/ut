@@ -19,8 +19,8 @@ from sklearn.utils import as_float_array
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils.validation import FLOAT_DTYPES
 # from sklearn.utils.random import choice
-from sklearn.externals.joblib import Parallel
-from sklearn.externals.joblib import delayed
+from joblib import Parallel
+from joblib import delayed
 from sklearn.externals.six import string_types
 
 import sys

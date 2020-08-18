@@ -2,7 +2,7 @@
 #sevamoo@gmail.com
 #Chair For Computer Aided Architectural Design, ETH  Zurich
 # Future Cities Lab
-#www.vahidmoosavi.com
+# www.vahidmoosavi.com
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -12,8 +12,8 @@ from time import time
 import scipy.spatial as spdist
 import timeit
 import sys
-from sklearn.externals.joblib import Parallel, delayed
-from sklearn.externals.joblib import load, dump
+from joblib import Parallel, delayed
+from joblib import load, dump
 import tempfile
 import shutil
 import os
