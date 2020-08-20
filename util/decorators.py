@@ -1,13 +1,34 @@
-from functools import update_wrapper
-from functools import wraps
-from inspect import getargspec, isfunction
+from functools import update_wrapper, wraps, partial
+from inspect import getargspec, isfunction, signature
 from itertools import starmap
 import inspect
 import functools
+from contextlib import contextmanager
 
 __author__ = 'thor'
 
-from contextlib import contextmanager
+
+def inject_args(**kwargs):
+    """Decorator that will inject arg vals (like partial), but ignore those argnames that target func doesn't support.
+
+    :param kwargs:
+    :return:
+
+    >>> my_injector = inject_args(a=2, b=3, var_that_no_one_uses='decoy')
+    >>> @my_injector
+    ... def formula(a, b, c=1):
+    ...     return (a - b) * c
+    >>> formula()
+    -1
+    >>> formula(c=10)
+    -10
+    """
+
+    def inject_args_in_func(func):
+        to_inject = {k: kwargs[k] for k in signature(func).parameters.keys() & kwargs}
+        return partial(func, **to_inject)
+
+    return inject_args_in_func
 
 
 @contextmanager
