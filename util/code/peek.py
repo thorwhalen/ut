@@ -1,5 +1,8 @@
 from inspect import getsource, getsourcelines, signature
 from typing import Any, Optional
+import os
+
+path_sep = os.path.sep
 
 
 def print_source(o, start=None, end=None, doc=True):
@@ -42,3 +45,14 @@ def print_signature(func, sep: Optional[str] = '\n', prefix: str = '', suffix: s
         print(prefix + str(sig) + suffix)
     else:
         print(prefix + sep.join(map(str, sig.parameters.values())) + suffix)
+
+
+def submodule_path_strings(module):
+    from py2store.filesys import FileCollection
+
+    root_name = os.path.dirname(module.__file__)
+    root_name_length = len(root_name) + 1
+    for pyfile in filter(lambda x: x.endswith('.py'), FileCollection(root_name)):
+        t = pyfile[root_name_length:-3].replace(path_sep, '.').replace('.__init__', '').replace('__init__', '')
+        if t:
+            yield t
