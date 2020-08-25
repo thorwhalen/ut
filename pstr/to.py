@@ -88,7 +88,8 @@ def highlight(string, effect=fc['reverse'], beg_mark='[[', end_mark=']]', end_ef
 
     \033[whaaaa?!? Yeah... well, either you do it that has-no-life-outside-unicode way.
     If so, Ansi help you!
-    And [this too](https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html#rich-text).
+    See [this wiki section](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters).
+    or [this tutorial](https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html#rich-text).
 
     If not, we've prepared a map between human language and effect codes in the form of the
     `fc` variable of this module. It's a dict (and if you have ``py2store``, it's a mapping containing
