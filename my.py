@@ -30,7 +30,7 @@ dddir = lambda o: [a for a in dir(o) if not a.startswith('__')]
 
 with module_not_found_ignore:
     from py2store import ihead, kvhead, QuickStore, LocalBinaryStore, LocalJsonStore, LocalPickleStore, LocalTextStore
-    from py2store import kv_wrap, wrap_kvs, filtered_iter, cached_keys
+    from py2store import kv_wrap, wrap_kvs, filt_iter, cached_keys
     from py2store.util import lazyprop
     from py2store.my.grabbers import grabber_for as _grabber_for
 
