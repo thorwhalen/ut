@@ -1,13 +1,45 @@
+"""
+Simple utils to get stuff out of Mappings (dict-like objects).
+"""
 import operator
 from functools import reduce  # forward compatibility for Python 3
+from typing import Any
 
-import ut.util.ulist as ulist
-from numpy import isnan
-from mongoquery import Query, QueryError
+
+class NotSpecified:
+    pass
+
+
+def key_chain(d, /, *keys, dflt: Any = NotSpecified):
+    """Get a value from a mapping, from a list of possible key names. First one found wins.
+    You know collections.Chain? That's to look for a single key in a chain of mappings.
+    This is to find
+
+    >>> d = {'a': 1, 'b': 2, 'c': 3}
+    >>> key_chain(d, 'x', 'c', 'b')
+    3
+    >>> assert key_chain(d, 'x', 'y', dflt=None) == None
+    >>> key_chain(d, 'x', 'y')
+    Traceback (most recent call last):
+      ...
+    KeyError: "Couldn't find any of these keys: x, y"
+
+    """
+    for k in keys:
+        if k in d:
+            return d[k]
+    if dflt is not NotSpecified:
+        return dflt
+    else:
+        raise KeyError(f"Couldn't find any of these keys: {', '.join(keys)}")
 
 
 class Subdict(dict):
-    """A dict that w
+    """A dict with some enhanced functionality.
+    Takes lists and sets of keys, and interprets them as subdicts.
+    Is a callable, where *args and **kwargs are taken to be keys to be retrieved
+    (the kwargs values being intepreted as defaults if the argname is not found)
+
     >>> d = {'a': 1, 'b': 2, 'c': 3}
     >>> dd = Subdict(d)
     >>> dd['a']
@@ -41,6 +73,7 @@ class Subdict(dict):
         return d
 
 
+# TODO: Move somewhere else
 def dict_filt_from_mg_filt(mg_filt):
     """
     The final intent is to do what a mongo query does on a collection, but with a dict iterator instead.
@@ -107,6 +140,7 @@ def dict_filt_from_mg_filt(mg_filt):
     >>> map(filt, [{'a': x} for x in [9, 10, 15, 20, 21]])
     [False, True, True, False, False]
     """
+    from mongoquery import Query
     return Query(mg_filt).match
 
 
@@ -288,6 +322,7 @@ def key_if_exists_else_return_none(d, key):
     return d.get(key, None)
 
 
+# TODO: Revise. Use islice
 def head(d, num_of_elements=5, start_at=0):
     """
     get the "first" few (num) elements of a dict
@@ -295,6 +330,7 @@ def head(d, num_of_elements=5, start_at=0):
     return {k: d[k] for k in list(d.keys())[start_at:min(len(d), start_at + num_of_elements)]}
 
 
+# TODO: Revise. Use islice
 def tail(d, num_of_elements=5):
     """
     get the "first" few (num) elements of a dict
@@ -342,8 +378,13 @@ def get_subdict_and_remainder(d, list_of_keys):
 
 
 def all_but(d, exclude_keys):
-    return get_subdict(d, set(d.keys()).difference(ulist.ascertain_list(exclude_keys)))
+    return {k: d[k] for k in d.keys().difference(exclude_keys)}
+    # return get_subdict(d, set(d.keys()).difference(ulist.ascertain_list(exclude_keys)))
 
 
 def all_non_null(d):
-    return {k: v for k, v in d.items() if v is not None and not isnan(v)}
+    try:
+        from numpy import isnan
+        return {k: v for k, v in d.items() if v is not None and not isnan(v)}
+    except ModuleNotFoundError:
+        return {k: v for k, v in d.items() if v is not None}
