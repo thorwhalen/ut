@@ -85,3 +85,11 @@ with module_not_found_ignore:
 
 with module_not_found_ignore:
     from ut.util.ipython import all_table_of_contents_html_from_notebooks
+
+with module_not_found_ignore:
+    from grub import CodeSearcher
+
+
+    def grub_code(query, module):
+        search = CodeSearcher(module).fit()
+        return search(query)

@@ -5,6 +5,19 @@ import os
 path_sep = os.path.sep
 
 
+def not_dunder(a):
+    return not a.startswith('__')
+
+
+def aval_gen(o, filt=not_dunder):
+    for a in filter(filt, dir(o)):
+        yield a, getattr(o, a)
+
+
+def show_attrs(o, filt=not_dunder):
+    print(*(f"{a}:\t{v}" for a, v in aval_gen(o, filt)), sep='\n')
+
+
 def print_source(o, start=None, end=None, doc=True):
     """Prints the source code of the input object. Can specify lines to print with start and end.
     >>> print_source(print_source, 0, 1)
