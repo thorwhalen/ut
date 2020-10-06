@@ -1,6 +1,6 @@
 from inspect import signature, Signature
 
-
+# Note: A better version of this lives now on lined, an otosense repo and pip installable package
 class Compose:
     def __init__(self, *funcs):
         """Performs function composition.
@@ -25,21 +25,26 @@ class Compose:
         >>>
         >>> assert f(2) == 12
         >>> assert f(2, 10) == 30
-        >>>
+
+        Let's check out the signature of f:
+
         >>> from inspect import signature
         >>>
         >>> assert str(signature(f)) == '(a, b=1) -> float'
         >>> assert signature(f).parameters == signature(first).parameters
         >>> assert signature(f).return_annotation == signature(last).return_annotation == float
-        >>>
-        >>> # Border case: One function only
+
+        Border case: One function only
+
         >>> same_as_first = Compose(first)
         >>> assert same_as_first(42) == first(42)
         """
         self.funcs = funcs
+
+        # Taking care of the signature...
         # Determining what the first and last function is.
         n_funcs = len(self.funcs)
-        if n_funcs == 0:
+        if n_funcs == 0:  # really, it would make sense that this is the identity, but we'll implement only when needed
             raise ValueError("You need to specify at least one function!")
         elif n_funcs == 1:
             first_func = last_func = funcs[0]
