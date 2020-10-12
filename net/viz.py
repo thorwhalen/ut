@@ -225,7 +225,8 @@ class ModifiedDot:
         return d
 
 
-def dgdisp(commands, node_shapes: Optional[dict] = None,
+def dgdisp(commands,
+           node_shapes: Optional[dict] = None,
            attrs_for_node=None,
            minilang=ModifiedDot,
            engine=None, **digraph_kwargs):
@@ -329,6 +330,15 @@ def dgdisp(commands, node_shapes: Optional[dict] = None,
 
 
 dgdisp.shape_for_chars = ModifiedDot.shape_for_chars
+
+
+@wraps(dgdisp)
+def horizontal_dgdisp(*args, **kwargs):
+    command, *_args = args
+    return dgdisp('rankdir="LR"\n' + command, *_args, **kwargs)
+
+
+dgdisp.h = horizontal_dgdisp
 
 
 class Struct:
