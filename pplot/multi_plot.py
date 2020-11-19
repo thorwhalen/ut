@@ -20,16 +20,16 @@ def _get_attr_args_and_kwargs_from_ax_call_item(ax_call_item):
     return attr, args, kwargs
 
 
-def multi_row_plot(plot_func=plt.plot, data_list=(), figsize=3, plot_func_kwargs=None, ax_calls=()):
+def multi_row_plot(data_list=(), plot_func=plt.plot, figsize=3, plot_func_kwargs=None, ax_calls=()):
     """
     Quickly plotting multiple rows of data.
 
-    :param plot_func: The plotting function to use.
     :param data_list: The list of datas to plot. For each "row_data" of data_list, a row will be created and plot_func
         will be called, using that item as input. If row_data is:
             * a dict, plot_func(**dict(plot_func_kwargs, **row_data)) will be called to populate that row
             * a tuple, plot_func(*row_data, **plot_func_kwargs) will be called to populate that row
             * if not, plot_func(row_data, **plot_func_kwargs) will be called to populate that row
+    :param plot_func: The plotting function to use.
     :param figsize: The figsize to use. If
         * a tuple of length 2, figure(figsize=figsize) will be called to create the figure
         * a number (int or float), figure(figsize=(16, n_rows * figsize_units_per_row)) will be called

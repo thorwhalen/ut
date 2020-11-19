@@ -81,7 +81,7 @@ with module_not_found_ignore:
     from ut.util.importing import import_from_dot_string
 
 with module_not_found_ignore:
-    from ut.net.viz import dgdisp, dagdisp
+    from ut.net.viz import dgdisp, dagdisp, horizontal_dgdisp
 
 with module_not_found_ignore:
     from ut.util.ipython import all_table_of_contents_html_from_notebooks
