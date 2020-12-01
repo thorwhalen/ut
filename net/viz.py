@@ -1,3 +1,12 @@
+"""
+Making diagrams easily.
+
+Need to have graphviz (pip install graphviz), but also need the backend of this python binder:
+Mac: brew install graphviz
+Linux: sudo apt-get install graphviz
+Windows: google it
+"""
+
 import re
 from typing import Optional
 import json
@@ -7,7 +16,7 @@ from graphviz import Digraph, Source
 
 from types import MethodType
 
-# Note: Note used anywhere in the module anymore, but was
+# Note: Not used anywhere in the module anymore, but was
 """Get a `re.Pattern` instance (as given by re.compile()) with control over defaults of it's methods.
 Useful to reduce if/else boilerplate when handling the output of search functions (match, search, etc.)
 

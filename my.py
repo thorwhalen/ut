@@ -40,6 +40,9 @@ with module_not_found_ignore:
     from i2.doc_mint import doctest_string_print, doctest_string
 
 with module_not_found_ignore:
+    from ut.util.context_managers import TimerAndFeedback
+
+with module_not_found_ignore:
     import ut.daf.ch
     import ut.daf.manip
     import ut.daf.gr
