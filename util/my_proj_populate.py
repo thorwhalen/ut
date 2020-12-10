@@ -28,6 +28,8 @@ from functools import partial
 
 
 def populate_proj_from_url(url, proj_rootdir=None, **kwargs):
+    """git clone a repository and set the resulting folder up for packaging.
+    """
     verbose = kwargs.get('verbose', True)
     _clog = partial(clog, condition=verbose)
 
