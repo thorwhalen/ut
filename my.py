@@ -6,19 +6,21 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pprint import PrettyPrinter
 import json
+from contextlib import suppress as _suppress
+
+# class ModuleNotFoundIgnore:
+#     def __enter__(self):
+#         return self
+#
+#     def __exit__(self, exc_type, exc_val, exc_tb):
+#         if exc_type is ModuleNotFoundError:
+#             pass
+#         return True
 
 
-class ModuleNotFoundIgnore:
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is ModuleNotFoundError:
-            pass
-        return True
-
-
-module_not_found_ignore = ModuleNotFoundIgnore()
+# module_not_found_ignore = ModuleNotFoundIgnore()
+ModuleNotFoundIgnore = lambda: _suppress  # temporary, for back-compatibility
+module_not_found_ignore = _suppress(ModuleNotFoundError)
 
 try:
     import matplotlib.pylab as plt
@@ -27,6 +29,9 @@ except ModuleNotFoundError as e:
 
 ddir = lambda o: [a for a in dir(o) if not a.startswith('_')]
 dddir = lambda o: [a for a in dir(o) if not a.startswith('__')]
+
+with module_not_found_ignore:
+    from ut.util.my_proj_populate import populate_proj_from_url
 
 with module_not_found_ignore:
     from py2store import ihead, kvhead, QuickStore, LocalBinaryStore, LocalJsonStore, LocalPickleStore, LocalTextStore

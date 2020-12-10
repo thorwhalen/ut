@@ -1,26 +1,31 @@
-from warnings import warn
-from ut import ModuleNotFoundIgnore
+from contextlib import suppress
 
-with ModuleNotFoundIgnore():
+with suppress(ModuleNotFoundError):
     from lag import *
 
 import os
 import contextlib
 
 
+def clog(*args, condition=True, log_func=print, **kwargs):
+    if condition:
+        return log_func(*args, **kwargs)
+
+
 @contextlib.contextmanager
 def cd(newdir, verbose=True):
-    """Change your working directory, run the function, and change back to the original"""
+    """Change your working directory, do stuff, and change back to the original"""
+    _clog = partial(clog, condition=verbose, log_func=print)
     prevdir = os.getcwd()
     os.chdir(os.path.expanduser(newdir))
     try:
-        if verbose: print(f'cd {newdir}')
+        _clog(f'cd {newdir}')
         yield
     finally:
-        if verbose: print(f'cd {prevdir}')
+        _clog(f'cd {prevdir}')
         os.chdir(prevdir)
-    from pathlib import Path
-    if verbose: print("Called before cd", Path().absolute())
-    with cd(Path.home()):
-        if verbose: print("Called under cd", Path().absolute())
-    if verbose: print("Called after cd and same as before", Path().absolute())
+    # from pathlib import Path
+    # _clog("Called before cd", Path().absolute())
+    # with cd(Path.home()):
+    #     if verbose: print("Called under cd", Path().absolute())
+    # _clog("Called after cd and same as before", Path().absolute())
