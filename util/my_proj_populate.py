@@ -27,7 +27,10 @@ def clog(*args, condition=True, log_func=print, **kwargs):
 from functools import partial
 
 
-def populate_proj_from_url(url, proj_rootdir=None, **kwargs):
+def populate_proj_from_url(url, proj_rootdir=None,
+                           description=None,
+                           license='apache-2.0',
+                           **kwargs):
     """git clone a repository and set the resulting folder up for packaging.
     """
     verbose = kwargs.get('verbose', True)
@@ -40,6 +43,8 @@ def populate_proj_from_url(url, proj_rootdir=None, **kwargs):
     assert isinstance(proj_rootdir, str)
 
     root_url, proj_name = os.path.dirname(url), os.path.basename(url)
+    if description is None:
+        description = f"{proj_name} should say it all, no?"
     url_name = name_for_url_root.get(root_url, None)
     if url_name:
         _clog(f"url_name={url_name}")
@@ -54,4 +59,6 @@ def populate_proj_from_url(url, proj_rootdir=None, **kwargs):
         _clog(f"populating package folder...")
         populate_pkg_dir(os.path.join(proj_rootdir, proj_name),
                          defaults_from=url_name,
+                         description=description,
+                         license=license,
                          **kwargs)
