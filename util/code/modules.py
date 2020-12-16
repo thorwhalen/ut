@@ -1,4 +1,5 @@
 import os
+import sys
 import inspect
 import importlib
 import importlib.util
@@ -85,6 +86,95 @@ loaded_module_from_dotpath = importlib.import_module
 
 
 def loaded_module_from_dotpath_and_filepath(dotpath, filepath):
+    """Get module object from file path and module dotpath"""
+    module_spec = importlib.util.spec_from_file_location(dotpath, filepath)
+    module = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(module)
+    return module
+
+
+def submodules(module, prefix=None):
+    from py2store.filesys import FileCollection
+
+    prefix = prefix or site.getsitepackages()[0]
+
+    for filepath in FileCollection(module.__path__[0], '{f}.py', max_levels=0):
+        dotpath = '.'.join(filepath[len(prefix):(-len('.py'))].split(os.path.sep))
+        if not dotpath.endswith('__init__'):
+            try:
+                yield loaded_module_from_dotpath_and_filepath(dotpath, filepath)
+            except ModuleNotFoundError as e:
+                print(e)
+
+
+def objects_of_module(module, max_levels=0):
+    for a in dir(module):
+        if not a.startswith('_'):
+            yield getattr(module, a)
+    if max_levels > 0:
+        for submodule in submodules(module):
+            yield from objects_of_module(submodule, max_levels - 1)
+
+
+def obj_to_dotpath(obj):
+    return f"{obj.__module__}.{obj.__name__}"
+
+
+def finding_objects_of_module_with_given_methods(module, method_names=None, max_levels=1):
+    module_dotpath = module.__name__
+
+    objects = {obj_to_dotpath(obj): obj for obj in
+               filter(lambda o: isinstance(o, type) and o.__module__.startswith(module_dotpath),
+                      objects_of_module(module, max_levels))}
+
+    if method_names is None:
+        return objects
+    else:
+        if isinstance(method_names, str):
+            method_names = [method_names]
+        method_names = set(method_names)
+
+        return {dotpath: obj for dotpath, obj in objects.items() if method_names.issubset(dir(obj))}
+
+
+# TODO: Can do a lot more with this (or such) a function:
+#  For example, try to return the dotpath that would ACTUALLY correspond to the filepath, given the sys.path
+def filepath_to_dotpath(filepath, pkg_paths=None):
+    """Figures out a module dotpath from a filepath.
+    Checks the sys.path, removing the first common prefix if one is found,
+    then changes characters of the path components to make them valid identifier strings"""
+    import re
+
+    non_identifier_char_pattern = re.compile(r"\W|^(?=\d)")
+
+    if filepath.endswith('.py'):
+        filepath = filepath[:(-len('.py'))]
+    elif os.path.isdir(filepath):
+        if filepath.endswith(os.path.sep):
+            filepath = filepath[:-1]
+        if not os.path.isfile(os.path.join(filepath, '__init__.py')):
+            raise FileNotFoundError(f"You specified a directory, but the __init__.py file wasn't found in {filepath}")
+
+    if pkg_paths is None:
+        pkg_paths = sys.path  # FIXME: TODO: This actually doesn't work as expected
+
+    for path in pkg_paths:
+        if filepath.startswith(path):
+            filepath = filepath[len(path):]
+            break
+
+        print(filepath)
+        dotpath = '.'.join((non_identifier_char_pattern.sub('_', x) for x in filepath.split(os.path.sep)))
+        if dotpath.startswith('.'):
+            dotpath = dotpath[1:]
+        return dotpath
+
+
+def loaded_module_from_filepath(filepath, pkg_paths=None):
+    """Get module object from file path (resolving the dotpath automatically)
+    """
+
+    dotpath = filepath_to_dotpath(filepath, pkg_paths)
     module_spec = importlib.util.spec_from_file_location(dotpath, filepath)
     module = importlib.util.module_from_spec(module_spec)
     module_spec.loader.exec_module(module)
@@ -121,6 +211,7 @@ def coerce_module_spec(module_spec,
     if source_kind == ModuleSpecKind.FILEPATH:
         module_spec = os.path.join(module_spec, '__init__.py')
         source_kind = ModuleSpecKind.FILEPATH
+    return module_spec, source_kind
 
 
 def get_imported_module_paths(module, recursive_levels=0):
