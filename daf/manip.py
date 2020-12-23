@@ -2,19 +2,79 @@ __author__ = 'thorwhalen'
 """
 Includes functions to manipulate dataframes
 """
+import collections
+from collections import Counter
+from itertools import chain
+
+from numbers import Number
+
+import pandas as pd
+import numpy as np
 
 from ut.daf.check import has_columns
 from ut.pstr.trans import to_unicode_or_bust
 import ut.util.var as util_var
-import pandas as pd
-import numpy as np
+
 import ut.util.ulist as util_ulist
 import ut.pcoll.order_conserving as colloc
 import ut.daf.diagnosis as daf_diagnosis
 from ut.daf.ch import replace_nans_with_spaces_in_object_columns
-from ut.daf.ch import ch_col_names
-import collections
-from itertools import chain
+
+
+# from ut.daf.ch import ch_col_names
+
+
+def isnot_nan(x):
+    try:
+        return not np.isnan(x)
+    except TypeError:
+        return True
+
+
+def none_or_type(x):
+    if isnot_nan(x) and x is not None:
+        return type(x)
+    else:
+        return None
+
+
+def type_counts(df):
+    return {k: dict(Counter(v)) for k, v in df.applymap(none_or_type).items()}
+
+
+int_types = {int, np.int0, np.int8, np.int16, np.float64, np.float128}
+float_types = {float, np.float16, np.float32, np.float64, np.float128}
+
+
+# TODO: Find or make numpy type hierarchy poset (total order?) and write "maximal casting" function
+
+
+def common_numerical_type(iterable):
+    """
+    >>> assert common_numerical_type([3.14, 1, np.nan, 2, None]) == float
+    >>> assert common_numerical_type([3, 1, np.nan, 2, None]) == int
+    """
+    counts = set(map(none_or_type, iterable))
+    if counts.isdisjoint({float, np.float16, np.float32, np.float64, np.float128}):
+        return int
+    else:
+        return float
+
+
+def determine_type(series):
+    if all(isinstance(x, Number) for x in series):
+        return common_numerical_type(series)
+    else:
+        return series.dtype
+
+
+def cast_all_cols_to_numeric_if_possible(df):
+    """cast to numerical all columns that have only numbers (or nan)"""
+    for k, v in df.items():
+        if all(isinstance(x, Number) for x in v):
+            df[k] = pd.to_numeric(v)
+
+    return df
 
 
 def digitize_and_group(df, digit_cols=None, digit_agg_fun='mean', agg_fun='mean', **kwargs):
@@ -22,8 +82,7 @@ def digitize_and_group(df, digit_cols=None, digit_agg_fun='mean', agg_fun='mean'
     t = digitize(df[digit_cols], index='int', **kwargs)
     mapping = {k: df[[k]].groupby(t[k]).agg(digit_agg_fun) for k in t.columns}
     return mapping
-
-    return df.groupby(list(t.to_dict(outtype='list').values())).agg(agg_fun)
+    # return df.groupby(list(t.to_dict(outtype='list').values())).agg(agg_fun)
 
 
 def digitize(df, bins=2, index='both int and mapping', **kwargs):
@@ -137,6 +196,8 @@ def hetero_concat(df_list):
 def add_nan_cols(df, cols):
     for c in cols:
         df[c] = np.nan
+
+
 from ut.daf.ch import ch_col_names
 
 
@@ -158,7 +219,7 @@ def gather_col_values(df,
     else:
         df[gathered_col_name] = \
             [[xx for xx in x if xx] for x in [list(x[1:]) for x in df[cols_to_gather].itertuples()]]
-    if keep_cols_that_were_gathered==False:
+    if keep_cols_that_were_gathered == False:
         df = df[colloc.setdiff(df.columns, cols_to_gather)]
     return df
 
@@ -216,7 +277,8 @@ def rollout_cols(df, cols_to_rollout=None):
     # all cols_to_rollout have the same list lengths
     rollout_lengths = np.array(df[cols_to_rollout[0]].apply(len))
     # create a rollout_df dataframe (this will be the output)
-    rollout_df = pd.DataFrame(list(range(np.sum(rollout_lengths))))  # TODO: I CANNOT F**ING BELIEVE I'M DOING THIS!!! But found no other way to make a dataframe empty, and then construct it on the fly!
+    rollout_df = pd.DataFrame(list(range(np.sum(
+        rollout_lengths))))  # TODO: I CANNOT F**ING BELIEVE I'M DOING THIS!!! But found no other way to make a dataframe empty, and then construct it on the fly!
     # rollout cols_to_rollout
     for c in cols_to_rollout:
         rollout_df[c] = np.concatenate(list(df[c]))
@@ -283,9 +345,9 @@ def reorder_columns_as(df, col_order, inplace=False):
 def cols_that_are_of_the_type(df, type_spec):
     DeprecationWarning("ut.daf.manip.cols_that_are_of_the_type depreciated: "
                        "Use ut.daf.diagnosis.cols_that_are_of_the_type instead")
-    if isinstance(type_spec,type):
+    if isinstance(type_spec, type):
         return [col for col in df.columns if isinstance(df[col][0], type_spec)]
-    elif util_var.is_callable(type_spec): # assume it's a boolean function, and use it as a positive filter
+    elif util_var.is_callable(type_spec):  # assume it's a boolean function, and use it as a positive filter
         return [col for col in df.columns if type_spec(df[col][0])]
 
 
@@ -325,7 +387,7 @@ def select_col_equals(df, col, value):
     returns the df with only enabled keyword status
     """
     assert_dependencies(df, col)
-    return index_with_range(df[df[col]==value])
+    return index_with_range(df[df[col] == value])
 
 
 def rm_nan_rows(df):
@@ -336,4 +398,4 @@ def rm_nan_rows(df):
 
 
 def assert_dependencies(df, cols, prefix_message=""):
-    assert has_columns(df,cols),"need (all) columns {}: {}".format(util_ulist.to_str(cols),prefix_message)
+    assert has_columns(df, cols), "need (all) columns {}: {}".format(util_ulist.to_str(cols), prefix_message)
