@@ -31,6 +31,11 @@ ddir = lambda o: [a for a in dir(o) if not a.startswith('_')]
 dddir = lambda o: [a for a in dir(o) if not a.startswith('__')]
 
 with module_not_found_ignore:
+    from i2.deco import preprocess, postprocess, preprocess_arguments, input_output_decorator
+    from i2.deco import wrap_class_methods_input_and_output
+    from i2.signatures import Sig
+
+with module_not_found_ignore:
     from ut.util.my_proj_populate import populate_proj_from_url
 
 with module_not_found_ignore:
