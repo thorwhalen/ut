@@ -1,14 +1,11 @@
+"""Plotting matrices and matrix-structured data"""
+
 __author__ = 'thor'
 
 import matplotlib.patches as patches
 import pandas as pd
 import matplotlib.pylab as plt
 import numpy as np
-
-from sklearn.cluster import MeanShift
-import scipy.cluster.hierarchy as sch
-
-import seaborn as sns
 
 
 def xy_boxplot(X, y=None, col_labels=None, grid_size=None):
@@ -193,6 +190,8 @@ def plot_simil_mat_with_labels(simil_mat, y, inner_class_ordering='mean_shift_cl
     A function that plots similarity matrices, grouping labels together and sorting by descending sum of similarities
     within a group.
     """
+    from sklearn.cluster import MeanShift
+
     simil_mat = simil_mat ** (1 / float(brightness))
     d = pd.DataFrame(simil_mat)
     d['y'] = y
@@ -249,6 +248,9 @@ def hierarchical_cluster_sorted_heatmap(df, only_return_sorted_df=False, seaborn
     :param seaborn_heatmap_kwargs: the arguments to use in seaborn.heatmap (default is dict(cbar=False))
     :return: whatever sns.heatmap returns, or the sorted df if only_return_sorted_df=True
     """
+    import seaborn as sns
+    import scipy.cluster.hierarchy as sch
+
     df = df.iloc[df.index.values, df.index.values]  # to make sure df is an index aligned square df
     Y = sch.linkage(np.array(df), method='centroid')
     Z = sch.dendrogram(Y, orientation='right', no_plot=True)
