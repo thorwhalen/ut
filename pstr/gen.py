@@ -1,3 +1,4 @@
+"""String generation"""
 import re
 from string import Formatter
 

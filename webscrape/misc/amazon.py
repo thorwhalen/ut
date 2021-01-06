@@ -1,3 +1,4 @@
+"""Scraping and parsing amazon"""
 __author__ = 'thor'
 
 import os

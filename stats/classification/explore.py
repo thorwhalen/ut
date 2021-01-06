@@ -1,3 +1,4 @@
+"""Classification exploration"""
 __author__ = 'thor'
 
 

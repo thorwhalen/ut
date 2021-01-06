@@ -1,3 +1,4 @@
+"""Supervised clustering"""
 __author__ = 'thor'
 
 from sklearn.base import BaseEstimator, TransformerMixin

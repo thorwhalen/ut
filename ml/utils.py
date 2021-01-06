@@ -1,3 +1,4 @@
+"""Machine learning utils"""
 __author__ = 'thor'
 
 import numpy as np

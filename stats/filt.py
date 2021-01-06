@@ -1,3 +1,4 @@
+"""Filtering outliers"""
 __author__ = 'thor'
 
 import numpy as np

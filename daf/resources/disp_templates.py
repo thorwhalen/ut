@@ -1,3 +1,4 @@
+"""Dataframe display tewmplates"""
 __author__ = 'thor'
 
 

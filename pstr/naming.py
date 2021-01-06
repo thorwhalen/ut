@@ -1,3 +1,4 @@
+"""Parametrized name generation and parsing"""
 import re
 from ut.pdict.diagnosis import validate_kwargs, base_validation_funs
 

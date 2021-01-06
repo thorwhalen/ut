@@ -1,3 +1,4 @@
+"""Automatically making flask webservices from python objects"""
 from numpy import ndarray
 from pandas import Series, DataFrame
 import re

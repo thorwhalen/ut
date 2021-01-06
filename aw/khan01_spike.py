@@ -1,3 +1,4 @@
+"""Travel adwords tools"""
 __author__ = 'thorwhalen'
 
 import numpy as np

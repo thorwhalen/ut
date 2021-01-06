@@ -1,3 +1,4 @@
+"""File access utils"""
 __author__ = 'thorwhalen'
 
 # from ut.datapath import datapath

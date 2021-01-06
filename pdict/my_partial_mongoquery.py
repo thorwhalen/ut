@@ -1,4 +1,4 @@
-
+"""Make filters with the mongo language"""
 import operator
 from functools import partial
 

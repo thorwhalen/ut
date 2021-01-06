@@ -1,4 +1,3 @@
-__author__ = 'thor'
 """
 Weighted Principal Component Analysis using Expectation Maximization
 

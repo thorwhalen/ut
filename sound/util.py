@@ -1,3 +1,4 @@
+"""Audio Layers"""
 __author__ = 'thor'
 
 from numpy import hstack, vstack, zeros, shape, mean, random, linspace

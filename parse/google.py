@@ -1,3 +1,4 @@
+"""Parsing google results"""
 __author__ = 'thorwhalen'
 
 #!/usr/bin/python

@@ -1,4 +1,4 @@
-
+"""Generating hierarchical data"""
 
 __author__ = 'thor'
 

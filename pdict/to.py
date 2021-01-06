@@ -1,3 +1,4 @@
+"""Convert dictionaries to other objects"""
 __author__ = 'thorwhalen'
 
 import itertools

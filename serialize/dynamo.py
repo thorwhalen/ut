@@ -1,9 +1,12 @@
+"""Dynamo access"""
+
 import os
 from time import sleep
 import boto.dynamodb2
 from .khan_logger import KhanLogger
 
 __author__ = 'mattjmorris'
+
 
 class Dynamo(object):
 
@@ -17,7 +20,8 @@ class Dynamo(object):
         """
         access_key = access_key or os.getenv('VEN_S3_ACCESS_KEY')
         secret = secret or os.getenv('VEN_S3_SECRET')
-        self.connection=boto.dynamodb2.connect_to_region(region_name='eu-west-1', aws_access_key_id=access_key, aws_secret_access_key=secret)
+        self.connection = boto.dynamodb2.connect_to_region(region_name='eu-west-1', aws_access_key_id=access_key,
+                                                           aws_secret_access_key=secret)
         self.logger = KhanLogger(origin=self.__class__.__name__)
 
     def modify_throughput(self, requested_read, requested_write, table):

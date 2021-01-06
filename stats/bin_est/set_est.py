@@ -1,3 +1,4 @@
+"""Set estimation (solving the attribution problem)"""
 __author__ = 'thor'
 
 from numpy import *

@@ -1,3 +1,4 @@
+"""Elastic Search access"""
 __author__ = 'thor'
 
 import sys

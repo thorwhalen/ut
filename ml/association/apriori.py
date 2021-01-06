@@ -1,3 +1,4 @@
+"""Association mining -- apriori algo"""
 __author__ = 'thor'
 
 

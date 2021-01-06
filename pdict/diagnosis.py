@@ -1,3 +1,4 @@
+"""Diagnosing dictionaries"""
 __author__ = 'thorwhalen'
 
 import pprint

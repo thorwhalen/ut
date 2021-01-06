@@ -1,3 +1,4 @@
+"""Get dictionaries from other objects"""
 __author__ = 'thorwhalen'
 
 import json

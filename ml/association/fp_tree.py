@@ -1,3 +1,4 @@
+"""Association mining"""
 __author__ = 'thor'
 
 

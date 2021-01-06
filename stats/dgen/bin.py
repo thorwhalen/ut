@@ -1,3 +1,4 @@
+"""Generating binary data"""
 __author__ = 'thor'
 
 from numpy import *

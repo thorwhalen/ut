@@ -1,4 +1,3 @@
-__author__ = 'thorwhalen'
 """
 Includes functions to diagnose duplicates in dataframes.
 Many of these functions take the following inputs:

@@ -1,3 +1,4 @@
+"""Frequent itemsets -- fp-tree naeseth"""
 # encoding: utf-8
 
 """

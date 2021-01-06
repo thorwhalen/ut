@@ -1,4 +1,4 @@
-
+"""Window pairs of sequences"""
 
 __author__ = 'thor'
 

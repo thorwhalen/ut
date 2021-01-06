@@ -1,3 +1,4 @@
+"""Dataframe manipulation tools"""
 __author__ = 'thorwhalen'
 """
 Includes functions to manipulate dataframes

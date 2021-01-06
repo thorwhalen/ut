@@ -1,3 +1,4 @@
+"""Frequent itemsets -- paired counts fp-tree"""
 # encoding: utf-8
 
 __author__ = 'thor'
@@ -14,6 +15,7 @@ Based on https://github.com/enaeseth/python-fp-growth (MIT License) from Eric Na
 """
 
 from collections import defaultdict, namedtuple
+
 
 # from matplotlib.cbook import flatten
 
@@ -34,9 +36,9 @@ def find_frequent_itemsets(transactions, transaction_values, minimum_support):
 
 
 def mk_fptree(transactions, transaction_values, minimum_support, item_counts=None):
-        # Load the passed-in transactions and count the support that individual
+    # Load the passed-in transactions and count the support that individual
     if item_counts is None:
-        item_counts = defaultdict(lambda: 0) # mapping from items to their supports
+        item_counts = defaultdict(lambda: 0)  # mapping from items to their supports
         # processed_transactions = []
         for transaction in transactions:
             # processed = []
@@ -71,6 +73,7 @@ def find_frequent_itemsets_from_fp_tree(fp_tree, minimum_support):
     """
     Find frequent itemsets from a given fp_tree
     """
+
     def find_with_suffix(tree, suffix):
         for item, nodes in list(tree.items()):
             # support = sum(n.count for n in nodes)
@@ -90,7 +93,6 @@ def find_frequent_itemsets_from_fp_tree(fp_tree, minimum_support):
     # Search for frequent itemsets, and yield the results we find.
     for itemset in find_with_suffix(fptree, []):
         yield itemset
-
 
 
 class FPTree(object):
@@ -146,7 +148,7 @@ class FPTree(object):
 
         try:
             route = self._routes[point.item]
-            route[1].neighbor = point # route[1] is the tail
+            route[1].neighbor = point  # route[1] is the tail
             self._routes[point.item] = self.Route(route[0], point)
         except KeyError:
             # First node for this item; start a new route.
@@ -214,7 +216,7 @@ class FPTree(object):
         else:
             for n in self.nodes(node.item):
                 if n.neighbor is node:
-                    n.neighbor = node.neighbor # skip over
+                    n.neighbor = node.neighbor  # skip over
                     if node is tail:
                         self._routes[node.item] = self.Route(head, n)
                     break
@@ -268,7 +270,7 @@ def conditional_tree_from_paths(paths, minimum_support):
     # Finally, remove the nodes corresponding to the item for which this
     # conditional tree was generated.
     for node in tree.nodes(condition_item):
-        if node.parent is not None: # the node might already be an orphan
+        if node.parent is not None:  # the node might already be an orphan
             node.parent.remove(node)
 
     return tree
@@ -319,7 +321,7 @@ class FPNode(object):
                         # add the sub-child's count to our child's count.
                         self._children[sub_child.item]._count += sub_child.count
                         self._children[sub_child.item]._value += sub_child.value
-                        sub_child.parent = None # it's an orphan now
+                        sub_child.parent = None  # it's an orphan now
                     except KeyError:
                         # Turns out we don't actually have a child, so just add
                         # the sub-child as our own child.
@@ -377,15 +379,19 @@ class FPNode(object):
 
     def parent():
         doc = "The node's parent."
+
         def fget(self):
             return self._parent
+
         def fset(self, value):
             if value is not None and not isinstance(value, FPNode):
                 raise TypeError("A node must have an FPNode as a parent.")
             if value and value.tree is not self.tree:
                 raise ValueError("Cannot have a parent from another tree.")
             self._parent = value
+
         return locals()
+
     parent = property(**parent())
 
     def neighbor():
@@ -393,15 +399,19 @@ class FPNode(object):
         The node's neighbor; the one with the same value that is "to the right"
         of it in the tree.
         """
+
         def fget(self):
             return self._neighbor
+
         def fset(self, value):
             if value is not None and not isinstance(value, FPNode):
                 raise TypeError("A node must have an FPNode as a neighbor.")
             if value and value.tree is not self.tree:
                 raise ValueError("Cannot have a neighbor from another tree.")
             self._neighbor = value
+
         return locals()
+
     neighbor = property(**neighbor())
 
     @property
@@ -418,7 +428,6 @@ class FPNode(object):
         if self.root:
             return "<%s (root)>" % type(self).__name__
         return "<%s %r count=%r, value=%r>" % (type(self).__name__, self.item, self.count, self.value)
-
 
 # if __name__ == '__main__':
 #     from optparse import OptionParser

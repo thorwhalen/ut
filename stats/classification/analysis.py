@@ -1,3 +1,4 @@
+"""binary classification count results"""
 __author__ = 'thor'
 
 import pandas as pd

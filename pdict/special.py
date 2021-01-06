@@ -1,3 +1,4 @@
+"""Special dicts"""
 __author__ = 'thor'
 
 from collections import defaultdict, UserDict

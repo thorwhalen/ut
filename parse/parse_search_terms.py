@@ -1,3 +1,4 @@
+"""Parsing search terms"""
 __author__ = 'thorwhalen'
 
 import functools

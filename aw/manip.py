@@ -1,7 +1,7 @@
-__author__ = 'thorwhalen'
 """
 Includes functions to manipulate adwords datasets
 """
+__author__ = 'thorwhalen'
 
 import pandas as pd
 import numpy as np

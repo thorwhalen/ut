@@ -1,3 +1,4 @@
+"""Manipulating dicts"""
 __author__ = 'thorwhalen'
 
 from collections.abc import MutableMapping

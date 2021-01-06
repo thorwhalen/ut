@@ -1,3 +1,4 @@
+"""Accessing data in a consistent manner"""
 __author__ = 'thorwhalen'
 
 

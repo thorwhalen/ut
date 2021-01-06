@@ -1,3 +1,4 @@
+"""Utils for training models"""
 __author__ = 'thor'
 
 from numpy import *

@@ -1,3 +1,4 @@
+"""Multi classifier testing"""
 __author__ = 'thor'
 
 import csv

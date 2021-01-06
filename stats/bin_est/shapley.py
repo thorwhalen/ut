@@ -1,3 +1,4 @@
+"""Shapley value analysis"""
 __author__ = 'thor'
 
 from numpy import unique, concatenate, sort
