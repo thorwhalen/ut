@@ -1,3 +1,4 @@
+"""Analyzing classes"""
 from functools import reduce, partial
 from collections import defaultdict
 import inspect

@@ -1,3 +1,5 @@
+"""Utils to work with lists"""
+
 __author__ = 'thorwhalen'
 
 import numpy as np

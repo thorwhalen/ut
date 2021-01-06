@@ -1,3 +1,4 @@
+"""utils for ipython geography"""
 __author__ = 'thorwhalen'
 
 from sklearn.neighbors import NearestNeighbors

@@ -1,3 +1,5 @@
+"""Utils to work with iterables"""
+
 import itertools
 
 # Some of these recipes were taken from

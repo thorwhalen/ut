@@ -1,3 +1,5 @@
+"""utils for ipython notebooks"""
+
 from __future__ import division
 
 import os, json

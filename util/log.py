@@ -1,4 +1,4 @@
-
+"""logging functions"""
 
 __author__ = 'thorwhalen'
 

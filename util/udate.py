@@ -1,3 +1,5 @@
+"""Utils to work with dates"""
+
 __author__ = 'thorwhalen'
 
 from datetime import timedelta

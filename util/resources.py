@@ -1,3 +1,4 @@
+"""Utils to work with pip resources"""
 __author__ = 'thorwhalen'
 
 import re

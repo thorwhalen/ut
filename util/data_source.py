@@ -1,3 +1,5 @@
+"""data sourcing object"""
+
 __author__ = 'thorwhalen'
 
 from pfile.accessor import Accessor

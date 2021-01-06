@@ -1,3 +1,5 @@
+"""Utils to work with variables"""
+
 __author__ = 'thorwhalen'
 
 from types import MethodType

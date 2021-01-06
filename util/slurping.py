@@ -1,3 +1,5 @@
+"""Utils to slurp stuff"""
+
 __author__ = 'thorwhalen'
 
 

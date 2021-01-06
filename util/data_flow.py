@@ -1,3 +1,5 @@
+"""framework for data flow"""
+
 __author__ = 'thor'
 
 import ut.util.pobj as util_pobj

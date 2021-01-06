@@ -1,3 +1,5 @@
+"""Utils to work with numbers"""
+
 __author__ = 'thor'
 
 from decimal import Decimal

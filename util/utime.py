@@ -1,3 +1,5 @@
+"""Utils to work with time"""
+
 import datetime  # keep around! It's to be able to access the mother of datetime
 from datetime import datetime as dt
 from dateutil import tz

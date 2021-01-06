@@ -1,3 +1,4 @@
+"""useful decorators"""
 from functools import update_wrapper, wraps, partial
 from inspect import getargspec, isfunction, signature
 from itertools import starmap

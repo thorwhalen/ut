@@ -1,3 +1,4 @@
+"""Utils to work with pickles"""
 
 
 import sys

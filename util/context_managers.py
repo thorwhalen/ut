@@ -1,3 +1,4 @@
+"""useful context managers"""
 from contextlib import suppress
 
 with suppress(ModuleNotFoundError):

@@ -1,3 +1,5 @@
+"""Utils to work with randomness"""
+
 __author__ = 'thor'
 
 import numpy as np

@@ -1,3 +1,5 @@
+"""Utils to work with python objects"""
+
 __author__ = 'thor'
 
 import ut.pdict.get as pdict_get

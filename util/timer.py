@@ -1,3 +1,5 @@
+"""Utils to for timing things"""
+
 __author__ = 'thorwhalen'
 
 import time

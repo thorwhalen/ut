@@ -1,3 +1,4 @@
+"""utils for ipython importing"""
 __author__ = 'thor'
 
 from os import environ

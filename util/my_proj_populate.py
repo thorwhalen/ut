@@ -1,3 +1,4 @@
+"""populating projects automatically"""
 import os
 import subprocess
 from wads.populate import populate_pkg_dir, wads_configs

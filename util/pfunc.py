@@ -1,3 +1,5 @@
+"""Utils to work with functions"""
+
 __author__ = 'thor'
 
 import functools
