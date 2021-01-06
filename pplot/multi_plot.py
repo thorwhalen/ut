@@ -1,3 +1,5 @@
+"""Plotting multiple datas in a same figure"""
+
 import matplotlib.pylab as plt
 
 
