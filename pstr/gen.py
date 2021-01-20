@@ -6,10 +6,17 @@ dflt_formatter = Formatter()
 
 
 ########### Partial and incremental formatting #########################################################################
+# TODO: Make .vformat (therefore .format) work with args and kwargs
+# TODO: Make it not blow up and conserve spec (e.g. the 1.2f of {foo:1.2f}) when not specified
 class PartialFormatter(Formatter):
     """A string formatter that won't complain if the fields are only partially formatted.
     But note that you will lose the spec part of your template (e.g. in {foo:1.2f}, you'll loose the 1.2f
     if not foo is given -- but {foo} will remain).
+
+    >>> partial_formatter = PartialFormatter()
+    >>> str_template = 'foo:{foo} bar={bar} a={a} b={b:0.02f} c={c}'
+    >>> partial_formatter.format(str_template, bar="BAR", b=34)
+    'foo:{foo} bar=BAR a={a} b=34.00 c={c}'
     """
 
     def get_value(self, key, args, kwargs):

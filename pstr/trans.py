@@ -8,7 +8,6 @@ import pandas as pd
 from string import Formatter
 
 
-# Note: Some (or all) of this might not be necessary if we use an ini format and parser supporting reference following
 # TODO: Make .vformat (therefore .format) work with args and kwargs
 # TODO: Make it not blow up and conserve spec (e.g. the 1.2f of {foo:1.2f}) when not specified
 class PartialFormatter(Formatter):
