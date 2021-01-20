@@ -19,6 +19,13 @@ class PartialFormatter(Formatter):
     >>> str_template = 'foo:{foo} bar={bar} a={a} b={b:0.02f} c={c}'
     >>> partial_formatter.format(str_template, bar="BAR", b=34)
     'foo:{foo} bar=BAR a={a} b=34.00 c={c}'
+
+    Note: If you only need a formatting function (not the transformed formatting string), a simpler solution may be:
+    ```
+    import functools
+    format_str = functools.partial(str_template.format, bar="BAR", b=34)
+    ```
+    See https://stackoverflow.com/questions/11283961/partial-string-formatting for more options and discussions.
     """
 
     def get_value(self, key, args, kwargs):
