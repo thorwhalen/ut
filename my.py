@@ -30,6 +30,7 @@ except ModuleNotFoundError as e:
 ddir = lambda o: [a for a in dir(o) if not a.startswith('_')]
 dddir = lambda o: [a for a in dir(o) if not a.startswith('__')]
 
+
 with module_not_found_ignore:
     from i2.deco import preprocess, postprocess, preprocess_arguments, input_output_decorator
     from i2.deco import wrap_class_methods_input_and_output
@@ -67,6 +68,13 @@ with module_not_found_ignore:
 
 with module_not_found_ignore:
     import sklearn
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.decomposition import PCA, IncrementalPCA
+    from sklearn.cluster import KMeans
+    from sklearn.linear_model import LogisticRegression, LinearRegression
+    from sklearn.neighbors import KNeighborsClassifier, KNeighborsTransformer, KNeighborsRegressor
+    from sklearn.feature_extraction.text import TfidfVectorizer
 
 with module_not_found_ignore:
     from ut.pcoll.num import numof_trues
