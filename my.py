@@ -87,7 +87,7 @@ with module_not_found_ignore:
 
 with module_not_found_ignore:
     from ut.pplot.matrix import heatmap
-    from ut.pplot.my import vlines
+    from ut.pplot.my import vlines, pplot
 
 with module_not_found_ignore:
     import numpy as np
