@@ -73,7 +73,7 @@ with module_not_found_ignore:
     from sklearn.decomposition import PCA, IncrementalPCA
     from sklearn.cluster import KMeans
     from sklearn.linear_model import LogisticRegression, LinearRegression
-    from sklearn.neighbors import KNeighborsClassifier, KNeighborsTransformer, KNeighborsRegressor
+    from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier, KNeighborsTransformer, KNeighborsRegressor
     from sklearn.feature_extraction.text import TfidfVectorizer
 
 with module_not_found_ignore:

@@ -20,3 +20,9 @@ def vlines(x, ymin=0, ymax=None, marker='o', marker_kwargs=None,
 
     return plt.vlines(x, ymin=ymin, ymax=ymax,
                       colors=colors, linestyles=linestyles, label=label, hold=hold, data=data, **kwargs)
+
+
+def pplot(*args, figsize=(22, 5), **kwargs):
+    if figsize is not None:
+        plt.figure(figsize=figsize)
+    return plt.plot(*args, **kwargs)
