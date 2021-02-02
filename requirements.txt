@@ -15,7 +15,7 @@ backports.functools-lru-cache==1.6.1
 bcrypt==3.1.7
 beautifulsoup4==4.8.2
 bitstruct==8.9.0
-bleach==3.1.4
+bleach==3.3.0
 boltons==20.1.0
 boto==2.49.0
 boto3==1.12.31
