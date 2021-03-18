@@ -30,6 +30,8 @@ except ModuleNotFoundError as e:
 ddir = lambda o: [a for a in dir(o) if not a.startswith('_')]
 dddir = lambda o: [a for a in dir(o) if not a.startswith('__')]
 
+with module_not_found_ignore:
+    from ut.webscrape.tables import get_tables_from_url
 
 with module_not_found_ignore:
     from i2.deco import preprocess, postprocess, preprocess_arguments, input_output_decorator
