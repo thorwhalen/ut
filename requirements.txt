@@ -118,7 +118,7 @@ pockets==0.9.1
 prometheus-client==0.7.1
 prompt-toolkit==3.0.5
 ptyprocess==0.6.0
-py==1.8.1
+py==1.10.0
 py2store==0.0.6
 pyasn1==0.4.8
 pycodestyle==2.5.0
