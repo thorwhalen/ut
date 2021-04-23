@@ -1,7 +1,3 @@
-from functools import partial
-
-from py2store.util import regroupby
-
 import random
 
 flatten = lambda l: [item for sublist in l for item in sublist]
