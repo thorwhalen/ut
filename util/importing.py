@@ -32,7 +32,6 @@ def module_import_from_string(import_path_string, params_file, verbose=False):
     try:
         p = importlib.import_module(import_path_string + '.' + params_module)
     except ImportError as e:
-        import imp
         import sys
         sys.path.append(os.path.dirname(os.path.expanduser(params_file)))
         p = importlib.import_module(params_module)
