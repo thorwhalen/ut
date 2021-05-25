@@ -1,24 +1,92 @@
+from typing import Iterable, Optional, Callable
+from sklearn.model_selection import GroupShuffleSplit
+from i2.signatures import call_forgivingly
+
+
+def train_test_split_keys(
+    keys: Iterable,
+    key_to_tag: Optional[Callable] = None,
+    key_to_group: Optional[Callable] = None,
+    test_size=None,
+    train_size=None,
+    random_state=None,
+    n_splits=1,
+):
+    """
+
+    >>> keys = range(100)
+    >>> def mod5(x):
+    ...     return x % 5
+    >>> train_idx, test_idx = train_test_split_keys(keys, key_to_group=mod5,
+    ...     train_size=.5, random_state=42)
+
+    Observe here that though `train_size=.5`, the proportion is not 50/50.
+    That's because the group constraint, imposed by the key_to_group argument
+    produces only 5 groups.
+
+    >>> len(train_idx), len(test_idx)
+    (40, 60)
+
+    But especially, see that though there's a lot of train and test indices,
+    within train, there's only 2 unique groups (all 0 or 3 modulo 5)
+    and only 3 unique groups (1, 2, 4 modulo 5) within test indices.
+
+    >>> assert set(map(mod5, train_idx)) == {0, 3}
+    >>> assert set(map(mod5, test_idx)) == {1, 2, 4}
+
+    """
+    splitter = call_forgivingly(
+        GroupShuffleSplit, **locals()
+    )  # calls GroupShuffleSplit on relevant inputs
+
+    X = list(keys)
+
+    y = None
+    if key_to_tag is not None:
+        y = list(map(key_to_tag, keys))
+
+    groups = None
+    if key_to_group is not None:
+        groups = list(map(key_to_group, keys))
+
+    n = splitter.get_n_splits(X, y, groups)
+    if n == 1:
+        return next(splitter.split(X, y, groups))
+    else:
+        return splitter.split(X, y, groups)
+
+
+# ------------------------------------------------------------------------------
+
 import random
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 
-def _train_test_keys_split(grouped_keys, n_train, if_insufficient_data='only_train'):
+def _train_test_keys_split(
+    grouped_keys, n_train, if_insufficient_data='only_train'
+):
     groups = list(grouped_keys)
     if n_train > len(groups):
         if if_insufficient_data == 'only_train':
             return set(groups), set([])
         else:
-            raise ValueError(f"Don't know how to handle if_insufficient_data: {if_insufficient_data}")
+            raise ValueError(
+                f"Don't know how to handle if_insufficient_data: {if_insufficient_data}"
+            )
     else:
         train_groups = random.sample(groups, n_train)
         test_groups = set(groups) - set(train_groups)
-        return (set(flatten([grouped_keys[g] for g in train_groups])),
-                set(flatten([grouped_keys[g] for g in test_groups])))
+        return (
+            set(flatten([grouped_keys[g] for g in train_groups])),
+            set(flatten([grouped_keys[g] for g in test_groups])),
+        )
 
 
 def train_test_keys_split(grouped_keys, train_prop=0.8):
-    return _train_test_keys_split(grouped_keys, int(len(grouped_keys) * train_prop))
+    return _train_test_keys_split(
+        grouped_keys, int(len(grouped_keys) * train_prop)
+    )
 
 
 def train_test_keys_leave_one_out_split(grouped_keys):
@@ -67,10 +135,14 @@ def train_test_keys_leave_one_out_split(grouped_keys):
 #     return regroupby(keys, *_key_funcs)
 
 
-def random_train_test_split_keys(self, keys=None, test_size=0.2,
-                                 group_key=('pump_type', 'test_phase'),
-                                 cannot_be_separated='pump_serial_number',
-                                 keep_phase_9_keys=False):
+def random_train_test_split_keys(
+    self,
+    keys=None,
+    test_size=0.2,
+    group_key=('pump_type', 'test_phase'),
+    cannot_be_separated='pump_serial_number',
+    keep_phase_9_keys=False,
+):
     """Split keys randomly in view of train/test testing.
 
     Args:
@@ -100,7 +172,10 @@ def random_train_test_split_keys(self, keys=None, test_size=0.2,
         keys = list(filter(lambda x: x.test_phase != 9, keys))
         if len(keys) != n_keys:
             from warnings import warn
-            warn(f"I removed {n_keys - len(keys)} test_phase==9 of the {n_keys} keys you specified")
+
+            warn(
+                f'I removed {n_keys - len(keys)} test_phase==9 of the {n_keys} keys you specified'
+            )
 
     if group_key is not None:
         groups = self.group_keys([group_key, cannot_be_separated], keys)
@@ -113,14 +188,20 @@ def random_train_test_split_keys(self, keys=None, test_size=0.2,
     elif isinstance(test_size, int):
         n_train = n_groups - test_size
     else:
-        raise TypeError(f"I don't recognize that type of test_size: {test_size}")
+        raise TypeError(
+            f"I don't recognize that type of test_size: {test_size}"
+        )
 
     def _train_test_keys_split_output_as_dict(*args, **kwargs):
         train, test = _train_test_keys_split(*args, **kwargs)
         return {'train': train, 'test': test}
 
     if group_key is not None:
-        return {group_key: _train_test_keys_split_output_as_dict(grouped_keys, n_train)
-                for group_key, grouped_keys in groups.items()}
+        return {
+            group_key: _train_test_keys_split_output_as_dict(
+                grouped_keys, n_train
+            )
+            for group_key, grouped_keys in groups.items()
+        }
     else:
         return _train_test_keys_split_output_as_dict(keys, n_train)
