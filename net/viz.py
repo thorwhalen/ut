@@ -82,9 +82,15 @@ def re_compile(pattern, flags=0, **dflt_if_none):
     my_regex_compilation = type('MyRegexCompilation', (object,), {})()
 
     for _name, _dflt in dflt_if_none.items():
-        setattr(my_regex_compilation, _name, add_dflt(getattr(compiled_regex, _name), _dflt))
-    for _name in filter(lambda x: not x.startswith('__') and x not in intercepted_names,
-                        dir(compiled_regex)):
+        setattr(
+            my_regex_compilation,
+            _name,
+            add_dflt(getattr(compiled_regex, _name), _dflt),
+        )
+    for _name in filter(
+        lambda x: not x.startswith('__') and x not in intercepted_names,
+        dir(compiled_regex),
+    ):
         setattr(my_regex_compilation, _name, getattr(compiled_regex, _name))
 
     return my_regex_compilation
@@ -96,12 +102,12 @@ class rx:
     comments = re.compile('#.+$')
     non_space = re.compile('\S')
     nout_nin = re.compile(r'(\w+)\W+(\w+)')
-    arrow = re.compile(r"\s*->\s*")
-    instruction = re.compile(r"(\w+):\s+(.+)")
-    node_def = re.compile(r"([\w\s,]+):\s+(.+)")
-    wsc = re.compile(r"[\w\s,]+")
-    csv = re.compile(r"[\s,]+")
-    pref_name_suff = re.compile(r"(\W*)(\w+)(\W*)")
+    arrow = re.compile(r'\s*->\s*')
+    instruction = re.compile(r'(\w+):\s+(.+)')
+    node_def = re.compile(r'([\w\s,]+):\s+(.+)')
+    wsc = re.compile(r'[\w\s,]+')
+    csv = re.compile(r'[\s,]+')
+    pref_name_suff = re.compile(r'(\W*)(\w+)(\W*)')
 
 
 class DDigraph(Digraph):
@@ -112,7 +118,7 @@ class DDigraph(Digraph):
             if first_arg.startswith(':'):
                 lines = rx.lines.split(first_arg)
                 first_line = lines[0]
-                name = (rx.name.search(first_line).group(1))
+                name = rx.name.search(first_line).group(1)
 
 
 class ModifiedDot:
@@ -121,17 +127,27 @@ class ModifiedDot:
         comments = re.compile('#.+$')
         non_space = re.compile('\S')
         nout_nin = re.compile(r'(\w+)\W+(\w+)')
-        arrow = re.compile(r"\s*->\s*")
-        instruction = re.compile(r"(\w+):\s+(.+)")
-        node_def = re.compile(r"([\w\s,]+):\s+(.+)")
-        wsc = re.compile(r"[\w\s,]+")
-        csv = re.compile(r"[\s,]+")
-        pref_name_suff = re.compile(r"(\W*)(\w+)(\W*)")
+        arrow = re.compile(r'\s*->\s*')
+        instruction = re.compile(r'(\w+):\s+(.+)')
+        node_def = re.compile(r'([\w\s,]+):\s+(.+)')
+        wsc = re.compile(r'[\w\s,]+')
+        csv = re.compile(r'[\s,]+')
+        pref_name_suff = re.compile(r'(\W*)(\w+)(\W*)')
 
     @staticmethod
     def loose_edges(s):
         return list(
-            map(lambda x: x.groups(), filter(None, map(ModifiedDot.rx.nout_nin.search, ModifiedDot.rx.lines.split(s)))))
+            map(
+                lambda x: x.groups(),
+                filter(
+                    None,
+                    map(
+                        ModifiedDot.rx.nout_nin.search,
+                        ModifiedDot.rx.lines.split(s),
+                    ),
+                ),
+            )
+        )
 
     # https://www.graphviz.org/doc/info/shapes.html#polygon
     shape_for_chars = {
@@ -148,7 +164,7 @@ class ModifiedDot:
         ('|/', '\\|'): 'house',
         ('|\\', '/|'): 'invhouse',
         ('/-', '-\\'): 'trapezium',
-        ('-\\', '-/'): 'invtrapezium'
+        ('-\\', '-/'): 'invtrapezium',
     }
 
     @staticmethod
@@ -167,9 +183,13 @@ class ModifiedDot:
             else:
                 statement = statements[0].strip()
                 if ':' in statement:
-                    if statement.startswith('--'):  # it's a special instruction (typically, overriding a default)
+                    if statement.startswith(
+                        '--'
+                    ):  # it's a special instruction (typically, overriding a default)
                         statement = statement[2:]
-                        instruction, specs = ModifiedDot.rx.node_def.search(statement)
+                        instruction, specs = ModifiedDot.rx.node_def.search(
+                            statement
+                        )
                         if instruction == 'dflt_node_attr':
                             dflt_node_attr = specs.strip()
                         else:
@@ -187,8 +207,9 @@ class ModifiedDot:
                         else:
                             specs = {dflt_node_attr: specs}
                         for node in nodes:
-                            assert isinstance(specs, dict), \
-                                f"specs for {node} be a dict at this point: {specs}"
+                            assert isinstance(
+                                specs, dict
+                            ), f'specs for {node} be a dict at this point: {specs}'
                             yield 'node', node, dict(dflt_specs, **specs)
                 elif ModifiedDot.rx.non_space.search(statement):
                     yield 'source', statement, None
@@ -198,7 +219,9 @@ class ModifiedDot:
         return list(ModifiedDot._modified_dot_gen(s, **dflt_specs))
 
     @staticmethod
-    def interpreter(commands, node_shapes, attrs_for_node, engine, **digraph_kwargs):
+    def interpreter(
+        commands, node_shapes, attrs_for_node, engine, **digraph_kwargs
+    ):
         _edges = list()
         _nodes = defaultdict(dict)
         _sources = list()
@@ -207,9 +230,13 @@ class ModifiedDot:
                 from_node, to_node = arg1, arg2
                 _edge = list()
                 for node in (from_node, to_node):
-                    pref, name, suff = ModifiedDot.rx.pref_name_suff.search(node).groups()
-                    if ((pref, suff) in node_shapes
-                            and name not in _nodes):  # implies that only first formatting (existence of pref and suff) counts
+                    pref, name, suff = ModifiedDot.rx.pref_name_suff.search(
+                        node
+                    ).groups()
+                    if (
+                        pref,
+                        suff,
+                    ) in node_shapes and name not in _nodes:  # implies that only first formatting (existence of pref and suff) counts
                         _nodes[name].update(shape=node_shapes[(pref, suff)])
                         _edge.append(name)
                     else:
@@ -234,11 +261,14 @@ class ModifiedDot:
         return d
 
 
-def dgdisp(commands,
-           node_shapes: Optional[dict] = None,
-           attrs_for_node=None,
-           minilang=ModifiedDot,
-           engine=None, **digraph_kwargs):
+def dgdisp(
+    commands,
+    node_shapes: Optional[dict] = None,
+    attrs_for_node=None,
+    minilang=ModifiedDot,
+    engine=None,
+    **digraph_kwargs,
+):
     """
     Make a Dag image flexibly.
 
@@ -333,7 +363,9 @@ def dgdisp(commands,
     if isinstance(commands, str):
         commands = minilang.parser(commands)
 
-    d = minilang.interpreter(commands, node_shapes, attrs_for_node, engine=engine, **digraph_kwargs)
+    d = minilang.interpreter(
+        commands, node_shapes, attrs_for_node, engine=engine, **digraph_kwargs
+    )
 
     return d
 
@@ -356,6 +388,63 @@ class Struct:
             setattr(self, attr, val)
 
 
-dgdisp.engines = Struct(**{x: x for x in ['dot', 'neato', 'fdp', 'sfdp', 'twopi', 'circo']})
+dgdisp.engines = Struct(
+    **{x: x for x in ['dot', 'neato', 'fdp', 'sfdp', 'twopi', 'circo']}
+)
 
 dagdisp = dgdisp
+
+
+def dot_to_ascii(dot: str, fancy: bool = True):
+    """Convert a dot string to an ascii rendering of the diagram.
+
+    Needs a connection to the internet to work.
+
+    >>> graph_dot = '''
+    ...     graph {
+    ...         rankdir=LR
+    ...         0 -- {1 2}
+    ...         1 -- {2}
+    ...         2 -> {0 1 3}
+    ...         3
+    ...     }
+    ... '''
+    >>>
+    >>> graph_ascii = dot_to_ascii(graph_dot)
+    >>>
+    >>> print(graph_ascii)
+    <BLANKLINE>
+                     ┌─────────┐
+                     ▼         │
+         ┌───┐     ┌───┐     ┌───┐     ┌───┐
+      ┌▶ │ 0 │ ─── │ 1 │ ─── │   │ ──▶ │ 3 │
+      │  └───┘     └───┘     │   │     └───┘
+      │    │                 │   │
+      │    └──────────────── │ 2 │
+      │                      │   │
+      │                      │   │
+      └───────────────────── │   │
+                             └───┘
+    <BLANKLINE>
+
+    """
+    import requests
+
+    url = 'https://dot-to-ascii.ggerganov.com/dot-to-ascii.php'
+    boxart = 0
+
+    # use nice box drawing char instead of + , | , -
+    if fancy:
+        boxart = 1
+
+    params = {
+        'boxart': boxart,
+        'src': dot,
+    }
+
+    response = requests.get(url, params=params).text
+
+    if response == '':
+        raise SyntaxError('DOT string is not formatted correctly')
+
+    return response
