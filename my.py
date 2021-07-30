@@ -78,6 +78,7 @@ with ignore_errors:
     import ut.daf.gr
     import ut.daf.to
     from ut.daf.diagnosis import diag_df as diag_df
+    from ut.daf.get import rand_df
 
 with ignore_errors:
     import ut.pdict.get
