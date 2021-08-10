@@ -20,8 +20,8 @@ def print_progress(msg, refresh=None, display_time=True):
     """
     if display_time:
         msg = hms_message(msg)
-    if refresh is not False:
-        print(msg, '\r')
+    if refresh:
+        print(msg, end='\r')
         # stdout.write('\r' + msg)
         # stdout.write(refresh)
         # stdout.flush()
