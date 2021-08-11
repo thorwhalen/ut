@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 from collections import Counter
 from sklearn.utils.extmath import softmax
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.linear_model.base import LinearClassifierMixin
+from sklearn.linear_model._base import LinearClassifierMixin  # if you don't have sklearn.linear_model._base, upgrade scikit-learn to latest (e.g. scikit-learn==0.24.2)
 
 EPSILON = 1E-6
 
