@@ -17,6 +17,9 @@ from contextlib import suppress as _suppress
 #             pass
 #         return True
 
+# from warnings import warn
+#
+# warn("You may want to use qo (it's pip installable!) instead. Will be maintained there.")
 
 # module_not_found_ignore = ModuleNotFoundIgnore()
 ModuleNotFoundIgnore = lambda: _suppress  # temporary, for back-compatibility
