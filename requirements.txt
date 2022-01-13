@@ -111,7 +111,7 @@ pdfminer.six==20200124
 pexpect==4.8.0
 pickleshare==0.7.5
 pika==1.1.0
-Pillow==7.0.0
+Pillow==9.0.0
 plotly==4.6.0
 pluggy==0.13.1
 pockets==0.9.1
