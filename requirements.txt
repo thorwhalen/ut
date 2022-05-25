@@ -127,7 +127,7 @@ pycryptodome==3.9.7
 pydub==0.23.1
 PyGithub==1.47
 Pygments==2.6.1
-PyJWT==1.7.1
+PyJWT==2.4.0
 pymongo==3.10.1
 pyparsing==2.4.6
 Pyphen==0.9.5
