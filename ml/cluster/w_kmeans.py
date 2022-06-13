@@ -26,7 +26,12 @@ from six import string_types
 import sys
 
 if sys.version_info >= (3, 5):
-    from sklearn.cluster import _k_means_fast as _k_means
+    try:
+        from sklearn.cluster import _k_means_fast as _k_means
+    except ImportError as e:
+        # TODO: Just putting this to make things go through. Should update with more
+        # careful alternative.
+        from sklearn.cluster import k_means as _kmeans
 else:
     from sklearn.cluster import _k_means
 
