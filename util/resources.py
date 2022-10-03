@@ -35,22 +35,20 @@ PIPFREEZE_ALL = [PIPFREEZE_AIR, PIPFREEZE_PRO]
 
 def put_pip_freeze_output_into_file(output_file_path, environment=None):
     if environment:
-        os.system("workon ".format(environment))
-    s = os.system(
-        "pip freeze > {}".format(output_file_path))
+        os.system('workon '.format(environment))
+    s = os.system('pip freeze > {}'.format(output_file_path))
     print(s)
 
 
 def import_subdirs_of(dir):
     subdirs = [x for x in get_immediate_subdirectories(dir) if x[0] != '.']
     for s in subdirs:
-        print("importing to sys path: {}".format(s))
+        print('importing to sys path: {}'.format(s))
         sys.path.append(s)
 
 
 def get_immediate_subdirectories(dir):
-    return [name for name in os.listdir(dir)
-            if os.path.isdir(os.path.join(dir, name))]
+    return [name for name in os.listdir(dir) if os.path.isdir(os.path.join(dir, name))]
 
 
 # needs to be primed with an empty set for loaded (THIS IS SOMEONE ELSES CODE. NOT SURE IF IT WORKS
@@ -64,14 +62,18 @@ def recursively_reload_all_submodules(module, loaded=None):
 
 
 def mk_list_file_name(computer_name, environment=None):
-    return "pipfreeze_{}_{}.txt".format(computer_name, environment)
+    return 'pipfreeze_{}_{}.txt'.format(computer_name, environment)
 
 
 def mk_pip_freeze_list_file(computer_name, environment=None):
     if environment:
-        os.system("workon ".format(environment))
+        os.system('workon '.format(environment))
     s = os.system(
-        "pip freeze > {}".format(PIPFREEZE_LIST_FOLDER + mk_list_file_name(computer_name, environment=environment)))
+        'pip freeze > {}'.format(
+            PIPFREEZE_LIST_FOLDER
+            + mk_list_file_name(computer_name, environment=environment)
+        )
+    )
     print(s)
 
 
@@ -79,10 +81,12 @@ def pipfreeze_list(filepath, unversioned=True):
     if filepath == 'all':
         package_list = []
         for f in PIPFREEZE_ALL:
-            package_list = list(set(package_list + pipfreeze_list(f, unversioned=unversioned)))
+            package_list = list(
+                set(package_list + pipfreeze_list(f, unversioned=unversioned))
+            )
     else:
         filepath = get_filepath_of_pipinstall_list(filepath)
-        with open(filepath, "r") as myfile:
+        with open(filepath, 'r') as myfile:
             package_list = [x.replace('\n', '') for x in myfile.readlines()]
     if unversioned == True:
         package_list = [re.match('[^=]*', x).group() for x in package_list]
@@ -132,13 +136,14 @@ def missing_pip_installs(compare_set, unversioned=True):
 #         pro = lines_to_list(PIPFREEZE_PRO)
 #     return list(set(pro)- set(air))
 
+
 def pip_install_list(package_names, environment='sem'):
     if environment:
-        os.system("workon ".format(environment))
+        os.system('workon '.format(environment))
     for pak in package_names:
         # TODO: Not sure this actually installs it in the appropriate environment...
-        print("------- pip install {}".format(pak))
-        s = subprocess.check_output("pip install {}".format(pak).split(' '))
+        print('------- pip install {}'.format(pak))
+        s = subprocess.check_output('pip install {}'.format(pak).split(' '))
         print(s)
 
 

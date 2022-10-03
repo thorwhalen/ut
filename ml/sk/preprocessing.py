@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 import numpy as np
@@ -8,9 +6,16 @@ from numpy import allclose
 
 from statsmodels.stats.weightstats import DescrStatsW
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing.data import ( FLOAT_DTYPES, check_array, warnings, sparse,
-                                        _incremental_mean_and_var, mean_variance_axis, incr_mean_variance_axis,
-                                        _handle_zeros_in_scale)
+from sklearn.preprocessing.data import (
+    FLOAT_DTYPES,
+    check_array,
+    warnings,
+    sparse,
+    _incremental_mean_and_var,
+    mean_variance_axis,
+    incr_mean_variance_axis,
+    _handle_zeros_in_scale,
+)
 
 
 class WeightedStandardScaler(StandardScaler):
@@ -54,6 +59,7 @@ all fitted attributes were close
 all fitted attributes were close
 >>>
     """
+
     def fit(self, X, y=None):
         """Compute the mean and std to be used for later scaling.
 
@@ -73,8 +79,12 @@ all fitted attributes were close
 
         weighted_stats = DescrStatsW(X, weights=w, ddof=0)
 
-        self.mean_ = weighted_stats.mean  # weighted mean of data (equivalent to np.average(array, weights=weights))
-        self.var_ = weighted_stats.var  # variance with default degrees of freedom correction
+        self.mean_ = (
+            weighted_stats.mean
+        )  # weighted mean of data (equivalent to np.average(array, weights=weights))
+        self.var_ = (
+            weighted_stats.var
+        )  # variance with default degrees of freedom correction
         self.n_samples_seen_ = sum(w)
 
         if self.with_std:
@@ -103,7 +113,9 @@ all fitted attributes were close
 
         y: Passthrough for ``Pipeline`` compatibility.
         """
-        raise NotImplementedError("Partial fit for WeightedStandardScaler not yet implemented")
+        raise NotImplementedError(
+            'Partial fit for WeightedStandardScaler not yet implemented'
+        )
         #
         # X = check_array(X, accept_sparse=('csr', 'csc'), copy=self.copy,
         #                 ensure_2d=False, warn_on_dtype=True,
@@ -158,7 +170,6 @@ all fitted attributes were close
         # return self
 
 
-
 def compare_unweighted_to_weighted(X, wX):
     ss = StandardScaler()
     wss = WeightedStandardScaler()
@@ -169,7 +180,7 @@ def compare_unweighted_to_weighted(X, wX):
         assert allclose(ss.mean_, wss.mean_), 'mean_ not close'
         assert allclose(ss.var_, wss.var_), 'var_ not close'
         assert allclose(ss.scale_, wss.scale_), 'scale_ not close'
-        print("all okay")
+        print('all okay')
     except AssertionError as e:
         print(e)
 

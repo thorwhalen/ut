@@ -19,6 +19,7 @@ from collections import defaultdict, namedtuple
 
 # from matplotlib.cbook import flatten
 
+
 def find_frequent_itemsets(transactions, transaction_values, minimum_support):
     """
     Find frequent itemsets in the given transactions using FP-growth. This
@@ -48,7 +49,11 @@ def mk_fptree(transactions, transaction_values, minimum_support, item_counts=Non
             # processed_transactions.append(processed)
 
     # Remove infrequent items from the item support dictionary.
-    item_counts = dict((item, support) for item, support in item_counts.items() if support >= minimum_support)
+    item_counts = dict(
+        (item, support)
+        for item, support in item_counts.items()
+        if support >= minimum_support
+    )
 
     # Build our FP-tree. Before any transactions can be added to the tree, they
     # must be stripped of infrequent items and their surviving items must be
@@ -59,8 +64,9 @@ def mk_fptree(transactions, transaction_values, minimum_support, item_counts=Non
         return transaction
 
     fptree = FPTree()
-    for transaction, transaction_value \
-            in zip(map(clean_transaction, transactions), transaction_values):
+    for transaction, transaction_value in zip(
+        map(clean_transaction, transactions), transaction_values
+    ):
         fptree.add(transaction, transaction_value)
         # print("transaction={}, transaction_value={}".format(transaction, transaction_value))
         # print(tree.inspect())
@@ -77,7 +83,9 @@ def find_frequent_itemsets_from_fp_tree(fp_tree, minimum_support):
     def find_with_suffix(tree, suffix):
         for item, nodes in list(tree.items()):
             # support = sum(n.count for n in nodes)
-            support, value = list(map(sum, list(zip(*[(n.count, n.value) for n in nodes]))))
+            support, value = list(
+                map(sum, list(zip(*[(n.count, n.value) for n in nodes])))
+            )
             if support >= minimum_support and item not in suffix:
                 # New winner!
                 found_set = [item] + suffix
@@ -86,7 +94,9 @@ def find_frequent_itemsets_from_fp_tree(fp_tree, minimum_support):
 
                 # Build a conditional tree and recursively search for frequent
                 # itemsets within it.
-                cond_tree = conditional_tree_from_paths(tree.prefix_paths(item), minimum_support)
+                cond_tree = conditional_tree_from_paths(
+                    tree.prefix_paths(item), minimum_support
+                )
                 for s in find_with_suffix(cond_tree, found_set):
                     yield s  # pass along the good news to our caller
 
@@ -292,7 +302,7 @@ class FPNode(object):
         """Adds the given FPNode `child` as a child of this node."""
 
         if not isinstance(child, FPNode):
-            raise TypeError("Can only add other FPNodes as children")
+            raise TypeError('Can only add other FPNodes as children')
 
         if not child.item in self._children:
             self._children[child.item] = child
@@ -328,9 +338,9 @@ class FPNode(object):
                         self.add(sub_child)
                 child._children = {}
             else:
-                raise ValueError("that node is not a child of this node")
+                raise ValueError('that node is not a child of this node')
         except KeyError:
-            raise ValueError("that node is not a child of this node")
+            raise ValueError('that node is not a child of this node')
 
     def __contains__(self, item):
         return item in self._children
@@ -358,13 +368,13 @@ class FPNode(object):
     def increment_count(self):
         """Increments the count associated with this node's item."""
         if self._count is None:
-            raise ValueError("Root nodes have no associated count.")
+            raise ValueError('Root nodes have no associated count.')
         self._count += 1
 
     def increment_value(self, value_to_add=1.0):
         """Increments the count associated with this node's item."""
         if self._value is None:
-            raise ValueError("Root nodes have no associated value.")
+            raise ValueError('Root nodes have no associated value.')
         self._value += value_to_add
 
     @property
@@ -385,9 +395,9 @@ class FPNode(object):
 
         def fset(self, value):
             if value is not None and not isinstance(value, FPNode):
-                raise TypeError("A node must have an FPNode as a parent.")
+                raise TypeError('A node must have an FPNode as a parent.')
             if value and value.tree is not self.tree:
-                raise ValueError("Cannot have a parent from another tree.")
+                raise ValueError('Cannot have a parent from another tree.')
             self._parent = value
 
         return locals()
@@ -395,19 +405,19 @@ class FPNode(object):
     parent = property(**parent())
 
     def neighbor():
-        doc = """
+        doc = '''
         The node's neighbor; the one with the same value that is "to the right"
         of it in the tree.
-        """
+        '''
 
         def fget(self):
             return self._neighbor
 
         def fset(self, value):
             if value is not None and not isinstance(value, FPNode):
-                raise TypeError("A node must have an FPNode as a neighbor.")
+                raise TypeError('A node must have an FPNode as a neighbor.')
             if value and value.tree is not self.tree:
-                raise ValueError("Cannot have a neighbor from another tree.")
+                raise ValueError('Cannot have a neighbor from another tree.')
             self._neighbor = value
 
         return locals()
@@ -426,8 +436,14 @@ class FPNode(object):
 
     def __repr__(self):
         if self.root:
-            return "<%s (root)>" % type(self).__name__
-        return "<%s %r count=%r, value=%r>" % (type(self).__name__, self.item, self.count, self.value)
+            return '<%s (root)>' % type(self).__name__
+        return '<%s %r count=%r, value=%r>' % (
+            type(self).__name__,
+            self.item,
+            self.count,
+            self.value,
+        )
+
 
 # if __name__ == '__main__':
 #     from optparse import OptionParser

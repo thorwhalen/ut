@@ -7,6 +7,7 @@ from types import MethodType
 
 # Note: Note used anywhere in the module anymore, but was
 
+
 class Returns:
     """
     Makes an object that pretends to have all possible methods, but returns the same value (default None)
@@ -50,7 +51,10 @@ class Returns:
         self.the_only_method_there_is = MethodType(the_only_method_there_is, self)
 
     def __getattr__(self, item):
-        if not item.startswith('_') and item not in {'return_val', 'the_only_method_there_id'}:
+        if not item.startswith('_') and item not in {
+            'return_val',
+            'the_only_method_there_id',
+        }:
             return self.the_only_method_there_is
         else:
             return getattr(self, item)
@@ -61,9 +65,11 @@ from os.path import join
 import json
 
 
-def mk_arg_val_dict_from_sys_argv(sys_argv,
-                                  convert_values_to_number_if_possible=False,
-                                  convert_braced_strings_to_json=False):
+def mk_arg_val_dict_from_sys_argv(
+    sys_argv,
+    convert_values_to_number_if_possible=False,
+    convert_braced_strings_to_json=False,
+):
     """
     Transform the list given by sys.argv (which parses the tokens of the command line) into a dict whose
     keys are the strings of the arguments prefixed with -, and the values are the arguments that follow
@@ -88,7 +94,9 @@ def mk_arg_val_dict_from_sys_argv(sys_argv,
     if narg == 0:
         return arg_val_dict
     else:
-        assert sys_argv[0].startswith('-'), "The list must start with a key arg (prefixed with '-')"
+        assert sys_argv[0].startswith(
+            '-'
+        ), "The list must start with a key arg (prefixed with '-')"
         current_key_arg = None
         for arg in sys_argv:
             if arg.startswith('-'):
@@ -151,20 +159,32 @@ def print_info(x, max_depth=30, print_contents=False, depth=0, tab=''):
     if depth <= max_depth:
         class_info = x.__class__
         if hasattr(x, '__name__'):
-            print("%s%s %s" % (tab + '  ', x.__name__, type.mro(class_info)[0]))
+            print('%s%s %s' % (tab + '  ', x.__name__, type.mro(class_info)[0]))
         else:
-            print("%s%s" % (tab + '  ', type.mro(class_info)[0]))
+            print('%s%s' % (tab + '  ', type.mro(class_info)[0]))
         new_depth = depth + 1
         if hasattr(x, '__dict__'):
             dict_info = x.__dict__
             if dict_info:
                 tab = tab + '    '
                 for k, v in list(dict_info.items()):
-                    print(tab + '.' + k + ":")
+                    print(tab + '.' + k + ':')
                     # print "%s%s: %s" (tab, k, v.__class__)
-                    print_info(v, max_depth=max_depth, print_contents=print_contents, depth=new_depth, tab=tab)
+                    print_info(
+                        v,
+                        max_depth=max_depth,
+                        print_contents=print_contents,
+                        depth=new_depth,
+                        tab=tab,
+                    )
         if hasattr(x, '__self__'):
-            print_info(x.__self__, max_depth=max_depth, print_contents=print_contents, depth=new_depth, tab=tab)
+            print_info(
+                x.__self__,
+                max_depth=max_depth,
+                print_contents=print_contents,
+                depth=new_depth,
+                tab=tab,
+            )
         if print_contents:
             contents_to_print = []
             if isinstance(x, dict):
@@ -172,7 +192,7 @@ def print_info(x, max_depth=30, print_contents=False, depth=0, tab=''):
             elif isinstance(x, list):
                 contents_to_print = x
             if contents_to_print:
-                contents_to_print = contents_to_print[:min(5, len(contents_to_print))]
+                contents_to_print = contents_to_print[: min(5, len(contents_to_print))]
                 print(tab + str(contents_to_print))
 
 
@@ -196,7 +216,9 @@ def my_to_list(x):
     Use: This is useful when a function expects a list, but you want to also input a single element without putting this
     this element in a list
     """
-    print("util.var.my_to_list() DEPRECIATED!!!: use util.ulist.ascertain_list() instead!!!")
+    print(
+        'util.var.my_to_list() DEPRECIATED!!!: use util.ulist.ascertain_list() instead!!!'
+    )
     if not isinstance(x, list):
         if is_an_iter(x):
             x = list(x)
@@ -210,15 +232,16 @@ def typeof(x):
         if len(x) > 0:
             unik_types = list({typeof(xx) for xx in x})
             if len(unik_types) == 1:
-                return "list of " + unik_types[0]
+                return 'list of ' + unik_types[0]
             elif len(unik_types) <= 3:
-                return "list of " + ", ".join(unik_types)
+                return 'list of ' + ', '.join(unik_types)
             else:
-                return "list of various types"
+                return 'list of various types'
         else:
-            return "empty list"
+            return 'empty list'
     else:
         return type(x).__name__
+
 
 # if __name__=="__main__":
 #     print my_to_list('asdf')

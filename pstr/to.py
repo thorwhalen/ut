@@ -1,63 +1,54 @@
 __author__ = 'thorwhalen'
 
 fc = dict(
-    reset="\033[0m",  # alias for reset_all
-    reset_all="\033[0m",
-
-    bold="\033[1m",
-    dim="\033[2m",
-    underlined="\033[4m",
-    blink="\033[5m",
-    reverse="\033[7m",
-    hidden="\033[8m",
-    reset_bold="\033[21m",
-    reset_dim="\033[22m",
-    reset_underlined="\033[24m",
-    reset_blink="\033[25m",
-    reset_reverse="\033[27m",
-    reset_hidden="\033[28m",
-
-    default="\033[39m",
-
-    black="\033[30m",
-    red="\033[31m",
-    green="\033[32m",
-    yellow="\033[33m",
-    blue="\033[34m",
-    magenta="\033[35m",
-    cyan="\033[36m",
-    gray="\033[37m",
-
-    dark_gray="\033[90m",
-    dark_red="\033[91m",
-    dark_green="\033[92m",
-    dark_yellow="\033[93m",
-    dark_blue="\033[94m",
-    dark_magenta="\033[95m",
-    dark_cyan="\033[96m",
-
-    white="\033[97m",
-
-    background_default="\033[49m",
-
-    background_black="\033[40m",
-    background_red="\033[41m",
-    background_green="\033[42m",
-    background_yellow="\033[43m",
-    background_blue="\033[44m",
-    background_magenta="\033[45m",
-    background_cyan="\033[46m",
-    background_gray="\033[47m",
-
-    background_dark_gray="\033[100m",
-    background_dark_red="\033[101m",
-    background_dark_green="\033[102m",
-    background_dark_yellow="\033[103m",
-    background_dark_blue="\033[104m",
-    background_dark_magenta="\033[105m",
-    background_dark_cyan="\033[106m",
-
-    background_white="\033[107m",
+    reset='\033[0m',  # alias for reset_all
+    reset_all='\033[0m',
+    bold='\033[1m',
+    dim='\033[2m',
+    underlined='\033[4m',
+    blink='\033[5m',
+    reverse='\033[7m',
+    hidden='\033[8m',
+    reset_bold='\033[21m',
+    reset_dim='\033[22m',
+    reset_underlined='\033[24m',
+    reset_blink='\033[25m',
+    reset_reverse='\033[27m',
+    reset_hidden='\033[28m',
+    default='\033[39m',
+    black='\033[30m',
+    red='\033[31m',
+    green='\033[32m',
+    yellow='\033[33m',
+    blue='\033[34m',
+    magenta='\033[35m',
+    cyan='\033[36m',
+    gray='\033[37m',
+    dark_gray='\033[90m',
+    dark_red='\033[91m',
+    dark_green='\033[92m',
+    dark_yellow='\033[93m',
+    dark_blue='\033[94m',
+    dark_magenta='\033[95m',
+    dark_cyan='\033[96m',
+    white='\033[97m',
+    background_default='\033[49m',
+    background_black='\033[40m',
+    background_red='\033[41m',
+    background_green='\033[42m',
+    background_yellow='\033[43m',
+    background_blue='\033[44m',
+    background_magenta='\033[45m',
+    background_cyan='\033[46m',
+    background_gray='\033[47m',
+    background_dark_gray='\033[100m',
+    background_dark_red='\033[101m',
+    background_dark_green='\033[102m',
+    background_dark_yellow='\033[103m',
+    background_dark_blue='\033[104m',
+    background_dark_magenta='\033[105m',
+    background_dark_cyan='\033[106m',
+    background_white='\033[107m',
 )
 
 try:
@@ -68,7 +59,13 @@ except ModuleNotFoundError:
     pass  # AttrDict is convenient, but not necessary
 
 
-def highlight(string, effect=fc['reverse'], beg_mark='[[', end_mark=']]', end_effect=fc['reset_all']):
+def highlight(
+    string,
+    effect=fc['reverse'],
+    beg_mark='[[',
+    end_mark=']]',
+    end_effect=fc['reset_all'],
+):
     r"""Interprets a string's highlight markers to be able to make highlights in the string.
 
     This is meant for very simple situations. A more powerful and fast function could be made by
@@ -138,42 +135,42 @@ def integer(x, not_int_val=None):
         return not_int_val
 
 
-def file(string, tofile, encoding="UTF-8"):
+def file(string, tofile, encoding='UTF-8'):
     if encoding != None:
-        with open(tofile, "wb") as f:
+        with open(tofile, 'wb') as f:
             f.write(string.encode(encoding))
     else:
-        text_file = open(tofile, "w")
+        text_file = open(tofile, 'w')
         text_file.write(string)
         text_file.close()
 
 
-def _file(string, tofile, encoding="UTF-8"):
+def _file(string, tofile, encoding='UTF-8'):
     if encoding != None:
-        with open(tofile, "wb") as f:
+        with open(tofile, 'wb') as f:
             f.write(string.encode(encoding))
     else:
-        text_file = open(tofile, "w")
+        text_file = open(tofile, 'w')
         text_file.write(string)
         text_file.close()
 
 
-def afile(string, tofile, encoding="UTF-8"):
+def afile(string, tofile, encoding='UTF-8'):
     try:
         if encoding != None:
-            with open(tofile, "wb") as f:
+            with open(tofile, 'wb') as f:
                 f.write(string.encode(encoding))
         else:
-            text_file = open(tofile, "w")
+            text_file = open(tofile, 'w')
             text_file.write(string)
             text_file.close()
     except UnicodeDecodeError:
         string = string.decode('utf-8')
         if encoding != None:
-            with open(tofile, "wb") as f:
+            with open(tofile, 'wb') as f:
                 f.write(string.encode(encoding))
         else:
-            text_file = open(tofile, "w")
+            text_file = open(tofile, 'w')
             text_file.write(string)
             text_file.close()
 

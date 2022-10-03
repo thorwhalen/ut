@@ -1,14 +1,13 @@
 import collections
 
-__doc__ = "Python recipe: http://code.activestate.com/recipes/576694/"
+__doc__ = 'Python recipe: http://code.activestate.com/recipes/576694/'
 
 
 class OrderedSet(collections.MutableSet):
-
     def __init__(self, iterable=None):
         self.end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.map = {}                   # key --> [key, prev, next]
+        end += [None, end, end]  # sentinel node for doubly linked list
+        self.map = {}  # key --> [key, prev, next]
         if iterable is not None:
             self |= iterable
 
@@ -68,4 +67,3 @@ if __name__ == '__main__':
     print((s | t))
     print((s & t))
     print((s - t))
-

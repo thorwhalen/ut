@@ -32,11 +32,13 @@ def axis_to_contain_data_and_padding(axis_obj=None, padding=0, axis=['x', 'y']):
     else:
         d = _get_axis_axis(axis, axis_obj).get_data_interval()
         # t = _axis_fun('data_interval', axis, axis_obj=axis_obj)()
-        _axis_fun('lim', axis)([d[0]*(1 - padding), d[1]*(1 + padding)])
+        _axis_fun('lim', axis)([d[0] * (1 - padding), d[1] * (1 + padding)])
 
 
 def ratio_to_percent(axis=None, axis_obj=None):
-    _get_axis_axis(axis=axis, axis_obj=axis_obj).set_major_formatter(FuncFormatter(_to_percent))
+    _get_axis_axis(axis=axis, axis_obj=axis_obj).set_major_formatter(
+        FuncFormatter(_to_percent)
+    )
 
 
 def _to_percent(y, position=None):
@@ -72,7 +74,5 @@ def _axis_fun(fun, axis=None, **kwargs):
     #     else:
     #         fun = axis_obj.xaxis.get_data_interval
     else:
-        NotImplementedError("Unknown fun")
+        NotImplementedError('Unknown fun')
     return fun
-
-

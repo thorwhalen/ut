@@ -80,10 +80,10 @@ def rep_tags(df, rep_cols, with_cols, name_to_tag_fun=None):
     with_cols = util_ulist.ascertain_list(with_cols)
     if name_to_tag_fun is None:
         name_to_tag_fun = lambda x: name_to_tag(x, tag_str_format='#{%s}')
-    tag_exp_with_col = \
-        [{'with': name,
-          'tag_exp': re.compile(name_to_tag_fun(name))}
-         for name in with_cols]
+    tag_exp_with_col = [
+        {'with': name, 'tag_exp': re.compile(name_to_tag_fun(name))}
+        for name in with_cols
+    ]
     # go through all rep_cols and replace tags with the value in the with_cols
     for r in rep_cols:
         for t in tag_exp_with_col:
@@ -92,6 +92,3 @@ def rep_tags(df, rep_cols, with_cols, name_to_tag_fun=None):
             print(w, tag_exp.pattern)
             df[r] = list(map(lambda x, y: tag_exp.sub(x, y), df[w], df[r]))
     return df
-
-
-

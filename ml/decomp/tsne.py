@@ -30,7 +30,7 @@ def x2p(X=Math.array([]), tol=1e-5, perplexity=30.0):
     """Performs a binary search to get P-values in such a way that each conditional Gaussian has the same perplexity."""
 
     # Initialize some variables
-    print("Computing pairwise distances...")
+    print('Computing pairwise distances...')
     (n, d) = X.shape
     sum_X = Math.sum(Math.square(X), 1)
     D = Math.add(Math.add(-2 * Math.dot(X, X.T), sum_X).T, sum_X)
@@ -43,12 +43,12 @@ def x2p(X=Math.array([]), tol=1e-5, perplexity=30.0):
 
         # Print progress
         if i % 500 == 0:
-            print("Computing P-values for point ", i, " of ", n, "...")
+            print('Computing P-values for point ', i, ' of ', n, '...')
 
         # Compute the Gaussian kernel and entropy for the current precision
         betamin = -Math.inf
         betamax = Math.inf
-        Di = D[i, Math.concatenate((Math.r_[0:i], Math.r_[i + 1:n]))]
+        Di = D[i, Math.concatenate((Math.r_[0:i], Math.r_[i + 1 : n]))]
         (H, thisP) = Hbeta(Di, beta[i])
 
         # Evaluate whether the perplexity is within tolerance
@@ -76,17 +76,17 @@ def x2p(X=Math.array([]), tol=1e-5, perplexity=30.0):
             tries = tries + 1
 
         # Set the final row of P
-        P[i, Math.concatenate((Math.r_[0:i], Math.r_[i + 1:n]))] = thisP
+        P[i, Math.concatenate((Math.r_[0:i], Math.r_[i + 1 : n]))] = thisP
 
     # Return final P-matrix
-    print("Mean value of sigma: ", Math.mean(Math.sqrt(1 / beta)))
+    print('Mean value of sigma: ', Math.mean(Math.sqrt(1 / beta)))
     return P
 
 
 def pca(X=Math.array([]), no_dims=50):
     """Runs PCA on the NxD array X in order to reduce its dimensionality to no_dims dimensions."""
 
-    print("Preprocessing the data using PCA...")
+    print('Preprocessing the data using PCA...')
     (n, d) = X.shape
     X = X - Math.tile(Math.mean(X, 0), (n, 1))
     (l, M) = Math.linalg.eig(Math.dot(X.T, X))
@@ -94,16 +94,22 @@ def pca(X=Math.array([]), no_dims=50):
     return Y
 
 
-def tsne(X=Math.array([]), no_dims=2, initial_dims=50, perplexity=30.0, print_progress_every=None):
+def tsne(
+    X=Math.array([]),
+    no_dims=2,
+    initial_dims=50,
+    perplexity=30.0,
+    print_progress_every=None,
+):
     """Runs t-SNE on the dataset in the NxD array X to reduce its dimensionality to no_dims dimensions.
     The syntaxis of the function is Y = tsne.tsne(X, no_dims, perplexity), where X is an NxD NumPy array."""
 
     # Check inputs
     if isinstance(no_dims, float):
-        print("Error: array X should have type float.")
+        print('Error: array X should have type float.')
         return -1
     if round(no_dims) != no_dims:
-        print("Error: number of dimensions should be an integer.")
+        print('Error: number of dimensions should be an integer.')
         return -1
 
     # Initialize variables
@@ -139,14 +145,18 @@ def tsne(X=Math.array([]), no_dims=2, initial_dims=50, perplexity=30.0, print_pr
         # Compute gradient
         PQ = P - Q
         for i in range(n):
-            dY[i, :] = Math.sum(Math.tile(PQ[:, i] * num[:, i], (no_dims, 1)).T * (Y[i, :] - Y), 0)
+            dY[i, :] = Math.sum(
+                Math.tile(PQ[:, i] * num[:, i], (no_dims, 1)).T * (Y[i, :] - Y), 0
+            )
 
         # Perform the update
         if iter < 20:
             momentum = initial_momentum
         else:
             momentum = final_momentum
-        gains = (gains + 0.2) * ((dY > 0) != (iY > 0)) + (gains * 0.8) * ((dY > 0) == (iY > 0))
+        gains = (gains + 0.2) * ((dY > 0) != (iY > 0)) + (gains * 0.8) * (
+            (dY > 0) == (iY > 0)
+        )
         gains[gains < min_gain] = min_gain
         iY = momentum * iY - eta * (gains * dY)
         Y = Y + iY
@@ -156,7 +166,7 @@ def tsne(X=Math.array([]), no_dims=2, initial_dims=50, perplexity=30.0, print_pr
         if print_progress_every:
             if (iter + 1) % print_progress_every == 0:
                 C = Math.sum(P * Math.log(P / Q))
-                print("Iteration ", (iter + 1), ": error is ", C)
+                print('Iteration ', (iter + 1), ': error is ', C)
 
         # Stop lying about P-values
         if iter == 100:
@@ -166,8 +176,9 @@ def tsne(X=Math.array([]), no_dims=2, initial_dims=50, perplexity=30.0, print_pr
     return Y
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import pickle
+
     X = pickle.load(open('/D/Dropbox/dev/py/notebooks/soto/all_iatis_tags_X.p', 'r'))
     XX = tsne(X, print_progress_every=10)
     # print "Run Y = tsne.tsne(X, no_dims, perplexity) to perform t-SNE on your dataset."

@@ -9,7 +9,6 @@ from time import sleep
 
 
 class KeywordOperationsMS(KeywordOperationsBase):
-
     def modify_bids(self, bid_modifier_func=lambda x: x, kw_df=None, adgroup_ids=None):
         """
         In dataframe format, gets all of the keywords in the current account or set of ad groups within the current
@@ -53,6 +52,9 @@ class KeywordOperationsMS(KeywordOperationsBase):
 
             # Replace any negative signs with an 'N' so that HDF5 Store stops giving warnings.
             self.store.put('jobs/_' + job_id.replace('-', 'N'), df)
-            self.logger.log(level=logging.DEBUG, ko="Pushed new job to google, id = {}".format(job_id))
+            self.logger.log(
+                level=logging.DEBUG,
+                ko='Pushed new job to google, id = {}'.format(job_id),
+            )
 
         return self.job_ids

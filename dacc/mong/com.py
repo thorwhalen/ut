@@ -14,13 +14,20 @@ def mdb_info(mg_element=None):
         return mdb_info(mg.MongoClient())
     else:
         if isinstance(mg_element, mg.MongoClient):
-            return {dbname: mdb_info(getattr(mg_element, dbname)) for dbname in mg_element.database_names()}
+            return {
+                dbname: mdb_info(getattr(mg_element, dbname))
+                for dbname in mg_element.database_names()
+            }
         elif isinstance(mg_element, mg.database.Database):
-            return {coll_name: getattr(mg_element, coll_name).count() for coll_name in mg_element.collection_names()}
+            return {
+                coll_name: getattr(mg_element, coll_name).count()
+                for coll_name in mg_element.collection_names()
+            }
 
 
 def get_db(db_name='test-database'):
     import pymongo as mg
+
     connection = mg.MongoClient()
     db = connection[db_name]
     return db
@@ -50,7 +57,9 @@ class MongoStruct:
         return self.__dict__[val]
 
     def __str__(self):
-        return '{}'.format(str(', '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.items())))
+        return '{}'.format(
+            str(', '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.items()))
+        )
 
     def __repr__(self):
         return PPR.format_str(mdb_info(self.obj))
@@ -68,7 +77,7 @@ class MongoStruct:
 
     def create_collection_ignore_if_exists(self, collection_name):
         if not isinstance(self.obj, mg.database.Database):
-            raise ValueError("self.obj must be a database to do that!")
+            raise ValueError('self.obj must be a database to do that!')
         try:
             self.obj.create_collection(collection_name)
             self.refresh()
@@ -77,7 +86,7 @@ class MongoStruct:
 
     def recreate_collection(self, collection_name):
         if not isinstance(self.obj, mg.database.Database):
-            raise ValueError("self.obj must be a database to do that!")
+            raise ValueError('self.obj must be a database to do that!')
         try:
             self.obj.drop_collection(collection_name)
         except Exception:
@@ -96,7 +105,9 @@ class MongoStruct:
             return None
 
     @staticmethod
-    def insert_df(df, collection, delete_previous_contents=False, dropna=False, **kwargs):
+    def insert_df(
+        df, collection, delete_previous_contents=False, dropna=False, **kwargs
+    ):
         """
         insert the rows of the dataframe df (as dicts) in the given collection.
         If you want to do it given a mongo_db and a collection_name:
@@ -117,4 +128,3 @@ class MongoStruct:
     @staticmethod
     def to_df(cursor):
         return rm_cols_if_present(pd.DataFrame(list(cursor)), ['_id'])
-

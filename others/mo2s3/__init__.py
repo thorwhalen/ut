@@ -11,7 +11,7 @@ except Exception:
     DEFAULT_BUCKET = ''
     DEFAULT_FOLDER = ''
 
-default_conf = """[aws]
+default_conf = '''[aws]
 access_key = {access_key}
 secret_key = {secret_key}
 s3_bucket = {s3_bucket}
@@ -20,6 +20,9 @@ folder = {folder}
 [mongodb]
 host = 
 username = 
-password = """.format(
-    access_key=DEFAULT_ACCESS_KEY, secret_key=DEFAULT_SECRET_KEY,
-    s3_bucket=DEFAULT_BUCKET, folder=DEFAULT_FOLDER)
+password = '''.format(
+    access_key=DEFAULT_ACCESS_KEY,
+    secret_key=DEFAULT_SECRET_KEY,
+    s3_bucket=DEFAULT_BUCKET,
+    folder=DEFAULT_FOLDER,
+)

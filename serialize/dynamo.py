@@ -9,7 +9,6 @@ __author__ = 'mattjmorris'
 
 
 class Dynamo(object):
-
     def __init__(self, access_key=None, secret=None):
         """
         If access_key and/or secret are not passed in, assumes we are accessing erenev's aws account and that the
@@ -20,8 +19,11 @@ class Dynamo(object):
         """
         access_key = access_key or os.getenv('VEN_S3_ACCESS_KEY')
         secret = secret or os.getenv('VEN_S3_SECRET')
-        self.connection = boto.dynamodb2.connect_to_region(region_name='eu-west-1', aws_access_key_id=access_key,
-                                                           aws_secret_access_key=secret)
+        self.connection = boto.dynamodb2.connect_to_region(
+            region_name='eu-west-1',
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret,
+        )
         self.logger = KhanLogger(origin=self.__class__.__name__)
 
     def modify_throughput(self, requested_read, requested_write, table):
@@ -32,12 +34,19 @@ class Dynamo(object):
 
         while requested_read != read or requested_write != write:
 
-            self.logger.info(msg="Modifying {} from {}, {} to {}, {}".format(table.table_name, read, write,
-                                                                             requested_read, requested_write))
+            self.logger.info(
+                msg='Modifying {} from {}, {} to {}, {}'.format(
+                    table.table_name, read, write, requested_read, requested_write
+                )
+            )
 
-            new_read, new_write = self._new_read_write(read, requested_read, write, requested_write)
+            new_read, new_write = self._new_read_write(
+                read, requested_read, write, requested_write
+            )
 
-            self.logger.info(msg="going to request read {} and write {}".format(new_read, new_write))
+            self.logger.info(
+                msg='going to request read {} and write {}'.format(new_read, new_write)
+            )
 
             if (new_read < read or new_write < write) and num_dec_today >= 4:
                 # Todo - replace with custom error and handle in client code
@@ -46,10 +55,12 @@ class Dynamo(object):
 
             sleep_secs = 30
             table_status = 'UPDATING'
-            self.logger.info(msg="Sleeping for {} secs before starting".format(sleep_secs))
+            self.logger.info(
+                msg='Sleeping for {} secs before starting'.format(sleep_secs)
+            )
             sleep(sleep_secs)
             while table_status == 'UPDATING':
-                self.logger.info(msg="Sleeping for {} secs".format(sleep_secs))
+                self.logger.info(msg='Sleeping for {} secs'.format(sleep_secs))
                 sleep(sleep_secs)
                 read, write, num_dec_today, table_status = self.get_table_info(table)
 

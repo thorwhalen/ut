@@ -17,7 +17,9 @@ def ihist(x):
 
 def count_hist(x, sort_by=None, reverse=False, horizontal=False, ratio=False, **kwargs):
     kwargs = dict({'align': 'center'}, **kwargs)
-    h = ms.pcoll.ordered_dict.ordered_counter(x=collections.Counter(x), sort_by=sort_by, reverse=reverse)
+    h = ms.pcoll.ordered_dict.ordered_counter(
+        x=collections.Counter(x), sort_by=sort_by, reverse=reverse
+    )
     if ratio:
         total = float(sum(h.values()))
         [h.__setitem__(k, v / total) for k, v in h.items()]
@@ -28,4 +30,3 @@ def count_hist(x, sort_by=None, reverse=False, horizontal=False, ratio=False, **
     else:
         plt.bar(h_range, list(h.values()), **kwargs)
         plt.xticks(h_range, list(h.keys()))
-

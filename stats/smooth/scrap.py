@@ -16,4 +16,3 @@ def sequential_ratios(d, **kwargs):
 
     for level in range(len(d.index.levels)):
         pass
-

@@ -92,7 +92,9 @@ def first_true_cond(cond, arr):
     return None
 
 
-def get_first_item_contained_in_intersection_of(find_first_item_of, in_iterable, default=None):
+def get_first_item_contained_in_intersection_of(
+    find_first_item_of, in_iterable, default=None
+):
     for item in in_iterable:
         if item in find_first_item_of:
             return item
@@ -110,6 +112,7 @@ def ismember_lidx(A, B):
 #     u = np.unique(a[tf])
 #     index = np.array([(np.where(b == i))[0][-1] if t else 0 for i,t in zip(a,tf)])
 #     return tf, index
+
 
 def sort_as(sort_x, as_y, **sorted_kwargs):
     return [x for (y, x) in sorted(zip(as_y, sort_x), **sorted_kwargs)]
@@ -131,7 +134,7 @@ def any_true(x):
     # return len([xx for xx in x if xx==True]) != 0
 
 
-def to_str(x, sep=","):
+def to_str(x, sep=','):
     return sep.join(ascertain_list(x))
 
 

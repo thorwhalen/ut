@@ -57,7 +57,7 @@ def pickle_dump(obj, filepath=None, protocol=None):
         else:  # still didn't find a name for the variable
             filepath = 'pickle.p'
 
-    print(("Saving object to {}".format(filepath)))
+    print(('Saving object to {}'.format(filepath)))
     try:
         return pickle.dump(obj, open(filepath, 'wb'), protocol=protocol or 0)
     except (ValueError, TypeError):
@@ -74,7 +74,7 @@ def pickle_load(filepath):
 def store_names(store):
     store_info = dict()
     for k in list(store.keys()):
-        print("  getting info for %s" % k)
+        print('  getting info for %s' % k)
         d = store.select(k, start=0, stop=1)
         store_info[k] = dict()
         store_info[k]['index_names'] = d.index.names
@@ -102,14 +102,20 @@ def has_key(store, key):
     return key in list(store.keys())
 
 
-def get_col_names(store, keys=None, singular_info='index_and_columns', print_results=False, style='dict'):
-    '''
+def get_col_names(
+    store,
+    keys=None,
+    singular_info='index_and_columns',
+    print_results=False,
+    style='dict',
+):
+    """
 
     :param store: a HDFStore
     :param keys: list of keys to get info from (if present)
     :return: a cols_info dict whose keys are the keys of the store and values are a dict with
     'index', 'columns', and 'index_and_columns' which contain the data col names
-    '''
+    """
     # process inputs
     if not keys:
         keys = list(store.keys())
@@ -123,7 +129,9 @@ def get_col_names(store, keys=None, singular_info='index_and_columns', print_res
         df = store[key]
         cols_info[key]['index'] = list(df.index.names)
         cols_info[key]['columns'] = list(df.columns)
-        cols_info[key]['index_and_columns'] = cols_info[key]['index'] + cols_info[key]['columns']
+        cols_info[key]['index_and_columns'] = (
+            cols_info[key]['index'] + cols_info[key]['columns']
+        )
     if singular_info:
         cols_info_copy = cols_info
         cols_info = dict()
@@ -161,7 +169,9 @@ def get_info_df(store, keys=None, info=None, cols=None):
     if 'nrows' not in df.columns:
         df['nrows'] = np.nan
     # get ncols and nrows with missing
-    idx = df['ncols'].isnull().nonzero()[0]  # ncols and nrows should both be missing when one is
+    idx = (
+        df['ncols'].isnull().nonzero()[0]
+    )  # ncols and nrows should both be missing when one is
     for i in idx:
         d = store[df['key'].iloc[i]]
         df['nrows'].iloc[i] = len(d)
@@ -169,13 +179,17 @@ def get_info_df(store, keys=None, info=None, cols=None):
     # clean up and return
     df = df.set_index('key')
     df = df.sort_index()
-    df = daf_manip.reorder_columns_as(df, ['nrows', 'ncols', 'isa', 'typ', 'indexers', 'dc'])
+    df = daf_manip.reorder_columns_as(
+        df, ['nrows', 'ncols', 'isa', 'typ', 'indexers', 'dc']
+    )
     df = df.replace(to_replace=np.nan, value='')
     if info:
         if isinstance(info, dict):
             # add as many columns as there are keys in dict, using the values of the dict as functions applied to
             # the whole stored dataframe to get the column value
-            df = pd.concat([df, pd.DataFrame(columns=list(info.keys()), index=df.index)], axis=1)
+            df = pd.concat(
+                [df, pd.DataFrame(columns=list(info.keys()), index=df.index)], axis=1
+            )
             for key in df.index.values:
                 key_data = store[key]
                 for k, v in info.items():
@@ -191,10 +205,10 @@ def get_info_df(store, keys=None, info=None, cols=None):
 
 
 def get_info_dict(store, key=None):
-    '''
+    """
     :param store:
     :return: an info_dict with a bunch of information on the store
-    '''
+    """
     s = store.__repr__()
     t = re.split('\n', s)
     t = [re.split('\s+', x) for x in t[2:]]
@@ -232,14 +246,14 @@ def get_info_dict(store, key=None):
 
 
 def copy_data(from_store, to_store, from_keys, overwrite=False):
-    '''
+    """
     Copies key contents from one store to another, overwriting or not (default), and respecting original store format.
     :param from_store: store (or path of store) to copy from
     :param to_store: store (or path of store) to copy to
     :param from_keys: list of keys to copy from from_store
     :param overwrite: if True, will remove existing key in to_store if they exist, if False, will not copy (silently)
     :return: None
-    '''
+    """
     # handle input formats
     if isinstance(from_store, str):
         from_store = MyStore(from_store)
@@ -262,7 +276,9 @@ def copy_data(from_store, to_store, from_keys, overwrite=False):
 
     # do the copying
     for k in from_keys:
-        store_df_respecting_given_format(to_store, k, from_store[k], key_info=store_info[k])
+        store_df_respecting_given_format(
+            to_store, k, from_store[k], key_info=store_info[k]
+        )
     to_store.flush()
 
     # close stores (if they were specified by paths
@@ -273,7 +289,7 @@ def copy_data(from_store, to_store, from_keys, overwrite=False):
 
 
 def store_df_respecting_given_format(to_store, key, df, key_info=None):
-    '''
+    """
     Store data into a key respecting a given format
     :param to_store: Store to store to
     :param key: key to store to
@@ -283,13 +299,19 @@ def store_df_respecting_given_format(to_store, key, df, key_info=None):
         * a dict (keyed by target key) of dicts of format information
         * a store from which to get the format information (by default, the target_store itself)
     :return:
-    '''
+    """
     # processing key_info (which could be a store, a dict of key_infos for a whole store, or the key_info itself
     if not key_info:  # if key_info not given, take it from to_store
         key_info = get_info_dict(to_store, key)
         if not key_info:
-            raise ValueError("either you have to give me key_info, or the key needs to be present in the target store")
-    elif isinstance(key_info, dict) and has_key(key_info, key) and isinstance(key_info[key], dict):
+            raise ValueError(
+                'either you have to give me key_info, or the key needs to be present in the target store'
+            )
+    elif (
+        isinstance(key_info, dict)
+        and has_key(key_info, key)
+        and isinstance(key_info[key], dict)
+    ):
         key_info = key_info[key]
     elif isinstance(key_info, pd.HDFStore):
         key_info = get_info_dict(key_info, key)
@@ -306,7 +328,9 @@ def store_df_respecting_given_format(to_store, key, df, key_info=None):
             to_store.append(key, df)
 
 
-def copy_data_subset_from_specified_col_values(from_store, to_store, col, values, get_full_df_if_col_not_found=True):
+def copy_data_subset_from_specified_col_values(
+    from_store, to_store, col, values, get_full_df_if_col_not_found=True
+):
     store_info = get_info_dict(from_store)
     for key in list(from_store.keys()):
         # getting the data from from_store
@@ -318,18 +342,28 @@ def copy_data_subset_from_specified_col_values(from_store, to_store, col, values
             continue
         # filtering in col==values
         df = daf_get.rows_with_col_values_in(
-            df, col=col, values=values, return_full_df_if_col_not_found=get_full_df_if_col_not_found)
+            df,
+            col=col,
+            values=values,
+            return_full_df_if_col_not_found=get_full_df_if_col_not_found,
+        )
         if len(df) > 0:
             # saving the data to to_store
             try:
                 store_df_respecting_given_format(to_store, key, df, store_info[key])
             except Exception as e:
-                print("!!! some problem occured when trying to put %s in the target store" % key)
+                print(
+                    '!!! some problem occured when trying to put %s in the target store'
+                    % key
+                )
                 print(e.message)
                 # raise RuntimeWarning("some problem occured when trying to put %s in the target store" % key)
                 continue
         else:
-            print("* there was no (filtered) data for key=%s, so I'm saving nothing for this key" % key)
+            print(
+                "* there was no (filtered) data for key=%s, so I'm saving nothing for this key"
+                % key
+            )
 
 
 class MyStore(pd.HDFStore):
@@ -368,18 +402,20 @@ class MyStore(pd.HDFStore):
         self.flush()
 
     def replace(self, key=None, value=None):
-        '''
+        """
         This method stores data in an already existing key, using the same format
         (as in store_df_respecting_given_format() function)
         of the target key.
         :param key:
         :param value:
         :return:
-        '''
+        """
         key = key or self.key
         store_df_respecting_given_format(self, key, value)
 
-    def remove_and_append(self, key=None, value=None, nan_rep=str_to_rep_by_nan, **kwargs):
+    def remove_and_append(
+        self, key=None, value=None, nan_rep=str_to_rep_by_nan, **kwargs
+    ):
         key = key or self.key
         if value is None:
             raise ValueError("You're trying to save a None to a MyStore")
@@ -388,8 +424,8 @@ class MyStore(pd.HDFStore):
                 # daf_ch.to_utf8(value, inplace=True)
                 value = daf_ch.to_utf8(value)
             except:
-                print("Failed to convert to utf8")
-                UnicodeWarning("Failed to convert to utf8")
+                print('Failed to convert to utf8')
+                UnicodeWarning('Failed to convert to utf8')
         # prepend slash to key if missing
         key = ascertain_prefix_slash(key)
         # replace nans with empty spaces
@@ -408,8 +444,8 @@ class MyStore(pd.HDFStore):
                 # daf_ch.to_utf8(value, inplace=True)
                 value = daf_ch.to_utf8(value)
             except:
-                print("Failed to convert to utf8")
-                UnicodeWarning("Failed to convert to utf8")
+                print('Failed to convert to utf8')
+                UnicodeWarning('Failed to convert to utf8')
         # replace nans with empty spaces
         value = daf_ch.replace_nans_with_spaces_in_object_columns(value)
         # if key exists, remove it's contents
@@ -430,8 +466,8 @@ class MyStore(pd.HDFStore):
             # daf_ch.to_utf8(value, inplace=True)
             value = daf_ch.to_utf8(value)
         except:
-            print("Failed to convert to utf8")
-            UnicodeWarning("Failed to convert to utf8")
+            print('Failed to convert to utf8')
+            UnicodeWarning('Failed to convert to utf8')
         # replace nans with empty spaces
         value = daf_ch.replace_nans_with_spaces_in_object_columns(value)
         super(MyStore, self).put(key=key, value=value, **kwargs)
@@ -442,8 +478,8 @@ class MyStore(pd.HDFStore):
             # daf_ch.to_utf8(value, inplace=True)
             value = daf_ch.to_utf8(value)
         except:
-            print("Failed to convert to utf8")
-            UnicodeWarning("Failed to convert to utf8")
+            print('Failed to convert to utf8')
+            UnicodeWarning('Failed to convert to utf8')
         # replace nans with empty spaces
         value = daf_ch.replace_nans_with_spaces_in_object_columns(value)
         super(MyStore, self).append(key=key, value=value, nan_rep=nan_rep, **kwargs)
@@ -465,7 +501,7 @@ class MyStore(pd.HDFStore):
         key_list = list(self.keys())
         sample_store = MyStore(file_path)
         for key in key_list:
-            print("taking a sample from %s" % key)
+            print('taking a sample from %s' % key)
             df = self[key]
             if column in df.columns:
                 df = df[df[column].isin(value_list)]
@@ -505,7 +541,11 @@ class StoreSelector(pd.HDFStore):
     def get_table(self, selection, columns=None, key=None):
         key = key or self.key
         columns = columns or self.columns
-        return self.select(key=self.key, where=pd.Term(self.selection_col, selection), columns=self.columns)
+        return self.select(
+            key=self.key,
+            where=pd.Term(self.selection_col, selection),
+            columns=self.columns,
+        )
 
 
 class StoreAccessor(object):
@@ -517,7 +557,7 @@ class StoreAccessor(object):
         self.join_key = None
         if 'store_path_dict' in list(kwargs.keys()):
             for k, v in list(kwargs['store_path_dict'].items()):
-                print("processing store: %s" % k)
+                print('processing store: %s' % k)
                 self.store[k] = MyStore(v)
                 self.store_info[k] = store_names(self.store[k])
         if 'add_from_dict' in list(kwargs.keys()):
@@ -530,8 +570,16 @@ class StoreAccessor(object):
         if 'join_filter' in list(kwargs.keys()):
             self.join_filter = kwargs['join_filter']
 
-    def join_col(self, df, add_cols, join_cols=None, join_key=None, join_store=None, join_filter=None,
-                 drop_joining_duplicates=True):
+    def join_col(
+        self,
+        df,
+        add_cols,
+        join_cols=None,
+        join_key=None,
+        join_store=None,
+        join_filter=None,
+        drop_joining_duplicates=True,
+    ):
         """
         This function is meant to return the input df with add_cols added.
         These columns are fetched in join_store[join_key] and are aligned to df using join_cols.
@@ -562,23 +610,25 @@ class StoreAccessor(object):
         join_key = ascertain_prefix_slash(join_key)
         store_key_info = store_key_info[join_key]
         if len(join_cols) == 1 and join_cols[0] == 'index':
-            print("uploading only specific indices for join_df")
+            print('uploading only specific indices for join_df')
             join_df = self.store[join_store].select(
                 key=join_key,
                 where=[pd.Term('index', df_join_col_values)],
-                columns=add_cols)
+                columns=add_cols,
+            )
         elif join_cols in store_key_info['column_names']:
-            print("uploading only specific columns for join_df")
+            print('uploading only specific columns for join_df')
             join_df = self.store[join_store].select(
                 key=join_key,
                 where=[pd.Term(join_cols[0], df_join_col_values)],
-                columns=join_cols + add_cols)
+                columns=join_cols + add_cols,
+            )
             join_df.set_index(join_cols[0])
         else:
-            print("uploading the whole potential join_df")
+            print('uploading the whole potential join_df')
             join_df = self.store[join_store].select(
-                key=join_key,
-                columns=join_cols + add_cols)
+                key=join_key, columns=join_cols + add_cols
+            )
         # print join_cols
         # print add_cols
         # print join_df.head(10)

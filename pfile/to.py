@@ -17,21 +17,34 @@ def string(filename):
 
 
 def zip_file(source_file, destination_file=None):
-    if destination_file is None:  # if no destination file is given, add the .zip extension to create the dest file
+    if (
+        destination_file is None
+    ):  # if no destination file is given, add the .zip extension to create the dest file
         destination_file = source_file + '.zip'
-        assert destination_file != source_file  # to make sure source and destination are not the same
+        assert (
+            destination_file != source_file
+        )  # to make sure source and destination are not the same
     elif os.path.isdir(destination_file):
         destination_file = os.path.join(destination_file, source_file + '.zip')
-    source_file = source_file.replace('$', '\$') # replacing the unix-escape character $ with \$
-    os_system_result = os.system('zip "'+ destination_file.replace('$', '\$') + '" "' + source_file + '"')
+    source_file = source_file.replace(
+        '$', '\$'
+    )  # replacing the unix-escape character $ with \$
+    os_system_result = os.system(
+        'zip "' + destination_file.replace('$', '\$') + '" "' + source_file + '"'
+    )
     return destination_file
 
 
 def gzip_file(source_file, destination_file=None):
     import gzip
-    if destination_file is None:  # if no destination file is given, add the .zip extension to create the dest file
+
+    if (
+        destination_file is None
+    ):  # if no destination file is given, add the .zip extension to create the dest file
         destination_file = source_file + '.gzip'
-        assert destination_file != source_file  # to make sure source and destination are not the same
+        assert (
+            destination_file != source_file
+        )  # to make sure source and destination are not the same
     elif os.path.isdir(destination_file):
         destination_file = os.path.join(destination_file, source_file + '.gzip')
     with open(source_file, 'rb') as orig_file:
@@ -73,7 +86,7 @@ def tail(f, window=20):
             data.insert(0, f.read(BUFSIZ))
         else:
             # file too small, start from begining
-            f.seek(0,0)
+            f.seek(0, 0)
             # only read what was not read
             data.insert(0, f.read(bytes))
         linesFound = data[0].count('\n')

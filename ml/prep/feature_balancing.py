@@ -60,7 +60,9 @@ def label_balanced_subset(data, label, random_seed=None):
     if not isinstance(data, pd.DataFrame) or label not in data.columns:
         # ... then assume data is the X and label is the y arrays of the supervised learning setup
         return_arrays = True
-        dg = pd.concat([pd.DataFrame(data), pd.DataFrame({'label': label})], axis=1).groupby('label')
+        dg = pd.concat(
+            [pd.DataFrame(data), pd.DataFrame({'label': label})], axis=1
+        ).groupby('label')
     else:
         return_arrays = False
         # ... then assume data contains both explanatory and label (targets of classification) data
@@ -75,7 +77,9 @@ def label_balanced_subset(data, label, random_seed=None):
             random.seed(random_seed)
             return random.choice(a=len(x), size=min_count, replace=False)
 
-    subset_data = pd.concat([x[1].iloc[get_subset_data_idx(x[1], random_seed)] for x in dg], axis=0)
+    subset_data = pd.concat(
+        [x[1].iloc[get_subset_data_idx(x[1], random_seed)] for x in dg], axis=0
+    )
 
     if return_arrays:
         y = array(subset_data['label'])

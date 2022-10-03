@@ -141,6 +141,7 @@ def dict_filt_from_mg_filt(mg_filt):
     [False, True, True, False, False]
     """
     from mongoquery import Query
+
     return Query(mg_filt).match
 
 
@@ -181,7 +182,9 @@ def iter_key_path_items(d, key_path_prefix=None, path_sep='.'):
                     yield key_path_prefix + path_sep + kk, vv
 
 
-def extract_key_paths(d, key_paths, field_naming='full', use_default=False, default_val=None):
+def extract_key_paths(
+    d, key_paths, field_naming='full', use_default=False, default_val=None
+):
     """
     getting with a key list or "."-separated string
     :param d: dict
@@ -236,7 +239,9 @@ def key_paths(d, path_sep='.', tree_type=dict):
         if not isinstance(v, tree_type):
             key_path_list.append(k)
         else:
-            key_path_list.extend([k + path_sep + x for x in key_paths(v, path_sep, tree_type)])
+            key_path_list.extend(
+                [k + path_sep + x for x in key_paths(v, path_sep, tree_type)]
+            )
     return key_path_list
 
 
@@ -312,9 +317,10 @@ def set_value_in_nested_key_path(d, key_path, val):
 
 
 def mk_fixed_coordinates_value_getter(get_key_list):
-    return \
-        lambda the_dict: \
-            reduce(lambda x, y: x.get(y, {}), get_key_list, the_dict) or None
+    return (
+        lambda the_dict: reduce(lambda x, y: x.get(y, {}), get_key_list, the_dict)
+        or None
+    )
 
 
 def key_if_exists_else_return_none(d, key):
@@ -327,7 +333,10 @@ def head(d, num_of_elements=5, start_at=0):
     """
     get the "first" few (num) elements of a dict
     """
-    return {k: d[k] for k in list(d.keys())[start_at:min(len(d), start_at + num_of_elements)]}
+    return {
+        k: d[k]
+        for k in list(d.keys())[start_at : min(len(d), start_at + num_of_elements)]
+    }
 
 
 # TODO: Revise. Use islice
@@ -335,7 +344,7 @@ def tail(d, num_of_elements=5):
     """
     get the "first" few (num) elements of a dict
     """
-    return {k: d[k] for k in list(d.keys())[-min(len(d), num_of_elements):]}
+    return {k: d[k] for k in list(d.keys())[-min(len(d), num_of_elements) :]}
 
 
 def left_union(d, defaults):
@@ -385,6 +394,7 @@ def all_but(d, exclude_keys):
 def all_non_null(d):
     try:
         from numpy import isnan
+
         return {k: v for k, v in d.items() if v is not None and not isnan(v)}
     except ModuleNotFoundError:
         return {k: v for k, v in d.items() if v is not None}

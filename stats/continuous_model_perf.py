@@ -11,6 +11,3 @@ def mk_mean_model(y):
     """
     mean_y = mean(y)
     return lambda x: mean_y
-
-
-

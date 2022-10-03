@@ -1,8 +1,8 @@
 __author__ = 'thorwhalen'
 
 
-#import ut.util as putil
-#import re
+# import ut.util as putil
+# import re
 import ut.parse.google as parse_google
 from ut.semantics.term_stats_maker import TermStatsMaker
 import ut.semantics.term_stats_maker as term_stats_maker
@@ -10,6 +10,7 @@ from collections import OrderedDict
 
 LOCATION_LOCAL = 'LOCAL'
 LOCATION_S3 = 'S3'
+
 
 class GResultInfoRetriever(object):
     """
@@ -47,21 +48,36 @@ class GResultInfoRetriever(object):
         if 'number_of_results' not in info_parsers_dict:
             info_parsers_dict['number_of_results'] = get_number_of_results
         if 'term_stats' not in info_parsers_dict:
-            info_parsers_dict['term_stats'] = TermStatsMaker.mk_term_stats_maker().term_stats
+            info_parsers_dict[
+                'term_stats'
+            ] = TermStatsMaker.mk_term_stats_maker().term_stats
         if 'domain_names' not in info_parsers_dict:
-            info_parsers_dict['domain_names'] = get_domain_term_count_from_google_results
-        return GResultInfoRetriever(data_getter=data_getter, info_parsers_dict=info_parsers_dict)
+            info_parsers_dict[
+                'domain_names'
+            ] = get_domain_term_count_from_google_results
+        return GResultInfoRetriever(
+            data_getter=data_getter, info_parsers_dict=info_parsers_dict
+        )
 
     @classmethod
-    def for_nres_words_domains_for_hotels(cls, data_getter=None, info_parsers_dict=OrderedDict(), location=LOCATION_LOCAL):
+    def for_nres_words_domains_for_hotels(
+        cls, data_getter=None, info_parsers_dict=OrderedDict(), location=LOCATION_LOCAL
+    ):
         if 'number_of_results' not in info_parsers_dict:
             info_parsers_dict['number_of_results'] = get_number_of_results
         if 'term_stats' not in info_parsers_dict:
-            info_parsers_dict['term_stats'] = TermStatsMaker.mk_term_stats_maker_for_hotels(location=location).term_stats
+            info_parsers_dict[
+                'term_stats'
+            ] = TermStatsMaker.mk_term_stats_maker_for_hotels(
+                location=location
+            ).term_stats
         if 'domain_names' not in info_parsers_dict:
-            info_parsers_dict['domain_names'] = get_domain_term_count_from_google_results
-        return GResultInfoRetriever(data_getter=data_getter, info_parsers_dict=info_parsers_dict)
-
+            info_parsers_dict[
+                'domain_names'
+            ] = get_domain_term_count_from_google_results
+        return GResultInfoRetriever(
+            data_getter=data_getter, info_parsers_dict=info_parsers_dict
+        )
 
 
 def get_number_of_results(gresults):
@@ -70,13 +86,24 @@ def get_number_of_results(gresults):
     elif '_resultStats' in gresults:
         return parse_google.parse_number_of_results(gresults['_resultStats'])
 
+
 def get_domain_term_count_from_google_results(gresults):
     domain_list = []
     # if not, assume the input is a info_dict
     if 'organic_results_list' in gresults:
-        domain_list = domain_list + [x['domain'] for x in gresults['organic_results_list'] if 'domain' in x]
+        domain_list = domain_list + [
+            x['domain'] for x in gresults['organic_results_list'] if 'domain' in x
+        ]
     if 'top_ads_list' in gresults:
-        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['top_ads_list'] if 'disp_url_domain' in x]
+        domain_list = domain_list + [
+            x['disp_url_domain']
+            for x in gresults['top_ads_list']
+            if 'disp_url_domain' in x
+        ]
     if 'organic_results_list' in gresults:
-        domain_list = domain_list + [x['disp_url_domain'] for x in gresults['organic_results_list'] if 'disp_url_domain' in x]
+        domain_list = domain_list + [
+            x['disp_url_domain']
+            for x in gresults['organic_results_list']
+            if 'disp_url_domain' in x
+        ]
     return term_stats_maker.list_to_term_count(domain_list)

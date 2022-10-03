@@ -1,7 +1,6 @@
 __author__ = 'thor'
 
 
-
 # Searching for ipod through web data:
 # http://yboss.yahooapis.com/ysearch/web?q=ipod
 # Search the web, images, news services with different query
@@ -16,8 +15,6 @@ rep['"'] = '%22'
 rep['/'] = '%2F'
 rep['?'] = '%3F'
 rep['&'] = '%26'
-
-
 
 
 # http://developer.yahoo.com/boss/search/boss_api_guide/reserve_chars_esc_val.html

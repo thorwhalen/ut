@@ -12,6 +12,7 @@ from omodel.outliers.ui_score_function import tune_ui_map, make_ui_score_mapping
 # ----------------------------------------------------AnnotsPartitions---------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------------------
 
+
 class AnnotsPartitions(metaclass=abc.ABCMeta):
     """
     Interface to manipulate annotations in a consistent manner, whether they live in a pandas dataframe, mongo db...
@@ -123,6 +124,7 @@ class AnnotsPartitions(metaclass=abc.ABCMeta):
 # ----------------------------------------------------Example of AnnotsPartitions----------------------------------------
 # -----------------------------------------------------------------------------------------------------------------------
 
+
 class PandasAnnotsPartition(AnnotsPartitions):
     """
     A special case of AnnotsPartitions, for pandas dataframe (and any annotations that can be turned into pandas a df)
@@ -169,7 +171,7 @@ class PandasAnnotsPartition(AnnotsPartitions):
         return df_select
 
     def group_from_cols(self, cols):
-        "The last column is intended to be train/test (train=1) the others are partitioning the data into model target"
+        'The last column is intended to be train/test (train=1) the others are partitioning the data into model target'
         self.groups_ = tuple(cols)
         return self.annots.groupby(cols)
 
@@ -216,21 +218,25 @@ class Dacc:
     containing the bt of the annotation
     """
 
-    def __init__(self,
-                 wf_store,
-                 annot_part,
-                 sr=DFLT_SR,
-                 max_annot_duration_sec=DFLT_MAX_ANNO_DURATION_SEC,
-                 index_to_seconds_scale=DFLT_INDEX_TO_SECOND_SCALE,
-                 chk_size=DFLT_CHK_SIZE,
-                 chk_step=DFLT_CHK_STEP,
-                 fft=DFLT_SPECTRA_COMP):
+    def __init__(
+        self,
+        wf_store,
+        annot_part,
+        sr=DFLT_SR,
+        max_annot_duration_sec=DFLT_MAX_ANNO_DURATION_SEC,
+        index_to_seconds_scale=DFLT_INDEX_TO_SECOND_SCALE,
+        chk_size=DFLT_CHK_SIZE,
+        chk_step=DFLT_CHK_STEP,
+        fft=DFLT_SPECTRA_COMP,
+    ):
 
         self.wf_store = wf_store
         self.annot_part = annot_part
         # TODO: do we really want to cache the segements by default? Seems memory wasteful most of the time
-        self.audio_seg = AudioSegments(src_to_wfsr=lambda x: (wf_store[x], sr),
-                                       index_to_seconds_scale=index_to_seconds_scale)
+        self.audio_seg = AudioSegments(
+            src_to_wfsr=lambda x: (wf_store[x], sr),
+            index_to_seconds_scale=index_to_seconds_scale,
+        )
         self.index_to_seconds_scale = index_to_seconds_scale
         self.max_annot_duration_sec = max_annot_duration_sec
         self.chk_size = chk_size
@@ -251,7 +257,9 @@ class Dacc:
         bt = self.annot_part.get_annot_field(annot, self.annot_part.rel_ts_name)
         try:
             next_annot = self.annot_part.index_to_row(annot_idx + 1)
-            tt = self.annot_part.get_annot_field(next_annot, self.annot_part.rel_ts_name)
+            tt = self.annot_part.get_annot_field(
+                next_annot, self.annot_part.rel_ts_name
+            )
             if tt <= bt:
                 tt = bt + self.max_annot_duration_sec / self.index_to_seconds_scale
                 next_continuous = False
@@ -287,7 +295,7 @@ class Dacc:
             else:
                 buffer = list(wf)
             while len(buffer) >= self.chk_size:
-                chk, buffer = buffer[:self.chk_size], buffer[self.chk_step:]
+                chk, buffer = buffer[: self.chk_size], buffer[self.chk_step :]
                 yield self.fft(chk), annot
             next_continuous = continuous
 
@@ -304,8 +312,9 @@ from omodel.fv.chained_spectral_projector import GeneralProjectionLearner
 from sklearn.preprocessing import StandardScaler
 
 
-def train_featurizer(X_train, y_train,
-                     featurizer_chain=({'type': 'pca', 'args': {'n_components': 20}},)):
+def train_featurizer(
+    X_train, y_train, featurizer_chain=({'type': 'pca', 'args': {'n_components': 20}},)
+):
     gpl = GeneralProjectionLearner(chain=featurizer_chain)
     try:
         gpl.fit(X_train, y_train)
@@ -334,10 +343,7 @@ def normalize(X, normalizer):
         return normalizer.transform(X)
 
 
-def train_model(fvs_train,
-                y_train,
-                model_name=GmmStroll,
-                **model_kwargs):
+def train_model(fvs_train, y_train, model_name=GmmStroll, **model_kwargs):
     model_class = get_model_cls(model_name)
     model = model_class(**model_kwargs)
     try:
@@ -363,10 +369,7 @@ def get_model_scores(fvs, model, model_type='anomaly', predict_proba=False):
             return np.array(predict)
 
 
-model_for_name = {
-    'Stroll': OutlierModel,
-    'GmmStroll': GmmStroll
-}
+model_for_name = {'Stroll': OutlierModel, 'GmmStroll': GmmStroll}
 
 
 def get_model_cls(model_name):
@@ -374,6 +377,7 @@ def get_model_cls(model_name):
         model_class = model_for_name.get(model_name, None)
         if model_class is None:
             from sklearn.utils import all_estimators
+
             estimator_for_name = dict(all_estimators())
             model_class = estimator_for_name.get(model_name, None)
         assert model_class is not None, f"Couldn't find a model for {model_name}"
@@ -382,31 +386,35 @@ def get_model_cls(model_name):
     return model_class
 
 
-def train_pipeline(spectra,
-                   classes=None,
-                   featurizer_chain=({'type': 'pca', 'args': {'n_components': 20}},),
-                   normalizer_class=StandardScaler,
-                   model_class='Stroll',
-                   train_ui_map=False,
-                   **model_kwargs):
-    gpl = train_featurizer(X_train=spectra,
-                           y_train=classes,
-                           featurizer_chain=featurizer_chain)
+def train_pipeline(
+    spectra,
+    classes=None,
+    featurizer_chain=({'type': 'pca', 'args': {'n_components': 20}},),
+    normalizer_class=StandardScaler,
+    model_class='Stroll',
+    train_ui_map=False,
+    **model_kwargs,
+):
+    gpl = train_featurizer(
+        X_train=spectra, y_train=classes, featurizer_chain=featurizer_chain
+    )
     fvs = featurize(spectra, gpl)
 
-    normalizer = train_normalizer(fvs,
-                                  normalizer_class=normalizer_class)
+    normalizer = train_normalizer(fvs, normalizer_class=normalizer_class)
     norm_fvs = normalize(fvs, normalizer)
-    model = train_model(norm_fvs,
-                        classes,
-                        model_name=model_class,
-                        **model_kwargs['model_class_params'])
+    model = train_model(
+        norm_fvs, classes, model_name=model_class, **model_kwargs['model_class_params']
+    )
     mod = {'gpl': gpl, 'normalizer': normalizer, 'model': model, 'ui_amp': None}
     if train_ui_map:
         train_scores = run_pipeline(spectra, use_ui_map=False, **mod)
         ui_map_params = tune_ui_map(train_scores)
-        ui_map_params = {'min_lin_score': np.min(ui_map_params), 'max_lin_score': np.max(ui_map_params),
-                         'top_base': ui_map_params[2], 'bottom_base': ui_map_params[3]}
+        ui_map_params = {
+            'min_lin_score': np.min(ui_map_params),
+            'max_lin_score': np.max(ui_map_params),
+            'top_base': ui_map_params[2],
+            'bottom_base': ui_map_params[3],
+        }
         mod['ui_map_params'] = ui_map_params
     return mod
 
@@ -414,35 +422,39 @@ def train_pipeline(spectra,
 def run_pipeline(spectra, gpl, normalizer, model, use_ui_map, **params):
     fvs = featurize(spectra, gpl)
     norm_fvs = normalize(fvs, normalizer)
-    scores = get_model_scores(norm_fvs,
-                              model)
+    scores = get_model_scores(norm_fvs, model)
     if use_ui_map:
         ui_map = make_ui_score_mapping(**params['ui_map_params'])
         scores = [ui_map(score) for score in scores]
     return scores
 
 
-dflt_dacc_params = {'sr': DFLT_SR,
-                    'index_to_seconds_scale': DFLT_INDEX_TO_SECOND_SCALE,
-                    'max_annot_duration_sec': DFLT_MAX_ANNO_DURATION_SEC,
-                    'chk_size': DFLT_CHK_SIZE,
-                    'chk_step': DFLT_CHK_STEP,
-                    'fft': DFLT_SPECTRA_COMP}
+dflt_dacc_params = {
+    'sr': DFLT_SR,
+    'index_to_seconds_scale': DFLT_INDEX_TO_SECOND_SCALE,
+    'max_annot_duration_sec': DFLT_MAX_ANNO_DURATION_SEC,
+    'chk_size': DFLT_CHK_SIZE,
+    'chk_step': DFLT_CHK_STEP,
+    'fft': DFLT_SPECTRA_COMP,
+}
 
-dflt_train_params = {'featurizer_chain': ({'type': 'pca', 'args': {'n_components': 20}},),
-                     'normalizer_class': None,
-                     'model_class': 'GmmStroll',
-                     'model_class_params': {},
-                     'train_ui_map': True}
+dflt_train_params = {
+    'featurizer_chain': ({'type': 'pca', 'args': {'n_components': 20}},),
+    'normalizer_class': None,
+    'model_class': 'GmmStroll',
+    'model_class_params': {},
+    'train_ui_map': True,
+}
 
 
-class ModelsTrainAndRun():
-
-    def __init__(self,
-                 wf_store,
-                 annot_part,
-                 dflt_dacc_params=dflt_dacc_params,
-                 dflt_train_params=dflt_train_params):
+class ModelsTrainAndRun:
+    def __init__(
+        self,
+        wf_store,
+        annot_part,
+        dflt_dacc_params=dflt_dacc_params,
+        dflt_train_params=dflt_train_params,
+    ):
         """
         Class to manage, train and run serveral models
 
@@ -472,9 +484,7 @@ class ModelsTrainAndRun():
         if train_params is None:
             train_params = self.dflt_train_params
 
-        dacc = Dacc(wf_store=self.wf_store,
-                    annot_part=self.annot_part,
-                    **dacc_params)
+        dacc = Dacc(wf_store=self.wf_store, annot_part=self.annot_part, **dacc_params)
 
         spectra, annots = zip(*dacc.spectr_for_annot_keys(indices))
         spectra = np.array(spectra)
@@ -488,18 +498,18 @@ class ModelsTrainAndRun():
 
     def run_model(self, indices, model_name, dacc_params=None, use_ui_map=True):
         if not model_name in self.model_pipes.keys():
-            print("No model with this name exists")
+            print('No model with this name exists')
         else:
             if dacc_params is None:
                 dacc_params = self.dflt_dacc_params
-            dacc = Dacc(wf_store=self.wf_store,
-                        annot_part=self.annot_part,
-                        **dacc_params)
+            dacc = Dacc(
+                wf_store=self.wf_store, annot_part=self.annot_part, **dacc_params
+            )
             spectra, annots = zip(*dacc.spectr_for_annot_keys(indices))
             spectra = np.array(spectra)
-            return run_pipeline(spectra, use_ui_map=use_ui_map, **self.model_pipes[model_name])
+            return run_pipeline(
+                spectra, use_ui_map=use_ui_map, **self.model_pipes[model_name]
+            )
 
     def save_run_results(self, results_name, results):
         self.results[results_name] = results
-
-

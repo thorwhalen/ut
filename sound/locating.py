@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from numpy import *
@@ -24,14 +22,16 @@ def _get_wf_and_sr_from_sound(sound):
         wf = sound.wf
         sr = None if not hasattr(sound, 'sr') else sound.sr
     else:
-        raise TypeError("Unknown sound type")
+        raise TypeError('Unknown sound type')
 
     return ensure_mono(wf), sr
 
 
-def silence_interval_indices(sound,
-                             min_length_of_silence_interval,
-                             max_abs_wf_threshold_func_for_silence=lambda wf: 0.01 * percentile(wf, 99)):
+def silence_interval_indices(
+    sound,
+    min_length_of_silence_interval,
+    max_abs_wf_threshold_func_for_silence=lambda wf: 0.01 * percentile(wf, 99),
+):
     """
     Returns a list of pairs indicating where "long" intervals of silence happen in the sound.
 
@@ -72,7 +72,9 @@ def silence_interval_indices(sound,
 
     silence_intervals = list()
     # cumulating_silence is a boolean state indicating whether we're accumulating a silence period...
-    cumulating_silence = silence_bitmap[0]  # ... initialize it to the first point of the wave form
+    cumulating_silence = silence_bitmap[
+        0
+    ]  # ... initialize it to the first point of the wave form
     if cumulating_silence == True:
         silence_cumul = 1
         interval_start = 0
@@ -84,10 +86,14 @@ def silence_interval_indices(sound,
             if is_silent:  # just increment the silence count
                 silence_cumul += 1
             else:  # Switch to "noise state": a period of silence just ended...
-                if silence_cumul > min_length_of_silence_interval:  # ... if it's big enough
+                if (
+                    silence_cumul > min_length_of_silence_interval
+                ):  # ... if it's big enough
                     silence_intervals.append((interval_start, i - 1))
                 # else forget this interval
-                cumulating_silence = False  # switch to the "not cumulating silence" state
+                cumulating_silence = (
+                    False  # switch to the "not cumulating silence" state
+                )
                 silence_cumul = 0  # reset the silence cumulator
         else:  # we're in a noise state
             if is_silent:  # Switch to "silence state"
@@ -108,7 +114,9 @@ def silence_interval_indices(sound,
         return [(i / sr, j / sr) for i, j in silence_intervals]
 
 
-def _non_silence_interval_indices_from_silence_intervals(array_length, silence_intervals, min_interval_length=2):
+def _non_silence_interval_indices_from_silence_intervals(
+    array_length, silence_intervals, min_interval_length=2
+):
     if len(silence_intervals) == 0:
         return [(0, array_length - 1)]
     else:
@@ -123,13 +131,19 @@ def _non_silence_interval_indices_from_silence_intervals(array_length, silence_i
         silence_intervals = silence_intervals + [(array_length, nan)]
 
         t = list(zip(*silence_intervals))
-        return [(i + 1, j - 1) for i, j in zip(t[1][:-1], t[0][1:]) if (j - i - 1) >= min_interval_length]
+        return [
+            (i + 1, j - 1)
+            for i, j in zip(t[1][:-1], t[0][1:])
+            if (j - i - 1) >= min_interval_length
+        ]
 
 
-def non_silence_interval_indices(sound,
-                                 min_length_of_silence_interval,
-                                 max_abs_wf_threshold_func_for_silence=lambda wf: 0.01 * percentile(wf, 99),
-                                 min_interval_length=None):
+def non_silence_interval_indices(
+    sound,
+    min_length_of_silence_interval,
+    max_abs_wf_threshold_func_for_silence=lambda wf: 0.01 * percentile(wf, 99),
+    min_interval_length=None,
+):
     """
     Returns the interval borders of the wave form that correspond to sound not interrupted by periods of significant
     silence. How long these omitted silence periods have to be and what is silence? See the doc for the function:
@@ -147,9 +161,10 @@ def non_silence_interval_indices(sound,
 
     non_silence_intervals = _non_silence_interval_indices_from_silence_intervals(
         array_length=len(wf),
-        silence_intervals=silence_interval_indices(wf, min_length_of_silence_interval,
-                                                   max_abs_wf_threshold_func_for_silence),
-        min_interval_length=min_interval_length
+        silence_intervals=silence_interval_indices(
+            wf, min_length_of_silence_interval, max_abs_wf_threshold_func_for_silence
+        ),
+        min_interval_length=min_interval_length,
     )
 
     if sr is None:

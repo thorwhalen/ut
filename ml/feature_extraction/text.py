@@ -16,17 +16,31 @@ from ut.ml.sk.feature_extraction.text import TreeTokenizer
 from functools import reduce
 
 path_separator_pattern = re.compile('/+')
-word_inclusion_pattern = re.compile("\w+")
-path_inclusion_pattern = re.compile("[^/]+")
+word_inclusion_pattern = re.compile('\w+')
+path_inclusion_pattern = re.compile('[^/]+')
 
 
-def mk_url_count_vectorizer(preprocessor=lambda url: urlsplit(url.lower()).path,
-                            max_df=1.0, min_df=1, max_features=None,
-                            binary=True, **kwargs):
-    tokenizer = TreeTokenizer.mk_url_tree_tokenizer(max_df=max_df, min_df=min_df).tokenize
+def mk_url_count_vectorizer(
+    preprocessor=lambda url: urlsplit(url.lower()).path,
+    max_df=1.0,
+    min_df=1,
+    max_features=None,
+    binary=True,
+    **kwargs
+):
+    tokenizer = TreeTokenizer.mk_url_tree_tokenizer(
+        max_df=max_df, min_df=min_df
+    ).tokenize
 
-    return CountVectorizer(preprocessor=preprocessor, tokenizer=tokenizer,
-                           max_df=max_df, min_df=min_df, max_features=max_features, binary=binary, **kwargs)
+    return CountVectorizer(
+        preprocessor=preprocessor,
+        tokenizer=tokenizer,
+        max_df=max_df,
+        min_df=min_df,
+        max_features=max_features,
+        binary=binary,
+        **kwargs
+    )
 
 
 class MultiVarTextVectorizer(BaseEstimator):
@@ -44,6 +58,7 @@ class MultiVarTextVectorizer(BaseEstimator):
     Input:
         * var_tokenizers: a dict of {var_name: Tokenizer} pairs that specifies how to tokenize each
     """
+
     def __init__(self, var_tokenizers, count_vectorizer_kwargs):
         self.set_params(var_tokenizers=var_tokenizers)
 
@@ -54,31 +69,35 @@ class MultiVarTextVectorizer(BaseEstimator):
         return self
 
     def get_params(self, deep=True):
-        return {
-            'var_tokenizers': self.var_tokenizers
-        }
+        return {'var_tokenizers': self.var_tokenizers}
 
     def fit(self, X, y=None):
         if not set(self.tokenized_cols_).issubset(X.columns):
-            raise ValueError("All keys of var_tokenizers must be present as columns of X")
+            raise ValueError(
+                'All keys of var_tokenizers must be present as columns of X'
+            )
 
         X = X[self.tokenized_cols_]
-        self.tokenizer_ = \
-            lambda d: reduce(add, [tokenize(d[var]) for var, tokenize in self.var_tokenizers.items()], list())
+        self.tokenizer_ = lambda d: reduce(
+            add,
+            [tokenize(d[var]) for var, tokenize in self.var_tokenizers.items()],
+            list(),
+        )
 
-        self.count_vectorizer = CountVectorizer(tokenizer=self.tokenizer_, )
-
+        self.count_vectorizer = CountVectorizer(tokenizer=self.tokenizer_,)
 
 
 # class DeepTokenizer()
 
 
-def mk_deep_tokenizer(text_collection=None,
-                      tokenizers=[lambda x: [x], word_inclusion_pattern.findall],
-                      token_prefixes='',
-                      max_df=1.0,
-                      min_df=1,
-                      return_tokenizer_info=False):
+def mk_deep_tokenizer(
+    text_collection=None,
+    tokenizers=[lambda x: [x], word_inclusion_pattern.findall],
+    token_prefixes='',
+    max_df=1.0,
+    min_df=1,
+    return_tokenizer_info=False,
+):
     """
     Makes a tokenizer that is the result of multiple different tokenizers that might either all be applied to the
     same text, or are used recursively to break up the text into finner pieces.
@@ -118,14 +137,17 @@ def mk_deep_tokenizer(text_collection=None,
     >>> tokenizer('A-B C B')
     ['level_1=B', 'level_1=A-B', 'level_2=C']
     """
-    raise DeprecationWarning("It's probably a better idea to use "
-                             "ut.ml.sk.feature_extraction.text.TreeTokenizer().tokenizer")
+    raise DeprecationWarning(
+        "It's probably a better idea to use "
+        'ut.ml.sk.feature_extraction.text.TreeTokenizer().tokenizer'
+    )
 
     n_tokenizers = len(tokenizers)
     if not isinstance(token_prefixes, str):
-        assert n_tokenizers == len(token_prefixes), \
-            "Either all tokenizers must have the same prefix, " \
-            "or you should specify as many prefixes as there are tokenizers"
+        assert n_tokenizers == len(token_prefixes), (
+            'Either all tokenizers must have the same prefix, '
+            'or you should specify as many prefixes as there are tokenizers'
+        )
     else:
         token_prefixes = [token_prefixes] * n_tokenizers
 
@@ -136,7 +158,9 @@ def mk_deep_tokenizer(text_collection=None,
             tokens = []
             to_be_tokenized_further = [text]
             for level_tokenizer, token_prefix in zip(tokenizers, token_prefixes):
-                to_be_tokenized_further = list(chain(*map(level_tokenizer, to_be_tokenized_further)))
+                to_be_tokenized_further = list(
+                    chain(*map(level_tokenizer, to_be_tokenized_further))
+                )
                 if len(to_be_tokenized_further) > 0:  # if any tokens were matched...
                     # ... keep them
                     tokens.extend([token_prefix + x for x in to_be_tokenized_further])
@@ -174,9 +198,20 @@ def mk_deep_tokenizer(text_collection=None,
             # initialize tokens_count
             tokens_count = Counter()
             # accumulate the counts of the tokens created by the current tokenizer
-            list(filter(tokens_count.update,
-                   chain(*map(lambda kv: [{token: kv[1]} for token in tokenizer_info['tokenize'](kv[0])],
-                               iter(remaining_element_counts.items())))))
+            list(
+                filter(
+                    tokens_count.update,
+                    chain(
+                        *map(
+                            lambda kv: [
+                                {token: kv[1]}
+                                for token in tokenizer_info['tokenize'](kv[0])
+                            ],
+                            iter(remaining_element_counts.items()),
+                        )
+                    ),
+                )
+            )
             if len(tokens_count) > 0:  # if we got anything...
                 # ... remember the vocabulary
                 tokens_count = Series(tokens_count)
@@ -196,15 +231,22 @@ def mk_deep_tokenizer(text_collection=None,
             to_be_tokenized_further = [text]
             for tokenizer_info in tokenizer_info_list:
                 if len(to_be_tokenized_further) > 0:
-                    to_be_tokenized_further = \
-                        set(chain(*map(tokenizer_info['tokenize'], to_be_tokenized_further)))
+                    to_be_tokenized_further = set(
+                        chain(*map(tokenizer_info['tokenize'], to_be_tokenized_further))
+                    )
                     # to_be_tokenized_further = set(map(tokenizer_info['tokenize'], to_be_tokenized_further))
-                    matched_tokens = to_be_tokenized_further.intersection(tokenizer_info['vocab'])
+                    matched_tokens = to_be_tokenized_further.intersection(
+                        tokenizer_info['vocab']
+                    )
                     if len(matched_tokens) > 0:  # if any tokens were matched...
                         # ... keep them
-                        tokens.extend([tokenizer_info['token_prefix'] + x for x in matched_tokens])
+                        tokens.extend(
+                            [tokenizer_info['token_prefix'] + x for x in matched_tokens]
+                        )
                         # and don't tokenize them further
-                        to_be_tokenized_further = to_be_tokenized_further.difference(matched_tokens)
+                        to_be_tokenized_further = to_be_tokenized_further.difference(
+                            matched_tokens
+                        )
                 else:
                     break
             return tokens
@@ -220,12 +262,17 @@ def mk_deep_tokenizer(text_collection=None,
 
 
 def mk_url_tokenizer(urls=None, max_df=1.0, min_df=1, return_tokenizer_info=False):
-    tokenizers = [lambda x: [x], path_inclusion_pattern.findall, word_inclusion_pattern.findall]
+    tokenizers = [
+        lambda x: [x],
+        path_inclusion_pattern.findall,
+        word_inclusion_pattern.findall,
+    ]
     token_prefixes = ['url=', 'url_section=', 'url_word=']
-    return mk_deep_tokenizer(urls,
-                             tokenizers=tokenizers,
-                             token_prefixes=token_prefixes,
-                             max_df=max_df,
-                             min_df=min_df,
-                             return_tokenizer_info=return_tokenizer_info)
-
+    return mk_deep_tokenizer(
+        urls,
+        tokenizers=tokenizers,
+        token_prefixes=token_prefixes,
+        max_df=max_df,
+        min_df=min_df,
+        return_tokenizer_info=return_tokenizer_info,
+    )

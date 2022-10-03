@@ -43,6 +43,7 @@ partial_formatter = PartialFormatter()
 
 # TODO: For those who love algorithmic optimization, there's some wasted to cut out here below.
 
+
 def _unformatted(d):
     for k, v in d.items():
         if isinstance(v, str) and len(partial_formatter.format_fields_set(v)) > 0:
@@ -108,8 +109,10 @@ def format_str_vals_of_dict(d, *, max_formatting_loops=10, **kwargs):
     missing_fields = set(_fields_to_format(d)) - provided_fields
 
     if missing_fields:
-        raise ValueError("I won't be able to complete that. You'll need to provide the values for:\n" +
-                         f"  {', '.join(missing_fields)}")
+        raise ValueError(
+            "I won't be able to complete that. You'll need to provide the values for:\n"
+            + f"  {', '.join(missing_fields)}"
+        )
 
     for i in range(max_formatting_loops):
         unformatted = set(_unformatted(d))
@@ -120,9 +123,11 @@ def format_str_vals_of_dict(d, *, max_formatting_loops=10, **kwargs):
         else:
             break
     else:
-        raise ValueError(f"There are still some unformatted fields, "
-                         f"but I reached my max {max_formatting_loops} allowed loops. " +
-                         f"Those fields are: {set(_fields_to_format(d)) - (set(d) | set(kwargs))}")
+        raise ValueError(
+            f'There are still some unformatted fields, '
+            f'but I reached my max {max_formatting_loops} allowed loops. '
+            + f'Those fields are: {set(_fields_to_format(d)) - (set(d) | set(kwargs))}'
+        )
 
     return d
 
@@ -193,7 +198,7 @@ def to_unicode_or_bust(obj, encoding='utf-8'):
         # print "changed something"
         # print type(obj)
     except:
-        UnicodeError("to_unicode_or_bust failed with %s" % obj)
+        UnicodeError('to_unicode_or_bust failed with %s' % obj)
 
 
 # at some point to_unicode_or_bust looked like follows, but didn't make sense (and had bugs, so I did the above)
@@ -218,17 +223,19 @@ def to_unicode_or_bust(obj, encoding='utf-8'):
 
 
 def toascii(s):
-    '''
+    """
     :param s: string or list (of strings)
     :return: string of ascii char correspondents
     (replacing, for example, accentuated letters with non-accentuated versions of the latter)
-    '''
+    """
     if isinstance(s, str):
         if not isinstance(s, str):  # transform to unicode if it's not already so
             s = str(s, encoding='utf-8')
         return unidecode(s)
     else:  # assume it's an iterable
-        if not isinstance(s[0], str):  # transform to unicode if it's not already so (NOTE: Only checked first element
+        if not isinstance(
+            s[0], str
+        ):  # transform to unicode if it's not already so (NOTE: Only checked first element
             s = [str(x, encoding='utf-8') for x in s]
         return list(map(unidecode, s))
 

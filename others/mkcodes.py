@@ -64,7 +64,7 @@ def markdown_codeblocks(filepath, safe):
     class DoctestExtension(Extension):
         def extendMarkdown(self, md, md_globals):
             md.registerExtension(self)
-            md.treeprocessors.add("doctest", DoctestCollector(md), '_end')
+            md.treeprocessors.add('doctest', DoctestCollector(md), '_end')
 
     doctestextension = DoctestExtension()
     markdowner = markdown.Markdown(extensions=[doctestextension])
@@ -112,13 +112,16 @@ def makedirs(directory):
 
 
 @click.command()
-@click.argument(
-    'inputs', nargs=-1, required=True, type=click.Path(exists=True))
+@click.argument('inputs', nargs=-1, required=True, type=click.Path(exists=True))
 @click.option('--output', default='{name}.py')
-@click.option('--github/--markdown', default=bool(not markdown_enabled),
-              help='Github-flavored fence blocks or pure markdown.')
-@click.option('--safe/--unsafe', default=True,
-              help='Allow code blocks without language hints.')
+@click.option(
+    '--github/--markdown',
+    default=bool(not markdown_enabled),
+    help='Github-flavored fence blocks or pure markdown.',
+)
+@click.option(
+    '--safe/--unsafe', default=True, help='Allow code blocks without language hints.'
+)
 def main(inputs, output, github, safe):
     collect_codeblocks = github_codeblocks if github else markdown_codeblocks
 
@@ -127,7 +130,7 @@ def main(inputs, output, github, safe):
 
         if codeblocks:
             filename = os.path.splitext(filepath)[0]
-            outputname = os.sep.join(filename.split(os.sep)[-1 - depth:])
+            outputname = os.sep.join(filename.split(os.sep)[-1 - depth :])
 
             outputfilename = output.format(name=outputname)
 

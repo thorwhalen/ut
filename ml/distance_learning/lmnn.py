@@ -1,5 +1,3 @@
-
-
 from metric_learn.lmnn import LMNN as _LMNN
 
 __author__ = 'thor'

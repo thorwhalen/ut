@@ -1,11 +1,13 @@
 __author__ = 'thor'
 
-print('''
+print(
+    '''
 Remember to use these useful utils:
     igrab, QuickStore, set_obj, get_obj, doctest_string_print
     heatmap, vlines
     print_progress, ppr, pickle_dump, pickle_load, numof_trues
-''')
+'''
+)
 
 import sys
 
@@ -35,11 +37,13 @@ import ut.daf.manip
 import ut.daf.gr
 import ut.daf.to
 import ut.util.pstore
+
 # import ut.pfile.accessor
 
 from datetime import datetime
 
 from ut.pcoll.num import numof_trues
+
 # from ut.util.pstore import MyStore
 from ut.util.log import printProgress, print_progress
 
@@ -104,26 +108,30 @@ def see_linked_header(text, level=0, link_to_sections=None, indent_size=3):
             link_to_sections = False
 
     section_level_bullet = [
-        "&#8227; ",
-        "&#8250; ",
-        "&#8226; ",
-        "&#8208; ",
-        "&#8901; ",
-        " "
+        '&#8227; ',
+        '&#8250; ',
+        '&#8226; ',
+        '&#8208; ',
+        '&#8901; ',
+        ' ',
     ]
 
     text = text.replace('"', "'")
-    single_indent = "&nbsp;" * indent_size
+    single_indent = '&nbsp;' * indent_size
     indent = single_indent * level
     bullet = section_level_bullet[min(level, len(section_level_bullet))]
-    header_prefix = "#" + "#" * level
+    header_prefix = '#' + '#' * level
 
-    section = '{indent}{bullet}<a href="#{text}">{text}</a><br>'.format(indent=indent, bullet=bullet, text=text)
-    header = '<p><a name="{text}"></a></p>\n{header_prefix} {text}'.format(header_prefix=header_prefix, text=text)
+    section = '{indent}{bullet}<a href="#{text}">{text}</a><br>'.format(
+        indent=indent, bullet=bullet, text=text
+    )
+    header = '<p><a name="{text}"></a></p>\n{header_prefix} {text}'.format(
+        header_prefix=header_prefix, text=text
+    )
 
     if link_to_sections:
         header += ' [^](#sections) '
 
     print(section)
-    print("")
+    print('')
     print(header)

@@ -9,13 +9,15 @@ def _sort_y1_and_y2_according_to_diff(y1, y2):
     return zip(*zipped)
 
 
-def comparison_vlines(y1, y2, order_wrt_diff=False, c1='b', c2='r', color_line=True, **kwargs):
+def comparison_vlines(
+    y1, y2, order_wrt_diff=False, c1='b', c2='r', color_line=True, **kwargs
+):
     if order_wrt_diff:
         y1, y2 = _sort_y1_and_y2_according_to_diff(y1, y2)
     y1 = array(y1)
     y2 = array(y2)
     n = len(y1)
-    assert len(y2) == n, "y1 and y2 need to be of the same length"
+    assert len(y2) == n, 'y1 and y2 need to be of the same length'
     if not color_line:
         plt.vlines(list(range(n)), y1, y2)
     else:
@@ -65,20 +67,46 @@ def ratio_comparison_vlines(y1, y2, order_wrt_diff=False, c1='b', c2='k'):
     return plt.plot(list(range(len(y))), y, 'o', color=c1)
 
 
-def thresholded_vlines(a, thresh=0, pos_color='b', neg_color='r',
-                       linestyles='solid', label='', data=None, **kwargs):
+def thresholded_vlines(
+    a,
+    thresh=0,
+    pos_color='b',
+    neg_color='r',
+    linestyles='solid',
+    label='',
+    data=None,
+    **kwargs
+):
     a = np.array(a)
     pos_lidx = a >= thresh
     pos_idx = np.where(pos_lidx)[0]
     neg_idx = np.where(~pos_lidx)[0]
     x_idx = np.arange(len(a))
-    plt.vlines(x_idx[pos_idx], thresh, a[pos_idx],
-               colors=pos_color, linestyles=linestyles, label=label, data=data, **kwargs)
-    plt.vlines(x_idx[neg_idx], thresh, a[neg_idx],
-               colors=neg_color, linestyles=linestyles, label=label, data=data, **kwargs)
+    plt.vlines(
+        x_idx[pos_idx],
+        thresh,
+        a[pos_idx],
+        colors=pos_color,
+        linestyles=linestyles,
+        label=label,
+        data=data,
+        **kwargs
+    )
+    plt.vlines(
+        x_idx[neg_idx],
+        thresh,
+        a[neg_idx],
+        colors=neg_color,
+        linestyles=linestyles,
+        label=label,
+        data=data,
+        **kwargs
+    )
 
 
-def side_by_side_bar(list_of_values_for_bars, width=1, spacing=1, names=None, colors=None):
+def side_by_side_bar(
+    list_of_values_for_bars, width=1, spacing=1, names=None, colors=None
+):
     """
     A plotting utility making side by side bar graphs from a list of list (of same length) of values.
 
@@ -98,11 +126,16 @@ def side_by_side_bar(list_of_values_for_bars, width=1, spacing=1, names=None, co
     if colors is None:
         colors = plt.cm.rainbow(np.linspace(0, 1, n_bars))
     else:
-        assert len(colors) >= n_bars, "There's not enough colors for the number of bars ({})".format(n_bars)
+        assert (
+            len(colors) >= n_bars
+        ), "There's not enough colors for the number of bars ({})".format(n_bars)
     ax = plt.subplot(111)
     # making each of the bar plot
     for i, list_of_values_for_bars in enumerate(list_of_values_for_bars):
-        x = [width * j * n_bars + spacing * j + i * width for j in range(len(list_of_values_for_bars))]
+        x = [
+            width * j * n_bars + spacing * j + i * width
+            for j in range(len(list_of_values_for_bars))
+        ]
         ax.bar(x, list_of_values_for_bars, width=width, color=colors[i], align='center')
     ax.legend(names)
     ax.xaxis.set_ticklabels([])

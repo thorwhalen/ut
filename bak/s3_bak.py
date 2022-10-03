@@ -16,7 +16,16 @@ class S3(object):
     Interaction with Amazon S3.
     """
 
-    def __init__(self, bucket_name, base_folder=None, extension=None, force_extension=False, encoding=None, access_key=None, secret=None):
+    def __init__(
+        self,
+        bucket_name,
+        base_folder=None,
+        extension=None,
+        force_extension=False,
+        encoding=None,
+        access_key=None,
+        secret=None,
+    ):
         """
         Creates an instance with a handle on the S3 bucket corresponding to bucket_name.
 
@@ -35,7 +44,9 @@ class S3(object):
         self.force_extension = force_extension
         self.encoding = encoding or 'UTF-8'
 
-        self.connection = S3Connection(access_key, secret, host='s3-eu-west-1.amazonaws.com')
+        self.connection = S3Connection(
+            access_key, secret, host='s3-eu-west-1.amazonaws.com'
+        )
         self.bucket = self.connection.get_bucket(bucket_name)
 
     @property
@@ -58,9 +69,10 @@ class S3(object):
             if self.force_extension:
                 filename = pfile_name.replace_extension(filename, self.extension)
             else:
-                filename = pfile_name.add_extension_if_not_present(filename, self.extension)
+                filename = pfile_name.add_extension_if_not_present(
+                    filename, self.extension
+                )
         return os.path.join(self.base_folder, filename)
-
 
     def dumpo(self, obj, key_name, folder=None, bucket_name=''):
         """
@@ -97,14 +109,23 @@ class S3(object):
         return:
           number of bytes
         """
-        assert isinstance(the_str,
-                          str), 'the_str must be an instance of basestring, but was an instance of {}'.format(type(the_str))
+        assert isinstance(
+            the_str, str
+        ), 'the_str must be an instance of basestring, but was an instance of {}'.format(
+            type(the_str)
+        )
         encoding = encoding or self.encoding
         bucket = self._get_new_bucket_or_default(bucket_name)
         s3_key = self._get_s3_key_for_dump(self.filepath(key_name), folder, bucket)
-        return str(s3_key.set_contents_from_string(the_str),encoding)
+        return str(s3_key.set_contents_from_string(the_str), encoding)
 
-    def loado(self, key_name, folder=None, bucket_name='', deserialize_f=lambda x: pickle.load(x)):
+    def loado(
+        self,
+        key_name,
+        folder=None,
+        bucket_name='',
+        deserialize_f=lambda x: pickle.load(x),
+    ):
         """
         --
         For loading objects from S3
@@ -140,7 +161,7 @@ class S3(object):
         encoding = encoding or self.encoding
         bucket = self._get_new_bucket_or_default(bucket_name)
         s3_key = self._get_s3_key_for_load(self.filepath(key_name), folder, bucket)
-        return str(s3_key.get_contents_as_string(),encoding)
+        return str(s3_key.get_contents_as_string(), encoding)
 
     def get_all_keys(self, folder, clean=True, bucket_name=''):
         """
@@ -157,13 +178,20 @@ class S3(object):
         key_result_set = bucket.list(prefix=folder)
 
         if clean:
-            key_result_set_no_empty = (k for k in key_result_set if k.name.replace(folder, '') != '')
-            key_result_set_no_folder_names = (self._remove_folder_from_name(k, folder) for k in key_result_set_no_empty)
+            key_result_set_no_empty = (
+                k for k in key_result_set if k.name.replace(folder, '') != ''
+            )
+            key_result_set_no_folder_names = (
+                self._remove_folder_from_name(k, folder)
+                for k in key_result_set_no_empty
+            )
             return key_result_set_no_folder_names
         else:
             return key_result_set
 
-    def update_metadata(self, metadata_dict, key_name=None, folder='', key=None, bucket_name=''):
+    def update_metadata(
+        self, metadata_dict, key_name=None, folder='', key=None, bucket_name=''
+    ):
         """
         In order to update metadata on an object, need to copy (==resave) it to same location
         Note: pass in EITHER an actual key or else a key name (for lookup)
@@ -174,8 +202,15 @@ class S3(object):
         # MJM - note, removing preserve ACL since we should not need it here
         key.copy(bucket.name, key.name, key.metadata)
 
-    def copy_and_return_errors(self, key_name_list, from_folder='', from_bucket_name='',
-                               to_folder='', to_bucket_name='', storage_class='REDUCED_REDUNDANCY'):
+    def copy_and_return_errors(
+        self,
+        key_name_list,
+        from_folder='',
+        from_bucket_name='',
+        to_folder='',
+        to_bucket_name='',
+        storage_class='REDUCED_REDUNDANCY',
+    ):
         """
         Take a list of key names and moves them from the specified bucket and folder to the specified bucket and folder.
         If no folder(s) is specified, the top level of the bucket is used.
@@ -189,8 +224,10 @@ class S3(object):
         to_bucket = bucket = self._get_new_bucket_or_default(to_bucket_name)
 
         to_and_from_key_names = [
-            (self._full_key_name(to_folder, key_name),
-             self._full_key_name(from_folder, key_name))
+            (
+                self._full_key_name(to_folder, key_name),
+                self._full_key_name(from_folder, key_name),
+            )
             for key_name in key_name_list
         ]
 
@@ -202,7 +239,7 @@ class S3(object):
                     new_key_name=to_from_names[0],
                     src_bucket_name=from_bucket.name,
                     src_key_name=to_from_names[1],
-                    storage_class=storage_class
+                    storage_class=storage_class,
                 )
             except S3ResponseError as e:
                 errors.append(e)

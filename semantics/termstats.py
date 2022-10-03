@@ -7,6 +7,7 @@ from ut.semantics.text_processors import preprocess_text_lower_ascii
 from ut.semantics.text_processors import html2text
 from pattern.web import plaintext
 
+
 class TermStats(object):
     default = dict()
     default['name'] = None
@@ -51,8 +52,8 @@ class TermStats(object):
 
     def normalized(self):
         return TermStats(
-            self.sr.groupby(level=0).sum()
-            / float(sum(self.sr.values))).set_name(self.get_name())
+            self.sr.groupby(level=0).sum() / float(sum(self.sr.values))
+        ).set_name(self.get_name())
 
     def dot(self, other):
         # return (self * other).total() # but chose to use the following for (supposed) efficiency
@@ -78,10 +79,10 @@ class TermStats(object):
         return self.sr.__str__()
 
     def __repr__(self):
-        '''
+        """
         This is used by iPython to display a variable.
         I choose to do thing differently than __str__ (eventually)
-        '''
+        """
         return self.sr.__repr__()
 
     def norm(self):
@@ -119,7 +120,9 @@ class TermStats(object):
          and grouping terms (by summing up all stats for a same term)
         """
         kwargs = dict(TermStats.default, **kwargs)
-        return TermStats(pd.Series(data=df[kwargs['stat_col']], index=[kwargs['term_col']])).group_terms()
+        return TermStats(
+            pd.Series(data=df[kwargs['stat_col']], index=[kwargs['term_col']])
+        ).group_terms()
 
     @staticmethod
     def from_dict(d, **kwargs):
@@ -127,7 +130,9 @@ class TermStats(object):
         returns a TermStats from a dict of term:stat pairs
         """
         kwargs = dict(TermStats.default, **kwargs)
-        return TermStats(pd.Series(data=list(d.values()), index=list(d.keys()))).set_name(kwargs['name'])
+        return TermStats(
+            pd.Series(data=list(d.values()), index=list(d.keys()))
+        ).set_name(kwargs['name'])
 
     @staticmethod
     def from_terms(terms, **kwargs):
@@ -135,7 +140,11 @@ class TermStats(object):
         returns a (count) TermStats from a list (or other iterable) of terms
         """
         kwargs = dict(TermStats.default, **kwargs)
-        return TermStats(pd.Series(data=1, index=terms)).group_terms().set_name(kwargs['name'])
+        return (
+            TermStats(pd.Series(data=1, index=terms))
+            .group_terms()
+            .set_name(kwargs['name'])
+        )
 
     @staticmethod
     def from_text(text, **kwargs):

@@ -13,7 +13,9 @@ class SquareMatrix(object):
         elif isinstance(df, pd.DataFrame):
             self.df = df
             self.index_vars = index_vars
-            self.value_vars = ms.pcoll.order_conserving.setdiff(list(self.df.columns), self.index_vars)
+            self.value_vars = ms.pcoll.order_conserving.setdiff(
+                list(self.df.columns), self.index_vars
+            )
             self.df = self.df[self.index_vars + self.value_vars]
         else:
             raise NotImplementedError("This case hasn't been implemented yet")
@@ -25,14 +27,25 @@ class SquareMatrix(object):
         return SquareMatrix(df=self.df.copy(), index_vars=self.index_vars)
 
     def transpose(self):
-        return SquareMatrix(df=self.df, index_vars=[self.index_vars[1], self.index_vars[0]])
+        return SquareMatrix(
+            df=self.df, index_vars=[self.index_vars[1], self.index_vars[0]]
+        )
 
     def reflexive_mapreduce(self, map_fun, reduce_fun=None, broadcast_functions=True):
-        df = self.df.merge(self.df, how='inner', left_on=self.index_vars[1],
-                        right_on=self.index_vars[0], suffixes=('', '_y'))
+        df = self.df.merge(
+            self.df,
+            how='inner',
+            left_on=self.index_vars[1],
+            right_on=self.index_vars[0],
+            suffixes=('', '_y'),
+        )
 
         df[self.index_vars[1]] = df[self.index_vars[1] + '_y']
-        df.drop(labels=[self.index_vars[0] + '_y', self.index_vars[1] + '_y'], axis=1, inplace=True)
+        df.drop(
+            labels=[self.index_vars[0] + '_y', self.index_vars[1] + '_y'],
+            axis=1,
+            inplace=True,
+        )
 
         if not isinstance(map_fun, dict) and broadcast_functions:
             map_fun = dict(list(zip(self.value_vars, [map_fun] * len(self.value_vars))))
@@ -45,7 +58,9 @@ class SquareMatrix(object):
             for k, v in map_fun.items():
                 reduce_fun[k] = lambda x: reduce(v, x)
         elif not isinstance(reduce_fun, dict) and broadcast_functions:
-            reduce_fun = dict(list(zip(self.value_vars, [reduce_fun] * len(self.value_vars))))
+            reduce_fun = dict(
+                list(zip(self.value_vars, [reduce_fun] * len(self.value_vars)))
+            )
         df = df.groupby(self.index_vars).agg(reduce_fun).reset_index(drop=False)
 
         return SquareMatrix(df=df, index_vars=self.index_vars)

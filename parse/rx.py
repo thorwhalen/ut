@@ -30,16 +30,19 @@ def compose(*functions):
 
 
 def _is_pipeline_spec(obj):
-    return (isinstance(obj, tuple)
-            and len(obj) > 0
-            and callable(obj[0])
-            and getattr(obj[0], '__qualname__', "").startswith('Pattern.'))  # TODO: less hacky way?
+    return (
+        isinstance(obj, tuple)
+        and len(obj) > 0
+        and callable(obj[0])
+        and getattr(obj[0], '__qualname__', '').startswith('Pattern.')
+    )  # TODO: less hacky way?
 
 
 class FuncPipe:
-
     def __init__(self, *funcs):
-        assert FuncPipe.is_valid_pipeline_spec(funcs), "All inputs of FuncPipe must be callable"
+        assert FuncPipe.is_valid_pipeline_spec(
+            funcs
+        ), 'All inputs of FuncPipe must be callable'
         self.funcs = funcs
 
     def __call__(self, *args, **kwargs):
@@ -50,14 +53,12 @@ class FuncPipe:
 
     @classmethod
     def is_valid_pipeline_spec(cls, obj):
-        return (isinstance(obj, tuple)
-                and len(obj) > 0
-                and all(callable(o) for o in obj))
+        return isinstance(obj, tuple) and len(obj) > 0 and all(callable(o) for o in obj)
 
 
 # TODO: find less hacky way?
 def is_pattern_method(obj):
-    return callable(obj) and getattr(obj, '__qualname__', "").startswith('Pattern.')
+    return callable(obj) and getattr(obj, '__qualname__', '').startswith('Pattern.')
 
 
 class Spec:
@@ -67,6 +68,7 @@ class Spec:
 
 class Input:
     """An object to indicate that the value """
+
     pass
 
 
@@ -86,7 +88,7 @@ class RxPipe:
         '_groups': lambda x: x.groups() if x is not None else None,
         '_group0': lambda x: x.group(0) if x is not None else None,
         '_group1': lambda x: x.group(1) if x is not None else None,
-        '_remove': lambda pattern: lambda x: pattern.sub('', x)
+        '_remove': lambda pattern: lambda x: pattern.sub('', x),
     }
 
     def __init__(self, pattern, *steps):
@@ -117,8 +119,7 @@ class RxPipe:
 
     @classmethod
     def is_pipeline_tuple(cls, x):
-        return (isinstance(x, tuple) and len(x) >= 1
-                and isinstance(x[0], (str, Pattern)))
+        return isinstance(x, tuple) and len(x) >= 1 and isinstance(x[0], (str, Pattern))
 
     # PATTERN: tree crud pattern
     def mk_func(self, func):
@@ -128,26 +129,30 @@ class RxPipe:
             elif func.startswith('.'):
                 func = attrgetter(func[1:])  # TODO: enable dot paths
             elif func.startswith('['):
-                assert func.endswith(']'), "If you start with [, you need to end with ]"
+                assert func.endswith(']'), 'If you start with [, you need to end with ]'
                 key = func[1:-1]
                 if key:
                     func = itemgetter(key)
                 else:
                     func = attrgetter('__getitem__')
             else:
-                raise ValueError(f"The string func specification couldn't be resolved: {func}. "
-                                 f"If an actual string value is what you were going for, use `Literal(your_string)`")
+                raise ValueError(
+                    f"The string func specification couldn't be resolved: {func}. "
+                    f'If an actual string value is what you were going for, use `Literal(your_string)`'
+                )
         # assert callable(func), f"func wasn't callable: {func}"
         return func
 
     def __repr__(self):
         if len(self.steps) == 0:
-            return f"{self.__class__.__name__}({self.pattern})"
+            return f'{self.__class__.__name__}({self.pattern})'
         else:
             quote = lambda x: f"'{x}'" if isinstance(x, str) else x
-            return (f"{self.__class__.__name__}"
-                    + f"({self.pattern}"
-                    + f"{', ' + ', '.join(quote(x) for x in self._input_steps)})")
+            return (
+                f'{self.__class__.__name__}'
+                + f'({self.pattern}'
+                + f"{', ' + ', '.join(quote(x) for x in self._input_steps)})"
+            )
 
     def __call__(self, input_val):
         cumul = self.pattern

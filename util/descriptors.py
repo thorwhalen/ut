@@ -1,5 +1,6 @@
 """utils for ipython descriptors"""
 
+
 class SimpleProperty:
     def __get__(self, instance, owner):
         return instance

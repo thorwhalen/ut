@@ -9,9 +9,9 @@ class NumpyAwareJSONEncoder(json.JSONEncoder):
     Usage:
         json.dumps(obj, cls=NumpyAwareJSONEncoder)
     """
+
     def default(self, obj):
         try:
             json.JSONEncoder.default(self, obj)
         except TypeError:
             return list(obj)
-

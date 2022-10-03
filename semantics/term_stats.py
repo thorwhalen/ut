@@ -19,13 +19,12 @@ class TermWeightGetter(object):
 
 
 def times(sr1, sr2):
-    return (sr1*sr2).dropna()
+    return (sr1 * sr2).dropna()
 
 
 def cosine(sr1, sr2):
-    return (
-        (sr1*sr2).dropna().sum()
-            / (np.linalg.norm(sr1.values)*np.linalg.norm(sr2.values))
+    return (sr1 * sr2).dropna().sum() / (
+        np.linalg.norm(sr1.values) * np.linalg.norm(sr2.values)
     )
 
 
@@ -38,18 +37,30 @@ def termcount_to_termtf(termcount):
     return df
 
 
-def termdoc_to_termdoc_count(term_doc_df, doc_var=None, term_var='term', count_var='count'):
+def termdoc_to_termdoc_count(
+    term_doc_df, doc_var=None, term_var='term', count_var='count'
+):
     # processing input
-    term_doc_df, doc_var, term_var = __process_term_doc_var_names__(term_doc_df, doc_var=doc_var, term_var=term_var)
+    term_doc_df, doc_var, term_var = __process_term_doc_var_names__(
+        term_doc_df, doc_var=doc_var, term_var=term_var
+    )
     term_doc_df = term_doc_df.groupby([doc_var, term_var]).count()
     term_doc_df = daf_ch.ch_col_names(term_doc_df, count_var, term_var)
     return term_doc_df
 
 
-def termdoc_to_doc_counts(term_doc_df, doc_var=None, term_var='term', count_var='count'):
-    term_doc_df, doc_var, term_var = __process_term_doc_var_names__(term_doc_df, doc_var=doc_var, term_var=term_var)
+def termdoc_to_doc_counts(
+    term_doc_df, doc_var=None, term_var='term', count_var='count'
+):
+    term_doc_df, doc_var, term_var = __process_term_doc_var_names__(
+        term_doc_df, doc_var=doc_var, term_var=term_var
+    )
     # keep only doc and terms, and one copy of any (doc,term) pair
-    term_doc_df = term_doc_df[[doc_var, term_var]].drop_duplicates(cols=[doc_var, term_var]).reset_index(drop=True)
+    term_doc_df = (
+        term_doc_df[[doc_var, term_var]]
+        .drop_duplicates(cols=[doc_var, term_var])
+        .reset_index(drop=True)
+    )
     # group by terms
     term_doc_df = term_doc_df[[term_var]].groupby(term_var).count()
     term_doc_df = daf_ch.ch_col_names(term_doc_df, count_var, term_var)
@@ -58,7 +69,9 @@ def termdoc_to_doc_counts(term_doc_df, doc_var=None, term_var='term', count_var=
 
 def termdoc_to_term_idf(term_doc_df, doc_var=None, term_var='term'):
     # processing input
-    term_doc_df, doc_var, term_var = __process_term_doc_var_names__(term_doc_df, doc_var=doc_var, term_var=term_var)
+    term_doc_df, doc_var, term_var = __process_term_doc_var_names__(
+        term_doc_df, doc_var=doc_var, term_var=term_var
+    )
     # get the number of docs
     num_of_docs = len(np.unique(term_doc_df[doc_var]))
     # get doc_counts
@@ -67,8 +80,10 @@ def termdoc_to_term_idf(term_doc_df, doc_var=None, term_var='term'):
     # term_doc_df = term_doc_df[[doc_var,'term']].drop_duplicates(cols=[doc_var, 'term']).reset_index(drop=True)
     # # group by terms
     # term_doc_df = term_doc_df[['term']].groupby('term').count()
-    term_doc_df['term'] = \
-        semantics_math.idf_log10(num_of_docs_containing_term=np.array(term_doc_df['term']), num_of_docs=float(num_of_docs))
+    term_doc_df['term'] = semantics_math.idf_log10(
+        num_of_docs_containing_term=np.array(term_doc_df['term']),
+        num_of_docs=float(num_of_docs),
+    )
     return daf_ch.ch_col_names(term_doc_df, ['stat'], [term_var])
 
 
@@ -78,9 +93,11 @@ def __process_term_doc_var_names__(term_doc_df, doc_var=None, term_var='term'):
     cols = term_doc_df.columns
     if doc_var is None:  # try to guess it
         if len(cols) != 2:
-            raise ValueError("In order to guess the doc_var, there needs to be only two columns")
+            raise ValueError(
+                'In order to guess the doc_var, there needs to be only two columns'
+            )
         else:
-            doc_var = list(set(cols)-set([term_var]))[0]
+            doc_var = list(set(cols) - set([term_var]))[0]
     return (term_doc_df, doc_var, term_var)
 
 
@@ -92,17 +109,18 @@ def mk_termCounts(dat, indexColName, strColName, data_folder=''):
     """
     from ut.util import log
     from ut.daf.get import get_data
-    dat = get_data(dat,data_folder)
-    log.printProgress("making {} word counts (wc)",strColName)
+
+    dat = get_data(dat, data_folder)
+    log.printProgress('making {} word counts (wc)', strColName)
     sr = to_kw_fd(dat[strColName])
     sr.index = dat.hotel_id.tolist()
     return sr
     # translate fds to series
-    #printProgress("translating {} FreqDist to Series",col)
-    #sr = fd_to_series(sr)
-    #printProgress("saving {} word counts (wc)",col)
-    #save_data(sr,savename + col)
-    #printProgress('Done!')
+    # printProgress("translating {} FreqDist to Series",col)
+    # sr = fd_to_series(sr)
+    # printProgress("saving {} word counts (wc)",col)
+    # save_data(sr,savename + col)
+    # printProgress('Done!')
 
 
 def to_kw_tokens(dat, indexColName, strColName, data_folder=''):
@@ -114,15 +132,16 @@ def to_kw_tokens(dat, indexColName, strColName, data_folder=''):
     from ut.util import log
     import ut.pstr.trans
     from ut.daf.get import get_data
+
     dat = get_data(dat, data_folder)
-    log.printProgress("making {} tokens",strColName)
+    log.printProgress('making {} tokens', strColName)
     sr = dat[strColName]
     sr.index = dat.hotel_id.tolist()
     # preprocess string
     sr = sr.map(lambda x: x.lower())
     sr = sr.map(lambda x: ut.pstr.trans.toascii(x))
     # tokenize
-    sr = sr.map(lambda x:nltk.regexp_tokenize(x,'[\w&]+'))
+    sr = sr.map(lambda x: nltk.regexp_tokenize(x, '[\w&]+'))
     # return this
     return sr
 
@@ -134,19 +153,20 @@ def to_kw_fd(s):
       i.e. string is lower capsed and asciied, and words are [\w&]+
     """
     import ut.pstr.trans
-    if isinstance(s,pd.Series):
+
+    if isinstance(s, pd.Series):
         # preprocess string
         s = s.map(lambda x: x.lower())
         s = s.map(lambda x: ut.pstr.trans.toascii(x))
         # tokenize
-        s = s.map(lambda x:nltk.regexp_tokenize(x,'[\w&]+'))
+        s = s.map(lambda x: nltk.regexp_tokenize(x, '[\w&]+'))
         # return series of fds
-        return s.map(lambda tokens:nltk.FreqDist(tokens))
-    elif isinstance(s,str):
+        return s.map(lambda tokens: nltk.FreqDist(tokens))
+    elif isinstance(s, str):
         # preprocess string
         s = ut.pstr.trans.toascii(s.lower())
         # tokenize
-        tokens = nltk.regexp_tokenize(s,'[\w&]+')
+        tokens = nltk.regexp_tokenize(s, '[\w&]+')
         return nltk.FreqDist(tokens)
 
 
@@ -155,9 +175,9 @@ def fd_to_series(fd):
     input: nltk.FreqDist, pd.Series (with FreqDist in them), or list of FreqDists
     output: the pd.Series representation of the FreqDist
     """
-    if isinstance(fd,nltk.FreqDist):
-        return pd.Series(list(fd.values()),list(fd.keys()))
-    elif isinstance(fd,pd.Series):
-        return fd.map(lambda x:pd.Series(list(x.values()),list(x.keys())))
-    elif isinstance(fd,list):
-        return list(map(lambda x:pd.Series(list(x.values()),list(x.keys()))))
+    if isinstance(fd, nltk.FreqDist):
+        return pd.Series(list(fd.values()), list(fd.keys()))
+    elif isinstance(fd, pd.Series):
+        return fd.map(lambda x: pd.Series(list(x.values()), list(x.keys())))
+    elif isinstance(fd, list):
+        return list(map(lambda x: pd.Series(list(x.values()), list(x.keys()))))

@@ -41,9 +41,11 @@ def autorefresh_cursor_iterator(cursor):
 def restart_find_cursor(cursor, docs_retrieved_so_far=None):
     if docs_retrieved_so_far is None:
         docs_retrieved_so_far = cursor._Cursor__retrieved
-    kwargs = dict(spec=cursor._Cursor__query_spec(),
-                  fields=cursor._Cursor__fields,
-                  skip=cursor._Cursor__skip + docs_retrieved_so_far)
+    kwargs = dict(
+        spec=cursor._Cursor__query_spec(),
+        fields=cursor._Cursor__fields,
+        skip=cursor._Cursor__skip + docs_retrieved_so_far,
+    )
     if cursor._Cursor__limit:
         new_limit = max(0, cursor._Cursor__limit - docs_retrieved_so_far)
         if new_limit > 0:
@@ -215,7 +217,9 @@ class BulkUpdateBuffer(ThreshBuffer):
 
 
 class KeyedBulkUpdateBuffer(BulkUpdateBuffer):
-    def __init__(self, key_fields, mgc, max_buf_size=500, upsert=False, assert_all_keys=True):
+    def __init__(
+        self, key_fields, mgc, max_buf_size=500, upsert=False, assert_all_keys=True
+    ):
         """
         Accumulate and execute bulk update operations with specified key_fields.
 
@@ -261,20 +265,25 @@ class KeyedBulkUpdateBuffer(BulkUpdateBuffer):
         >>> print(len(list(mgc.find())))
         11
         """
-        super(KeyedBulkUpdateBuffer, self).__init__(mgc=mgc, max_buf_size=max_buf_size, upsert=upsert)
+        super(KeyedBulkUpdateBuffer, self).__init__(
+            mgc=mgc, max_buf_size=max_buf_size, upsert=upsert
+        )
         self.key_fields = set(key_fields)
         self.assert_all_keys = assert_all_keys
 
     def _push(self, item):
-        _item = {'spec': {}, 'document': {"$set": {}}}
+        _item = {'spec': {}, 'document': {'$set': {}}}
         for k, v in item.items():
             if k in self.key_fields:
                 _item['spec'][k] = v
             else:
                 _item['document']['$set'][k] = v
         if self.assert_all_keys:
-            assert self.key_fields == set(_item['spec']), \
-                "Some update keys are missing. All items should have fields: {}".format(self.key_fields)
+            assert self.key_fields == set(
+                _item['spec']
+            ), 'Some update keys are missing. All items should have fields: {}'.format(
+                self.key_fields
+            )
         super(KeyedBulkUpdateBuffer, self)._push(_item)
 
 
@@ -340,7 +349,9 @@ def copy_missing_indices_from(source_mgc, target_mgc):
 
 
 def missing_indices(mgc, required_indices_keys):
-    if isinstance(required_indices_keys, dict):  # assume it's the direct output of a collection.index_information()
+    if isinstance(
+        required_indices_keys, dict
+    ):  # assume it's the direct output of a collection.index_information()
         # get the keys of required_indices_keys
         required_indices_keys = keys_of_index_information(required_indices_keys)
 
@@ -362,7 +373,9 @@ def mg_collection_string(mgc):
     return mgc.database.name + '/' + mgc.name
 
 
-def imap_with_error_handling(apply_fun, error_fun, except_errors=(Exception,), iterator=None):
+def imap_with_error_handling(
+    apply_fun, error_fun, except_errors=(Exception,), iterator=None
+):
     """
     imap_with_error_handling(
     """
@@ -409,8 +422,9 @@ def convert_dict_for_mongo(d):
     return n
 
 
-def iterate_cursor_and_recreate_if_cursor_not_found(cursor_creator, doc_process, start_i=0,
-                                                    print_progress_fun=None, on_error=None):
+def iterate_cursor_and_recreate_if_cursor_not_found(
+    cursor_creator, doc_process, start_i=0, print_progress_fun=None, on_error=None
+):
     """
     Iterates cursor, calling doc_process at every step, and recreates the cursor and restarts the loop if
     there's a CursorNotFound error.
@@ -492,7 +506,7 @@ def get_random_doc(collection, *args, **kwargs):
     c = collection.find(*args, **kwargs)
     count = c.count()
     if count == 0:
-        raise RuntimeError("No documents with specified conditions were found!")
+        raise RuntimeError('No documents with specified conditions were found!')
     else:
         return next(c.limit(-1).skip(random.randint(0, count)))
 
@@ -519,12 +533,18 @@ def mk_find_in_field_logical_query(field, query):
     elif isinstance(query, list):
         return {'$or': [mk_find_in_field_logical_query(field, q) for q in query]}
     else:
-        raise TypeError("query must be a string, tuple, or list")
+        raise TypeError('query must be a string, tuple, or list')
 
 
-def copy_collection_from_remote_to_local(remote_client, remote_db, remote_collection,
-                                         local_db=None, local_collection=None,
-                                         max_docs_per_collection=inf, verbose=False):
+def copy_collection_from_remote_to_local(
+    remote_client,
+    remote_db,
+    remote_collection,
+    local_db=None,
+    local_collection=None,
+    max_docs_per_collection=inf,
+    verbose=False,
+):
     local_db = local_db or remote_db
     local_collection = local_collection or remote_collection
 
@@ -532,7 +552,13 @@ def copy_collection_from_remote_to_local(remote_client, remote_db, remote_collec
 
     local_db_connection = mg.MongoClient()[local_db]
     if local_collection in local_db_connection.collection_names():
-        print(("Local collection '{}' existed and is being deleted".format(local_collection)))
+        print(
+            (
+                "Local collection '{}' existed and is being deleted".format(
+                    local_collection
+                )
+            )
+        )
         try:
             local_db_connection[local_collection].drop()
         except mg.errors.OperationFailure as e:
@@ -541,7 +567,7 @@ def copy_collection_from_remote_to_local(remote_client, remote_db, remote_collec
     for i, d in enumerate(remote_collection_connection.find()):
         if i < max_docs_per_collection:
             if verbose:
-                printProgress("item {}".format(i))
+                printProgress('item {}'.format(i))
             local_collection_connection.insert(d)
         else:
             break
@@ -582,14 +608,27 @@ def to_df(cursor, roll_out_col=None, rm_id=True):
     if roll_out_col:
         # rollout the col
         df = rollout_cols(df, roll_out_col)
-        df = pd.concat([rm_cols_if_present(df, roll_out_col), pd.DataFrame(list(df[roll_out_col]))], axis=1)
+        df = pd.concat(
+            [
+                rm_cols_if_present(df, roll_out_col),
+                pd.DataFrame(list(df[roll_out_col])),
+            ],
+            axis=1,
+        )
     return df
 
 
-def mongorestore(mongodump_file, db, collection, extra_options='', print_the_command=False):
-    db, collection = _get_db_and_collection_from_filename(mongodump_file, db=db, collection=collection)
+def mongorestore(
+    mongodump_file, db, collection, extra_options='', print_the_command=False
+):
+    db, collection = _get_db_and_collection_from_filename(
+        mongodump_file, db=db, collection=collection
+    )
     command = 'mongorestore  --db {db} --collection {collection} {extra_options} {mongodump_file}'.format(
-        db=db, collection=collection, extra_options=extra_options, mongodump_file=mongodump_file
+        db=db,
+        collection=collection,
+        extra_options=extra_options,
+        mongodump_file=mongodump_file,
     )
     if print_the_command:
         print(command)
@@ -597,55 +636,90 @@ def mongorestore(mongodump_file, db, collection, extra_options='', print_the_com
     p.wait()  # wait till the process finishes
 
 
-def backup_to_s3(db, collection, extra_options='', bucket_name=s3_backup_bucket_name, folder=None):
-    zip_filename = 'mongo_{db}_{collection}___{date}.bson.gz'.format(db=db, collection=collection,
-                                                                     date=datetime.now().strftime('%Y-%m-%d-%H%M'))
+def backup_to_s3(
+    db, collection, extra_options='', bucket_name=s3_backup_bucket_name, folder=None
+):
+    zip_filename = 'mongo_{db}_{collection}___{date}.bson.gz'.format(
+        db=db, collection=collection, date=datetime.now().strftime('%Y-%m-%d-%H%M')
+    )
     extra_options = extra_options + ' --out -'
     command = 'mongodump --db {db} --collection {collection} {extra_options} | gzip > {zip_filename}'.format(
-        db=db, collection=collection, extra_options=extra_options, zip_filename=zip_filename
+        db=db,
+        collection=collection,
+        extra_options=extra_options,
+        zip_filename=zip_filename,
     )
 
     print(command)
     p = subprocess.Popen(command, shell=True)
     p.wait()
 
-    print("uploading file to s3://{bucket_name}{folder}/{zip_filename}".format(
-        bucket_name=bucket_name, folder=('/' + folder) if folder else '', zip_filename=zip_filename
-    ))
+    print(
+        'uploading file to s3://{bucket_name}{folder}/{zip_filename}'.format(
+            bucket_name=bucket_name,
+            folder=('/' + folder) if folder else '',
+            zip_filename=zip_filename,
+        )
+    )
     s3 = S3(bucket_name=bucket_name)
     s3.dumpf(zip_filename, zip_filename, folder=folder)
-    print("removing {zip_filename}".format(zip_filename=zip_filename))
+    print('removing {zip_filename}'.format(zip_filename=zip_filename))
     os.remove(zip_filename)
 
 
-def restore_from_s3_dump(s3_zip_filename, db=None, collection=None, extra_options='',
-                         bucket_name=s3_backup_bucket_name, folder=None, print_the_command=True):
-    db, collection = _get_db_and_collection_from_filename(s3_zip_filename, db=db, collection=collection)
+def restore_from_s3_dump(
+    s3_zip_filename,
+    db=None,
+    collection=None,
+    extra_options='',
+    bucket_name=s3_backup_bucket_name,
+    folder=None,
+    print_the_command=True,
+):
+    db, collection = _get_db_and_collection_from_filename(
+        s3_zip_filename, db=db, collection=collection
+    )
 
-    print("copy s3://{bucket_name}{folder}/{zip_filename} to local {zip_filename}".format(
-        bucket_name=bucket_name, folder=('/' + folder) if folder else '', zip_filename=s3_zip_filename
-    ))
+    print(
+        'copy s3://{bucket_name}{folder}/{zip_filename} to local {zip_filename}'.format(
+            bucket_name=bucket_name,
+            folder=('/' + folder) if folder else '',
+            zip_filename=s3_zip_filename,
+        )
+    )
     s3 = S3(bucket_name=bucket_name)
-    s3.loadf(key_name=s3_zip_filename, local_file_name=s3_zip_filename, folder=folder, bucket_name=bucket_name)
+    s3.loadf(
+        key_name=s3_zip_filename,
+        local_file_name=s3_zip_filename,
+        folder=folder,
+        bucket_name=bucket_name,
+    )
 
-    print("unzip {zip_filename}".format(zip_filename=s3_zip_filename))
+    print('unzip {zip_filename}'.format(zip_filename=s3_zip_filename))
     unzipped_filename = s3_zip_filename.replace('.gz', '')
     ungzip(gzip_file=s3_zip_filename, destination_file=unzipped_filename)
 
-    print("removing {gzip_file}".format(gzip_file=s3_zip_filename))
+    print('removing {gzip_file}'.format(gzip_file=s3_zip_filename))
     os.remove(s3_zip_filename)
 
-    mongorestore(mongodump_file=unzipped_filename, db=db, collection=collection,
-                 extra_options=extra_options, print_the_command=print_the_command)
+    mongorestore(
+        mongodump_file=unzipped_filename,
+        db=db,
+        collection=collection,
+        extra_options=extra_options,
+        print_the_command=print_the_command,
+    )
 
-    print("removing {unzipped_filename}".format(unzipped_filename=unzipped_filename))
+    print('removing {unzipped_filename}'.format(unzipped_filename=unzipped_filename))
     os.remove(unzipped_filename)
 
 
 def _get_db_and_collection_from_filename(filename, db=None, collection=None):
     if db is None:
         if collection:
-            db_coll_re = re.compile('mongo_(.*?)_{collection}___'.format(collection=collection))
+            db_coll_re = re.compile(
+                'mongo_(.*?)_{collection}___'.format(collection=collection)
+            )
             return db_coll_re.findall(filename)[0], collection
         else:
             db_coll_re = re.compile('mongo_([^_]+)_(.*?)___')
@@ -686,7 +760,9 @@ class FilteredCollection(Collection):
 
         if len(args) > 0:
             if 'spec' in kwargs:
-                raise TypeError("got multiple values for keyword argument 'spec' (one in args, one in kwargs")
+                raise TypeError(
+                    "got multiple values for keyword argument 'spec' (one in args, one in kwargs"
+                )
             args = list(args)
             kwargs['spec'] = args.pop(0)
             args = tuple(args)
@@ -723,6 +799,7 @@ class FilteredCollection(Collection):
         Forward all other things to self.mgc
         """
         return self.mgc.__getattr__(item)
+
 
 #
 #     # def __getattribute__(self, name):

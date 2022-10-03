@@ -5,14 +5,16 @@ from numpy import *
 import pandas as pd
 
 
-def binomial_mixture(npts=10,
-                     success_prob=None,
-                     mixture=None,
-                     n_components=2,
-                     n_trials=[1, 20],
-                     include_component_idx=False,
-                     include_component_prob=False,
-                     **kwargs):
+def binomial_mixture(
+    npts=10,
+    success_prob=None,
+    mixture=None,
+    n_components=2,
+    n_trials=[1, 20],
+    include_component_idx=False,
+    include_component_prob=False,
+    **kwargs
+):
     if success_prob is not None:
         n_components = len(success_prob)
     elif mixture is not None:
@@ -48,4 +50,3 @@ def binomial_mixture(npts=10,
         data['component_prob'] = component_prob
 
     return data
-

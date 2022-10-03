@@ -6,8 +6,9 @@ from operator import sub
 from numpy import mean
 
 
-def group_normalization(df, var_col, group=None, agg=mean, dif=sub,
-                        keep_anchor=False, anchor_name='anchor'):
+def group_normalization(
+    df, var_col, group=None, agg=mean, dif=sub, keep_anchor=False, anchor_name='anchor'
+):
     """
     returns a dataframe where the var_col column values have been normalized relative to an aggregation of the values
     in a same group.
@@ -54,8 +55,9 @@ def group_normalization(df, var_col, group=None, agg=mean, dif=sub,
     else:
         dg = dg.agg(agg)
         dg.columns = dg.columns.droplevel(level=0)
-        anchor_cols = list(set(dg.columns).difference(df.columns))  # list of new column names
-
+        anchor_cols = list(
+            set(dg.columns).difference(df.columns)
+        )  # list of new column names
 
     # normalize (combining original values and group aggregates)
     dg.reset_index(drop=False, inplace=True)
@@ -69,4 +71,3 @@ def group_normalization(df, var_col, group=None, agg=mean, dif=sub,
     if not keep_anchor:
         dg.drop(labels=anchor_cols, axis=1, inplace=True)
     return dg
-

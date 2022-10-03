@@ -12,13 +12,29 @@ earth_radius_km = 6371.0
 ########################################################################################################################
 # EARTH GEOMETRY
 
-def find_closest_geo_locations(latlons, geo_location_latlons, n_neighbors=1, earth_radius=None, max_radius=None):
-    nbrs = NearestNeighbors(n_neighbors=n_neighbors, metric='haversine').fit(np.deg2rad(geo_location_latlons))
+
+def find_closest_geo_locations(
+    latlons, geo_location_latlons, n_neighbors=1, earth_radius=None, max_radius=None
+):
+    nbrs = NearestNeighbors(n_neighbors=n_neighbors, metric='haversine').fit(
+        np.deg2rad(geo_location_latlons)
+    )
     distances, indices = nbrs.kneighbors(np.deg2rad(latlons))
     if earth_radius:
         distances = distances * earth_radius
     if max_radius:
-        distances, indices = list(zip(*list(map(_radius_filter, distances, indices, [max_radius]*len(distances)))))
+        distances, indices = list(
+            zip(
+                *list(
+                    map(
+                        _radius_filter,
+                        distances,
+                        indices,
+                        [max_radius] * len(distances),
+                    )
+                )
+            )
+        )
     return distances, indices
 
 
@@ -72,7 +88,9 @@ def rad_distance_on_unit_sphere(lat1, long1, lat2, long2):
     #    sin phi sin phi' cos(theta-theta') + cos phi cos phi'
     # distance = rho * arc length
 
-    cos_value = math.sin(phi1) * math.sin(phi2) * math.cos(theta1 - theta2) + math.cos(phi1) * math.cos(phi2)
+    cos_value = math.sin(phi1) * math.sin(phi2) * math.cos(theta1 - theta2) + math.cos(
+        phi1
+    ) * math.cos(phi2)
     if cos_value > 1:
         cos_value = 1.0
     arc = math.acos(cos_value)
@@ -80,5 +98,3 @@ def rad_distance_on_unit_sphere(lat1, long1, lat2, long2):
     # Remember to multiply arc by the radius of the earth
     # in your favorite set of units to get length.
     return arc
-
-

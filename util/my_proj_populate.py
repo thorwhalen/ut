@@ -6,18 +6,18 @@ from wads.util import git
 from ut.util.context_managers import cd
 
 name_for_url_root = {
-    "https://github.com/i2mint": "i2mint",
-    "https://github.com/otosense": "otosense",
-    "https://github.com/thorwhalen": "thor",
+    'https://github.com/i2mint': 'i2mint',
+    'https://github.com/otosense': 'otosense',
+    'https://github.com/thorwhalen': 'thor',
 }
 
 proj_root_dir_for_name = {
-    "i2mint": "i",
-    "otosense": "po",
-    "thor": "t",
+    'i2mint': 'i',
+    'otosense': 'po',
+    'thor': 't',
 }
 
-DFLT_PROJ_ROOT_ENVVAR = "PPPP"
+DFLT_PROJ_ROOT_ENVVAR = 'PPPP'
 
 
 def clog(*args, condition=True, log_func=print, **kwargs):
@@ -29,7 +29,7 @@ from functools import partial
 
 
 def _ensure_no_slash_suffix(string: str) -> str:
-    if string.endswith("/"):
+    if string.endswith('/'):
         string = string[:-1]
     return string
 
@@ -40,13 +40,13 @@ def _get_org_slash_proj(repo: str) -> str:
     >>> _get_org_slash_proj('https://github.com/thorwhalen/ut/')
     'thorwhalen/ut'
     """
-    *_, org, proj_name = _ensure_no_slash_suffix(repo).split("/")
-    return f"{org}/{proj_name}"
+    *_, org, proj_name = _ensure_no_slash_suffix(repo).split('/')
+    return f'{org}/{proj_name}'
 
 
 def _mk_default_project_description(org_slash_proj: str) -> str:
-    org, proj_name = org_slash_proj.split("/")
-    return f"{proj_name} should say it all, no?"
+    org, proj_name = org_slash_proj.split('/')
+    return f'{proj_name} should say it all, no?'
 
 
 def get_github_project_description(
@@ -56,10 +56,10 @@ def get_github_project_description(
     import requests
 
     org_slash_proj = _get_org_slash_proj(repo)
-    api_url = f"https://api.github.com/repos/{org_slash_proj}"
+    api_url = f'https://api.github.com/repos/{org_slash_proj}'
     r = requests.get(api_url)
     if r.status_code == 200:
-        description = r.json().get("description", None)
+        description = r.json().get('description', None)
         if description:
             return description
         else:
@@ -69,10 +69,10 @@ def get_github_project_description(
 
 
 def populate_proj_from_url(
-    url, proj_rootdir=None, description=None, license="apache-2.0", **kwargs
+    url, proj_rootdir=None, description=None, license='apache-2.0', **kwargs
 ):
     """git clone a repository and set the resulting folder up for packaging."""
-    verbose = kwargs.get("verbose", True)
+    verbose = kwargs.get('verbose', True)
     _clog = partial(clog, condition=verbose)
 
     url = _ensure_no_slash_suffix(url)
@@ -85,16 +85,16 @@ def populate_proj_from_url(
         description = get_github_project_description(url)
     url_name = name_for_url_root.get(root_url, None)
     if url_name:
-        _clog(f"url_name={url_name}")
+        _clog(f'url_name={url_name}')
 
     if url_name is not None and url_name in proj_root_dir_for_name:
         proj_rootdir = os.path.join(proj_rootdir, proj_root_dir_for_name[url_name])
-    _clog(f"proj_rootdir={proj_rootdir}")
+    _clog(f'proj_rootdir={proj_rootdir}')
 
     with cd(proj_rootdir):
-        _clog(f"cloning {url}...")
-        subprocess.check_output(f"git clone {url}", shell=True).decode()
-        _clog(f"populating package folder...")
+        _clog(f'cloning {url}...')
+        subprocess.check_output(f'git clone {url}', shell=True).decode()
+        _clog(f'populating package folder...')
         populate_pkg_dir(
             os.path.join(proj_rootdir, proj_name),
             defaults_from=url_name,
@@ -121,7 +121,9 @@ def gen_key_content_and_description(
             if d:
                 if d in excluded_descriptions:
                     if verbose:
-                        print(f"Skipping {i}th key ({k}) since description excluded: {d}")
+                        print(
+                            f'Skipping {i}th key ({k}) since description excluded: {d}'
+                        )
                 else:
                     yield k, d, v
 
@@ -134,7 +136,7 @@ class mk_key_to_pkg_name_from_collection:
         self.collection_size = len(self.collection_of_pkgs)
         assert (
             len(set(self.collection_of_pkgs)) == self.collection_size
-        ), "The items of collection_of_pkgs should be unique"
+        ), 'The items of collection_of_pkgs should be unique'
         self.cursor = 0
         self.assigned = dict()
 
@@ -142,7 +144,7 @@ class mk_key_to_pkg_name_from_collection:
         if k not in self.assigned:
             if self.cursor >= self.collection_size:
                 raise IndexError(
-                    "I already assigned all collection_of_pkgs items (see them in self.assigned), "
+                    'I already assigned all collection_of_pkgs items (see them in self.assigned), '
                     "so can't assign {k}"
                 )
             self.assigned[k] = self.collection_of_pkgs[self.cursor]
@@ -155,12 +157,17 @@ def mk_and_deploy_new_pkgs_from_existing_modules(
     new_pkg_dir,
     key_to_pkg_name,
     root_url,
+    *,
     excluded_descriptions=(),
     excluded_keys=(),
     twine_upload_options_str=None,
-    target_module_name="__init__.py",
+    target_module_name='__init__.py',
     sleep_seconds_between_deployments=30,
     verbose=True,
+    author='Thor Whalen',
+    license='apache-2.0',
+    skip_git_commit=True,
+    version='0.0.1',
 ):
     """Copy individual modules to a single module new project, and package and deploy it (to pypi)"""
     from typing import Iterable, Callable
@@ -181,9 +188,9 @@ def mk_and_deploy_new_pkgs_from_existing_modules(
     ):
         if k not in excluded_keys:
             try:
-                without_comma = description.split(",")[0]
+                without_comma = description.split(',')[0]
                 if verbose:
-                    print(f"===== {k}: {without_comma} =====")
+                    print(f'===== {k}: {without_comma} =====')
                 pkg_name = key_to_pkg_name(k)
                 pkg_dir = os.path.join(new_pkg_dir, pkg_name)
                 #         if os.path.isdir(pkg_dir):
@@ -196,22 +203,22 @@ def mk_and_deploy_new_pkgs_from_existing_modules(
                 populate_pkg_dir(
                     pkg_dir,
                     description=without_comma,
-                    author="Thor Whalen",
-                    license="apache-2.0",
+                    author=author,
+                    license=license,
                     root_url=root_url,
                     url=os.path.join(root_url, k),
                 )
 
                 go(
                     pkg_dir,
-                    skip_git_commit=True,
-                    version="0.0.1",
+                    skip_git_commit=skip_git_commit,
+                    version=version,
                     twine_upload_options_str=twine_upload_options_str,
                 )
                 if verbose:
-                    print_progress(f"Sleeping for a bit")
+                    print_progress(f'Sleeping for a bit')
                 sleep(sleep_seconds_between_deployments)
             except Exception as e:
-                print("!!!!!!!!!!!!!!!!!!")
-                print(f"An error occurred: {type(e).__name__}: {e}")
-                print("!!!!!!!!!!!!!!!!!!")
+                print('!!!!!!!!!!!!!!!!!!')
+                print(f'An error occurred: {type(e).__name__}: {e}')
+                print('!!!!!!!!!!!!!!!!!!')

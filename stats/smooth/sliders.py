@@ -1,5 +1,3 @@
-
-
 from numpy import cumsum, insert
 
 

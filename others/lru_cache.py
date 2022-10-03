@@ -2,7 +2,7 @@ from collections import namedtuple
 from functools import update_wrapper
 from threading import RLock
 
-_CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize"])
+_CacheInfo = namedtuple('CacheInfo', ['hits', 'misses', 'maxsize', 'currsize'])
 
 """
 lru_cache is now built in of Python 3. This is a back-port of it found online.
@@ -21,10 +21,17 @@ class _HashedSeq(list):
         return self.hashvalue
 
 
-def _make_key(args, kwds, typed,
-              kwd_mark=(object(),),
-              fasttypes={int, str, frozenset, type(None)},
-              sorted=sorted, tuple=tuple, type=type, len=len):
+def _make_key(
+    args,
+    kwds,
+    typed,
+    kwd_mark=(object(),),
+    fasttypes={int, str, frozenset, type(None)},
+    sorted=sorted,
+    tuple=tuple,
+    type=type,
+    len=len,
+):
     'Make a cache key from optionally typed positional and keyword arguments'
     key = args
     if kwds:
@@ -93,7 +100,9 @@ def lru_cache(maxsize=100, typed=False):
             def wrapper(*args, **kwds):
                 # simple caching without ordering or size limit
                 key = make_key(args, kwds, typed)
-                result = cache_get(key, root)  # root used here as a unique not-found sentinel
+                result = cache_get(
+                    key, root
+                )  # root used here as a unique not-found sentinel
                 if result is not root:
                     stats[HITS] += 1
                     return result
@@ -111,7 +120,7 @@ def lru_cache(maxsize=100, typed=False):
                     link = cache_get(key)
                     if link is not None:
                         # record recent use of the key by moving it to the front of the list
-                        root, = nonlocal_root
+                        (root,) = nonlocal_root
                         link_prev, link_next, key, result = link
                         link_prev[NEXT] = link_next
                         link_next[PREV] = link_prev
@@ -123,7 +132,7 @@ def lru_cache(maxsize=100, typed=False):
                         return result
                 result = user_function(*args, **kwds)
                 with lock:
-                    root, = nonlocal_root
+                    (root,) = nonlocal_root
                     if key in cache:
                         # getting here means that this same key was added to the
                         # cache while the lock was released.  since the link

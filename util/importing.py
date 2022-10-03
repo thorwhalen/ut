@@ -12,7 +12,13 @@ def get_environment_variable(var, ignore=True):
         return environ[var]
     except KeyError:
         if ignore:
-            warn(RuntimeWarning("You don't have the environment variable {}. Ignoring...".format(var)))
+            warn(
+                RuntimeWarning(
+                    "You don't have the environment variable {}. Ignoring...".format(
+                        var
+                    )
+                )
+            )
             return "You don't have the environment variable {}".format(var)
         else:
             raise RuntimeError
@@ -27,12 +33,13 @@ def module_import_from_string(import_path_string, params_file, verbose=False):
         params_file = params_module + '.py'
 
     if verbose:
-        print(f"params_file={params_file}, params_module={params_module}")
+        print(f'params_file={params_file}, params_module={params_module}')
 
     try:
         p = importlib.import_module(import_path_string + '.' + params_module)
     except ImportError as e:
         import sys
+
         sys.path.append(os.path.dirname(os.path.expanduser(params_file)))
         p = importlib.import_module(params_module)
 

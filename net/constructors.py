@@ -11,7 +11,9 @@ def pair_count_sr_to_coo_matrix(sr):
 
 
 def fanout_v(k, v):
-    return zip(repeat(k), v)  # equivalently, product([k], v), but zip(repeat slightly faster)
+    return zip(
+        repeat(k), v
+    )  # equivalently, product([k], v), but zip(repeat slightly faster)
 
 
 def mapkv(kvfunc, mapping):
@@ -41,10 +43,13 @@ from functools import cached_property  # need python 3.8 (or find backport onlin
 # Class to represent a graph
 class Graph:
     def __init__(self, adjacencies=None):
-        self.g = adjacencies or defaultdict(list)  # dictionary containing adjacency List
+        self.g = adjacencies or defaultdict(
+            list
+        )  # dictionary containing adjacency List
 
     def _iter_edges(self):
         return product([])
+
     def __iter__(self):
         return self.edges
 
@@ -57,10 +62,15 @@ class Graph:
 
     def display(self):
         import graphviz
-        return graphviz.Digraph(
-            body=[f"{source} -> {target}" for source, target in adjacencies_to_edges(self.g)])
-    # A recursive function used by topologicalSort
 
+        return graphviz.Digraph(
+            body=[
+                f'{source} -> {target}'
+                for source, target in adjacencies_to_edges(self.g)
+            ]
+        )
+
+    # A recursive function used by topologicalSort
 
     def _helper(self, v, visited, stack):
 
@@ -111,4 +121,3 @@ class Graph:
 # assert g.topological_sort() == [5, 4, 2, 3, 1, 0]
 #
 # print(list(g.edges()))
-

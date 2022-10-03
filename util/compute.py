@@ -27,11 +27,15 @@ class ComputationPipeline(object):
         >>> f(10)
         120
         """
-        assert len(steps) > 0, "You need at least one step in your pipeline"
+        assert len(steps) > 0, 'You need at least one step in your pipeline'
         self.step_names = list()
         self.call_method_for_func_name = dict()
-        for func_name, obj, call_method in map(get_step_func_name_obj_and_call_method, steps):
-            setattr(self, func_name, obj)  # make an attribute with the func_name, pointing to object
+        for func_name, obj, call_method in map(
+            get_step_func_name_obj_and_call_method, steps
+        ):
+            setattr(
+                self, func_name, obj
+            )  # make an attribute with the func_name, pointing to object
             self.step_names.append(func_name)
             func = getattr(obj, call_method)
             if isinstance(call_method, str):
@@ -41,13 +45,19 @@ class ComputationPipeline(object):
                     partial_args_and_keywords = call_method[1]
                     call_method = call_method[0]
                     if isinstance(partial_args_and_keywords, dict):
-                        self.call_method_for_func_name[func_name] = partial(func,
-                                                                            *partial_args_and_keywords['args'],
-                                                                            **partial_args_and_keywords['keywords'])
+                        self.call_method_for_func_name[func_name] = partial(
+                            func,
+                            *partial_args_and_keywords['args'],
+                            **partial_args_and_keywords['keywords']
+                        )
                     else:
-                        raise TypeError("Don't know how to handle that type of call_method spec.")
+                        raise TypeError(
+                            "Don't know how to handle that type of call_method spec."
+                        )
                 else:
-                    raise TypeError("Don't know how to handle that type of call_method spec.")
+                    raise TypeError(
+                        "Don't know how to handle that type of call_method spec."
+                    )
 
     def __call__(self, *args, **kwargs):
         x = self.call_method_for_func_name[self.step_names[0]](*args, **kwargs)

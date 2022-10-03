@@ -1,5 +1,3 @@
-
-
 import os
 import re
 
@@ -16,21 +14,23 @@ class FilePatterns(object):
     WAV_EXTENSION = '.wav$'
 
 
-def get_file_iterator(root_folder,
-                      filt,
-                      return_full_path=True,
-                      apply_pattern_to_full_path=False):
+def get_file_iterator(
+    root_folder, filt, return_full_path=True, apply_pattern_to_full_path=False
+):
     pass
 
 
-def get_filepath_iterator(root_folder,
-                          pattern='',
-                          return_full_path=True,
-                          apply_pattern_to_full_path=False):
+def get_filepath_iterator(
+    root_folder, pattern='', return_full_path=True, apply_pattern_to_full_path=False
+):
     if apply_pattern_to_full_path:
-        return recursive_file_walk_iterator_with_name_filter(root_folder, pattern, return_full_path)
+        return recursive_file_walk_iterator_with_name_filter(
+            root_folder, pattern, return_full_path
+        )
     else:
-        return recursive_file_walk_iterator_with_filepath_filter(root_folder, pattern, return_full_path)
+        return recursive_file_walk_iterator_with_filepath_filter(
+            root_folder, pattern, return_full_path
+        )
 
 
 def iter_relative_files_and_folder(root_folder):
@@ -48,7 +48,9 @@ def pattern_filter(pattern):
     return _pattern_filter
 
 
-def recursive_file_walk_iterator_with_name_filter(root_folder, filt='', return_full_path=True):
+def recursive_file_walk_iterator_with_name_filter(
+    root_folder, filt='', return_full_path=True
+):
     if isinstance(filt, str):
         filt = pattern_filter(filt)
     # if isinstance(pattern, basestring):
@@ -56,7 +58,9 @@ def recursive_file_walk_iterator_with_name_filter(root_folder, filt='', return_f
     for name in iter_relative_files_and_folder(root_folder):
         full_path = os.path.join(root_folder, name)
         if os.path.isdir(full_path):
-            for entry in recursive_file_walk_iterator_with_name_filter(full_path, filt, return_full_path):
+            for entry in recursive_file_walk_iterator_with_name_filter(
+                full_path, filt, return_full_path
+            ):
                 yield entry
         else:
             if os.path.isfile(full_path):
@@ -67,13 +71,17 @@ def recursive_file_walk_iterator_with_name_filter(root_folder, filt='', return_f
                         yield name
 
 
-def recursive_file_walk_iterator_with_filepath_filter(root_folder, filt='', return_full_path=True):
+def recursive_file_walk_iterator_with_filepath_filter(
+    root_folder, filt='', return_full_path=True
+):
     if isinstance(filt, str):
         filt = pattern_filter(filt)
     for name in iter_relative_files_and_folder(root_folder):
         full_path = os.path.join(root_folder, name)
         if os.path.isdir(full_path):
-            for entry in recursive_file_walk_iterator_with_filepath_filter(full_path, filt, return_full_path):
+            for entry in recursive_file_walk_iterator_with_filepath_filter(
+                full_path, filt, return_full_path
+            ):
                 yield entry
         else:
             if os.path.isfile(full_path):

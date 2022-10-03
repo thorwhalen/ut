@@ -4,8 +4,10 @@ from functools import partial
 
 from ut.pdict.get import get_value_in_key_path
 
-print("This is a partial implementation of mongoquery (https://pypi.org/project/mongoquery/) "
-      "before I knew it existed. Might want to use mongoquery instead.")
+print(
+    'This is a partial implementation of mongoquery (https://pypi.org/project/mongoquery/) '
+    'before I knew it existed. Might want to use mongoquery instead.'
+)
 
 
 def nor(*args):
@@ -27,7 +29,7 @@ mg_op_key_to_op = {
     '$not': operator.not_,
     '$and': operator.__and__,  # TODO: Need to extend to more than two operands
     '$or': operator.__or__,  # TODO: Need to extend to more than two operands
-    '$nor': nor
+    '$nor': nor,
 }  # NOTE: Apparent misalignment of gt and lt ops on purpose (order of operator and use is flipped.
 
 
@@ -38,14 +40,22 @@ def mg_filt_kv_to_func_2(key_path, val_condition):
     if func_list:
         if isinstance(val_condition, dict):
             if func_list:
-                return _conjunction_key_func_for_func_list_and_key_path(func_list, key_path)
+                return _conjunction_key_func_for_func_list_and_key_path(
+                    func_list, key_path
+                )
         elif isinstance(val_condition, list):
             if key_path == '$and':
-                return _conjunction_key_func_for_func_list_and_key_path(func_list, key_path)
+                return _conjunction_key_func_for_func_list_and_key_path(
+                    func_list, key_path
+                )
             elif key_path == '$or':
-                return _disjunction_key_func_for_func_list_and_key_path(func_list, key_path)
+                return _disjunction_key_func_for_func_list_and_key_path(
+                    func_list, key_path
+                )
             else:
-                raise ValueError("val_condition was a list, but key_path was neither $and nor $or")
+                raise ValueError(
+                    'val_condition was a list, but key_path was neither $and nor $or'
+                )
 
     def key_func(_dict):
         return get_value_in_key_path(_dict, key_path, None) == val_condition
@@ -104,6 +114,7 @@ def mg_filt_kv_to_func(key_path, val_condition):
             if k.startswith('$'):
                 func_list.append(partial(mg_op_key_to_op[k], v))
         if func_list:
+
             def key_func(_dict):
                 """
                 Returns True if and only iff all func_list funcs return True

@@ -6,7 +6,7 @@ Ported to Python from https://github.com/vomjom/nca
 import numpy as np
 
 from numpy.linalg import inv, cholesky
-from  matplotlib.pyplot import fill_betweenx
+from matplotlib.pyplot import fill_betweenx
 
 
 class BaseMetricLearner(object):
@@ -29,6 +29,7 @@ class BaseMetricLearner(object):
 
 # BaseEstimator, TransformerMixin
 
+
 class NCA(BaseMetricLearner):
     def __init__(self, max_iter=100, learning_rate=0.01):
         self.max_iter = max_iter
@@ -46,7 +47,7 @@ class NCA(BaseMetricLearner):
         n, d = X.shape
         # Initialize A to a scaling matrix
         A = np.zeros((d, d))
-        np.fill_diagonal(A, 1. / (X.max(axis=0) - X.min(axis=0)))
+        np.fill_diagonal(A, 1.0 / (X.max(axis=0) - X.min(axis=0)))
 
         # Run NCA
         dX = X[:, None] - X[None]  # shape (n, n, d)
@@ -72,11 +73,3 @@ class NCA(BaseMetricLearner):
     def fit_transform(self, X, y=None):
         return self.fit(X, y).transform(X)
         # return self.transform(X)
-
-
-
-
-
-
-
-

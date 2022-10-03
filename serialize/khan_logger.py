@@ -13,7 +13,6 @@ from collections import OrderedDict
 
 
 class KhanLogger(object):
-
     @classmethod
     def get_most_recent_log_as_df(cls):
         return cls.get_log_as_df(cls.most_recent_log())
@@ -36,7 +35,11 @@ class KhanLogger(object):
             df['dt'] = pd.to_datetime(df['dt'])
             df = df.set_index('dt')
             # Get columns we are interested in to show up in order we want them in
-            cols_of_interest = [col for col in ['msg', 'origin', 'level', 'error_traceback'] if col in df.columns]
+            cols_of_interest = [
+                col
+                for col in ['msg', 'origin', 'level', 'error_traceback']
+                if col in df.columns
+            ]
             cols_not_of_interest = list(set(df.columns) - set(cols_of_interest))
             df = df[cols_of_interest + cols_not_of_interest]
         else:
@@ -80,12 +83,23 @@ class KhanLogger(object):
 
         for the_file in os.listdir(logdir):
             try:
-                if the_file.endswith(".log"):
-                    os.rename(os.path.join(logdir, the_file), os.path.join(backup_folder, the_file))
+                if the_file.endswith('.log'):
+                    os.rename(
+                        os.path.join(logdir, the_file),
+                        os.path.join(backup_folder, the_file),
+                    )
             except Exception as e:
                 print(e)
 
-    def __init__(self, level=logging.INFO, file_path=None, file_name='main.log', make_file_name_unique=False, mode='a', origin=''):
+    def __init__(
+        self,
+        level=logging.INFO,
+        file_path=None,
+        file_name='main.log',
+        make_file_name_unique=False,
+        mode='a',
+        origin='',
+    ):
         """
         Main purpose of this logger is to make sure everything gets logged in JSON format, so that it can easily
         be read back in the form of a Pandas dataframe.
@@ -95,40 +109,47 @@ class KhanLogger(object):
         """
         #
         #
-        #if os.path.exists(file_path):
+        # if os.path.exists(file_path):
         #    name_and_path = file_path
-        #elif file_name:
+        # elif file_name:
         #    file_name
         #    logs = [f for f in os.listdir(os.environ['KHAN_LOG_FOLDER']) if f.endswith(".log")]
 
         # if a file already exists, use it:
-        logs = [f for f in os.listdir(os.getenv('KHAN_LOG_FOLDER')) if f.endswith(".log")]
+        logs = [
+            f for f in os.listdir(os.getenv('KHAN_LOG_FOLDER')) if f.endswith('.log')
+        ]
         if logs:
             name_and_path = os.path.join(os.getenv('KHAN_LOG_FOLDER'), logs[0])
         else:
-            name_and_path = self._make_file_name_and_path(file_name, file_path, make_file_name_unique)
-
-
+            name_and_path = self._make_file_name_and_path(
+                file_name, file_path, make_file_name_unique
+            )
 
         self.filename_and_path = name_and_path
 
         generic_folder = os.path.join(os.getenv('KHAN_LOG_FOLDER'), 'generic')
         if not os.path.exists(generic_folder):
             os.makedirs(generic_folder)
-        generic_log_name_and_path = os.path.join(generic_folder, "generic.log")
-        logging.basicConfig(filemode='w', filename=generic_log_name_and_path, level=level, format='%(message)s')
+        generic_log_name_and_path = os.path.join(generic_folder, 'generic.log')
+        logging.basicConfig(
+            filemode='w',
+            filename=generic_log_name_and_path,
+            level=level,
+            format='%(message)s',
+        )
 
         # This next line uses the name_and_path as a unique namespace
         self.logger = logging.getLogger(name_and_path)
-        #self.logger.setLevel(level)
-        #self.logger
+        # self.logger.setLevel(level)
+        # self.logger
         self.logger.handlers = []
         fh = logging.FileHandler(name_and_path, mode='a')
         fh.setLevel(level)
         formatter = logging.Formatter('%(message)s')
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
-        #self.logger
+        # self.logger
 
         self.origin = origin
 
@@ -153,7 +174,7 @@ class KhanLogger(object):
         if level == logging.ERROR:
             # If there was an exception, let's grab it here
             tb = traceback.format_exc()
-            if tb and tb!="None\n":
+            if tb and tb != 'None\n':
                 log_dict['error_traceback'] = tb
         elif error_obj:
             log_dict['error_traceback'] = str(error_obj)
@@ -178,8 +199,8 @@ class KhanLogger(object):
         """
         self.log(level=logging.ERROR, msg=msg, error_obj=error_obj, **kwargs)
         if send_email:
-            body_html = "<p> Last log entries: </p>"
-            body_html += "</br>"
+            body_html = '<p> Last log entries: </p>'
+            body_html += '</br>'
 
             full_error = None
 
@@ -194,28 +215,34 @@ class KhanLogger(object):
                 except:
                     pass
             except Exception as e:
-                self.warn("Could not generate error df", error_obj=e)
+                self.warn('Could not generate error df', error_obj=e)
 
             error_html = full_error or str(error_obj) or msg
             # force spacing
             error_html = error_html.replace(' ', '&nbsp;')
             # put brs where there had been newlines
             error_html = error_html.replace('\n', '<br />')
-            error_html = "<p>" + error_html + "</p>"
+            error_html = '<p>' + error_html + '</p>'
             error_html += body_html
 
             if self.num_errors == 10:
-                self.email.send_email(subject='10th KHAN Error, last one sending', text="Error", html=error_html)
+                self.email.send_email(
+                    subject='10th KHAN Error, last one sending',
+                    text='Error',
+                    html=error_html,
+                )
             elif self.num_errors < 10:
-                self.email.send_email(subject='KHAN Error', text="Error", html=error_html)
+                self.email.send_email(
+                    subject='KHAN Error', text='Error', html=error_html
+                )
 
     # DEPRECATED
-    #def structured_log(self, level=logging.DEBUG, origin=None, msg='', **kwargs):
+    # def structured_log(self, level=logging.DEBUG, origin=None, msg='', **kwargs):
     #    origin = origin or self.origin or ''
     #    self.log(level=level, origin=origin, msg=msg, **kwargs)
 
     # DEPRECATED
-    #def id_and_reason_log(self, id, reason, level=logging.ERROR):
+    # def id_and_reason_log(self, id, reason, level=logging.ERROR):
     #    self.log(level=level, id=id, reason=reason)
 
     def get_current_log_as_df(self):
@@ -235,11 +262,11 @@ class KhanLogger(object):
         file_path = file_path or os.getenv('KHAN_LOG_FOLDER')
 
         if make_file_name_unique:
-            time_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+            time_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
             name = os.path.splitext(file_name)[0]
             extension = os.path.splitext(file_name)[1]
             if name:
-                name += "_"
+                name += '_'
             file_name = name + time_str + extension
 
         if not os.path.splitext(file_name)[1]:
@@ -270,11 +297,17 @@ class KhanLogger(object):
         nNanRows = nRows - len(stats_df)
         stats_df = stats_df.groupby(['reason']).count()
         stats_df = stats_df.rename(columns={'reason': 'count'})
-        #stats_df = ch_col_names(stats_df, ['count'], ['reason'])
-        #return stats_df
-        stats_df = pd.concat([stats_df,
-                              pd.DataFrame({'reason': ['NAN'], 'count': [nNanRows]}).set_index('reason')])
-        #return stats_df.order(ascending=False)
+        # stats_df = ch_col_names(stats_df, ['count'], ['reason'])
+        # return stats_df
+        stats_df = pd.concat(
+            [
+                stats_df,
+                pd.DataFrame({'reason': ['NAN'], 'count': [nNanRows]}).set_index(
+                    'reason'
+                ),
+            ]
+        )
+        # return stats_df.order(ascending=False)
         return stats_df.sort(columns=['count'], ascending=False)
 
     # DEPRECATED

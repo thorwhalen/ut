@@ -15,9 +15,9 @@ class Range(object):
             self.m = float(lower)
             self.M = float(upper)
         else:
-            raise ValueError \
-                ('lower limit %s must be smaller than upper limit %s' %
-                 (lower, upper))
+            raise ValueError(
+                'lower limit %s must be smaller than upper limit %s' % (lower, upper)
+            )
 
     @staticmethod
     def n2i(n):
@@ -29,9 +29,7 @@ class Range(object):
         elif isinstance(n, Range):
             return n
         else:
-            raise TypeError \
-                ('Given %s %s must be number or ' \
-                 'interval' % (n, type(n)))
+            raise TypeError('Given %s %s must be number or ' 'interval' % (n, type(n)))
 
     def min(self):
         return self.m
@@ -62,8 +60,7 @@ class Range(object):
 
     def __mul__(self, other):
         a, b, c, d = self._limits(other)
-        return Range(min(a * c, a * d, b * c, b * d),
-                     max(a * c, a * d, b * c, b * d))
+        return Range(min(a * c, a * d, b * c, b * d), max(a * c, a * d, b * c, b * d))
 
     def __truediv__(self, other):
         a, b, c, d = self._limits(other)
@@ -72,8 +69,7 @@ class Range(object):
         # raise ValueError \
         #     ('Interval %s cannot be inverted because ' \
         #      'it contains zero')
-        return Range(min(a / c, a / d, b / c, b / d),
-                     max(a / c, a / d, b / c, b / d))
+        return Range(min(a / c, a / d, b / c, b / d), max(a / c, a / d, b / c, b / d))
 
     def __div__(self, other):
         return self.__truediv__(other)
@@ -158,8 +154,7 @@ class Range(object):
         return '[%g, %g]' % (self.m, self.M)
 
     def __repr__(self):
-        return '%s(%g, %g)' % \
-               (self.__class__.__name__, self.m, self.M)
+        return '%s(%g, %g)' % (self.__class__.__name__, self.m, self.M)
 
     def min_dist_to_interval(self, c):
         """
@@ -210,7 +205,9 @@ class Range(object):
         if ndim(a) == 1 or axis is None:
             return cls(amin(a), amax(a))
         else:
-            return array(list(map(cls, ravel(amin(a, axis=axis)), ravel(amax(a, axis=axis)))))
+            return array(
+                list(map(cls, ravel(amin(a, axis=axis)), ravel(amax(a, axis=axis))))
+            )
 
     @classmethod
     def lower_bound_array(cls, range_array):

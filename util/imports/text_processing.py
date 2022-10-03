@@ -1,4 +1,3 @@
-
 __author__ = 'thor'
 
 
@@ -11,4 +10,3 @@ import ut.semantics.term_stats
 
 import ut.semantics.text_processors
 import ut.semantics.wordnet_explorer
-

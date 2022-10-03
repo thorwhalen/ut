@@ -49,14 +49,25 @@ class ElasticCom(object):
         ndocs = self.count()
         step = int((ndocs - initial_idx) / sample_size)
         initial_idx = initial_idx or int(
-            (ndocs - sample_size * step) / 2)  # choose initial_idx (if not given) so it ~=end
+            (ndocs - sample_size * step) / 2
+        )  # choose initial_idx (if not given) so it ~=end
         end = initial_idx + sample_size * step
         return islice(self.scan_extractor(**kwargs), initial_idx, end, step)
 
-    def sample_based_on_random_field_val(self, n_rand_picks=10, rand_field='timestamp',
-                                         rand_batch_size=1, *args, **kwargs):
-        UserWarning("sample_based_on_random_field_val has not been verified and may have bugs")
-        min_random_field_val, max_random_field_val = es_get.min_and_max_of_field(self, field=rand_field)
+    def sample_based_on_random_field_val(
+        self,
+        n_rand_picks=10,
+        rand_field='timestamp',
+        rand_batch_size=1,
+        *args,
+        **kwargs
+    ):
+        UserWarning(
+            'sample_based_on_random_field_val has not been verified and may have bugs'
+        )
+        min_random_field_val, max_random_field_val = es_get.min_and_max_of_field(
+            self, field=rand_field
+        )
         range = max_random_field_val - min_random_field_val
 
         body = kwargs.get('body', {})
@@ -68,13 +79,24 @@ class ElasticCom(object):
             # print(body)
             return body
 
-        return chain(*map(lambda x: self.search_and_export_to_dict(body=mk_rand_body(),
-                                                                    size=rand_batch_size,
-                                                                    *args, **kwargs),
-                           range(n_rand_picks)))
+        return chain(
+            *map(
+                lambda x: self.search_and_export_to_dict(
+                    body=mk_rand_body(), size=rand_batch_size, *args, **kwargs
+                ),
+                range(n_rand_picks),
+            )
+        )
 
-    def scan_extractor(self, query=None, extractor=None, get_item='_source', print_progress_every=None, *args,
-                       **kwargs):
+    def scan_extractor(
+        self,
+        query=None,
+        extractor=None,
+        get_item='_source',
+        print_progress_every=None,
+        *args,
+        **kwargs
+    ):
         """
         Returns an iterator that yields a function (the extractor) of the get_item field of scan results one at a time.
         """
@@ -91,7 +113,9 @@ class ElasticCom(object):
 
         if start is not None or stop is not None:
             start = start or 0
-            scanner = islice(scan(self.es, query=query, scroll=scroll, *args, **kwargs), start, stop)
+            scanner = islice(
+                scan(self.es, query=query, scroll=scroll, *args, **kwargs), start, stop
+            )
         else:
             scanner = scan(self.es, query=query, scroll=scroll, *args, **kwargs)
 
@@ -109,9 +133,13 @@ class ElasticCom(object):
         if print_progress_every is None:
             return map(extractor_, scanner)
         else:
-            return print_iter_progress(map(extractor_, scanner), print_progress_every=print_progress_every)
+            return print_iter_progress(
+                map(extractor_, scanner), print_progress_every=print_progress_every
+            )
 
-    def source_scan_iterator(self, extractor=None, print_progress_every=None, *args, **kwargs):
+    def source_scan_iterator(
+        self, extractor=None, print_progress_every=None, *args, **kwargs
+    ):
         """
         Returns an iterator that yields a function (the extractor) of the _source field of scan results one at a time.
         """
@@ -128,34 +156,41 @@ class ElasticCom(object):
             if print_progress_every is None:
                 return map(lambda x: x['_source'], scanner)
             else:
-                return print_iter_progress(map(lambda x: x['_source'], scanner),
-                                           print_progress_every=print_progress_every)
+                return print_iter_progress(
+                    map(lambda x: x['_source'], scanner),
+                    print_progress_every=print_progress_every,
+                )
         else:
             if print_progress_every is None:
                 return map(lambda x: extractor(x['_source']), scanner)
             else:
-                return print_iter_progress(map(lambda x: extractor(x['_source']), scanner),
-                                           print_progress_every=print_progress_every)
+                return print_iter_progress(
+                    map(lambda x: extractor(x['_source']), scanner),
+                    print_progress_every=print_progress_every,
+                )
 
-    def dict_of_source_data(self,
-                            extractor=None,
-                            start=None,
-                            stop=None,
-                            print_progress_every=None,
-                            source_scan_iterator_kwargs={}):
+    def dict_of_source_data(
+        self,
+        extractor=None,
+        start=None,
+        stop=None,
+        print_progress_every=None,
+        source_scan_iterator_kwargs={},
+    ):
 
-        source_scan_iterator_kwargs['scroll'] = source_scan_iterator_kwargs.get('scroll', '10m')
-        extracting_scanner = self.source_scan_iterator(extractor=extractor,
-                                                       start=start,
-                                                       stop=stop,
-                                                       **source_scan_iterator_kwargs)
+        source_scan_iterator_kwargs['scroll'] = source_scan_iterator_kwargs.get(
+            'scroll', '10m'
+        )
+        extracting_scanner = self.source_scan_iterator(
+            extractor=extractor, start=start, stop=stop, **source_scan_iterator_kwargs
+        )
         print_progress_every = print_progress_every or np.inf
         start = start or 0
 
         d = list()
         for i, item in enumerate(extracting_scanner, start=start):
             if np.mod(i, print_progress_every) == 0:
-                printProgress("offset: {}".format(i))
+                printProgress('offset: {}'.format(i))
             if item is not None:
                 d.append(item)
 
@@ -183,7 +218,9 @@ class ElasticCom(object):
 
     def search_and_export_to_df(self, *args, **kwargs):
         convert_numeric = kwargs.pop('convert_numeric', True)
-        convert_dates = kwargs.pop('convert_dates', 'coerce')  # specify convert_dates='coerce' to convert dates
+        convert_dates = kwargs.pop(
+            'convert_dates', 'coerce'
+        )  # specify convert_dates='coerce' to convert dates
 
         exclude_fields = kwargs.pop('exclude_fields', [])
 
@@ -199,14 +236,22 @@ class ElasticCom(object):
             fields_with_type = es_types_to_main_types(mapping)
 
             if convert_numeric:
-                fields = [x for x in fields_with_type['number'] if x not in exclude_fields]
+                fields = [
+                    x for x in fields_with_type['number'] if x not in exclude_fields
+                ]
                 if len(fields) > 0:
-                    df[fields] = df[fields].convert_objects(convert_numeric=convert_numeric, copy=False)
+                    df[fields] = df[fields].convert_objects(
+                        convert_numeric=convert_numeric, copy=False
+                    )
 
             if convert_dates:
-                fields = [x for x in fields_with_type['date'] if x not in exclude_fields]
+                fields = [
+                    x for x in fields_with_type['date'] if x not in exclude_fields
+                ]
                 if len(fields) > 0:
-                    df[fields] = df[fields].convert_objects(convert_dates=convert_dates, copy=False)
+                    df[fields] = df[fields].convert_objects(
+                        convert_dates=convert_dates, copy=False
+                    )
 
         return df
 
@@ -223,7 +268,9 @@ class ElasticCom(object):
 
     def insert(self, d, overwrite=False, **kwargs):
         doc_id = str(d.pop('_id'))
-        self.es.create(index=self.index, doc_type=self.doc_type, body=d, id=doc_id, **kwargs)
+        self.es.create(
+            index=self.index, doc_type=self.doc_type, body=d, id=doc_id, **kwargs
+        )
 
     def import_from_mongo_cursor(self, cursor, doc_func=None):
         def action_gen():
@@ -231,7 +278,7 @@ class ElasticCom(object):
                 op_dict = {
                     '_index': self.index,
                     '_type': self.doc_type,
-                    '_id': to_utf8_or_bust(doc['_id'])
+                    '_id': to_utf8_or_bust(doc['_id']),
                 }
                 doc.pop('_id')
                 if doc_func is None:
@@ -243,14 +290,17 @@ class ElasticCom(object):
         res = elasticsearch.helpers.bulk(self.es, action_gen())
         return res
 
-    def import_mongo_collection(self, mongo_db=None, mongo_collection=None, doc_func=None, **kwargs):
+    def import_mongo_collection(
+        self, mongo_db=None, mongo_collection=None, doc_func=None, **kwargs
+    ):
         if mongo_db is not None:
             if isinstance(mongo_db, str):
                 mongo_db = MongoClient()[mongo_db]
         else:  # mongo_db is None
             if mongo_collection is None:
                 raise ValueError(
-                    "You can't have both mongo_db and mongo_collection be None. I need SOMETHING to go by!")
+                    "You can't have both mongo_db and mongo_collection be None. I need SOMETHING to go by!"
+                )
 
         if isinstance(mongo_db, Collection):
             mgc = mongo_db
@@ -297,7 +347,7 @@ def get_search_hits(es_response, _id=True, data_key=None):
                     data_key = 'fields'
                     break
             if data_key is None:
-                raise ValueError("Neither _source nor fields were in response hits")
+                raise ValueError('Neither _source nor fields were in response hits')
 
         if _id is False:
             return [x.get(data_key, None) for x in response_hits]
@@ -328,10 +378,8 @@ def stringify_when_necessary(d, fields_to_stringify):
 # closure for displaying status of operation
 def show_status(current_count, total_count):
     percent_complete = current_count * 100 / total_count
-    sys.stdout.write("\rstatus: %d%%" % percent_complete)
+    sys.stdout.write('\rstatus: %d%%' % percent_complete)
     sys.stdout.flush()
-
-
 
     # NOTES:
 

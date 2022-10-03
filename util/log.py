@@ -5,6 +5,7 @@ __author__ = 'thorwhalen'
 from ut.util.ulist import ascertain_list
 import logging
 from datetime import datetime
+
 # import json
 from sys import stdout
 
@@ -29,7 +30,6 @@ def print_progress(msg, refresh=None, display_time=True):
         print(msg)
 
 
-
 def printProgress(message='', args=None, refresh=False, refresh_suffix=None):
     """
     input: message, and possibly args (to be placed in the message string, sprintf-style
@@ -41,7 +41,7 @@ def printProgress(message='', args=None, refresh=False, refresh_suffix=None):
     else:
         args = ascertain_list(args)
     if len(args) == 0:
-        message = message.replace("{", "{{").replace("}", "}}")
+        message = message.replace('{', '{{').replace('}', '}}')
     if refresh:
         stdout.write('\r' + hms_message(message.format(*args)))
         if refresh_suffix is not None:
@@ -53,20 +53,26 @@ def printProgress(message='', args=None, refresh=False, refresh_suffix=None):
 
 def hms_message(msg=''):
     t = datetime.now()
-    return "({:02.0f}){:02.0f}:{:02.0f}:{:02.0f} - {}".format(t.day, t.hour, t.minute, t.second, msg)
+    return '({:02.0f}){:02.0f}:{:02.0f}:{:02.0f} - {}'.format(
+        t.day, t.hour, t.minute, t.second, msg
+    )
 
 
 def print_iter_one_per_line(it):
     for x in it:
         print(x)
 
+
 def get_a_logger(**kwargs):
-    kwargs = dict(dict(
+    kwargs = dict(
+        dict(
             filename=default_log_filepath,
             level='DEBUG',
             format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
-            datefmt='%H:%M:%S'
-        ), **kwargs)
+            datefmt='%H:%M:%S',
+        ),
+        **kwargs
+    )
 
     root_logger = logging.getLogger()
     root_logger.setLevel(kwargs['level'])

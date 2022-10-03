@@ -1,5 +1,3 @@
-
-
 import matplotlib.pylab as plt
 from numpy import array
 

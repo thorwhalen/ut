@@ -4,8 +4,8 @@ import numpy as np
 
 
 def insert_nans_in_x_and_y_when_there_is_a_gap_in_x(x, y, gap_thresh):
-    assert len(x) == len(y), "x and y must be the same length"
-    assert sorted(x) == x, "x must be sorted"
+    assert len(x) == len(y), 'x and y must be the same length'
+    assert sorted(x) == x, 'x must be sorted'
     new_x = np.array([])
     new_y = np.array([])
     x_ref = x[0]

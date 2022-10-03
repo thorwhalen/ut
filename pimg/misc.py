@@ -7,8 +7,9 @@ import math
 
 # The 2011 version using more recent Python idioms
 
+
 def rmsdiff(im1, im2):
-    "Calculate the root-mean-square difference between two images"
+    'Calculate the root-mean-square difference between two images'
     diff = ImageChops.difference(im1, im2)
     h = diff.histogram()
     sq = (value * ((idx % 256) ** 2) for idx, value in enumerate(h))

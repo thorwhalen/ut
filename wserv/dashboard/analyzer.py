@@ -28,11 +28,18 @@ class Analyzer(object):
 
 
     """
+
     def __init__(self, form_elements, to_html_kwargs={}, analyzer_name=''):
-        to_html_kwargs = dict(prefix='<div id="analyzer_input">\n',
-                              suffix='<input type="hidden" name="analyzer_name" value="{}" />\n</div>'.format(analyzer_name),
-                              **to_html_kwargs)
-        self.input_element_collection = InputElementCollection(form_elements, to_html_kwargs)
+        to_html_kwargs = dict(
+            prefix='<div id="analyzer_input">\n',
+            suffix='<input type="hidden" name="analyzer_name" value="{}" />\n</div>'.format(
+                analyzer_name
+            ),
+            **to_html_kwargs
+        )
+        self.input_element_collection = InputElementCollection(
+            form_elements, to_html_kwargs
+        )
         self.button_methods = list()
         self.input = dict()
         for k, v in self.input_element_collection.items():
@@ -41,29 +48,34 @@ class Analyzer(object):
             else:
                 self.input.update({k: v.get('value', None)})
 
-    def to_html(self,  **kwargs):
+    def to_html(self, **kwargs):
         return self.input_element_collection.to_html(**kwargs)
 
     def verify_existence_of_button_functions(self):
         methods_list = self.method_list()
         for method_name in self.button_methods:
-            assert method_name in methods_list, \
-                "This method is missing (is in button input_element): {}".format(method_name)
+            assert (
+                method_name in methods_list
+            ), 'This method is missing (is in button input_element): {}'.format(
+                method_name
+            )
 
     def method_list(self):
         return methods_of(self)
 
     def set_inputs(self, **kwargs):
-        self.input.update(**{k: v for k, v in kwargs.items() if k in list(self.input.keys())})
+        self.input.update(
+            **{k: v for k, v in kwargs.items() if k in list(self.input.keys())}
+        )
 
     def call_button_function(self, name, **kwargs):
         self.set_inputs(**kwargs)
         return self.__getattribute__(name)(**kwargs)
 
     def __repr__(self):
-        s = ""
+        s = ''
         for k, v in self.input.items():
-            s += "{input}: {val}\n".format(input=k, val=v)
+            s += '{input}: {val}\n'.format(input=k, val=v)
         return s
 
     def __str__(self):
@@ -82,9 +94,12 @@ class InputElementCollection(OrderedDict):
     The to_html() method returns an html form with the form elements. The way the html is created can be controlled
     through the constructor's to_html_kwargs argument.
     """
+
     def __init__(self, form_elements, to_html_kwargs={}):
-        self.to_html_kwargs = dict(dict(prefix="<form>\n", suffix="</form>\n", sep="\n<br>\n"),
-                                   **to_html_kwargs)
+        self.to_html_kwargs = dict(
+            dict(prefix='<form>\n', suffix='</form>\n', sep='\n<br>\n'),
+            **to_html_kwargs
+        )
         form_element_list = [(x['name'], InputElement(x)) for x in form_elements]
         # for form_element in form_elements:
         #     form_element_list.append((form_element['name'], form_element))
@@ -114,6 +129,7 @@ class InputElement(dict):
 
     The to_html() method returns a string that corresponds to the html for the input element.
     """
+
     def __init__(self, *args, **kwargs):
         super(InputElement, self).__init__(*args, **kwargs)
         self.verify_inputs()
@@ -121,7 +137,9 @@ class InputElement(dict):
     def verify_inputs(self):
         key_list = list(self.keys())
         assert 'name' in key_list, "you need to have a 'name' in a InputElement"
-        assert 'type' in key_list, "you need to have a 'type' in a InputElement (see html input tag types)"
+        assert (
+            'type' in key_list
+        ), "you need to have a 'type' in a InputElement (see html input tag types)"
         if self['type'] == 'button':
             if not self.get('value'):
                 self['value'] = self['name']
@@ -141,23 +159,19 @@ class InputElement(dict):
         element_type = d['type']
         element_name = d['name']
         if element_type == 'input':
-            html = ""
-            d['value'] == d.pop('display', "")
+            html = ''
+            d['value'] == d.pop('display', '')
         else:
-            html = d.pop('display', "")
+            html = d.pop('display', '')
             if html == ': ':
-                html = ""
-        html += '<input type="{type}" name="{name}"'.format(type=d.pop('type'), name=d.pop('name'))
+                html = ''
+        html += '<input type="{type}" name="{name}"'.format(
+            type=d.pop('type'), name=d.pop('name')
+        )
         # d.pop('function', None)  # get rid of function
         for k, v in d.items():
             html += ' {}="{}"'.format(k, v)
         if element_type == 'button':
             html += ' onclick="getResult(\'{}\')"'.format(element_name)
-        html += ">"
+        html += '>'
         return html
-
-
-
-
-
-

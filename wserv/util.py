@@ -1,7 +1,4 @@
-
-
-
-def to_curl(request, headers="simple", print_it=True):
+def to_curl(request, headers='simple', print_it=True):
     """
     Get a curl string from a python request.
     :param request: a requests.models.Response or a requests.models.Response.request object
@@ -26,27 +23,26 @@ def to_curl(request, headers="simple", print_it=True):
     elif isinstance(headers, str) and headers == 'simple':
         if request.method == 'GET':
             command = "curl -X {method} '{uri}'".format(
-                        method=request.method,
-                        uri=request.url,
-                    )
+                method=request.method, uri=request.url,
+            )
         elif request.method == 'POST':
             command = "curl -X {method} -H 'Content-Type: application/json' -d '{data}' '{uri}'".format(
-                data=request.body or "",
-                method=request.method,
-                uri=request.url,
+                data=request.body or '', method=request.method, uri=request.url,
             )
 
     if command is None:
         if isinstance(headers, dict):
             headers = ["'{}: {}'".format(k, v) for k, v in headers.items()]
-            headers = " -H ".join(sorted(headers))
+            headers = ' -H '.join(sorted(headers))
         elif isinstance(headers, list):
-            headers = " -H ".join(['"' + x + '"' for x in sorted(headers)])
-        elif isinstance(headers, str) and (not headers.startswith("'") or not headers.startswith('"')):
-                headers = '"' + headers + '"'
+            headers = ' -H '.join(['"' + x + '"' for x in sorted(headers)])
+        elif isinstance(headers, str) and (
+            not headers.startswith("'") or not headers.startswith('"')
+        ):
+            headers = '"' + headers + '"'
 
         command = "curl -X {method} -H {headers} -d '{data}' '{uri}'".format(
-            data=request.body or "",
+            data=request.body or '',
             headers=headers,
             method=request.method,
             uri=request.url,

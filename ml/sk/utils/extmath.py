@@ -1,5 +1,3 @@
-
-
 from numpy import ones, reshape, sum
 
 from ut.ml.sk.utils.validation import weighted_data
@@ -7,9 +5,9 @@ from ut.ml.sk.utils.validation import weighted_data
 __author__ = 'thor'
 
 
-def _weighted_incremental_mean_and_var(X, last_mean=.0, last_variance=None,
-                              last_sample_count=.0):
-
+def _weighted_incremental_mean_and_var(
+    X, last_mean=0.0, last_variance=None, last_sample_count=0.0
+):
 
     """Calculate mean update and a Youngs and Cramer variance update with weighted data.
 
@@ -70,10 +68,10 @@ def _weighted_incremental_mean_and_var(X, last_mean=.0, last_variance=None,
             if len(X.shape) == 1:
                 X = reshape(X, (len(X), 1))
             elif len(X.shape) > 2:
-                raise ValueError("data must be a matrix with no more than 2 dimensions")
+                raise ValueError('data must be a matrix with no more than 2 dimensions')
             w = ones(X.shape[0])
         elif len(X) > 2:
-            raise ValueError("X must be a 2-tuple of data (matrix) and weights")
+            raise ValueError('X must be a 2-tuple of data (matrix) and weights')
         else:
             X, w = X
     else:
@@ -96,7 +94,9 @@ def _weighted_incremental_mean_and_var(X, last_mean=.0, last_variance=None,
             new_unnormalized_variance = X.var(axis=0) * new_sample_count
             updated_variance = new_unnormalized_variance / updated_sample_count
         else:
-            last_mean_of_squares = last_variance + last_mean ** 2  # because E(X^2) = Var(X) + E(X)^2
+            last_mean_of_squares = (
+                last_variance + last_mean ** 2
+            )  # because E(X^2) = Var(X) + E(X)^2
             last_sum_of_squares = last_mean_of_squares * last_sample_count
             updated_sum_of_squares = last_sum_of_squares + sum(wX ** 2, axis=0)
             updated_mean_of_squares = updated_sum_of_squares / updated_sample_count

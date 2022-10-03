@@ -22,7 +22,7 @@ def find_dependent_modules():
             attr = getattr(module, attr_name)
             if isinstance(attr, ModuleType):
                 tree[module].add(attr)
-            elif type(attr) in (FunctionType, ClassType):        
+            elif type(attr) in (FunctionType, ClassType):
                 tree[module].add(attr.__module__)
     return tree
 
@@ -58,15 +58,14 @@ def find_dependants_recurse(key, rev_tree, previous=None):
         tmp_previous = previous.copy()
         tmp_previous.add(dependant)
         next_level_dependants.update(
-             find_dependants_recurse(dependant, rev_tree,
-                                     previous=tmp_previous,
-                                    ))
+            find_dependants_recurse(dependant, rev_tree, previous=tmp_previous,)
+        )
     # ensures reloading order on the final list
     # by postponing the reload of modules in this level
     # that also appear later on the tree
-    dependants = (list(this_level_dependants.difference(
-                        next_level_dependants)) +
-                  list(next_level_dependants))
+    dependants = list(this_level_dependants.difference(next_level_dependants)) + list(
+        next_level_dependants
+    )
     return dependants
 
 
@@ -82,6 +81,7 @@ def get_reversed_tree():
     for module, dependant_modules in list(rev_tree.items()):
         compl_tree[module] = find_dependants_recurse(module, rev_tree)
     return compl_tree
+
 
 def reload_dependences(module):
     """

@@ -1,7 +1,6 @@
 """Utils for filtering"""
 
 
-
 def mk_inclusion_exclusion_filter(include=(), exclude=(), key=None):
     """
     Convenience function to perform inclusion and exclusion filtering.
@@ -98,13 +97,18 @@ def mk_inclusion_filter(include=(), key=None):
     include = set(include)
 
     if key is None:
+
         def filter_func(x):
             return x in include
+
     else:
         if callable(key):
+
             def filter_func(x):
                 return key(x) in include
+
         else:
+
             def filter_func(x):
                 return x[key] in include
 
@@ -136,13 +140,18 @@ def mk_exclusion_filter(exclude=(), key=None):
     exclude = set(exclude)
 
     if key is None:
+
         def filter_func(x):
             return x not in exclude
+
     else:
         if callable(key):
+
             def filter_func(x):
                 return key(x) not in exclude
+
         else:
+
             def filter_func(x):
                 return x[key] not in exclude
 

@@ -1,7 +1,12 @@
 __author__ = 'thor'
 
 default = dict()
-default['save_fig_params'] = {'save_format': 'png', 'dpi': 80, 'bbox_inches': 'tight', 'pad_inches': 0.4}
+default['save_fig_params'] = {
+    'save_format': 'png',
+    'dpi': 80,
+    'bbox_inches': 'tight',
+    'pad_inches': 0.4,
+}
 
 # analyzer_info = dict()
 

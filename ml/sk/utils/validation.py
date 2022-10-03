@@ -1,5 +1,3 @@
-
-
 from numpy import reshape, ones, allclose, tile, random, vstack, array, isnan, all, any
 import re
 from sklearn.utils.validation import NotFittedError, check_is_fitted
@@ -70,10 +68,10 @@ def weighted_data(X):
             if len(X.shape) == 1:
                 X = reshape(X, (len(X), 1))
             elif len(X.shape) > 2:
-                raise ValueError("data must be a matrix with no more than 2 dimensions")
+                raise ValueError('data must be a matrix with no more than 2 dimensions')
             w = ones(X.shape[0])
         elif len(X) > 2:
-            raise ValueError("X must be a 2-tuple of data (matrix) and weights")
+            raise ValueError('X must be a 2-tuple of data (matrix) and weights')
         else:
             X, w = X
     else:
@@ -85,11 +83,17 @@ def weighted_data(X):
 def abs_ratio_close(a, b, rtol=1e-05, atol=1e-08):
     t = abs(a / b)
     t = t[~isnan(t)]
-    return allclose(t, 1., rtol=rtol, atol=atol)
+    return allclose(t, 1.0, rtol=rtol, atol=atol)
 
 
-def compare_model_attributes(model_1, model_2, exclude_attr=None, only_attr=None, msg_prefix="",
-                             close_enough_fun=allclose):
+def compare_model_attributes(
+    model_1,
+    model_2,
+    exclude_attr=None,
+    only_attr=None,
+    msg_prefix='',
+    close_enough_fun=allclose,
+):
     """
     compare_model_attributes(model_1, model_2) is a convenience function to test if the model attributes
     (the attributes that are created and populated by the fit method of an sklearn model) of both models are the same
@@ -103,25 +107,34 @@ def compare_model_attributes(model_1, model_2, exclude_attr=None, only_attr=None
             only_attr = [only_attr]
         model_attributes_to_check = only_attr
     else:
-        model_attributes_to_check = \
-            {attr for attr in list(model_1.__dict__.keys()) if attr.endswith('_') and attr in model_2.__dict__}
+        model_attributes_to_check = {
+            attr
+            for attr in list(model_1.__dict__.keys())
+            if attr.endswith('_') and attr in model_2.__dict__
+        }
     if exclude_attr is not None:
         if isinstance(exclude_attr, str):
             exclude_attr = [exclude_attr]
-        model_attributes_to_check = {attr for attr in model_attributes_to_check if attr not in exclude_attr}
+        model_attributes_to_check = {
+            attr for attr in model_attributes_to_check if attr not in exclude_attr
+        }
 
     not_close_attribs = list()
     for attr in model_attributes_to_check:
         try:
-            assert close_enough_fun(getattr(model_1, attr), getattr(model_2, attr)), \
-                msg_prefix + '{} of {} and {} not close'.format(attr, model_1.__class__, model_2.__class__)
+            assert close_enough_fun(getattr(model_1, attr), getattr(model_2, attr)), (
+                msg_prefix
+                + '{} of {} and {} not close'.format(
+                    attr, model_1.__class__, model_2.__class__
+                )
+            )
         except AssertionError as e:
             not_close_attribs.append(attr)
     if len(not_close_attribs) > 0:
         print((msg_prefix + "Fitted attributes whose values weren't close enough:"))
-        print(("  " + "\n  ".join(not_close_attribs)))
+        print(('  ' + '\n  '.join(not_close_attribs)))
     else:
-        print((msg_prefix + "all fitted attributes were close"))
+        print((msg_prefix + 'all fitted attributes were close'))
 
 
 def repeat_rows(X, row_repetition=None):
@@ -139,4 +152,9 @@ def repeat_rows(X, row_repetition=None):
     if row_repetition is None:
         row_repetition = random.rand(1, 5, len(X))
     row_repetition = array(row_repetition).astype(int)
-    return vstack([tile(row_and_weight[0], (row_and_weight[1], 1)) for row_and_weight in zip(X, row_repetition)])
+    return vstack(
+        [
+            tile(row_and_weight[0], (row_and_weight[1], 1))
+            for row_and_weight in zip(X, row_repetition)
+        ]
+    )

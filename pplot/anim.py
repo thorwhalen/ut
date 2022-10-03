@@ -9,12 +9,22 @@ import numpy as np
 from matplotlib import animation
 
 
-def mk_2d_sequence_gif(x_seq, y_seq, filename='make_2d_sequence_gif.gif', plot_kwargs={},
-                       edit_funs={}, writeGif_kwargs={}, savefig_kwargs={}, **kwargs):
+def mk_2d_sequence_gif(
+    x_seq,
+    y_seq,
+    filename='make_2d_sequence_gif.gif',
+    plot_kwargs={},
+    edit_funs={},
+    writeGif_kwargs={},
+    savefig_kwargs={},
+    **kwargs
+):
     from images2gif import writeGif
 
     # handling defaults
-    plot_kwargs = dict({'color': 'b', 'marker': 'o', 'linestyle': '-', 'linewidth': 0.2}, **plot_kwargs)
+    plot_kwargs = dict(
+        {'color': 'b', 'marker': 'o', 'linestyle': '-', 'linewidth': 0.2}, **plot_kwargs
+    )
     savefig_kwargs = dict({'dpi': 200}, **savefig_kwargs)
 
     writeGif_kwargs = dict({'size': (600, 600), 'duration': 0.2}, **writeGif_kwargs)
@@ -54,7 +64,9 @@ def mk_2d_sequence_gif(x_seq, y_seq, filename='make_2d_sequence_gif.gif', plot_k
         plt.plot(x_seq[:i], y_seq[:i], **plot_kwargs)
         plt.axis(ax)
         edit_fun()
-        plt.savefig(os.path.join(tmp_dir, 'mk_2d_sequence_gif%02.0f' % i), **savefig_kwargs)
+        plt.savefig(
+            os.path.join(tmp_dir, 'mk_2d_sequence_gif%02.0f' % i), **savefig_kwargs
+        )
     # create the gif
     size = writeGif_kwargs['size']
     del writeGif_kwargs['size']
@@ -65,8 +77,14 @@ def mk_2d_sequence_gif(x_seq, y_seq, filename='make_2d_sequence_gif.gif', plot_k
     writeGif(filename=filename, images=images, **writeGif_kwargs)
 
 
-def mk_rank_progression_bars(scores, save_filepath='rank_progression_bars.mp4',
-                             figsize=(16, 5), markersize=30, ms_between_frames=100, fps=10):
+def mk_rank_progression_bars(
+    scores,
+    save_filepath='rank_progression_bars.mp4',
+    figsize=(16, 5),
+    markersize=30,
+    ms_between_frames=100,
+    fps=10,
+):
     """
 
     :param scores:
@@ -101,6 +119,12 @@ def mk_rank_progression_bars(scores, save_filepath='rank_progression_bars.mp4',
             plt.plot(new_score_idx, n * (1.05), 'vb', markersize=markersize)
 
     anim = animation.FuncAnimation(
-        fig, animate, repeat=False, blit=False, frames=len(scores), interval=ms_between_frames)
+        fig,
+        animate,
+        repeat=False,
+        blit=False,
+        frames=len(scores),
+        interval=ms_between_frames,
+    )
 
-    anim.save(save_filepath, writer=animation.FFMpegWriter(fps=fps));
+    anim.save(save_filepath, writer=animation.FFMpegWriter(fps=fps))

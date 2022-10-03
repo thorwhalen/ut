@@ -1,10 +1,10 @@
 __author__ = 'thorwhalen'
 
 
-#from os import environ # does this load the whole array? Can we just take MS_DATA instead?
+# from os import environ # does this load the whole array? Can we just take MS_DATA instead?
 from ut.util.importing import get_environment_variable
 
-#MS_DATA = os.environ['MS_DATA']
+# MS_DATA = os.environ['MS_DATA']
 
 
 def datapath(filename=''):
@@ -24,5 +24,3 @@ def datapath(filename=''):
 #
 # if __name__ == "__main__":
 #     main(argv[0])
-
-

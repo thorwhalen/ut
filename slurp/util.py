@@ -4,7 +4,10 @@ from bs4 import BeautifulSoup
 from functools import wraps
 
 
-@wraps(BeautifulSoup.find_all, assigned=('__module__', '__qualname__', '__annotations__', '__name__'))
+@wraps(
+    BeautifulSoup.find_all,
+    assigned=('__module__', '__qualname__', '__annotations__', '__name__'),
+)
 def gen_find(tag, *args, **kwargs):
     """Does what BeautifulSoup.find_all does, but as an iterator.
         See find_all documentation for more information."""
@@ -18,33 +21,35 @@ def gen_find(tag, *args, **kwargs):
 
 from ut.pdict.to import word_replacer
 
-url_encode_yboss_map = {' ': '%20',
-                        '"': '%22',
-                        '#': '%23',
-                        '$': '%24',
-                        '%': '%25',
-                        '&': '%26',
-                        '(': '%28',
-                        ')': '%29',
-                        '*': '%2A',
-                        '+': '%2B',
-                        ',': '%2C',
-                        '/': '%2F',
-                        ':': '%3A',
-                        ';': '%3B',
-                        '<': '%3C',
-                        '=': '%3D',
-                        '>': '%3E',
-                        '?': '%3F',
-                        '@': '%40',
-                        '[': '%5B',
-                        '\\': '%5C',
-                        ']': '%5D',
-                        '^': '%5E',
-                        '`': '%60',
-                        '{': '%7B',
-                        '|': '%7C',
-                        '}': '%7D'}
+url_encode_yboss_map = {
+    ' ': '%20',
+    '"': '%22',
+    '#': '%23',
+    '$': '%24',
+    '%': '%25',
+    '&': '%26',
+    '(': '%28',
+    ')': '%29',
+    '*': '%2A',
+    '+': '%2B',
+    ',': '%2C',
+    '/': '%2F',
+    ':': '%3A',
+    ';': '%3B',
+    '<': '%3C',
+    '=': '%3D',
+    '>': '%3E',
+    '?': '%3F',
+    '@': '%40',
+    '[': '%5B',
+    '\\': '%5C',
+    ']': '%5D',
+    '^': '%5E',
+    '`': '%60',
+    '{': '%7B',
+    '|': '%7C',
+    '}': '%7D',
+}
 
 url_encode_yboss = word_replacer(url_encode_yboss_map, inter_token_re='')
 

@@ -20,17 +20,25 @@ from statsmodels.stats.proportion import samplesize_confint_proportion
 
 def choose_sample_size(min_confidence, alpha=0.05, half_length=None):
     if half_length is None:
-        t = 0.20 * min_confidence if min_confidence < 0.5 else 0.20 * (1 - min_confidence)
-        half_length = max(0.01, t)  # choose half length to be a proportion (0.2) of min_confidence
+        t = (
+            0.20 * min_confidence
+            if min_confidence < 0.5
+            else 0.20 * (1 - min_confidence)
+        )
+        half_length = max(
+            0.01, t
+        )  # choose half length to be a proportion (0.2) of min_confidence
     return samplesize_confint_proportion(
-        proportion=min_confidence,
-        half_length=half_length,
-        alpha=alpha,
-        method='normal')
+        proportion=min_confidence, half_length=half_length, alpha=alpha, method='normal'
+    )
 
 
-def association_rules(dataset, min_confidence=0.2, min_support=None, output='dataframe', verbose=False):
-    assert min_confidence > 0 and min_confidence <= 1, "min_confidence must be between 0 and 1"
+def association_rules(
+    dataset, min_confidence=0.2, min_support=None, output='dataframe', verbose=False
+):
+    assert (
+        min_confidence > 0 and min_confidence <= 1
+    ), 'min_confidence must be between 0 and 1'
 
     if min_support is None:
         # if no min_support is given, choose it to be the sample size you need to get 95% conf in proportion estimate
@@ -44,19 +52,39 @@ def association_rules(dataset, min_confidence=0.2, min_support=None, output='dat
     if output == 'triple':
         return H
     elif output == 'dataframe':
+
         def set_to_string(s):
-            return str(", ".join(s))
-        support_df = pd.DataFrame({'condition': list(map(set_to_string, list(support_data.keys()))),
-                                  'condition_frequency': list(support_data.values())})
+            return str(', '.join(s))
+
+        support_df = pd.DataFrame(
+            {
+                'condition': list(map(set_to_string, list(support_data.keys()))),
+                'condition_frequency': list(support_data.values()),
+            }
+        )
         support_df['condition_count'] = len(dataset) * support_df['condition_frequency']
-        d = pd.DataFrame([{'condition': set_to_string(condition),
-                              'effect': set_to_string(effect),
-                              'effect_frequency': support}
-                             for condition, effect, support in H])
+        d = pd.DataFrame(
+            [
+                {
+                    'condition': set_to_string(condition),
+                    'effect': set_to_string(effect),
+                    'effect_frequency': support,
+                }
+                for condition, effect, support in H
+            ]
+        )
         d = pd.merge(d, support_df, how='inner', on='condition')
         d['condition_and_effect_count'] = d['effect_frequency'] * d['condition_count']
-        d = d[['condition', 'effect', 'effect_frequency', 'condition_count', 'condition_and_effect_count',
-               'condition_frequency']]
+        d = d[
+            [
+                'condition',
+                'effect',
+                'effect_frequency',
+                'condition_count',
+                'condition_and_effect_count',
+                'condition_frequency',
+            ]
+        ]
         return d.sort('effect_frequency', ascending=False).reset_index(drop=True)
 
 
@@ -92,27 +120,37 @@ def apriori(dataset, min_support=0.5, verbose=False):
     """
     C1 = create_candidates(dataset)
     D = list(map(set, dataset))
-    F1, support_data = support_prune(D, C1, min_support, verbose=False) # prune candidate 1-itemsets
-    F = [F1] # list of frequent itemsets; initialized to frequent 1-itemsets
-    k = 2 # the itemset cardinality
-    while (len(F[k - 2]) > 0):
-        Ck = apriori_gen(F[k-2], k) # generate candidate itemsets
-        Fk, supK = support_prune(D, Ck, min_support) # prune candidate itemsets
-        support_data.update(supK) # update the support counts to reflect pruning
-        F.append(Fk) # add the pruned candidate itemsets to the list of frequent itemsets
+    F1, support_data = support_prune(
+        D, C1, min_support, verbose=False
+    )  # prune candidate 1-itemsets
+    F = [F1]  # list of frequent itemsets; initialized to frequent 1-itemsets
+    k = 2  # the itemset cardinality
+    while len(F[k - 2]) > 0:
+        Ck = apriori_gen(F[k - 2], k)  # generate candidate itemsets
+        Fk, supK = support_prune(D, Ck, min_support)  # prune candidate itemsets
+        support_data.update(supK)  # update the support counts to reflect pruning
+        F.append(
+            Fk
+        )  # add the pruned candidate itemsets to the list of frequent itemsets
         k += 1
 
     if verbose:
         # Print a list of all the frequent itemsets.
         for kset in F:
             for item in kset:
-                print(("" \
-                    + "{" \
-                    + "".join(str(i) + ", " for i in iter(item)).rstrip(', ') \
-                    + "}" \
-                    + ":  sup = " + str(round(support_data[item], 3))))
+                print(
+                    (
+                        ''
+                        + '{'
+                        + ''.join(str(i) + ', ' for i in iter(item)).rstrip(', ')
+                        + '}'
+                        + ':  sup = '
+                        + str(round(support_data[item], 3))
+                    )
+                )
 
     return F, support_data
+
 
 def create_candidates(dataset, verbose=False):
     """Creates a list of candidate 1-itemsets from a list of transactions.
@@ -128,7 +166,7 @@ def create_candidates(dataset, verbose=False):
     The list of candidate itemsets (c1) passed as a frozenset (a set that is
     immutable and hashable).
     """
-    c1 = [] # list of all items in the database of transactions
+    c1 = []  # list of all items in the database of transactions
     for transaction in dataset:
         for item in transaction:
             if not [item] in c1:
@@ -137,13 +175,13 @@ def create_candidates(dataset, verbose=False):
 
     if verbose:
         # Print a list of all the candidate items.
-        print(("" \
-            + "{" \
-            + "".join(str(i[0]) + ", " for i in iter(c1)).rstrip(', ') \
-            + "}"))
+        print(
+            ('' + '{' + ''.join(str(i[0]) + ', ' for i in iter(c1)).rstrip(', ') + '}')
+        )
 
     # Map c1 to a frozenset because it will be the key of a dictionary.
     return list(map(frozenset, c1))
+
 
 def support_prune(dataset, candidates, min_support, verbose=False):
     """Returns all candidate itemsets that meet a minimum support threshold.
@@ -174,16 +212,16 @@ def support_prune(dataset, candidates, min_support, verbose=False):
     support_data : dict
         The support data for all candidate itemsets.
     """
-    sscnt = {} # set for support counts
+    sscnt = {}  # set for support counts
     for tid in dataset:
         for can in candidates:
             if can.issubset(tid):
                 sscnt.setdefault(can, 0)
                 sscnt[can] += 1
 
-    num_items = float(len(dataset)) # total number of transactions in the dataset
-    retlist = [] # array for unpruned itemsets
-    support_data = {} # set for support data for corresponding itemsets
+    num_items = float(len(dataset))  # total number of transactions in the dataset
+    retlist = []  # array for unpruned itemsets
+    support_data = {}  # set for support data for corresponding itemsets
     for key in sscnt:
         # Calculate the support of itemset key.
         support = sscnt[key] / num_items
@@ -195,14 +233,19 @@ def support_prune(dataset, candidates, min_support, verbose=False):
     if verbose:
         for kset in retlist:
             for item in kset:
-                print(("{" + str(item) + "}"))
-        print("")
+                print(('{' + str(item) + '}'))
+        print('')
         for key in sscnt:
-            print(("" \
-                + "{" \
-                + "".join([str(i) + ", " for i in iter(key)]).rstrip(', ') \
-                + "}" \
-                + ":  sup = " + str(support_data[key])))
+            print(
+                (
+                    ''
+                    + '{'
+                    + ''.join([str(i) + ', ' for i in iter(key)]).rstrip(', ')
+                    + '}'
+                    + ':  sup = '
+                    + str(support_data[key])
+                )
+            )
 
     return retlist, support_data
 
@@ -228,25 +271,27 @@ def apriori_gen(freq_sets, k):
     retlist : list
         The list of merged frequent itemsets.
     """
-    retList = [] # list of merged frequent itemsets
-    lenLk = len(freq_sets) # number of frequent itemsets
+    retList = []  # list of merged frequent itemsets
+    lenLk = len(freq_sets)  # number of frequent itemsets
     for i in range(lenLk):
-        for j in range(i+1, lenLk):
-            a=list(freq_sets[i])
-            b=list(freq_sets[j])
+        for j in range(i + 1, lenLk):
+            a = list(freq_sets[i])
+            b = list(freq_sets[j])
             a.sort()
             b.sort()
-            F1 = a[:k-2] # first k-2 items of freq_sets[i]
-            F2 = b[:k-2] # first k-2 items of freq_sets[j]
+            F1 = a[: k - 2]  # first k-2 items of freq_sets[i]
+            F2 = b[: k - 2]  # first k-2 items of freq_sets[j]
 
-            if F1 == F2: # if the first k-2 items are identical
+            if F1 == F2:  # if the first k-2 items are identical
                 # Merge the frequent itemsets.
                 retList.append(freq_sets[i] | freq_sets[j])
 
     return retList
 
 
-def rules_from_conseq(freq_set, H, support_data, rules, min_confidence=0.5, verbose=False):
+def rules_from_conseq(
+    freq_set, H, support_data, rules, min_confidence=0.5, verbose=False
+):
     """Generates a set of candidate rules.
 
     Parameters
@@ -269,17 +314,25 @@ def rules_from_conseq(freq_set, H, support_data, rules, min_confidence=0.5, verb
     """
     m = len(H[0])
     if m == 1:
-        Hmp1 = calc_confidence(freq_set, H, support_data, rules, min_confidence, verbose)
-    if (len(freq_set) > (m+1)):
-        Hmp1 = apriori_gen(H, m+1) # generate candidate itemsets
-        Hmp1 = calc_confidence(freq_set, Hmp1, support_data, rules, min_confidence, verbose)
+        Hmp1 = calc_confidence(
+            freq_set, H, support_data, rules, min_confidence, verbose
+        )
+    if len(freq_set) > (m + 1):
+        Hmp1 = apriori_gen(H, m + 1)  # generate candidate itemsets
+        Hmp1 = calc_confidence(
+            freq_set, Hmp1, support_data, rules, min_confidence, verbose
+        )
         if len(Hmp1) > 1:
             # If there are candidate rules above the minimum confidence
             # threshold, recurse on the list of these candidate rules.
-            rules_from_conseq(freq_set, Hmp1, support_data, rules, min_confidence, verbose)
+            rules_from_conseq(
+                freq_set, Hmp1, support_data, rules, min_confidence, verbose
+            )
 
 
-def calc_confidence(freq_set, H, support_data, rules, min_confidence=0.5, verbose=False):
+def calc_confidence(
+    freq_set, H, support_data, rules, min_confidence=0.5, verbose=False
+):
     """Evaluates the generated rules.
 
     One measurement for quantifying the goodness of association rules is
@@ -316,24 +369,32 @@ def calc_confidence(freq_set, H, support_data, rules, min_confidence=0.5, verbos
     pruned_H : list
         The list of candidate rules above the minimum confidence threshold.
     """
-    pruned_H = [] # list of candidate rules above the minimum confidence threshold
-    for conseq in H: # iterate over the frequent itemsets
+    pruned_H = []  # list of candidate rules above the minimum confidence threshold
+    for conseq in H:  # iterate over the frequent itemsets
         conf = support_data[freq_set] / support_data[freq_set - conseq]
         if conf >= min_confidence:
             rules.append((freq_set - conseq, conseq, conf))
             pruned_H.append(conseq)
 
             if verbose:
-                print(("" \
-                    + "{" \
-                    + "".join([str(i) + ", " for i in iter(freq_set-conseq)]).rstrip(', ') \
-                    + "}" \
-                    + " ---> " \
-                    + "{" \
-                    + "".join([str(i) + ", " for i in iter(conseq)]).rstrip(', ') \
-                    + "}" \
-                    + ":  conf = " + str(round(conf, 3)) \
-                    + ", sup = " + str(round(support_data[freq_set], 3))))
+                print(
+                    (
+                        ''
+                        + '{'
+                        + ''.join(
+                            [str(i) + ', ' for i in iter(freq_set - conseq)]
+                        ).rstrip(', ')
+                        + '}'
+                        + ' ---> '
+                        + '{'
+                        + ''.join([str(i) + ', ' for i in iter(conseq)]).rstrip(', ')
+                        + '}'
+                        + ':  conf = '
+                        + str(round(conf, 3))
+                        + ', sup = '
+                        + str(round(support_data[freq_set], 3))
+                    )
+                )
 
     return pruned_H
 
@@ -366,10 +427,13 @@ def generate_rules(F, support_data, min_confidence=0.5, verbose=True):
     for i in range(1, len(F)):
         for freq_set in F[i]:
             H1 = [frozenset([itemset]) for itemset in freq_set]
-            if (i > 1):
-                rules_from_conseq(freq_set, H1, support_data, rules, min_confidence, verbose)
+            if i > 1:
+                rules_from_conseq(
+                    freq_set, H1, support_data, rules, min_confidence, verbose
+                )
             else:
-                calc_confidence(freq_set, H1, support_data, rules, min_confidence, verbose)
+                calc_confidence(
+                    freq_set, H1, support_data, rules, min_confidence, verbose
+                )
 
     return rules
-

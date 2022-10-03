@@ -21,39 +21,48 @@ from sklearn.qda import QDA
 from ut.util.log import printProgress
 
 default_classifiers = [
-        KNeighborsClassifier(3),
-        SVC(kernel="linear", C=0.025),
-        SVC(gamma=2, C=1),
-        DecisionTreeClassifier(max_depth=5),
-        RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
-        AdaBoostClassifier(),
-        GaussianNB(),
-        LDA(),
-        QDA()]
+    KNeighborsClassifier(3),
+    SVC(kernel='linear', C=0.025),
+    SVC(gamma=2, C=1),
+    DecisionTreeClassifier(max_depth=5),
+    RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
+    AdaBoostClassifier(),
+    GaussianNB(),
+    LDA(),
+    QDA(),
+]
 
 
-def try_out_multiple_classifiers(datasets, classifiers=None, print_progress=True, **kwargs):
-    h = .02  # step size in the mesh
+def try_out_multiple_classifiers(
+    datasets, classifiers=None, print_progress=True, **kwargs
+):
+    h = 0.02  # step size in the mesh
 
     # classifier_names = ["Nearest Neighbors", "Linear SVM", "RBF SVM", "Decision Tree",
     #          "Random Forest", "AdaBoost", "Naive Bayes", "LDA", "QDA"]
 
     if isinstance(classifiers, int):
-        classifiers = default_classifiers[:(classifiers+1)]
+        classifiers = default_classifiers[: (classifiers + 1)]
     else:
         classifiers = classifiers or default_classifiers
     classifier_names = [str(x.__class__).split('.')[-1][:-2] for x in classifiers]
 
     if datasets is None:
-        X, y = make_classification(n_features=2, n_redundant=0, n_informative=2,
-                                   random_state=1, n_clusters_per_class=1)
+        X, y = make_classification(
+            n_features=2,
+            n_redundant=0,
+            n_informative=2,
+            random_state=1,
+            n_clusters_per_class=1,
+        )
         rng = np.random.RandomState(2)
         X += 2 * rng.uniform(size=X.shape)
         linearly_separable = (X, y)
-        datasets = [make_moons(noise=0.3, random_state=0),
-                    make_circles(noise=0.2, factor=0.5, random_state=1),
-                    linearly_separable
-                    ]
+        datasets = [
+            make_moons(noise=0.3, random_state=0),
+            make_circles(noise=0.2, factor=0.5, random_state=1),
+            linearly_separable,
+        ]
     elif not np.lib.function_base.iterable(datasets):
         datasets = [datasets]
 
@@ -62,19 +71,24 @@ def try_out_multiple_classifiers(datasets, classifiers=None, print_progress=True
     except TypeError:  # if datasets is an iterable, there should be a kwargs['num_of_datasets']
         num_of_datasets = kwargs['num_of_datasets']
 
-
     if kwargs.get('dataset_names'):
         dataset_names = kwargs['dataset_names']
         if isinstance(dataset_names, list):
-            assert len(dataset_names) == len(datasets), \
-                "You should have the same number of dataset names as there are datasets"
+            assert len(dataset_names) == len(
+                datasets
+            ), 'You should have the same number of dataset names as there are datasets'
         dataset_names = iter(dataset_names)
     else:
-        dataset_names = map(lambda x: "Dataset #%d" % x, itertools.count())
+        dataset_names = map(lambda x: 'Dataset #%d' % x, itertools.count())
         # dataset_names = map(lambda x: "Dataset #%d" % x, xrange(len(datasets)))
 
     figsize_multiplier = 3
-    figure = pl.figure(figsize=((len(classifiers) + 1) * figsize_multiplier, num_of_datasets * figsize_multiplier))
+    figure = pl.figure(
+        figsize=(
+            (len(classifiers) + 1) * figsize_multiplier,
+            num_of_datasets * figsize_multiplier,
+        )
+    )
 
     # ax_list = list()
     i = 1
@@ -90,12 +104,11 @@ def try_out_multiple_classifiers(datasets, classifiers=None, print_progress=True
         # preprocess dataset, split into training and test part
         X, y = ds
         X = StandardScaler().fit_transform(X)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.4)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
 
-        x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
-        y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
-        xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                             np.arange(y_min, y_max, h))
+        x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+        y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
 
         # just plot the dataset first
         cm = pl.cm.RdBu
@@ -123,35 +136,36 @@ def try_out_multiple_classifiers(datasets, classifiers=None, print_progress=True
 
             # Plot the decision boundary. For that, we will assign a color to each
             # point in the mesh [x_min, m_max]x[y_min, y_max].
-            if hasattr(clf, "decision_function"):
+            if hasattr(clf, 'decision_function'):
                 Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
             else:
                 Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
 
             # Put the result into a color plot
             Z = Z.reshape(xx.shape)
-            ax.contourf(xx, yy, Z, cmap=cm, alpha=.8)
+            ax.contourf(xx, yy, Z, cmap=cm, alpha=0.8)
 
             # Plot also the training points
             ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright)
             # and testing points
-            ax.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap=cm_bright,
-                       alpha=0.6)
+            ax.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap=cm_bright, alpha=0.6)
 
             ax.set_xlim(xx.min(), xx.max())
             ax.set_ylim(yy.min(), yy.max())
             ax.set_xticks(())
             ax.set_yticks(())
             # ax.set_title(name)
-            ax.text(xx.max() - .3, yy.min() + .3, ('%.2f' % score).lstrip('0'),
-                    size=15, horizontalalignment='right')
+            ax.text(
+                xx.max() - 0.3,
+                yy.min() + 0.3,
+                ('%.2f' % score).lstrip('0'),
+                size=15,
+                horizontalalignment='right',
+            )
             i += 1
             # ax_list.append(ax)
             if row_num == num_of_datasets:
                 plt.xlabel(name)
 
-
-    figure.subplots_adjust(left=.02, right=.98)
+    figure.subplots_adjust(left=0.02, right=0.98)
     pl.show()
-
-

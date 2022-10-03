@@ -49,18 +49,19 @@ def spread(start, end, count, mode=1):
         raise ValueError('count must be positive')
     if mode & 1:
         yield start
-    width = Fraction(end-start)
+    width = Fraction(end - start)
     start = Fraction(start)
     for i in range(1, count):
-        yield float(start + i*width/count)
+        yield float(start + i * width / count)
     if mode & 2:
         yield end
+
 
 def regulator(num_dec_places):
     if num_dec_places == 0:
         num_str = '0'
     else:
-        num_str = '0.' + ('0' * (num_dec_places-1)) + '1'
+        num_str = '0.' + ('0' * (num_dec_places - 1)) + '1'
     return num_str
 
 
@@ -101,5 +102,3 @@ class DiscreteCoordLinearizer(object):
 
     def n_pts(self):
         return prod(self.dims)
-
-

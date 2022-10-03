@@ -50,9 +50,9 @@ class PVar:
 
     def __str__(self):
         if self.i == 0:
-            return f"{self.var}"
+            return f'{self.var}'
         else:
-            return f"{self.var}{self.i}"
+            return f'{self.var}{self.i}'
 
     @classmethod
     def from_str(cls, s):
@@ -83,7 +83,9 @@ class VarSet:
             varset = varset[0]
         varset = list(map(PVar.from_, varset))
         self.varset = sorted(varset)
-        self.min_abs_i = abs(min(x.i for x in self))  # TODO: Not enough: Need to check on upper bound of sliding win
+        self.min_abs_i = abs(
+            min(x.i for x in self)
+        )  # TODO: Not enough: Need to check on upper bound of sliding win
 
     @property
     def varset_strs(self):
@@ -108,11 +110,11 @@ class VarSet:
         return iter(self.varset)
 
     def __repr__(self):
-        s = ", ".join(map(lambda x: "'{}'".format(x), self.varset))
-        return f"{self.__class__.__name__}({s})"
+        s = ', '.join(map(lambda x: "'{}'".format(x), self.varset))
+        return f'{self.__class__.__name__}({s})'
 
     def __str__(self):
-        return "(" + ", ".join(map(str, self.varset)) + ")"
+        return '(' + ', '.join(map(str, self.varset)) + ')'
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -137,7 +139,10 @@ class VarSetFactory:
 
     @staticmethod
     def markov_pairs(varnames):
-        return map(lambda v: VarSet(PVar(v[0], -1), PVar(v[1], 0)), itertools.product(varnames, varnames))
+        return map(
+            lambda v: VarSet(PVar(v[0], -1), PVar(v[1], 0)),
+            itertools.product(varnames, varnames),
+        )
 
     @staticmethod
     def from_str(s):

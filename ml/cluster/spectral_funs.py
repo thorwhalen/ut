@@ -1,11 +1,9 @@
-
-
 __author__ = 'thor'
-__doc__ = """
+__doc__ = '''
 Functions to do spectral clustering as I'd like to.
 That is:
     * Wrapping existing spectral functionality in an API that is more intuitive to me (both input and output)
-"""
+'''
 
 import spectral
 import pandas as pd
@@ -19,11 +17,13 @@ def kmeans(X, max_clusters=10, max_iterations=20, distance='euclidean', **kwargs
     X, distance = _how_spectral_library_expects_data_and_distance(X, distance)
 
     # do the clustering (call spectral.kmeans)
-    clus_idx, clus_centers = spectral.kmeans(X,
-                                             nclusters=max_clusters,
-                                             max_iterations=max_iterations,
-                                             distance=distance,
-                                             **kwargs)
+    clus_idx, clus_centers = spectral.kmeans(
+        X,
+        nclusters=max_clusters,
+        max_iterations=max_iterations,
+        distance=distance,
+        **kwargs
+    )
 
     return _how_I_like_clus_idx_and_clus_centers(clus_idx, clus_centers)
 
@@ -44,17 +44,14 @@ def _how_spectral_library_expects_data_and_distance(X, distance):
             elif distance.lower() in ['cityblock', 'manhattan', 'l1']:
                 distance = spectral.clustering.L1
             else:
-                raise ValueError("Unknown distance specification: {}".format(distance))
+                raise ValueError('Unknown distance specification: {}'.format(distance))
         else:
-            raise ValueError("distance should be a string or a callable")
+            raise ValueError('distance should be a string or a callable')
 
     return X, distance
 
 
 def _how_I_like_clus_idx_and_clus_centers(clus_idx, clus_centers):
-    return order_clus_idx_and_centers_by_decreasing_frequencies(clus_idx[:, 0], clus_centers)
-
-
-
-
-
+    return order_clus_idx_and_centers_by_decreasing_frequencies(
+        clus_idx[:, 0], clus_centers
+    )

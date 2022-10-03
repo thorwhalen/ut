@@ -79,7 +79,9 @@ def str_from_num_list(coord, symbols_for_base_idx=vowels_and_consonants, base_ph
     """
     n = len(symbols_for_base_idx)
     s = ''
-    for letter_idx, collection_idx in zip(coord, islice(cycle(range(n)), base_phase, None)):
+    for letter_idx, collection_idx in zip(
+        coord, islice(cycle(range(n)), base_phase, None)
+    ):
         #         print(f"{letter_idx} === {collection_idx}")
         s += symbols_for_base_idx[collection_idx][letter_idx]
     return s
@@ -125,14 +127,15 @@ def text_for_num(num, symbols_for_base_idx=vowels_and_consonants):
 inf = float('infinity')
 
 
-def text_to_pronounceable_text(text,
-                               symbols_for_base_idx=vowels_and_consonants,
-                               captured_alphabet=alpha_numerics,
-                               case_sensitive=False,
-                               max_word_length=30,
-                               artificial_word_sep='_',
-                               assert_no_word_sep_in_text=False
-                               ):
+def text_to_pronounceable_text(
+    text,
+    symbols_for_base_idx=vowels_and_consonants,
+    captured_alphabet=alpha_numerics,
+    case_sensitive=False,
+    max_word_length=30,
+    artificial_word_sep='_',
+    assert_no_word_sep_in_text=False,
+):
     """
 
     Args:
@@ -157,27 +160,37 @@ def text_to_pronounceable_text(text,
         text = text.lower()
 
     p = re.compile(f'[{captured_alphabet}]+')  # to match the text to be mapped
-    anti_p = re.compile(f'[^{captured_alphabet}]+')  # to match the chunks of separator (not matched) text
+    anti_p = re.compile(
+        f'[^{captured_alphabet}]+'
+    )  # to match the chunks of separator (not matched) text
 
     matched_text = anti_p.split(text)
-    num_of_character = {c: i for i, c in enumerate(captured_alphabet)}  # the numerical mapping of alphabet
+    num_of_character = {
+        c: i for i, c in enumerate(captured_alphabet)
+    }  # the numerical mapping of alphabet
     base_n = len(captured_alphabet)
     # function to get the (base_n) number for a chk
-    num_of_chk = lambda chk: sum(num_of_character[c] * (base_n ** i) for i, c in enumerate(chk))
+    num_of_chk = lambda chk: sum(
+        num_of_character[c] * (base_n ** i) for i, c in enumerate(chk)
+    )
 
     _text_for_num = lambda num: text_for_num(num, symbols_for_base_idx)
     pronounceable_words = [_text_for_num(num_of_chk(chk)) for chk in matched_text]
 
     if max_word_length < inf:
+
         def post_process_word(word):
             if len(word) > max_word_length:
                 if assert_no_word_sep_in_text:
-                    assert artificial_word_sep not in text, \
-                        f"Your artificial_word_sep ({artificial_word_sep}) was in the text (so no bijective mapping)"
-                r = (len(word) % max_word_length)
+                    assert (
+                        artificial_word_sep not in text
+                    ), f'Your artificial_word_sep ({artificial_word_sep}) was in the text (so no bijective mapping)'
+                r = len(word) % max_word_length
                 word_suffix = word[:r]
                 word_prefix = word[r:]
-                word = artificial_word_sep.join(map(''.join, zip(*([iter(word_prefix)] * max_word_length))))
+                word = artificial_word_sep.join(
+                    map(''.join, zip(*([iter(word_prefix)] * max_word_length)))
+                )
                 if word_suffix:
                     word = word_suffix + artificial_word_sep + word
                 return word
@@ -200,17 +213,19 @@ class FunTests:
         for i in range(start_num, end_num):
             #     print(f"-----{i}")
             if i % 2:
-                print("".join(map(str, (text_for_num(i)))))
+                print(''.join(map(str, (text_for_num(i)))))
             else:
-                print("\t" + "".join(map(str, (text_for_num(i)))))
+                print('\t' + ''.join(map(str, (text_for_num(i)))))
 
 
 if __name__ == '__main__':
     try:
         import argh
     except ImportError:
-        raise ImportError("You don't have argh. You can install it by doing:\n"
-                          "     pip install argh\n"
-                          "In your terminal/environment,")
+        raise ImportError(
+            "You don't have argh. You can install it by doing:\n"
+            '     pip install argh\n'
+            'In your terminal/environment,'
+        )
 
     argh.dispatch_command(text_to_pronounceable_text)

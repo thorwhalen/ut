@@ -1,5 +1,3 @@
-
-
 from ut.util.ulist import KeepMaxK
 
 
@@ -27,7 +25,9 @@ def highest_score_swipe(it, score_of=None, k=1, info_of=None, output=None):
             for i, x in enumerate(it):
                 km.push((score_of(x), i))
         else:
-            assert callable(info_of), "info_of needs to be a callable (if not None or 'idx')"
+            assert callable(
+                info_of
+            ), "info_of needs to be a callable (if not None or 'idx')"
             for x in it:
                 km.push((score_of(x), info_of(x)))
 
@@ -43,8 +43,6 @@ def highest_score_swipe(it, score_of=None, k=1, info_of=None, output=None):
         elif output == 'top_score_items':
             return [x[1] for x in sorted(km, key=lambda x: x[0])]
         else:
-            raise ValueError("Unrecognized output: ".format(output))
+            raise ValueError('Unrecognized output: '.format(output))
     else:
         return km
-
-

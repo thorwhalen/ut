@@ -79,7 +79,7 @@ def re_compile(pattern, flags=0, **dflt_if_none):
     compiled_regex = re.compile(pattern, flags=flags)
     intercepted_names = set(dflt_if_none)
 
-    my_regex_compilation = type("MyRegexCompilation", (object,), {})()
+    my_regex_compilation = type('MyRegexCompilation', (object,), {})()
 
     for _name, _dflt in dflt_if_none.items():
         setattr(
@@ -88,7 +88,7 @@ def re_compile(pattern, flags=0, **dflt_if_none):
             add_dflt(getattr(compiled_regex, _name), _dflt),
         )
     for _name in filter(
-        lambda x: not x.startswith("__") and x not in intercepted_names,
+        lambda x: not x.startswith('__') and x not in intercepted_names,
         dir(compiled_regex),
     ):
         setattr(my_regex_compilation, _name, getattr(compiled_regex, _name))
@@ -97,17 +97,17 @@ def re_compile(pattern, flags=0, **dflt_if_none):
 
 
 class rx:
-    name = re.compile("^:(\w+)")
-    lines = re.compile("\n|\r|\n\r|\r\n")
-    comments = re.compile("#.+$")
-    non_space = re.compile("\S")
-    nout_nin = re.compile(r"(\w+)\W+(\w+)")
-    arrow = re.compile(r"\s*->\s*")
-    instruction = re.compile(r"(\w+):\s+(.+)")
-    node_def = re.compile(r"([\w\s,]+):\s+(.+)")
-    wsc = re.compile(r"[\w\s,]+")
-    csv = re.compile(r"[\s,]+")
-    pref_name_suff = re.compile(r"(\W*)(\w+)(\W*)")
+    name = re.compile('^:(\w+)')
+    lines = re.compile('\n|\r|\n\r|\r\n')
+    comments = re.compile('#.+$')
+    non_space = re.compile('\S')
+    nout_nin = re.compile(r'(\w+)\W+(\w+)')
+    arrow = re.compile(r'\s*->\s*')
+    instruction = re.compile(r'(\w+):\s+(.+)')
+    node_def = re.compile(r'([\w\s,]+):\s+(.+)')
+    wsc = re.compile(r'[\w\s,]+')
+    csv = re.compile(r'[\s,]+')
+    pref_name_suff = re.compile(r'(\W*)(\w+)(\W*)')
 
 
 class DDigraph(Digraph):
@@ -115,7 +115,7 @@ class DDigraph(Digraph):
     def __init__(self, *args, **kwargs):
         if args:
             first_arg = args[0]
-            if first_arg.startswith(":"):
+            if first_arg.startswith(':'):
                 lines = rx.lines.split(first_arg)
                 first_line = lines[0]
                 name = rx.name.search(first_line).group(1)
@@ -123,16 +123,16 @@ class DDigraph(Digraph):
 
 class ModifiedDot:
     class rx:
-        lines = re.compile("\n|\r|\n\r|\r\n")
-        comments = re.compile("#.+$")
-        non_space = re.compile("\S")
-        nout_nin = re.compile(r"(\w+)\W+(\w+)")
-        arrow = re.compile(r"\s*->\s*")
-        instruction = re.compile(r"(\w+):\s+(.+)")
-        node_def = re.compile(r"([\w\s,]+):\s+(.+)")
-        wsc = re.compile(r"[\w\s,]+")
-        csv = re.compile(r"[\s,]+")
-        pref_name_suff = re.compile(r"(\W*)(\w+)(\W*)")
+        lines = re.compile('\n|\r|\n\r|\r\n')
+        comments = re.compile('#.+$')
+        non_space = re.compile('\S')
+        nout_nin = re.compile(r'(\w+)\W+(\w+)')
+        arrow = re.compile(r'\s*->\s*')
+        instruction = re.compile(r'(\w+):\s+(.+)')
+        node_def = re.compile(r'([\w\s,]+):\s+(.+)')
+        wsc = re.compile(r'[\w\s,]+')
+        csv = re.compile(r'[\s,]+')
+        pref_name_suff = re.compile(r'(\W*)(\w+)(\W*)')
 
     @staticmethod
     def loose_edges(s):
@@ -141,76 +141,73 @@ class ModifiedDot:
                 lambda x: x.groups(),
                 filter(
                     None,
-                    map(
-                        ModifiedDot.rx.nout_nin.search,
-                        ModifiedDot.rx.lines.split(s),
-                    ),
+                    map(ModifiedDot.rx.nout_nin.search, ModifiedDot.rx.lines.split(s),),
                 ),
             )
         )
 
     # https://www.graphviz.org/doc/info/shapes.html#polygon
     shape_for_chars = {
-        ("[", "]"): "box",
-        ("(", ")"): "circle",
-        ("]", "["): "square",
-        ("/", "/"): "parallelogram",
-        ("<", ">"): "diamond",
-        ("([", "])"): "cylinder",
-        ("[[", "]]"): "box3d",
-        ("((", "))"): "doublecircle",
-        ("/", "\\"): "triangle",
-        ("\\", "/"): "invtriangle",
-        ("|/", "\\|"): "house",
-        ("|\\", "/|"): "invhouse",
-        ("/-", "-\\"): "trapezium",
-        ("-\\", "-/"): "invtrapezium",
+        ('[', ']'): 'box',
+        ('(', ')'): 'circle',
+        (']', '['): 'square',
+        ('/', '/'): 'parallelogram',
+        ('<', '>'): 'diamond',
+        ('([', '])'): 'cylinder',
+        ('[[', ']]'): 'box3d',
+        ('((', '))'): 'doublecircle',
+        ('/', '\\'): 'triangle',
+        ('\\', '/'): 'invtriangle',
+        ('|/', '\\|'): 'house',
+        ('|\\', '/|'): 'invhouse',
+        ('/-', '-\\'): 'trapezium',
+        ('-\\', '-/'): 'invtrapezium',
     }
 
     @staticmethod
-    def _modified_dot_gen(s, dflt_node_attr="shape", **dflt_specs):
+    def _modified_dot_gen(s, dflt_node_attr='shape', **dflt_specs):
         csv_items = lambda x: ModifiedDot.rx.csv.split(x.strip())
         pipeline_items = lambda s: list(map(csv_items, s))
         for line in ModifiedDot.rx.lines.split(s):
-            line = ModifiedDot.rx.comments.sub("", line)
+            line = ModifiedDot.rx.comments.sub('', line)
             statements = ModifiedDot.rx.arrow.split(line)
             if len(statements) > 1:
                 pipeline = pipeline_items(statements)
                 for nouts, nins in zip(pipeline[:-1], pipeline[1:]):
                     for nout in nouts:
                         for nin in nins:
-                            yield "edge", nout, nin
+                            yield 'edge', nout, nin
             else:
                 statement = statements[0].strip()
-                if ":" in statement:
+                if ':' in statement:
                     if statement.startswith(
-                        "--"
+                        '--'
                     ):  # it's a special instruction (typically, overriding a default)
                         statement = statement[2:]
                         instruction, specs = ModifiedDot.rx.node_def.search(statement)
-                        if instruction == "dflt_node_attr":
+                        if instruction == 'dflt_node_attr':
                             dflt_node_attr = specs.strip()
                         else:
                             dflt_specs[instruction] = specs.strip()
                     else:  # it's a node definition (or just some stuff to ignore)
-                        if statement.startswith("#"):
+                        if statement.startswith('#'):
                             continue  # ignore, it's just a comment
                         g = ModifiedDot.rx.node_def.search(statement)
                         if g is None:
                             continue
                         nodes, specs = g.groups()
                         nodes = csv_items(nodes)
-                        if specs.startswith("{"):
+                        if specs.startswith('{'):
                             specs = json.loads(specs)
                         else:
                             specs = {dflt_node_attr: specs}
                         for node in nodes:
                             assert isinstance(
                                 specs, dict
-                            ), f"specs for {node} be a dict at this point: {specs}"
-                            yield "node", node, dict(dflt_specs, **specs)
+                            ), f'specs for {node} be a dict at this point: {specs}'
+                            yield 'node', node, dict(dflt_specs, **specs)
                 elif ModifiedDot.rx.non_space.search(statement):
-                    yield "source", statement, None
+                    yield 'source', statement, None
 
     @staticmethod
     def parser(s, **dflt_specs):
@@ -222,11 +219,13 @@ class ModifiedDot:
         _nodes = defaultdict(dict)
         _sources = list()
         for kind, arg1, arg2 in commands:
-            if kind == "edge":
+            if kind == 'edge':
                 from_node, to_node = arg1, arg2
                 _edge = list()
                 for node in (from_node, to_node):
-                    pref, name, suff = ModifiedDot.rx.pref_name_suff.search(node).groups()
+                    pref, name, suff = ModifiedDot.rx.pref_name_suff.search(
+                        node
+                    ).groups()
                     if (
                         pref,
                         suff,
@@ -237,13 +236,13 @@ class ModifiedDot:
                         _edge.append(name)
 
                 _edges.append(_edge)
-            elif kind == "node":
+            elif kind == 'node':
                 node, specs = arg1, arg2
                 _nodes[node].update(**arg2)
-            elif kind == "source":
+            elif kind == 'source':
                 _sources.append(arg1)
 
-        digraph_kwargs["body"] = digraph_kwargs.get("body", []) + _sources
+        digraph_kwargs['body'] = digraph_kwargs.get('body', []) + _sources
         d = Digraph(engine=engine, **digraph_kwargs)
 
         d.edges(_edges)
@@ -383,7 +382,7 @@ class Struct:
 
 
 dgdisp.engines = Struct(
-    **{x: x for x in ["dot", "neato", "fdp", "sfdp", "twopi", "circo"]}
+    **{x: x for x in ['dot', 'neato', 'fdp', 'sfdp', 'twopi', 'circo']}
 )
 
 dagdisp = dgdisp
@@ -425,7 +424,7 @@ def dot_to_ascii(dot: str, fancy: bool = True):
     """
     import requests
 
-    url = "https://dot-to-ascii.ggerganov.com/dot-to-ascii.php"
+    url = 'https://dot-to-ascii.ggerganov.com/dot-to-ascii.php'
     boxart = 0
 
     # use nice box drawing char instead of + , | , -
@@ -434,18 +433,18 @@ def dot_to_ascii(dot: str, fancy: bool = True):
 
     stripped_dot_str = dot.strip()
     if not (
-        stripped_dot_str.startswith("graph") or stripped_dot_str.startswith("digraph")
+        stripped_dot_str.startswith('graph') or stripped_dot_str.startswith('digraph')
     ):
-        dot = "graph {\n" + dot + "\n}"
+        dot = 'graph {\n' + dot + '\n}'
 
     params = {
-        "boxart": boxart,
-        "src": dot,
+        'boxart': boxart,
+        'src': dot,
     }
 
     response = requests.get(url, params=params).text
 
-    if response == "":
-        raise SyntaxError("DOT string is not formatted correctly")
+    if response == '':
+        raise SyntaxError('DOT string is not formatted correctly')
 
     return response

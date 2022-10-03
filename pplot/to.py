@@ -9,4 +9,3 @@ def simple_plotly(fig):
         return py.iplot_mpl(fig)
     except Exception:
         pass
-

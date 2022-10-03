@@ -5,9 +5,7 @@ import random
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 
-def _train_test_keys_split(
-    grouped_keys, n_train, if_insufficient_data='only_train'
-):
+def _train_test_keys_split(grouped_keys, n_train, if_insufficient_data='only_train'):
     groups = list(grouped_keys)
     if n_train > len(groups):
         if if_insufficient_data == 'only_train':
@@ -26,9 +24,7 @@ def _train_test_keys_split(
 
 
 def train_test_keys_split(grouped_keys, train_prop=0.8):
-    return _train_test_keys_split(
-        grouped_keys, int(len(grouped_keys) * train_prop)
-    )
+    return _train_test_keys_split(grouped_keys, int(len(grouped_keys) * train_prop))
 
 
 def train_test_keys_leave_one_out_split(grouped_keys):
@@ -130,9 +126,7 @@ def random_train_test_split_keys(
     elif isinstance(test_size, int):
         n_train = n_groups - test_size
     else:
-        raise TypeError(
-            f"I don't recognize that type of test_size: {test_size}"
-        )
+        raise TypeError(f"I don't recognize that type of test_size: {test_size}")
 
     def _train_test_keys_split_output_as_dict(*args, **kwargs):
         train, test = _train_test_keys_split(*args, **kwargs)
@@ -140,9 +134,7 @@ def random_train_test_split_keys(
 
     if group_key is not None:
         return {
-            group_key: _train_test_keys_split_output_as_dict(
-                grouped_keys, n_train
-            )
+            group_key: _train_test_keys_split_output_as_dict(grouped_keys, n_train)
             for group_key, grouped_keys in groups.items()
         }
     else:

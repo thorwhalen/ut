@@ -24,8 +24,3 @@ import numpy as np
 #     for i in probs:
 #         ent -= i * np.log(i, base=n_classes)
 #     return ent
-
-
-
-
-

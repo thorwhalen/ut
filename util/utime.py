@@ -105,15 +105,17 @@ def day_datetime_from_utc_ms(ums):
 
 #################### Display
 
+
 def seconds_to_mmss_str(s):
-    return "{:.0f}m{:02.0f}s".format(s / 60, s % 60)
+    return '{:.0f}m{:02.0f}s'.format(s / 60, s % 60)
 
 
 #################### Deprecated
 
+
 def unix_time_ms_to_datetime(ums):
-    raise DeprecationWarning("Use utc_ms_to_local_datetime instead")
+    raise DeprecationWarning('Use utc_ms_to_local_datetime instead')
 
 
 def datetime_to_unix_time_ms(date):
-    raise DeprecationWarning("Use utc_datetime_to_utc_ms instead")
+    raise DeprecationWarning('Use utc_datetime_to_utc_ms instead')

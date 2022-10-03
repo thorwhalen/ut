@@ -1,5 +1,3 @@
-
-
 from collections import defaultdict
 import numpy as np
 
@@ -41,12 +39,12 @@ class MatrixDataFrame(object):
             data = self._d.sum(axis=axis)
             return MatrixDataFrame(data=data, columns=self.columns)
         elif axis == 1:
-            raise NotImplementedError("not implemented yet")
+            raise NotImplementedError('not implemented yet')
 
     def __str__(self):
-        s = ""
-        s += "{}\n".format(self.columns)
-        s += "{}".format(self._d)
+        s = ''
+        s += '{}\n'.format(self.columns)
+        s += '{}'.format(self._d)
         return s
 
     def __repr__(self):
@@ -63,7 +61,9 @@ class RecDataFrame(object):
             else:
                 self._d = np.rec.fromarrays(data)
         else:
-            raise TypeError("Don't know how to construct a RecDataFrame with that input type")
+            raise TypeError(
+                "Don't know how to construct a RecDataFrame with that input type"
+            )
 
         if index is None:
             index = np.arange(self._d.shape[0])

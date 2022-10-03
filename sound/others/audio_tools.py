@@ -36,8 +36,13 @@ except ImportError:
     import urllib2 as urllib
 
 
-def download(url, server_fname, local_fname=None, progress_update_percentage=5,
-             bypass_certificate_check=False):
+def download(
+    url,
+    server_fname,
+    local_fname=None,
+    progress_update_percentage=5,
+    bypass_certificate_check=False,
+):
     """
     An internet download utility modified from
     http://stackoverflow.com/questions/22676/
@@ -45,6 +50,7 @@ def download(url, server_fname, local_fname=None, progress_update_percentage=5,
     """
     if bypass_certificate_check:
         import ssl
+
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
@@ -57,13 +63,13 @@ def download(url, server_fname, local_fname=None, progress_update_percentage=5,
     meta = u.info()
     with open(full_path, 'wb') as f:
         try:
-            file_size = int(meta.get("Content-Length"))
+            file_size = int(meta.get('Content-Length'))
         except TypeError:
-            print("WARNING: Cannot get file size, displaying bytes instead!")
+            print('WARNING: Cannot get file size, displaying bytes instead!')
             file_size = 100
-        print(("Downloading: %s Bytes: %s" % (server_fname, file_size)))
+        print(('Downloading: %s Bytes: %s' % (server_fname, file_size)))
         file_size_dl = 0
-        block_sz = int(1E7)
+        block_sz = int(1e7)
         p = 0
         while True:
             buffer = u.read(block_sz)
@@ -71,16 +77,18 @@ def download(url, server_fname, local_fname=None, progress_update_percentage=5,
                 break
             file_size_dl += len(buffer)
             f.write(buffer)
-            if (file_size_dl * 100. / file_size) > p:
-                status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl *
-                                               100. / file_size)
+            if (file_size_dl * 100.0 / file_size) > p:
+                status = r'%10d  [%3.2f%%]' % (
+                    file_size_dl,
+                    file_size_dl * 100.0 / file_size,
+                )
                 print(status)
                 p += progress_update_percentage
 
 
 def fetch_sample_speech_tapestry():
-    url = "https://www.dropbox.com/s/qte66a7haqspq2g/tapestry.wav?dl=1"
-    wav_path = "tapestry.wav"
+    url = 'https://www.dropbox.com/s/qte66a7haqspq2g/tapestry.wav?dl=1'
+    wav_path = 'tapestry.wav'
     if not os.path.exists(wav_path):
         download(url, wav_path)
     fs, d = wavfile.read(wav_path)
@@ -91,7 +99,7 @@ def fetch_sample_speech_tapestry():
 
 def fetch_sample_file(wav_path):
     if not os.path.exists(wav_path):
-        raise ValueError("Unable to find file at path %s" % wav_path)
+        raise ValueError('Unable to find file at path %s' % wav_path)
     fs, d = wavfile.read(wav_path)
     d = d.astype('float32') / (2 ** 15)
     # file is stereo - just choose one channel
@@ -101,9 +109,9 @@ def fetch_sample_file(wav_path):
 
 
 def fetch_sample_music():
-    url = "http://www.music.helsinki.fi/tmt/opetus/uusmedia/esim/"
-    url += "a2002011001-e02-16kHz.wav"
-    wav_path = "test.wav"
+    url = 'http://www.music.helsinki.fi/tmt/opetus/uusmedia/esim/'
+    url += 'a2002011001-e02-16kHz.wav'
+    wav_path = 'test.wav'
     if not os.path.exists(wav_path):
         download(url, wav_path)
     fs, d = wavfile.read(wav_path)
@@ -115,14 +123,13 @@ def fetch_sample_music():
 
 def fetch_sample_speech_fruit(n_samples=None):
     url = 'https://dl.dropboxusercontent.com/u/15378192/audio.tar.gz'
-    wav_path = "audio.tar.gz"
+    wav_path = 'audio.tar.gz'
     if not os.path.exists(wav_path):
         download(url, wav_path)
     tf = tarfile.open(wav_path)
-    wav_names = [fname for fname in tf.getnames()
-                 if ".wav" in fname.split(os.sep)[-1]]
+    wav_names = [fname for fname in tf.getnames() if '.wav' in fname.split(os.sep)[-1]]
     speech = []
-    print("Loading speech files...")
+    print('Loading speech files...')
     for wav_name in wav_names[:n_samples]:
         f = tf.extractfile(wav_name)
         fs, d = wavfile.read(f)
@@ -136,25 +143,24 @@ def fetch_sample_speech_eustace(n_samples=None):
     http://www.cstr.ed.ac.uk/projects/eustace/download.html
     """
     # data
-    url = "http://www.cstr.ed.ac.uk/projects/eustace/down/eustace_wav.zip"
-    wav_path = "eustace_wav.zip"
+    url = 'http://www.cstr.ed.ac.uk/projects/eustace/down/eustace_wav.zip'
+    wav_path = 'eustace_wav.zip'
     if not os.path.exists(wav_path):
         download(url, wav_path)
 
     # labels
-    url = "http://www.cstr.ed.ac.uk/projects/eustace/down/eustace_labels.zip"
-    labels_path = "eustace_labels.zip"
+    url = 'http://www.cstr.ed.ac.uk/projects/eustace/down/eustace_labels.zip'
+    labels_path = 'eustace_labels.zip'
     if not os.path.exists(labels_path):
         download(url, labels_path)
 
     # Read wavfiles
     # 16 kHz wav
     zf = zipfile.ZipFile(wav_path, 'r')
-    wav_names = [fname for fname in zf.namelist()
-                 if ".wav" in fname.split(os.sep)[-1]]
+    wav_names = [fname for fname in zf.namelist() if '.wav' in fname.split(os.sep)[-1]]
     fs = 16000
     speech = []
-    print("Loading speech files...")
+    print('Loading speech files...')
     for wav_name in wav_names[:n_samples]:
         wav_str = zf.read(wav_name)
         d = np.frombuffer(wav_str, dtype=np.int16)
@@ -162,18 +168,20 @@ def fetch_sample_speech_eustace(n_samples=None):
         speech.append(d)
 
     zf = zipfile.ZipFile(labels_path, 'r')
-    label_names = [fname for fname in zf.namelist()
-                   if ".lab" in fname.split(os.sep)[-1]]
+    label_names = [
+        fname for fname in zf.namelist() if '.lab' in fname.split(os.sep)[-1]
+    ]
     labels = []
-    print("Loading label files...")
+    print('Loading label files...')
     for label_name in label_names[:n_samples]:
         label_file_str = zf.read(label_name)
         labels.append(label_file_str)
     return fs, speech
 
 
-def stft(X, fftsize=128, step="half", mean_normalize=True, real=False,
-         compute_onesided=True):
+def stft(
+    X, fftsize=128, step='half', mean_normalize=True, real=False, compute_onesided=True
+):
     """
     Compute STFT for 1D real valued input X
     """
@@ -187,19 +195,26 @@ def stft(X, fftsize=128, step="half", mean_normalize=True, real=False,
         cut = fftsize // 2 + 1
     if mean_normalize:
         X -= X.mean()
-    if step == "half":
+    if step == 'half':
         X = halfoverlap(X, fftsize)
     else:
         X = overlap(X, fftsize, step)
     size = fftsize
-    win = 0.54 - .46 * np.cos(2 * np.pi * np.arange(size) / (size - 1))
+    win = 0.54 - 0.46 * np.cos(2 * np.pi * np.arange(size) / (size - 1))
     X = X * win[None]
     X = local_fft(X)[:, :cut]
     return X
 
 
-def istft(X, fftsize=128, step="half", wsola=False, mean_normalize=True,
-          real=False, compute_onesided=True):
+def istft(
+    X,
+    fftsize=128,
+    step='half',
+    wsola=False,
+    mean_normalize=True,
+    real=False,
+    compute_onesided=True,
+):
     """
     Compute ISTFT for STFT transformed X
     """
@@ -212,11 +227,11 @@ def istft(X, fftsize=128, step="half", wsola=False, mean_normalize=True,
         local_ifft = fftpack.ifft
     if compute_onesided:
         X_pad = np.zeros((X.shape[0], 2 * X.shape[1])) + 0j
-        X_pad[:, :fftsize // 2 + 1] = X
-        X_pad[:, fftsize // 2 + 1:] = 0
+        X_pad[:, : fftsize // 2 + 1] = X
+        X_pad[:, fftsize // 2 + 1 :] = 0
         X = X_pad
-    X = local_ifft(X).astype("float64")
-    if step == "half":
+    X = local_ifft(X).astype('float64')
+    if step == 'half':
         X = invert_halfoverlap(X)
     else:
         X = overlap_add(X, step, wsola=wsola)
@@ -281,13 +296,13 @@ def nsgcwin(fmin, fmax, n_bins, fs, signal_len, gamma):
     fmin = float(fmin)
     fmax = float(fmax)
     gamma = float(gamma)
-    nyq = fs / 2.
+    nyq = fs / 2.0
     b = np.floor(n_bins * np.log2(fmax / fmin))
     fbas = fmin * 2 ** (np.arange(b + 1) / float(n_bins))
-    Q = 2 ** (1. / n_bins) - 2 ** (-1. / n_bins)
+    Q = 2 ** (1.0 / n_bins) - 2 ** (-1.0 / n_bins)
     cqtbw = Q * fbas + gamma
     cqtbw = cqtbw.ravel()
-    maxidx = np.where(fbas + cqtbw / 2. > nyq)[0]
+    maxidx = np.where(fbas + cqtbw / 2.0 > nyq)[0]
     if len(maxidx) > 0:
         # replicate bug in MATLAB version...
         # or is it a feature
@@ -297,31 +312,31 @@ def nsgcwin(fmin, fmax, n_bins, fs, signal_len, gamma):
             first = maxidx[0]
         fbas = fbas[:first]
         cqtbw = cqtbw[:first]
-    minidx = np.where(fbas - cqtbw / 2. < 0)[0]
+    minidx = np.where(fbas - cqtbw / 2.0 < 0)[0]
     if len(minidx) > 0:
-        fbas = fbas[minidx[-1] + 1:]
-        cqtbw = cqtbw[minidx[-1] + 1:]
+        fbas = fbas[minidx[-1] + 1 :]
+        cqtbw = cqtbw[minidx[-1] + 1 :]
 
     fbas_len = len(fbas)
     fbas_new = np.zeros((2 * (len(fbas) + 1)))
-    fbas_new[1:len(fbas) + 1] = fbas
+    fbas_new[1 : len(fbas) + 1] = fbas
     fbas = fbas_new
     fbas[fbas_len + 1] = nyq
-    fbas[fbas_len + 2:] = fs - fbas[1:fbas_len + 1][::-1]
+    fbas[fbas_len + 2 :] = fs - fbas[1 : fbas_len + 1][::-1]
     bw = np.zeros_like(fbas)
     bw[0] = 2 * fmin
-    bw[1:len(cqtbw) + 1] = cqtbw
+    bw[1 : len(cqtbw) + 1] = cqtbw
     bw[len(cqtbw) + 1] = fbas[fbas_len + 2] - fbas[fbas_len]
-    bw[-len(cqtbw):] = cqtbw[::-1]
+    bw[-len(cqtbw) :] = cqtbw[::-1]
     bw = bw / fftres
     fbas = fbas / fftres
 
     posit = np.zeros_like(fbas)
-    posit[:fbas_len + 2] = np.floor(fbas[:fbas_len + 2])
-    posit[fbas_len + 2:] = np.ceil(fbas[fbas_len + 2:])
+    posit[: fbas_len + 2] = np.floor(fbas[: fbas_len + 2])
+    posit[fbas_len + 2 :] = np.ceil(fbas[fbas_len + 2 :])
     base_shift = -posit[-1] % signal_len
-    shift = np.zeros_like(posit).astype("int32")
-    shift[1:] = (posit[1:] - posit[:-1]).astype("int32")
+    shift = np.zeros_like(posit).astype('int32')
+    shift[1:] = (posit[1:] - posit[:-1]).astype('int32')
     shift[0] = base_shift
 
     bw = np.round(bw)
@@ -336,23 +351,23 @@ def nsgcwin(fmin, fmax, n_bins, fs, signal_len, gamma):
 
     def _win(numel):
         if numel % 2 == 0:
-            s1 = np.arange(0, .5, 1. / numel)
+            s1 = np.arange(0, 0.5, 1.0 / numel)
             if len(s1) != numel // 2:
                 # edge case with small floating point numbers...
                 s1 = s1[:-1]
-            s2 = np.arange(-.5, 0, 1. / numel)
+            s2 = np.arange(-0.5, 0, 1.0 / numel)
             if len(s2) != numel // 2:
                 # edge case with small floating point numbers...
                 s2 = s2[:-1]
             x = np.concatenate((s1, s2))
         else:
-            s1 = np.arange(0, .5, 1. / numel)
-            s2 = np.arange(-.5 + .5 / numel, 0, 1. / numel)
+            s1 = np.arange(0, 0.5, 1.0 / numel)
+            s2 = np.arange(-0.5 + 0.5 / numel, 0, 1.0 / numel)
             if len(s2) != numel // 2:  # assume integer truncate 27 // 2 = 13
                 s2 = s2[:-1]
             x = np.concatenate((s1, s2))
         assert len(x) == numel
-        g = .5 + .5 * np.cos(2 * np.pi * x)
+        g = 0.5 + 0.5 * np.cos(2 * np.pi * x)
         return g
 
     multiscale = [_win(bi) for bi in bw]
@@ -402,7 +417,7 @@ def nsgtf_real(X, multiscale, shift, window_lens):
     fill = np.sum(shift) - signal_len
     if fill > 0:
         X_fft_tmp = np.zeros((signal_len + shift))
-        X_fft_tmp[:len(X_fft)] = X_fft
+        X_fft_tmp[: len(X_fft)] = X_fft
         X_fft = X_fft_tmp
     posit = np.cumsum(shift) - shift[0]
     scale_lens = np.array([len(m) for m in multiscale])
@@ -413,25 +428,25 @@ def nsgtf_real(X, multiscale, shift, window_lens):
         idx_l = np.arange(np.ceil(scale_lens[ii] / 2), scale_lens[ii])
         idx_r = np.arange(np.ceil(scale_lens[ii] / 2))
         idx = np.concatenate((idx_l, idx_r))
-        idx = idx.astype("int32")
-        subwin_range = posit[ii] + np.arange(-np.floor(scale_lens[ii] / 2),
-                                             np.ceil(scale_lens[ii] / 2))
+        idx = idx.astype('int32')
+        subwin_range = posit[ii] + np.arange(
+            -np.floor(scale_lens[ii] / 2), np.ceil(scale_lens[ii] / 2)
+        )
         win_range = subwin_range % (signal_len + fill)
-        win_range = win_range.astype("int32")
+        win_range = win_range.astype('int32')
         if window_lens[ii] < scale_lens[ii]:
             raise ValueError("Not handling 'not enough channels' case")
         else:
             temp = np.zeros((window_lens[ii],)).astype(X_fft.dtype)
-            temp_idx_l = np.arange(len(temp) - np.floor(scale_lens[ii] / 2),
-                                   len(temp))
+            temp_idx_l = np.arange(len(temp) - np.floor(scale_lens[ii] / 2), len(temp))
             temp_idx_r = np.arange(np.ceil(scale_lens[ii] / 2))
             temp_idx = np.concatenate((temp_idx_l, temp_idx_r))
-            temp_idx = temp_idx.astype("int32")
+            temp_idx = temp_idx.astype('int32')
             temp[temp_idx] = X_fft[win_range] * multiscale[ii][idx]
             fs_new_bins = window_lens[ii]
             fk_bins = posit[ii]
             displace = fk_bins - np.floor(fk_bins / fs_new_bins) * fs_new_bins
-            displace = displace.astype("int32")
+            displace = displace.astype('int32')
             temp = np.roll(temp, displace)
         c.append(np.fft.ifft(temp))
 
@@ -485,7 +500,8 @@ def nsdual(multiscale, shift, window_lens):
     for ii in range(N):
         ind = win_range[ii].astype(np.int)
         dual_multiscale[ii] = np.fft.ifftshift(
-            np.fft.fftshift(dual_multiscale[ii]) / diagonal[ind])
+            np.fft.fftshift(dual_multiscale[ii]) / diagonal[ind]
+        )
     return dual_multiscale
 
 
@@ -525,8 +541,9 @@ def nsgitf_real(c, c_dc, c_nyq, multiscale, shift):
 
     for ii in range(len(c_l)):
         filt_len = len(multiscale[ii])
-        win_range = posit[ii] + np.arange(-np.floor(filt_len / 2),
-                                          np.ceil(filt_len / 2))
+        win_range = posit[ii] + np.arange(
+            -np.floor(filt_len / 2), np.ceil(filt_len / 2)
+        )
         win_range = (win_range % seq_len).astype(np.int)
         temp = np.fft.fft(c_l[ii]) * len(c_l[ii])
 
@@ -545,14 +562,13 @@ def nsgitf_real(c, c_dc, c_nyq, multiscale, shift):
         out[win_range] = out[win_range] + m * temp
 
     nyq_bin = np.floor(seq_len / 2) + 1
-    out_idx = np.arange(
-        nyq_bin - np.abs(1 - seq_len % 2) - 1, 0, -1).astype(np.int)
+    out_idx = np.arange(nyq_bin - np.abs(1 - seq_len % 2) - 1, 0, -1).astype(np.int)
     out[nyq_bin:] = np.conj(out[out_idx])
     t_out = np.real(np.fft.ifft(out)).astype(np.float64)
     return t_out
 
 
-def cqt(X, fs, n_bins=48, fmin=27.5, fmax="nyq", gamma=20):
+def cqt(X, fs, n_bins=48, fmin=27.5, fmax='nyq', gamma=20):
     """
     Constant Q Transform
 
@@ -576,16 +592,15 @@ def cqt(X, fs, n_bins=48, fmin=27.5, fmax="nyq", gamma=20):
     code in any manner as long as this notice is preserved.
     All standard disclaimers apply.
     """
-    if fmax == "nyq":
-        fmax = fs / 2.
-    multiscale, shift, window_lens = nsgcwin(fmin, fmax, n_bins, fs,
-                                             len(X), gamma)
+    if fmax == 'nyq':
+        fmax = fs / 2.0
+    multiscale, shift, window_lens = nsgcwin(fmin, fmax, n_bins, fs, len(X), gamma)
     fbas = fs * np.cumsum(shift[1:]) / len(X)
-    fbas = fbas[:len(window_lens) // 2 - 1]
+    fbas = fbas[: len(window_lens) // 2 - 1]
     bins = window_lens.shape[0] // 2 - 1
-    window_lens[1:bins + 1] = window_lens[bins + 2]
-    window_lens[bins + 2:] = window_lens[1:bins + 1][::-1]
-    norm = 2. * window_lens[:bins + 2] / float(len(X))
+    window_lens[1 : bins + 1] = window_lens[bins + 2]
+    window_lens[bins + 2 :] = window_lens[1 : bins + 1][::-1]
+    norm = 2.0 * window_lens[: bins + 2] / float(len(X))
     norm = np.concatenate((norm, norm[1:-1][::-1]))
     multiscale = [norm[ii] * multiscale[ii] for ii in range(2 * (bins + 1))]
 
@@ -668,11 +683,11 @@ def voiced_unvoiced(X, window_size=256, window_step=128, copy=True):
     n_points = X.shape[1]
     n_windows = n_points // window_step
     # Padding
-    pad_sizes = [(window_size - window_step) // 2,
-                 window_size - window_step // 2]
+    pad_sizes = [(window_size - window_step) // 2, window_size - window_step // 2]
     # TODO: Handling for odd window sizes / steps
-    X = np.hstack((np.zeros((X.shape[0], pad_sizes[0])), X,
-                   np.zeros((X.shape[0], pad_sizes[1]))))
+    X = np.hstack(
+        (np.zeros((X.shape[0], pad_sizes[0])), X, np.zeros((X.shape[0], pad_sizes[1])))
+    )
 
     clipping_factor = 0.6
     b, a = sg.butter(10, np.pi * 9 / 40)
@@ -682,8 +697,8 @@ def voiced_unvoiced(X, window_size=256, window_step=128, copy=True):
         XX = X.ravel()[window * window_step + np.arange(window_size)]
         XX *= sg.hamming(len(XX))
         XX = sg.lfilter(b, a, XX)
-        left_max = np.max(np.abs(XX[:len(XX) // 3]))
-        right_max = np.max(np.abs(XX[-len(XX) // 3:]))
+        left_max = np.max(np.abs(XX[: len(XX) // 3]))
+        right_max = np.max(np.abs(XX[-len(XX) // 3 :]))
         clip_value = clipping_factor * np.min([left_max, right_max])
         XX_clip = np.clip(XX, clip_value, -clip_value)
         XX_corr = np.correlate(XX_clip, XX_clip, mode='full')
@@ -692,10 +707,10 @@ def voiced_unvoiced(X, window_size=256, window_step=128, copy=True):
         prev_window = max([window - 1, 0])
         if voiced_unvoiced[prev_window] > 0:
             # Want it to be harder to turn off than turn on
-            strength_factor = .29
+            strength_factor = 0.29
         else:
-            strength_factor = .3
-        start = np.where(right_XX_corr < .3 * XX_corr[center])[0]
+            strength_factor = 0.3
+        start = np.where(right_XX_corr < 0.3 * XX_corr[center])[0]
         # 20 is hardcoded but should depend on samplerate?
         try:
             start = np.max([20, start[0]])
@@ -704,7 +719,7 @@ def voiced_unvoiced(X, window_size=256, window_step=128, copy=True):
         search_corr = right_XX_corr[start:]
         index = np.argmax(search_corr)
         second_max = search_corr[index]
-        if (second_max > strength_factor * XX_corr[center]):
+        if second_max > strength_factor * XX_corr[center]:
             voiced_unvoiced[window] = 1
             period[window] = start + index - 1
         else:
@@ -713,9 +728,17 @@ def voiced_unvoiced(X, window_size=256, window_step=128, copy=True):
     return np.array(voiced_unvoiced), np.array(period)
 
 
-def lpc_analysis(X, order=8, window_step=128, window_size=2 * 128,
-                 emphasis=0.9, voiced_start_threshold=.9,
-                 voiced_stop_threshold=.6, truncate=False, copy=True):
+def lpc_analysis(
+    X,
+    order=8,
+    window_step=128,
+    window_size=2 * 128,
+    emphasis=0.9,
+    voiced_start_threshold=0.9,
+    voiced_stop_threshold=0.6,
+    truncate=False,
+    copy=True,
+):
     """
     Extract LPC coefficients from a signal
 
@@ -781,31 +804,33 @@ def lpc_analysis(X, order=8, window_step=128, window_size=2 * 128,
     n_points = X.shape[1]
     n_windows = int(n_points // window_step)
     if not truncate:
-        pad_sizes = [(window_size - window_step) // 2,
-                     window_size - window_step // 2]
+        pad_sizes = [(window_size - window_step) // 2, window_size - window_step // 2]
         # TODO: Handling for odd window sizes / steps
-        X = np.hstack((np.zeros((X.shape[0], int(pad_sizes[0]))), X,
-                       np.zeros((X.shape[0], int(pad_sizes[1])))))
+        X = np.hstack(
+            (
+                np.zeros((X.shape[0], int(pad_sizes[0]))),
+                X,
+                np.zeros((X.shape[0], int(pad_sizes[1]))),
+            )
+        )
     else:
         pad_sizes = [0, 0]
-        X = X[0, :n_windows * window_step]
+        X = X[0, : n_windows * window_step]
 
     lp_coefficients = np.zeros((n_windows, order + 1))
     per_frame_gain = np.zeros((n_windows, 1))
-    residual_excitation = np.zeros(
-        int(((n_windows - 1) * window_step + window_size)))
+    residual_excitation = np.zeros(int(((n_windows - 1) * window_step + window_size)))
     # Pre-emphasis high-pass filter
     X = sg.lfilter([1, -emphasis], 1, X)
     # stride_tricks.as_strided?
     autocorr_X = np.zeros((n_windows, int(2 * window_size - 1)))
     for window in range(max(n_windows - 1, 1)):
         wtws = int(window * window_step)
-        XX = X.ravel()[wtws + np.arange(window_size, dtype="int32")]
+        XX = X.ravel()[wtws + np.arange(window_size, dtype='int32')]
         WXX = XX * sg.hanning(window_size)
         autocorr_X[window] = np.correlate(WXX, WXX, mode='full')
         center = np.argmax(autocorr_X[window])
-        RXX = autocorr_X[window,
-                         np.arange(center, window_size + order, dtype="int32")]
+        RXX = autocorr_X[window, np.arange(center, window_size + order, dtype='int32')]
         R = linalg.toeplitz(RXX[:-1])
         solved_R = linalg.pinv(R).dot(RXX[1:])
         filter_coefs = np.hstack((1, -solved_R))
@@ -813,10 +838,10 @@ def lpc_analysis(X, order=8, window_step=128, window_size=2 * 128,
         gain = np.sqrt(np.mean(residual_signal ** 2))
         lp_coefficients[window] = filter_coefs
         per_frame_gain[window] = gain
-        assign_range = wtws + np.arange(window_size, dtype="int32")
+        assign_range = wtws + np.arange(window_size, dtype='int32')
         residual_excitation[assign_range] += residual_signal / gain
     # Throw away first part in overlap mode for proper synthesis
-    residual_excitation = residual_excitation[int(pad_sizes[0]):]
+    residual_excitation = residual_excitation[int(pad_sizes[0]) :]
     return lp_coefficients, per_frame_gain, residual_excitation
 
 
@@ -856,16 +881,15 @@ def lpc_to_frequency(lp_coefficients, per_frame_gain):
         g_coefs = per_frame_gain[window]
         roots = np.roots(np.hstack(([1], w_coefs[1:])))
         # Roots doesn't return the same thing as MATLAB... agh
-        frequencies, index = np.unique(
-            np.abs(np.angle(roots)), return_index=True)
+        frequencies, index = np.unique(np.abs(np.angle(roots)), return_index=True)
         # Make sure 0 doesn't show up...
         gtz = np.where(frequencies > 0)[0]
         frequencies = frequencies[gtz]
         index = index[gtz]
-        magnitudes = g_coefs / (1. - np.abs(roots))
+        magnitudes = g_coefs / (1.0 - np.abs(roots))
         sort_index = np.argsort(frequencies)
-        frame_frequencies[window, :len(sort_index)] = frequencies[sort_index]
-        frame_magnitudes[window, :len(sort_index)] = magnitudes[sort_index]
+        frame_frequencies[window, : len(sort_index)] = frequencies[sort_index]
+        frame_magnitudes[window, : len(sort_index)] = magnitudes[sort_index]
     return frame_frequencies, frame_magnitudes
 
 
@@ -920,14 +944,20 @@ def lsf_to_lpc(all_lsf):
             deconv_diff = sg.convolve(diff_filt, [1, -1])
             deconv_sum = sg.convolve(sum_filt, [1, 1])
 
-        lpc = .5 * (deconv_sum + deconv_diff)
+        lpc = 0.5 * (deconv_sum + deconv_diff)
         # Last coefficient is 0 and not returned
         all_lpc[i] = lpc[:-1]
     return np.squeeze(all_lpc)
 
 
-def lpc_synthesis(lp_coefficients, per_frame_gain, residual_excitation=None,
-                  voiced_frames=None, window_step=128, emphasis=0.9):
+def lpc_synthesis(
+    lp_coefficients,
+    per_frame_gain,
+    residual_excitation=None,
+    voiced_frames=None,
+    window_step=128,
+    emphasis=0.9,
+):
     """
     Synthesize a signal from LPC coefficients
 
@@ -997,13 +1027,13 @@ def lpc_synthesis(lp_coefficients, per_frame_gain, residual_excitation=None,
                 cycles = np.cumsum(f[window][0] * t)
                 sig += sg.sawtooth(cycles, 0.001)
                 residual_excitation[index] += hanning * sig
-            residual_excitation[index] += hanning * 0.01 * random_state.randn(
-                window_size)
+            residual_excitation[index] += (
+                hanning * 0.01 * random_state.randn(window_size)
+            )
     else:
         n_excitation_points = residual_excitation.shape[0]
         n_points = n_excitation_points + window_step + window_step // 2
-    residual_excitation = np.hstack((residual_excitation,
-                                     np.zeros(window_size)))
+    residual_excitation = np.hstack((residual_excitation, np.zeros(window_size)))
     if voiced_frames is None:
         voiced_frames = np.ones_like(per_frame_gain)
 
@@ -1019,16 +1049,14 @@ def lpc_synthesis(lp_coefficients, per_frame_gain, residual_excitation=None,
             w_coefs = [1]
         g_coefs = voiced_frames[window] * per_frame_gain[window]
         index = window_base + np.arange(window_size)
-        newbit = g_coefs * sg.lfilter([1], w_coefs,
-                                      residual_excitation[index])
-        synthesized[index] = np.hstack((oldbit, np.zeros(
-            (window_size - window_step))))
+        newbit = g_coefs * sg.lfilter([1], w_coefs, residual_excitation[index])
+        synthesized[index] = np.hstack((oldbit, np.zeros((window_size - window_step))))
         synthesized[index] += sg.hanning(window_size) * newbit
     synthesized = sg.lfilter([1], [1, -emphasis], synthesized)
     return synthesized
 
 
-def soundsc(X, gain_scale=.9, copy=True):
+def soundsc(X, gain_scale=0.9, copy=True):
     """
     Approximate implementation of soundsc from MATLAB without the audio playing.
 
@@ -1065,16 +1093,17 @@ def _wav2array(nchannels, sampwidth, data):
     """data must be the string containing the bytes from the wav file."""
     num_samples, remainder = divmod(len(data), sampwidth * nchannels)
     if remainder > 0:
-        raise ValueError('The length of data is not a multiple of '
-                         'sampwidth * num_channels.')
+        raise ValueError(
+            'The length of data is not a multiple of ' 'sampwidth * num_channels.'
+        )
     if sampwidth > 4:
-        raise ValueError("sampwidth must not be greater than 4.")
+        raise ValueError('sampwidth must not be greater than 4.')
 
     if sampwidth == 3:
         a = np.empty((num_samples, nchannels, 4), dtype=np.uint8)
         raw_bytes = np.fromstring(data, dtype=np.uint8)
         a[:, :, :sampwidth] = raw_bytes.reshape(-1, nchannels, sampwidth)
-        a[:, :, sampwidth:] = (a[:, :, sampwidth - 1:sampwidth] >> 7) * 255
+        a[:, :, sampwidth:] = (a[:, :, sampwidth - 1 : sampwidth] >> 7) * 255
         result = a.view('<i4').reshape(a.shape[:-1])
     else:
         # 8 bit samples are stored as unsigned ints; others as signed ints.
@@ -1177,14 +1206,13 @@ def sinusoid_analysis(X, input_sample_rate, resample_block=128, copy=True):
     resample_to = 8000
     if input_sample_rate != resample_to:
         if input_sample_rate % resample_to != 0:
-            raise ValueError("Input sample rate must be a multiple of 8k!")
+            raise ValueError('Input sample rate must be a multiple of 8k!')
         # Should be able to use resample... ?
         # resampled_count = round(len(X) * resample_to / input_sample_rate)
         # X = sg.resample(X, resampled_count, window=sg.hanning(len(X)))
         X = sg.decimate(X, input_sample_rate // resample_to, zero_phase=True)
-    step_size = 2 * round(resample_block / input_sample_rate * resample_to / 2.)
-    a, g, e = lpc_analysis(X, order=8, window_step=step_size,
-                           window_size=2 * step_size)
+    step_size = 2 * round(resample_block / input_sample_rate * resample_to / 2.0)
+    a, g, e = lpc_analysis(X, order=8, window_step=step_size, window_size=2 * step_size)
     f, m = lpc_to_frequency(a, g)
     f_hz = f * resample_to / (2 * np.pi)
     return f_hz, m
@@ -1213,11 +1241,12 @@ def slinterp(X, factor, copy=True):
     X_r = np.zeros((factor, sz))
     for i in range(factor):
         X_r[i, :] = (factor - i) / float(factor) * X + (i / float(factor)) * X_s
-    return X_r.T.ravel()[:(sz - 1) * factor + 1]
+    return X_r.T.ravel()[: (sz - 1) * factor + 1]
 
 
-def sinusoid_synthesis(frequencies_hz, magnitudes, input_sample_rate=16000,
-                       resample_block=128):
+def sinusoid_synthesis(
+    frequencies_hz, magnitudes, input_sample_rate=16000, resample_block=128
+):
     """
     Create a time series based on input frequencies and magnitudes.
 
@@ -1311,8 +1340,9 @@ def dct_uncompress(X_compressed, window_size=128):
         Reconstructed version of X.
     """
     if X_compressed.shape[1] % window_size != 0:
-        append = np.zeros((X_compressed.shape[0],
-                           window_size - X_compressed.shape[1] % window_size))
+        append = np.zeros(
+            (X_compressed.shape[0], window_size - X_compressed.shape[1] % window_size)
+        )
         X_compressed = np.hstack((X_compressed, append))
     X_r = fftpack.idct(X_compressed, norm='ortho')
     return X_r.ravel()
@@ -1336,8 +1366,7 @@ def sine_window(X):
     win = np.sin(np.pi * (i + 0.5) / X.shape[1])
     row_stride = 0
     col_stride = win.itemsize
-    strided_win = as_strided(win, shape=X.shape,
-                             strides=(row_stride, col_stride))
+    strided_win = as_strided(win, shape=X.shape, strides=(row_stride, col_stride))
     return X * strided_win
 
 
@@ -1363,8 +1392,7 @@ def kaiserbessel_window(X, alpha=6.5):
     win = sg.kaiser(X.shape[1], beta)
     row_stride = 0
     col_stride = win.itemsize
-    strided_win = as_strided(win, shape=X.shape,
-                             strides=(row_stride, col_stride))
+    strided_win = as_strided(win, shape=X.shape, strides=(row_stride, col_stride))
     return X * strided_win
 
 
@@ -1389,7 +1417,7 @@ def overlap(X, window_size, window_step):
         2D array of overlapped X
     """
     if window_size % 2 != 0:
-        raise ValueError("Window size must be even!")
+        raise ValueError('Window size must be even!')
     # Make sure there are an even number of windows before stridetricks
     append = np.zeros((window_size - len(X) % window_size))
     X = np.hstack((X, append))
@@ -1418,7 +1446,7 @@ def halfoverlap(X, window_size):
         2D array of overlapped X
     """
     if window_size % 2 != 0:
-        raise ValueError("Window size must be even!")
+        raise ValueError('Window size must be even!')
     window_step = window_size // 2
     # Make sure there are an even number of windows before stridetricks
     append = np.zeros((window_size - len(X) % window_size))
@@ -1426,8 +1454,9 @@ def halfoverlap(X, window_size):
     num_frames = len(X) // window_step - 1
     row_stride = X.itemsize * window_step
     col_stride = X.itemsize
-    X_strided = as_strided(X, shape=(num_frames, window_size),
-                           strides=(row_stride, col_stride))
+    X_strided = as_strided(
+        X, shape=(num_frames, window_size), strides=(row_stride, col_stride)
+    )
     return X_strided
 
 
@@ -1483,14 +1512,14 @@ def overlap_add(X_strided, window_step, wsola=False):
     start_index = 0
 
     total_windowing_sum = np.zeros((X.shape[0]))
-    win = 0.54 - .46 * np.cos(2 * np.pi * np.arange(window_size) / (
-            window_size - 1))
+    win = 0.54 - 0.46 * np.cos(2 * np.pi * np.arange(window_size) / (window_size - 1))
     for i in range(n_rows):
         end_index = start_index + window_size
         if wsola:
             offset_size = window_size - window_step
-            offset = xcorr_offset(X[start_index:start_index + offset_size],
-                                  X_strided[i, :offset_size])
+            offset = xcorr_offset(
+                X[start_index : start_index + offset_size], X_strided[i, :offset_size]
+            )
             ss = start_index - offset
             st = end_index - offset
             if start_index - offset < 0:
@@ -1556,8 +1585,9 @@ def overlap_dct_uncompress(X_compressed, window_size):
         Reconstructed version of X
     """
     if X_compressed.shape[1] % window_size != 0:
-        append = np.zeros((X_compressed.shape[0], window_size -
-                           X_compressed.shape[1] % window_size))
+        append = np.zeros(
+            (X_compressed.shape[0], window_size - X_compressed.shape[1] % window_size)
+        )
         X_compressed = np.hstack((X_compressed, append))
     X_r = fftpack.idct(X_compressed, norm='ortho')
     return invert_halfoverlap(X_r)
@@ -1570,8 +1600,8 @@ def herz_to_mel(freqs):
     http://labrosa.ee.columbia.edu/matlab/tf_agc/
     """
     f_0 = 0  # 133.33333
-    f_sp = 200 / 3.  # 66.66667
-    bark_freq = 1000.
+    f_sp = 200 / 3.0  # 66.66667
+    bark_freq = 1000.0
     bark_pt = (bark_freq - f_0) / f_sp
     # The magic 1.0711703 which is the ratio needed to get from 1000 Hz
     # to 6400 Hz in 27 steps, and is *almost* the ratio between 1000 Hz
@@ -1581,11 +1611,10 @@ def herz_to_mel(freqs):
     if not isinstance(freqs, np.ndarray):
         freqs = np.array(freqs)[None]
     log_step = np.exp(np.log(6.4) / 27)
-    lin_pts = (freqs < bark_freq)
-    mel = 0. * freqs
+    lin_pts = freqs < bark_freq
+    mel = 0.0 * freqs
     mel[lin_pts] = (freqs[lin_pts] - f_0) / f_sp
-    mel[~lin_pts] = bark_pt + np.log(freqs[~lin_pts] / bark_freq) / np.log(
-        log_step)
+    mel[~lin_pts] = bark_pt + np.log(freqs[~lin_pts] / bark_freq) / np.log(log_step)
     return mel
 
 
@@ -1596,8 +1625,8 @@ def mel_to_herz(mel):
     http://labrosa.ee.columbia.edu/matlab/tf_agc/
     """
     f_0 = 0  # 133.33333
-    f_sp = 200 / 3.  # 66.66667
-    bark_freq = 1000.
+    f_sp = 200 / 3.0  # 66.66667
+    bark_freq = 1000.0
     bark_pt = (bark_freq - f_0) / f_sp
     # The magic 1.0711703 which is the ratio needed to get from 1000 Hz
     # to 6400 Hz in 27 steps, and is *almost* the ratio between 1000 Hz
@@ -1607,12 +1636,11 @@ def mel_to_herz(mel):
     if not isinstance(mel, np.ndarray):
         mel = np.array(mel)[None]
     log_step = np.exp(np.log(6.4) / 27)
-    lin_pts = (mel < bark_pt)
+    lin_pts = mel < bark_pt
 
-    freqs = 0. * mel
+    freqs = 0.0 * mel
     freqs[lin_pts] = f_0 + f_sp * mel[lin_pts]
-    freqs[~lin_pts] = bark_freq * np.exp(np.log(log_step) * (
-            mel[~lin_pts] - bark_pt))
+    freqs[~lin_pts] = bark_freq * np.exp(np.log(log_step) * (mel[~lin_pts] - bark_pt))
     return freqs
 
 
@@ -1625,7 +1653,7 @@ def mel_freq_weights(n_fft, fs, n_filts=None, width=None):
     min_freq = 0
     max_freq = fs // 2
     if width is None:
-        width = 1.
+        width = 1.0
     if n_filts is None:
         n_filts = int(herz_to_mel(max_freq) / 2) + 1
     else:
@@ -1635,7 +1663,7 @@ def mel_freq_weights(n_fft, fs, n_filts=None, width=None):
     fft_freqs = np.arange(n_fft // 2) / n_fft * fs
     min_mel = herz_to_mel(min_freq)
     max_mel = herz_to_mel(max_freq)
-    partial = np.arange(n_filts + 2) / (n_filts + 1.) * (max_mel - min_mel)
+    partial = np.arange(n_filts + 2) / (n_filts + 1.0) * (max_mel - min_mel)
     bin_freqs = mel_to_herz(min_mel + partial)
     bin_bin = np.round(bin_freqs / fs * (n_fft - 1))
     for i in range(n_filts):
@@ -1643,16 +1671,16 @@ def mel_freq_weights(n_fft, fs, n_filts=None, width=None):
         fs_i = fs_i[1] + width * (fs_i - fs_i[1])
         lo_slope = (fft_freqs - fs_i[0]) / float(fs_i[1] - fs_i[0])
         hi_slope = (fs_i[2] - fft_freqs) / float(fs_i[2] - fs_i[1])
-        weights[i, :n_fft // 2] = np.maximum(
-            0, np.minimum(lo_slope, hi_slope))
+        weights[i, : n_fft // 2] = np.maximum(0, np.minimum(lo_slope, hi_slope))
     # Constant amplitude multiplier
-    weights = np.diag(2. / (bin_freqs[2:n_filts + 2]
-                            - bin_freqs[:n_filts])).dot(weights)
-    weights[:, n_fft // 2:] = 0
+    weights = np.diag(2.0 / (bin_freqs[2 : n_filts + 2] - bin_freqs[:n_filts])).dot(
+        weights
+    )
+    weights[:, n_fft // 2 :] = 0
     return weights
 
 
-def time_attack_agc(X, fs, t_scale=0.5, f_scale=1.):
+def time_attack_agc(X, fs, t_scale=0.5, f_scale=1.0):
     """
     AGC based on code by Dan Ellis
 
@@ -1666,19 +1694,19 @@ def time_attack_agc(X, fs, t_scale=0.5, f_scale=1.):
     X_freq = stft(X, window_size, mean_normalize=False)
     fft_fs = fs / window_step
     n_bands = max(10, 20 / f_scale)
-    mel_width = f_scale * n_bands / 10.
+    mel_width = f_scale * n_bands / 10.0
     f_to_a = mel_freq_weights(n_fft, fs, n_bands, mel_width)
-    f_to_a = f_to_a[:, :n_fft // 2 + 1]
+    f_to_a = f_to_a[:, : n_fft // 2 + 1]
     audiogram = np.abs(X_freq).dot(f_to_a.T)
     fbg = np.zeros_like(audiogram)
     state = np.zeros((audiogram.shape[1],))
-    alpha = np.exp(-(1. / fft_fs) / t_scale)
+    alpha = np.exp(-(1.0 / fft_fs) / t_scale)
     for i in range(len(audiogram)):
         state = np.maximum(alpha * state, audiogram[i])
         fbg[i] = state
 
     sf_to_a = np.sum(f_to_a, axis=0)
-    E = np.diag(1. / (sf_to_a + (sf_to_a == 0)))
+    E = np.diag(1.0 / (sf_to_a + (sf_to_a == 0)))
     E = E.dot(f_to_a.T)
     E = fbg.dot(E.T)
     E[E <= 0] = np.min(E[E > 0])
@@ -1686,8 +1714,16 @@ def time_attack_agc(X, fs, t_scale=0.5, f_scale=1.):
     return ts, X_freq, E
 
 
-def hebbian_kmeans(X, n_clusters=10, n_epochs=10, W=None, learning_rate=0.01,
-                   batch_size=100, random_state=None, verbose=True):
+def hebbian_kmeans(
+    X,
+    n_clusters=10,
+    n_epochs=10,
+    W=None,
+    learning_rate=0.01,
+    batch_size=100,
+    random_state=None,
+    verbose=True,
+):
     """
     Modified from existing code from R. Memisevic
     See http://www.cs.toronto.edu/~rfm/code/hebbian_kmeans.py
@@ -1702,19 +1738,22 @@ def hebbian_kmeans(X, n_clusters=10, n_epochs=10, W=None, learning_rate=0.01,
     last_print = 0
     for e in range(n_epochs):
         for i in range(0, X.shape[0], batch_size):
-            X_i = X[i: i + batch_size]
-            X2_i = X2[i: i + batch_size]
+            X_i = X[i : i + batch_size]
+            X2_i = X2[i : i + batch_size]
             D = -2 * np.dot(W, X_i.T)
             D += (W ** 2).sum(axis=1, keepdims=True)
             D += X2_i.T
-            S = (D == D.min(axis=0)[None, :]).astype("float").T
-            W += learning_rate * (
-                    np.dot(S.T, X_i) - S.sum(axis=0)[:, None] * W)
+            S = (D == D.min(axis=0)[None, :]).astype('float').T
+            W += learning_rate * (np.dot(S.T, X_i) - S.sum(axis=0)[:, None] * W)
         if verbose:
-            if e == 0 or e > (.05 * n_epochs + last_print):
+            if e == 0 or e > (0.05 * n_epochs + last_print):
                 last_print = e
-                print(("Epoch %i of %i, cost %.4f" % (
-                    e + 1, n_epochs, D.min(axis=0).sum())))
+                print(
+                    (
+                        'Epoch %i of %i, cost %.4f'
+                        % (e + 1, n_epochs, D.min(axis=0).sum())
+                    )
+                )
     return W
 
 
@@ -1770,7 +1809,7 @@ def polyphase_core(x, m, f):
     p[0, :-1] = np.convolve(x[::m], f[::m])
     # Invert the x values when applying filters
     for i in range(1, m):
-        p[i, 1:] = np.convolve(x[m - i::m], f[i::m])
+        p[i, 1:] = np.convolve(x[m - i :: m], f[i::m])
     return p
 
 
@@ -1792,9 +1831,9 @@ def window(arr, window_size, window_step=1, axis=0):
     <http://stackoverflow.com/questions/4936620/using-strides-for-an-efficient-moving-average-filter>
     """
     if window_size < 1:
-        raise ValueError("`window_size` must be at least 1.")
+        raise ValueError('`window_size` must be at least 1.')
     if window_size > arr.shape[-1]:
-        raise ValueError("`window_size` is too long.")
+        raise ValueError('`window_size` is too long.')
 
     orig = list(range(len(arr.shape)))
     trans = list(range(len(arr.shape)))
@@ -1821,7 +1860,7 @@ def window(arr, window_size, window_step=1, axis=0):
 def unwindow(arr, window_size, window_step=1, axis=0):
     # undo windows by broadcast
     if axis != 0:
-        raise ValueError("axis != 0 currently unsupported")
+        raise ValueError('axis != 0 currently unsupported')
     shp = arr.shape
     unwindowed = np.tile(arr[:, None, ...], (1, window_step, 1, 1))
     unwindowed = unwindowed.reshape(shp[0] * window_step, *shp[1:])
@@ -1854,8 +1893,8 @@ def xcorr_offset(x1, x2):
     frame_size = len(x2)
     half = frame_size // 2
     corrs = np.convolve(x1.astype('float32'), x2[::-1].astype('float32'))
-    corrs[:half] = -1E30
-    corrs[-half:] = -1E30
+    corrs[:half] = -1e30
+    corrs[-half:] = -1e30
     offset = corrs.argmax() - len(x1)
     return offset
 
@@ -1886,7 +1925,7 @@ def invert_spectrogram(X_s, step, calculate_offset=True, set_zero_phase=True):
     # Getting overflow warnings with 32 bit...
     wave = wave.astype('float64')
     total_windowing_sum = np.zeros((X_s.shape[0] * step + size))
-    win = 0.54 - .46 * np.cos(2 * np.pi * np.arange(size) / (size - 1))
+    win = 0.54 - 0.46 * np.cos(2 * np.pi * np.arange(size) / (size - 1))
 
     est_start = int(size // 2) - 1
     est_end = est_start + size
@@ -1904,23 +1943,29 @@ def invert_spectrogram(X_s, step, calculate_offset=True, set_zero_phase=True):
         if calculate_offset and i > 0:
             offset_size = size - step
             if offset_size <= 0:
-                print("WARNING: Large step size >50\% detected! "
-                      "This code works best with high overlap - try "
-                      "with 75% or greater")
+                print(
+                    'WARNING: Large step size >50\% detected! '
+                    'This code works best with high overlap - try '
+                    'with 75% or greater'
+                )
                 offset_size = step
-            offset = xcorr_offset(wave[wave_start:wave_start + offset_size],
-                                  wave_est[est_start:est_start + offset_size])
+            offset = xcorr_offset(
+                wave[wave_start : wave_start + offset_size],
+                wave_est[est_start : est_start + offset_size],
+            )
         else:
             offset = 0
-        wave[wave_start:wave_end] += win * wave_est[
-                                           est_start - offset:est_end - offset]
+        wave[wave_start:wave_end] += (
+            win * wave_est[est_start - offset : est_end - offset]
+        )
         total_windowing_sum[wave_start:wave_end] += win
-    wave = np.real(wave) / (total_windowing_sum + 1E-6)
+    wave = np.real(wave) / (total_windowing_sum + 1e-6)
     return wave
 
 
-def iterate_invert_spectrogram(X_s, fftsize, step, n_iter=10, verbose=False,
-                               complex_input=False):
+def iterate_invert_spectrogram(
+    X_s, fftsize, step, n_iter=10, verbose=False, complex_input=False
+):
     """
     Under MSR-LA License
 
@@ -1941,32 +1986,35 @@ def iterate_invert_spectrogram(X_s, fftsize, step, n_iter=10, verbose=False,
     Magnitude Spectra. IEEE Transactions on Audio Speech and
     Language Processing, 08/2007.
     """
-    reg = np.max(X_s) / 1E8
+    reg = np.max(X_s) / 1e8
     X_best = copy.deepcopy(X_s)
     try:
         for i in range(n_iter):
             if verbose:
-                print(("Runnning iter %i" % i))
+                print(('Runnning iter %i' % i))
             if i == 0 and not complex_input:
-                X_t = invert_spectrogram(X_best, step, calculate_offset=True,
-                                         set_zero_phase=True)
+                X_t = invert_spectrogram(
+                    X_best, step, calculate_offset=True, set_zero_phase=True
+                )
             else:
                 # Calculate offset was False in the MATLAB version
                 # but in mine it massively improves the result
                 # Possible bug in my impl?
-                X_t = invert_spectrogram(X_best, step, calculate_offset=True,
-                                         set_zero_phase=False)
+                X_t = invert_spectrogram(
+                    X_best, step, calculate_offset=True, set_zero_phase=False
+                )
             est = stft(X_t, fftsize=fftsize, step=step, compute_onesided=False)
             phase = est / np.maximum(reg, np.abs(est))
-            phase = phase[:len(X_s)]
-            X_s = X_s[:len(phase)]
+            phase = phase[: len(X_s)]
+            X_s = X_s[: len(phase)]
             X_best = X_s * phase
     except ValueError:
-        raise ValueError("The iterate_invert_spectrogram algorithm requires"
-                         " stft(..., compute_onesided=False),",
-                         " be sure you have calculated stft with this argument")
-    X_t = invert_spectrogram(X_best, step, calculate_offset=True,
-                             set_zero_phase=False)
+        raise ValueError(
+            'The iterate_invert_spectrogram algorithm requires'
+            ' stft(..., compute_onesided=False),',
+            ' be sure you have calculated stft with this argument',
+        )
+    X_t = invert_spectrogram(X_best, step, calculate_offset=True, set_zero_phase=False)
     return np.real(X_t)
 
 
@@ -1976,21 +2024,28 @@ def pretty_spectrogram(d, log=True, thresh=5, fft_size=512, step_size=64):
     log: take the log of the spectrgram
     thresh: threshold minimum power for log spectrogram
     """
-    specgram = np.abs(stft(d, fftsize=fft_size, step=step_size, real=False,
-                           compute_onesided=True))
+    specgram = np.abs(
+        stft(d, fftsize=fft_size, step=step_size, real=False, compute_onesided=True)
+    )
 
     if log == True:
         specgram /= specgram.max()  # volume normalize to max 1
         specgram = np.log10(specgram)  # take log
-        specgram[specgram < -thresh] = -thresh  # set anything less than the threshold as the threshold
+        specgram[
+            specgram < -thresh
+        ] = -thresh  # set anything less than the threshold as the threshold
     else:
-        specgram[specgram < thresh] = thresh  # set anything less than the threshold as the threshold
+        specgram[
+            specgram < thresh
+        ] = thresh  # set anything less than the threshold as the threshold
 
     return specgram
 
 
 # Also mostly modified or taken from https://gist.github.com/kastnerkyle/179d6e9a88202ab0a2fe
-def invert_pretty_spectrogram(X_s, log=True, fft_size=512, step_size=512 / 4, n_iter=10):
+def invert_pretty_spectrogram(
+    X_s, log=True, fft_size=512, step_size=512 / 4, n_iter=10
+):
     if log == True:
         X_s = np.power(10, X_s)
 
@@ -2001,73 +2056,104 @@ def invert_pretty_spectrogram(X_s, log=True, fft_size=512, step_size=512 / 4, n_
 
 def harvest_get_downsampled_signal(x, fs, target_fs):
     decimation_ratio = np.round(fs / target_fs)
-    offset = np.ceil(140. / decimation_ratio) * decimation_ratio
+    offset = np.ceil(140.0 / decimation_ratio) * decimation_ratio
     start_pad = x[0] * np.ones(int(offset), dtype=np.float32)
     end_pad = x[-1] * np.ones(int(offset), dtype=np.float32)
     x = np.concatenate((start_pad, x, end_pad), axis=0)
 
     if fs < target_fs:
-        raise ValueError("CASE NOT HANDLED IN harvest_get_downsampled_signal")
+        raise ValueError('CASE NOT HANDLED IN harvest_get_downsampled_signal')
     else:
         try:
             y0 = sg.decimate(x, int(decimation_ratio), 3, zero_phase=True)
         except:
             y0 = sg.decimate(x, int(decimation_ratio), 3)
         actual_fs = fs / decimation_ratio
-        y = y0[int(offset / decimation_ratio):-int(offset / decimation_ratio)]
+        y = y0[int(offset / decimation_ratio) : -int(offset / decimation_ratio)]
     y = y - np.mean(y)
     return y, actual_fs
 
 
-def harvest_get_raw_f0_candidates(number_of_frames, boundary_f0_list,
-                                  y_length, temporal_positions, actual_fs, y_spectrum, f0_floor,
-                                  f0_ceil):
-    raw_f0_candidates = np.zeros((len(boundary_f0_list), number_of_frames), dtype=np.float32)
+def harvest_get_raw_f0_candidates(
+    number_of_frames,
+    boundary_f0_list,
+    y_length,
+    temporal_positions,
+    actual_fs,
+    y_spectrum,
+    f0_floor,
+    f0_ceil,
+):
+    raw_f0_candidates = np.zeros(
+        (len(boundary_f0_list), number_of_frames), dtype=np.float32
+    )
     for i in range(len(boundary_f0_list)):
         raw_f0_candidates[i, :] = harvest_get_f0_candidate_from_raw_event(
-            boundary_f0_list[i], actual_fs, y_spectrum, y_length,
-            temporal_positions, f0_floor, f0_ceil)
+            boundary_f0_list[i],
+            actual_fs,
+            y_spectrum,
+            y_length,
+            temporal_positions,
+            f0_floor,
+            f0_ceil,
+        )
     return raw_f0_candidates
 
 
 def harvest_nuttall(N):
     t = np.arange(0, N) * 2 * np.pi / (N - 1)
     coefs = np.array([0.355768, -0.487396, 0.144232, -0.012604])
-    window = np.cos(t[:, None].dot(np.array([0., 1., 2., 3.])[None])).dot(coefs[:, None])
+    window = np.cos(t[:, None].dot(np.array([0.0, 1.0, 2.0, 3.0])[None])).dot(
+        coefs[:, None]
+    )
     # 1D window...
     return window.ravel()
 
 
-def harvest_get_f0_candidate_from_raw_event(boundary_f0,
-                                            fs, y_spectrum, y_length, temporal_positions, f0_floor,
-                                            f0_ceil):
+def harvest_get_f0_candidate_from_raw_event(
+    boundary_f0, fs, y_spectrum, y_length, temporal_positions, f0_floor, f0_ceil
+):
     filter_length_half = int(np.round(fs / boundary_f0 * 2))
     band_pass_filter_base = harvest_nuttall(filter_length_half * 2 + 1)
-    shifter = np.cos(2 * np.pi * boundary_f0 * np.arange(-filter_length_half, filter_length_half + 1) / float(fs))
+    shifter = np.cos(
+        2
+        * np.pi
+        * boundary_f0
+        * np.arange(-filter_length_half, filter_length_half + 1)
+        / float(fs)
+    )
     band_pass_filter = band_pass_filter_base * shifter
 
     index_bias = filter_length_half
     # possible numerical issues if 32 bit
-    spectrum_low_pass_filter = np.fft.fft(band_pass_filter.astype("float64"), len(y_spectrum))
+    spectrum_low_pass_filter = np.fft.fft(
+        band_pass_filter.astype('float64'), len(y_spectrum)
+    )
     filtered_signal = np.real(np.fft.ifft(spectrum_low_pass_filter * y_spectrum))
     index_bias = filter_length_half + 1
-    filtered_signal = filtered_signal[index_bias + np.arange(y_length).astype("int32")]
+    filtered_signal = filtered_signal[index_bias + np.arange(y_length).astype('int32')]
     negative_zero_cross = harvest_zero_crossing_engine(filtered_signal, fs)
     positive_zero_cross = harvest_zero_crossing_engine(-filtered_signal, fs)
     d_filtered_signal = filtered_signal[1:] - filtered_signal[:-1]
     peak = harvest_zero_crossing_engine(d_filtered_signal, fs)
     dip = harvest_zero_crossing_engine(-d_filtered_signal, fs)
-    f0_candidate = harvest_get_f0_candidate_contour(negative_zero_cross,
-                                                    positive_zero_cross, peak, dip, temporal_positions)
-    f0_candidate[f0_candidate > (boundary_f0 * 1.1)] = 0.
-    f0_candidate[f0_candidate < (boundary_f0 * .9)] = 0.
-    f0_candidate[f0_candidate > f0_ceil] = 0.
-    f0_candidate[f0_candidate < f0_floor] = 0.
+    f0_candidate = harvest_get_f0_candidate_contour(
+        negative_zero_cross, positive_zero_cross, peak, dip, temporal_positions
+    )
+    f0_candidate[f0_candidate > (boundary_f0 * 1.1)] = 0.0
+    f0_candidate[f0_candidate < (boundary_f0 * 0.9)] = 0.0
+    f0_candidate[f0_candidate > f0_ceil] = 0.0
+    f0_candidate[f0_candidate < f0_floor] = 0.0
     return f0_candidate
 
 
-def harvest_get_f0_candidate_contour(negative_zero_cross_tup,
-                                     positive_zero_cross_tup, peak_tup, dip_tup, temporal_positions):
+def harvest_get_f0_candidate_contour(
+    negative_zero_cross_tup,
+    positive_zero_cross_tup,
+    peak_tup,
+    dip_tup,
+    temporal_positions,
+):
     # 0 is inteval locations
     # 1 is interval based f0
     usable_channel = max(0, len(negative_zero_cross_tup[0]) - 2)
@@ -2076,14 +2162,34 @@ def harvest_get_f0_candidate_contour(negative_zero_cross_tup,
     usable_channel *= max(0, len(dip_tup[0]) - 2)
     if usable_channel > 0:
         interpolated_f0_list = np.zeros((4, len(temporal_positions)))
-        nz = interp1d(negative_zero_cross_tup[0], negative_zero_cross_tup[1],
-                      kind="linear", bounds_error=False, fill_value="extrapolate")
-        pz = interp1d(positive_zero_cross_tup[0], positive_zero_cross_tup[1],
-                      kind="linear", bounds_error=False, fill_value="extrapolate")
-        pkz = interp1d(peak_tup[0], peak_tup[1],
-                       kind="linear", bounds_error=False, fill_value="extrapolate")
-        dz = interp1d(dip_tup[0], dip_tup[1],
-                      kind="linear", bounds_error=False, fill_value="extrapolate")
+        nz = interp1d(
+            negative_zero_cross_tup[0],
+            negative_zero_cross_tup[1],
+            kind='linear',
+            bounds_error=False,
+            fill_value='extrapolate',
+        )
+        pz = interp1d(
+            positive_zero_cross_tup[0],
+            positive_zero_cross_tup[1],
+            kind='linear',
+            bounds_error=False,
+            fill_value='extrapolate',
+        )
+        pkz = interp1d(
+            peak_tup[0],
+            peak_tup[1],
+            kind='linear',
+            bounds_error=False,
+            fill_value='extrapolate',
+        )
+        dz = interp1d(
+            dip_tup[0],
+            dip_tup[1],
+            kind='linear',
+            bounds_error=False,
+            fill_value='extrapolate',
+        )
         interpolated_f0_list[0, :] = nz(temporal_positions)
         interpolated_f0_list[1, :] = pz(temporal_positions)
         interpolated_f0_list[2, :] = pkz(temporal_positions)
@@ -2104,7 +2210,9 @@ def harvest_zero_crossing_engine(x, fs, debug=False):
     negative_going_points = points * ((x_shift * x < 0) * (x_shift < x))
     edge_list = negative_going_points[negative_going_points > 0]
     # -1 to correct index
-    fine_edge_list = edge_list - x[edge_list - 1] / (x[edge_list] - x[edge_list - 1]).astype("float32")
+    fine_edge_list = edge_list - x[edge_list - 1] / (
+        x[edge_list] - x[edge_list - 1]
+    ).astype('float32')
     interval_locations = (fine_edge_list[:-1] + fine_edge_list[1:]) / float(2) / fs
     interval_based_f0 = float(fs) / (fine_edge_list[1:] - fine_edge_list[:-1])
     return interval_locations, interval_based_f0
@@ -2112,12 +2220,14 @@ def harvest_zero_crossing_engine(x, fs, debug=False):
 
 def harvest_detect_official_f0_candidates(raw_f0_candidates):
     number_of_channels, number_of_frames = raw_f0_candidates.shape
-    f0_candidates = np.zeros((int(np.round(number_of_channels / 10.)), number_of_frames))
+    f0_candidates = np.zeros(
+        (int(np.round(number_of_channels / 10.0)), number_of_frames)
+    )
     number_of_candidates = 0
     threshold = 10
     for i in range(number_of_frames):
         tmp = raw_f0_candidates[:, i].copy()
-        tmp[tmp > 0] = 1.
+        tmp[tmp > 0] = 1.0
         tmp[0] = 0
         tmp[-1] = 0
         tmp = tmp[1:] - tmp[:-1]
@@ -2127,7 +2237,7 @@ def harvest_detect_official_f0_candidates(raw_f0_candidates):
         for j in range(len(st)):
             dif = ed[j] - st[j]
             if dif >= threshold:
-                tmp_f0 = raw_f0_candidates[st[j] + 1: ed[j] + 1, i]
+                tmp_f0 = raw_f0_candidates[st[j] + 1 : ed[j] + 1, i]
                 f0_candidates[count, i] = np.mean(tmp_f0)
                 count = count + 1
         number_of_candidates = max(number_of_candidates, count)
@@ -2141,13 +2251,15 @@ def harvest_overlap_f0_candidates(f0_candidates, max_number_of_f0_candidates):
     new_f0_candidates = new_f0_candidates[None]
     # hack to bypass magic matlab-isms of allocating when indexing OOB
     new_f0_candidates = np.vstack(
-        [new_f0_candidates] + (new_f0_candidates.shape[-1] - 1) * [np.zeros_like(new_f0_candidates)])
+        [new_f0_candidates]
+        + (new_f0_candidates.shape[-1] - 1) * [np.zeros_like(new_f0_candidates)]
+    )
     # this indexing is megagross, possible source for bugs!
     all_nonzero = []
     for i in range(number_of_candidates):
         st = max(-(i - n), 0)
         ed = min(-(i - n), 0)
-        f1_b = np.arange(max_number_of_f0_candidates).astype("int32")
+        f1_b = np.arange(max_number_of_f0_candidates).astype('int32')
         f1 = f1_b + int(i * max_number_of_f0_candidates)
         all_nonzero = list(set(all_nonzero + list(f1)))
         f2 = None if ed == 0 else ed
@@ -2158,26 +2270,27 @@ def harvest_overlap_f0_candidates(f0_candidates, max_number_of_f0_candidates):
     return new_f0_candidates
 
 
-def harvest_refine_candidates(x, fs, temporal_positions, f0_candidates,
-                              f0_floor, f0_ceil):
+def harvest_refine_candidates(
+    x, fs, temporal_positions, f0_candidates, f0_floor, f0_ceil
+):
     new_f0_candidates = f0_candidates.copy()
-    f0_scores = f0_candidates * 0.
+    f0_scores = f0_candidates * 0.0
     for i in range(len(temporal_positions)):
         for j in range(len(f0_candidates)):
             tmp_f0 = f0_candidates[j, i]
             if tmp_f0 == 0:
                 continue
-            res = harvest_get_refined_f0(x, fs, temporal_positions[i],
-                                         tmp_f0, f0_floor, f0_ceil)
+            res = harvest_get_refined_f0(
+                x, fs, temporal_positions[i], tmp_f0, f0_floor, f0_ceil
+            )
             new_f0_candidates[j, i] = res[0]
             f0_scores[j, i] = res[1]
     return new_f0_candidates, f0_scores
 
 
-def harvest_get_refined_f0(x, fs, current_time, current_f0, f0_floor,
-                           f0_ceil):
-    half_window_length = np.ceil(3. * fs / current_f0 / 2.)
-    window_length_in_time = (2. * half_window_length + 1) / float(fs)
+def harvest_get_refined_f0(x, fs, current_time, current_f0, f0_floor, f0_ceil):
+    half_window_length = np.ceil(3.0 * fs / current_f0 / 2.0)
+    window_length_in_time = (2.0 * half_window_length + 1) / float(fs)
     base_time = np.arange(-half_window_length, half_window_length + 1) / float(fs)
     fft_size = int(2 ** np.ceil(np.log2((half_window_length * 2 + 1)) + 1))
     frequency_axis = np.arange(fft_size) / fft_size * float(fs)
@@ -2191,28 +2304,37 @@ def harvest_get_refined_f0(x, fs, current_time, current_f0, f0_floor,
     ext = np.zeros((len(main_window) + 2))
     ext[1:-1] = main_window
     diff_window = -((ext[1:-1] - ext[:-2]) + (ext[2:] - ext[1:-1])) / float(2)
-    safe_index = np.maximum(1, np.minimum(len(x), base_index)).astype("int32") - 1
+    safe_index = np.maximum(1, np.minimum(len(x), base_index)).astype('int32') - 1
     spectrum = np.fft.fft(x[safe_index] * main_window, fft_size)
     diff_spectrum = np.fft.fft(x[safe_index] * diff_window, fft_size)
-    numerator_i = np.real(spectrum) * np.imag(diff_spectrum) - np.imag(spectrum) * np.real(diff_spectrum)
+    numerator_i = np.real(spectrum) * np.imag(diff_spectrum) - np.imag(
+        spectrum
+    ) * np.real(diff_spectrum)
     power_spectrum = np.abs(spectrum) ** 2
-    instantaneous_frequency = frequency_axis + numerator_i / power_spectrum * float(fs) / 2. / np.pi
+    instantaneous_frequency = (
+        frequency_axis + numerator_i / power_spectrum * float(fs) / 2.0 / np.pi
+    )
 
-    number_of_harmonics = int(min(np.floor(float(fs) / 2. / current_f0), 6.))
+    number_of_harmonics = int(min(np.floor(float(fs) / 2.0 / current_f0), 6.0))
     harmonics_index = np.arange(number_of_harmonics) + 1
-    index_list = np.round(current_f0 * fft_size / fs * harmonics_index).astype("int32")
+    index_list = np.round(current_f0 * fft_size / fs * harmonics_index).astype('int32')
     instantaneous_frequency_list = instantaneous_frequency[index_list]
     amplitude_list = np.sqrt(power_spectrum[index_list])
     refined_f0 = np.sum(amplitude_list * instantaneous_frequency_list)
-    refined_f0 /= np.sum(amplitude_list * harmonics_index.astype("float32"))
+    refined_f0 /= np.sum(amplitude_list * harmonics_index.astype('float32'))
 
     variation = np.abs(
-        ((instantaneous_frequency_list / harmonics_index.astype("float32")) - current_f0) / float(current_f0))
-    refined_score = 1. / (0.000000000001 + np.mean(variation))
+        (
+            (instantaneous_frequency_list / harmonics_index.astype('float32'))
+            - current_f0
+        )
+        / float(current_f0)
+    )
+    refined_score = 1.0 / (0.000000000001 + np.mean(variation))
 
     if (refined_f0 < f0_floor) or (refined_f0 > f0_ceil) or (refined_score < 2.5):
-        refined_f0 = 0.
-        redined_score = 0.
+        refined_f0 = 0.0
+        redined_score = 0.0
     return refined_f0, refined_score
 
 
@@ -2241,8 +2363,12 @@ def harvest_remove_unreliable_candidates(f0_candidates, f0_scores):
             reference_f0 = f0_candidates[j, i]
             if reference_f0 == 0:
                 continue
-            _, min_error1 = harvest_select_best_f0(reference_f0, f0_candidates[:, i + 1], 1)
-            _, min_error2 = harvest_select_best_f0(reference_f0, f0_candidates[:, i - 1], 1)
+            _, min_error1 = harvest_select_best_f0(
+                reference_f0, f0_candidates[:, i + 1], 1
+            )
+            _, min_error2 = harvest_select_best_f0(
+                reference_f0, f0_candidates[:, i - 1], 1
+            )
             min_error = min([min_error1, min_error2])
             if min_error > threshold:
                 new_f0_candidates[j, i] = 0
@@ -2251,7 +2377,7 @@ def harvest_remove_unreliable_candidates(f0_candidates, f0_scores):
 
 
 def harvest_search_f0_base(f0_candidates, f0_scores):
-    f0_base = f0_candidates[0, :] * 0.
+    f0_base = f0_candidates[0, :] * 0.0
     for i in range(len(f0_base)):
         max_index = np.argmax(f0_scores[:, i])
         f0_base[i] = f0_candidates[max_index, i]
@@ -2261,8 +2387,8 @@ def harvest_search_f0_base(f0_candidates, f0_scores):
 def harvest_fix_step_1(f0_base, allowed_range):
     # Step 1: Rapid change of f0 contour is replaced by 0
     f0_step1 = f0_base.copy()
-    f0_step1[0] = 0.
-    f0_step1[1] = 0.
+    f0_step1[0] = 0.0
+    f0_step1[1] = 0.0
 
     for i in range(2, len(f0_base)):
         if f0_base[i] == 0:
@@ -2271,7 +2397,7 @@ def harvest_fix_step_1(f0_base, allowed_range):
         c1 = np.abs((f0_base[i] - reference_f0) / reference_f0) > allowed_range
         c2 = np.abs((f0_base[i] - f0_base[i - 1]) / f0_base[i - 1]) > allowed_range
         if c1 and c2:
-            f0_step1[i] = 0.
+            f0_step1[i] = 0.0
     return f0_step1
 
 
@@ -2279,13 +2405,13 @@ def harvest_fix_step_2(f0_step1, voice_range_minimum):
     f0_step2 = f0_step1.copy()
     boundary_list = harvest_get_boundary_list(f0_step1)
 
-    for i in range(1, int(len(boundary_list) / 2.) + 1):
+    for i in range(1, int(len(boundary_list) / 2.0) + 1):
         distance = boundary_list[(2 * i) - 1] - boundary_list[(2 * i) - 2]
         if distance < voice_range_minimum:
             # need one more due to range not including last index
             lb = boundary_list[(2 * i) - 2]
             ub = boundary_list[(2 * i) - 1] + 1
-            f0_step2[lb:ub] = 0.
+            f0_step2[lb:ub] = 0.0
     return f0_step2
 
 
@@ -2299,16 +2425,24 @@ def harvest_fix_step_3(f0_step2, f0_candidates, allowed_range, f0_scores):
     count = 0
     for i in range(1, int(len(boundary_list) / 2) + 1):
         # changed to 2 * i - 2
-        extended_f0, tmp_range_1 = harvest_extend_f0(multichannel_f0[i - 1, :],
-                                                     boundary_list[(2 * i) - 1],
-                                                     min([len(f0_step2) - 1, boundary_list[(2 * i) - 1] + threshold1]),
-                                                     1, f0_candidates, allowed_range)
-        tmp_f0_sequence, tmp_range_0 = harvest_extend_f0(extended_f0,
-                                                         boundary_list[(2 * i) - 2],
-                                                         max([2, boundary_list[(2 * i) - 2] - threshold1]), -1,
-                                                         f0_candidates, allowed_range)
+        extended_f0, tmp_range_1 = harvest_extend_f0(
+            multichannel_f0[i - 1, :],
+            boundary_list[(2 * i) - 1],
+            min([len(f0_step2) - 1, boundary_list[(2 * i) - 1] + threshold1]),
+            1,
+            f0_candidates,
+            allowed_range,
+        )
+        tmp_f0_sequence, tmp_range_0 = harvest_extend_f0(
+            extended_f0,
+            boundary_list[(2 * i) - 2],
+            max([2, boundary_list[(2 * i) - 2] - threshold1]),
+            -1,
+            f0_candidates,
+            allowed_range,
+        )
 
-        mean_f0 = np.mean(tmp_f0_sequence[tmp_range_0: tmp_range_1 + 1])
+        mean_f0 = np.mean(tmp_f0_sequence[tmp_range_0 : tmp_range_1 + 1])
         if threshold2 / mean_f0 < (tmp_range_1 - tmp_range_0):
             multichannel_f0[count, :] = tmp_f0_sequence
             rrange[count, :] = np.array([tmp_range_0, tmp_range_1])
@@ -2316,8 +2450,7 @@ def harvest_fix_step_3(f0_step2, f0_candidates, allowed_range, f0_scores):
     if count > 0:
         multichannel_f0 = multichannel_f0[:count, :]
         rrange = rrange[:count, :]
-        f0_step3 = harvest_merge_f0(multichannel_f0, rrange, f0_candidates,
-                                    f0_scores)
+        f0_step3 = harvest_merge_f0(multichannel_f0, rrange, f0_candidates, f0_scores)
     return f0_step3
 
 
@@ -2328,41 +2461,52 @@ def harvest_merge_f0(multichannel_f0, rrange, f0_candidates, f0_scores):
     for i in range(1, number_of_channels):
         if rrange[sorted_order[i], 0] - rrange[sorted_order[0], 1] > 0:
             # no overlapping
-            f0[int(rrange[sorted_order[i], 0]):int(rrange[sorted_order[i], 1])] = multichannel_f0[sorted_order[i],
-                                                                                  int(rrange[sorted_order[i], 0]):int(
-                                                                                      rrange[sorted_order[i], 1])]
+            f0[
+                int(rrange[sorted_order[i], 0]) : int(rrange[sorted_order[i], 1])
+            ] = multichannel_f0[
+                sorted_order[i],
+                int(rrange[sorted_order[i], 0]) : int(rrange[sorted_order[i], 1]),
+            ]
             cp = rrange.copy()
             rrange[sorted_order[0], 0] = cp[sorted_order[i], 0]
             rrange[sorted_order[0], 1] = cp[sorted_order[i], 1]
         else:
             cp = rrange.copy()
-            res = harvest_merge_f0_sub(f0, cp[sorted_order[0], 0],
-                                       cp[sorted_order[0], 1],
-                                       multichannel_f0[sorted_order[i], :],
-                                       cp[sorted_order[i], 0],
-                                       cp[sorted_order[i], 1], f0_candidates, f0_scores)
+            res = harvest_merge_f0_sub(
+                f0,
+                cp[sorted_order[0], 0],
+                cp[sorted_order[0], 1],
+                multichannel_f0[sorted_order[i], :],
+                cp[sorted_order[i], 0],
+                cp[sorted_order[i], 1],
+                f0_candidates,
+                f0_scores,
+            )
             f0 = res[0]
             rrange[sorted_order[0], 1] = res[1]
     return f0
 
 
-def harvest_merge_f0_sub(f0_1, st1, ed1, f0_2, st2, ed2, f0_candidates,
-                         f0_scores):
+def harvest_merge_f0_sub(f0_1, st1, ed1, f0_2, st2, ed2, f0_candidates, f0_scores):
     merged_f0 = f0_1
     if (st1 <= st2) and (ed1 >= ed2):
         new_ed = ed1
         return merged_f0, new_ed
     new_ed = ed2
 
-    score1 = 0.
-    score2 = 0.
+    score1 = 0.0
+    score2 = 0.0
     for i in range(int(st2), int(ed1) + 1):
-        score1 = score1 + harvest_serach_score(f0_1[i], f0_candidates[:, i], f0_scores[:, i])
-        score2 = score2 + harvest_serach_score(f0_2[i], f0_candidates[:, i], f0_scores[:, i])
+        score1 = score1 + harvest_serach_score(
+            f0_1[i], f0_candidates[:, i], f0_scores[:, i]
+        )
+        score2 = score2 + harvest_serach_score(
+            f0_2[i], f0_candidates[:, i], f0_scores[:, i]
+        )
     if score1 > score2:
-        merged_f0[int(ed1):int(ed2) + 1] = f0_2[int(ed1):int(ed2) + 1]
+        merged_f0[int(ed1) : int(ed2) + 1] = f0_2[int(ed1) : int(ed2) + 1]
     else:
-        merged_f0[int(st2):int(ed2) + 1] = f0_2[int(st2):int(ed2) + 1]
+        merged_f0[int(st2) : int(ed2) + 1] = f0_2[int(st2) : int(ed2) + 1]
     return merged_f0, new_ed
 
 
@@ -2374,8 +2518,7 @@ def harvest_serach_score(f0, f0_candidates, f0_scores):
     return score
 
 
-def harvest_extend_f0(f0, origin, last_point, shift, f0_candidates,
-                      allowed_range):
+def harvest_extend_f0(f0, origin, last_point, shift, f0_candidates, allowed_range):
     threshold = 4
     extended_f0 = f0.copy()
     tmp_f0 = extended_f0[origin]
@@ -2386,8 +2529,9 @@ def harvest_extend_f0(f0, origin, last_point, shift, f0_candidates,
         # off by 1 issues
         if (i + shift) >= f0_candidates.shape[1]:
             continue
-        bf0, bs = harvest_select_best_f0(tmp_f0,
-                                         f0_candidates[:, i + shift], allowed_range)
+        bf0, bs = harvest_select_best_f0(
+            tmp_f0, f0_candidates[:, i + shift], allowed_range
+        )
         extended_f0[i + shift] = bf0
         if extended_f0[i + shift] != 0:
             tmp_f0 = extended_f0[i + shift]
@@ -2411,7 +2555,7 @@ def harvest_get_multichannel_f0(f0, boundary_list):
 
 def harvest_get_boundary_list(f0):
     vuv = f0.copy()
-    vuv[vuv != 0] = 1.
+    vuv[vuv != 0] = 1.0
     vuv[0] = 0
     vuv[-1] = 0
     diff_vuv = vuv[1:] - vuv[:-1]
@@ -2424,7 +2568,7 @@ def harvest_fix_step_4(f0_step3, threshold):
     f0_step4 = f0_step3.copy()
     boundary_list = harvest_get_boundary_list(f0_step3)
 
-    for i in range(1, int(len(boundary_list) / 2.)):
+    for i in range(1, int(len(boundary_list) / 2.0)):
         distance = boundary_list[(2 * i)] - boundary_list[(2 * i) - 1] - 1
         if distance >= threshold:
             continue
@@ -2444,34 +2588,41 @@ def harvest_fix_f0_contour(f0_candidates, f0_scores):
     f0_base = harvest_search_f0_base(f0_candidates, f0_scores)
     f0_step1 = harvest_fix_step_1(f0_base, 0.008)  # optimized?
     f0_step2 = harvest_fix_step_2(f0_step1, 6)  # optimized?
-    f0_step3 = harvest_fix_step_3(f0_step2, f0_candidates, 0.18, f0_scores)  # optimized?
+    f0_step3 = harvest_fix_step_3(
+        f0_step2, f0_candidates, 0.18, f0_scores
+    )  # optimized?
     f0 = harvest_fix_step_4(f0_step3, 9)  # optimized
     vuv = f0.copy()
-    vuv[vuv != 0] = 1.
+    vuv[vuv != 0] = 1.0
     return f0, vuv
 
 
 def harvest_filter_f0_contour(f0, st, ed, b, a):
     smoothed_f0 = f0.copy()
     smoothed_f0[:st] = smoothed_f0[st]
-    smoothed_f0[ed + 1:] = smoothed_f0[ed]
+    smoothed_f0[ed + 1 :] = smoothed_f0[ed]
     aaa = sg.lfilter(b, a, smoothed_f0)
     bbb = sg.lfilter(b, a, aaa[::-1])
     smoothed_f0 = bbb[::-1].copy()
-    smoothed_f0[:st] = 0.
-    smoothed_f0[ed + 1:] = 0.
+    smoothed_f0[:st] = 0.0
+    smoothed_f0[ed + 1 :] = 0.0
     return smoothed_f0
 
 
 def harvest_smooth_f0_contour(f0):
     b = np.array([0.0078202080334971724, 0.015640416066994345, 0.0078202080334971724])
     a = np.array([1.0, -1.7347257688092754, 0.76600660094326412])
-    smoothed_f0 = np.concatenate([np.zeros(300, ), f0, np.zeros(300, )])
+    smoothed_f0 = np.concatenate([np.zeros(300,), f0, np.zeros(300,)])
     boundary_list = harvest_get_boundary_list(smoothed_f0)
     multichannel_f0 = harvest_get_multichannel_f0(smoothed_f0, boundary_list)
     for i in range(1, int(len(boundary_list) / 2) + 1):
-        tmp_f0_contour = harvest_filter_f0_contour(multichannel_f0[i - 1, :],
-                                                   boundary_list[(2 * i) - 2], boundary_list[(2 * i) - 1], b, a)
+        tmp_f0_contour = harvest_filter_f0_contour(
+            multichannel_f0[i - 1, :],
+            boundary_list[(2 * i) - 2],
+            boundary_list[(2 * i) - 1],
+            b,
+            a,
+        )
         st = boundary_list[(2 * i) - 2]
         ed = boundary_list[(2 * i) - 1] + 1
         smoothed_f0[st:ed] = tmp_f0_contour[st:ed]
@@ -2482,10 +2633,10 @@ def harvest_smooth_f0_contour(f0):
 def _world_get_temporal_positions(x_len, fs):
     frame_period = 5
     basic_frame_period = 1
-    basic_temporal_positions = np.arange(0, x_len / float(fs), basic_frame_period / float(1000))
-    temporal_positions = np.arange(0,
-                                   x_len / float(fs),
-                                   frame_period / float(1000))
+    basic_temporal_positions = np.arange(
+        0, x_len / float(fs), basic_frame_period / float(1000)
+    )
+    temporal_positions = np.arange(0, x_len / float(fs), frame_period / float(1000))
     return basic_temporal_positions, temporal_positions
 
 
@@ -2493,31 +2644,48 @@ def harvest(x, fs):
     f0_floor = 71
     f0_ceil = 800
     target_fs = 8000
-    channels_in_octave = 40.
-    basic_temporal_positions, temporal_positions = _world_get_temporal_positions(len(x), fs)
+    channels_in_octave = 40.0
+    basic_temporal_positions, temporal_positions = _world_get_temporal_positions(
+        len(x), fs
+    )
     adjusted_f0_floor = f0_floor * 0.9
     adjusted_f0_ceil = f0_ceil * 1.1
-    boundary_f0_list = np.arange(1, np.ceil(
-        np.log2(adjusted_f0_ceil / adjusted_f0_floor) * channels_in_octave) + 1) / float(channels_in_octave)
+    boundary_f0_list = np.arange(
+        1,
+        np.ceil(np.log2(adjusted_f0_ceil / adjusted_f0_floor) * channels_in_octave) + 1,
+    ) / float(channels_in_octave)
     boundary_f0_list = adjusted_f0_floor * 2.0 ** boundary_f0_list
     y, actual_fs = harvest_get_downsampled_signal(x, fs, target_fs)
-    fft_size = 2. ** np.ceil(np.log2(len(y) + np.round(fs / f0_floor * 4) + 1))
+    fft_size = 2.0 ** np.ceil(np.log2(len(y) + np.round(fs / f0_floor * 4) + 1))
     y_spectrum = np.fft.fft(y, int(fft_size))
     raw_f0_candidates = harvest_get_raw_f0_candidates(
         len(basic_temporal_positions),
-        boundary_f0_list, len(y), basic_temporal_positions, actual_fs,
-        y_spectrum, f0_floor, f0_ceil)
+        boundary_f0_list,
+        len(y),
+        basic_temporal_positions,
+        actual_fs,
+        y_spectrum,
+        f0_floor,
+        f0_ceil,
+    )
 
-    f0_candidates, number_of_candidates = harvest_detect_official_f0_candidates(raw_f0_candidates)
+    f0_candidates, number_of_candidates = harvest_detect_official_f0_candidates(
+        raw_f0_candidates
+    )
     f0_candidates = harvest_overlap_f0_candidates(f0_candidates, number_of_candidates)
-    f0_candidates, f0_scores = harvest_refine_candidates(y, actual_fs,
-                                                         basic_temporal_positions, f0_candidates, f0_floor, f0_ceil)
+    f0_candidates, f0_scores = harvest_refine_candidates(
+        y, actual_fs, basic_temporal_positions, f0_candidates, f0_floor, f0_ceil
+    )
 
-    f0_candidates, f0_scores = harvest_remove_unreliable_candidates(f0_candidates, f0_scores)
+    f0_candidates, f0_scores = harvest_remove_unreliable_candidates(
+        f0_candidates, f0_scores
+    )
 
     connected_f0, vuv = harvest_fix_f0_contour(f0_candidates, f0_scores)
     smoothed_f0 = harvest_smooth_f0_contour(connected_f0)
-    idx = np.minimum(len(smoothed_f0) - 1, np.round(temporal_positions * 1000)).astype("int32")
+    idx = np.minimum(len(smoothed_f0) - 1, np.round(temporal_positions * 1000)).astype(
+        'int32'
+    )
     f0 = smoothed_f0[idx]
     vuv = vuv[idx]
     f0_candidates = f0_candidates
@@ -2528,13 +2696,15 @@ def cheaptrick_get_windowed_waveform(x, fs, current_f0, current_position):
     half_window_length = np.round(1.5 * fs / float(current_f0))
     base_index = np.arange(-half_window_length, half_window_length + 1)
     index = np.round(current_position * fs + 0.001) + base_index + 1
-    safe_index = np.minimum(len(x), np.maximum(1, np.round(index))).astype("int32")
+    safe_index = np.minimum(len(x), np.maximum(1, np.round(index))).astype('int32')
     safe_index = safe_index - 1
     segment = x[safe_index]
     time_axis = base_index / float(fs) / 1.5
     window1 = 0.5 * np.cos(np.pi * time_axis * float(current_f0)) + 0.5
     window1 = window1 / np.sqrt(np.sum(window1 ** 2))
-    waveform = segment * window1 - window1 * np.mean(segment * window1) / np.mean(window1)
+    waveform = segment * window1 - window1 * np.mean(segment * window1) / np.mean(
+        window1
+    )
     return waveform
 
 
@@ -2543,11 +2713,14 @@ def cheaptrick_get_power_spectrum(waveform, fs, fft_size, f0):
     frequency_axis = np.arange(fft_size) / float(fft_size) * float(fs)
     ind = frequency_axis < (f0 + fs / fft_size)
     low_frequency_axis = frequency_axis[ind]
-    low_frequency_replica = interp1d(f0 - low_frequency_axis,
-                                     power_spectrum[ind], kind="linear",
-                                     fill_value="extrapolate")(low_frequency_axis)
-    p1 = low_frequency_replica[(frequency_axis < f0)[:len(low_frequency_replica)]]
-    p2 = power_spectrum[(frequency_axis < f0)[:len(power_spectrum)]]
+    low_frequency_replica = interp1d(
+        f0 - low_frequency_axis,
+        power_spectrum[ind],
+        kind='linear',
+        fill_value='extrapolate',
+    )(low_frequency_axis)
+    p1 = low_frequency_replica[(frequency_axis < f0)[: len(low_frequency_replica)]]
+    p2 = power_spectrum[(frequency_axis < f0)[: len(power_spectrum)]]
     power_spectrum[frequency_axis < f0] = p1 + p2
     lb1 = int(fft_size / 2) + 1
     lb2 = 1
@@ -2562,10 +2735,16 @@ def cheaptrick_linear_smoothing(power_spectrum, f0, fs, fft_size):
 
     double_segment = np.cumsum(double_spectrum * (fs / float(fft_size)))
     center_frequency = np.arange(int(fft_size / 2) + 1) / float(fft_size) * fs
-    low_levels = cheaptrick_interp1h(double_frequency_axis + fs / float(fft_size) / 2.,
-                                     double_segment, center_frequency - f0 / 3.)
-    high_levels = cheaptrick_interp1h(double_frequency_axis + fs / float(fft_size) / 2.,
-                                      double_segment, center_frequency + f0 / 3.)
+    low_levels = cheaptrick_interp1h(
+        double_frequency_axis + fs / float(fft_size) / 2.0,
+        double_segment,
+        center_frequency - f0 / 3.0,
+    )
+    high_levels = cheaptrick_interp1h(
+        double_frequency_axis + fs / float(fft_size) / 2.0,
+        double_segment,
+        center_frequency + f0 / 3.0,
+    )
     smoothed_spectrum = (high_levels - low_levels) * 1.5 / f0
     return smoothed_spectrum
 
@@ -2573,7 +2752,7 @@ def cheaptrick_linear_smoothing(power_spectrum, f0, fs, fft_size):
 def cheaptrick_interp1h(x, y, xi):
     delta_x = float(x[1] - x[0])
     xi = np.maximum(x[0], np.minimum(x[-1], xi))
-    xi_base = (np.floor((xi - x[0]) / delta_x)).astype("int32")
+    xi_base = (np.floor((xi - x[0]) / delta_x)).astype('int32')
     xi_fraction = (xi - x[0]) / delta_x - xi_base
     delta_y = np.zeros_like(y)
     delta_y[:-1] = y[1:] - y[:-1]
@@ -2584,50 +2763,55 @@ def cheaptrick_interp1h(x, y, xi):
 def cheaptrick_smoothing_with_recovery(smoothed_spectrum, f0, fs, fft_size, q1):
     quefrency_axis = np.arange(fft_size) / float(fs)
     # 0 is NaN
-    smoothing_lifter = np.sin(np.pi * f0 * quefrency_axis) / (np.pi * f0 * quefrency_axis)
-    p = smoothing_lifter[1:int(fft_size / 2)][::-1].copy()
-    smoothing_lifter[int(fft_size / 2) + 1:] = p
-    smoothing_lifter[0] = 1.
-    compensation_lifter = (1 - 2. * q1) + 2. * q1 * np.cos(2 * np.pi * quefrency_axis * f0)
-    p = compensation_lifter[1:int(fft_size / 2)][::-1].copy()
-    compensation_lifter[int(fft_size / 2) + 1:] = p
+    smoothing_lifter = np.sin(np.pi * f0 * quefrency_axis) / (
+        np.pi * f0 * quefrency_axis
+    )
+    p = smoothing_lifter[1 : int(fft_size / 2)][::-1].copy()
+    smoothing_lifter[int(fft_size / 2) + 1 :] = p
+    smoothing_lifter[0] = 1.0
+    compensation_lifter = (1 - 2.0 * q1) + 2.0 * q1 * np.cos(
+        2 * np.pi * quefrency_axis * f0
+    )
+    p = compensation_lifter[1 : int(fft_size / 2)][::-1].copy()
+    compensation_lifter[int(fft_size / 2) + 1 :] = p
     tandem_cepstrum = np.fft.fft(np.log(smoothed_spectrum))
-    tmp_spectral_envelope = np.exp(np.real(np.fft.ifft(tandem_cepstrum * smoothing_lifter * compensation_lifter)))
-    spectral_envelope = tmp_spectral_envelope[:int(fft_size / 2) + 1]
+    tmp_spectral_envelope = np.exp(
+        np.real(np.fft.ifft(tandem_cepstrum * smoothing_lifter * compensation_lifter))
+    )
+    spectral_envelope = tmp_spectral_envelope[: int(fft_size / 2) + 1]
     return spectral_envelope
 
 
-def cheaptrick_estimate_one_slice(x, fs, current_f0,
-                                  current_position, fft_size, q1):
-    waveform = cheaptrick_get_windowed_waveform(x, fs, current_f0,
-                                                current_position)
-    power_spectrum = cheaptrick_get_power_spectrum(waveform, fs, fft_size,
-                                                   current_f0)
-    smoothed_spectrum = cheaptrick_linear_smoothing(power_spectrum, current_f0,
-                                                    fs, fft_size)
+def cheaptrick_estimate_one_slice(x, fs, current_f0, current_position, fft_size, q1):
+    waveform = cheaptrick_get_windowed_waveform(x, fs, current_f0, current_position)
+    power_spectrum = cheaptrick_get_power_spectrum(waveform, fs, fft_size, current_f0)
+    smoothed_spectrum = cheaptrick_linear_smoothing(
+        power_spectrum, current_f0, fs, fft_size
+    )
     comb_spectrum = np.concatenate([smoothed_spectrum, smoothed_spectrum[1:-1][::-1]])
-    spectral_envelope = cheaptrick_smoothing_with_recovery(comb_spectrum,
-                                                           current_f0, fs, fft_size, q1)
+    spectral_envelope = cheaptrick_smoothing_with_recovery(
+        comb_spectrum, current_f0, fs, fft_size, q1
+    )
     return spectral_envelope
 
 
-def cheaptrick(x, fs, temporal_positions, f0_sequence,
-               vuv, fftlen="auto", q1=-0.15):
+def cheaptrick(x, fs, temporal_positions, f0_sequence, vuv, fftlen='auto', q1=-0.15):
     f0_sequence = f0_sequence.copy()
     f0_low_limit = 71
     default_f0 = 500
-    if fftlen == "auto":
-        fftlen = int(2 ** np.ceil(np.log2(3. * float(fs) / f0_low_limit + 1)))
+    if fftlen == 'auto':
+        fftlen = int(2 ** np.ceil(np.log2(3.0 * float(fs) / f0_low_limit + 1)))
     # raise ValueError("Only fftlen auto currently supported")
     fft_size = fftlen
     f0_low_limit = fs * 3.0 / (fft_size - 3.0)
     f0_sequence[vuv == 0] = default_f0
-    spectrogram = np.zeros((int(fft_size / 2.) + 1, len(f0_sequence)))
+    spectrogram = np.zeros((int(fft_size / 2.0) + 1, len(f0_sequence)))
     for i in range(len(f0_sequence)):
         if f0_sequence[i] < f0_low_limit:
             f0_sequence[i] = default_f0
-        spectrogram[:, i] = cheaptrick_estimate_one_slice(x, fs, f0_sequence[i],
-                                                          temporal_positions[i], fft_size, q1)
+        spectrogram[:, i] = cheaptrick_estimate_one_slice(
+            x, fs, f0_sequence[i], temporal_positions[i], fft_size, q1
+        )
     return temporal_positions, spectrogram.T, fs
 
 
@@ -2637,27 +2821,27 @@ def d4c_love_train(x, fs, current_f0, current_position, threshold):
         return vuv
     lowest_f0 = 40
     current_f0 = max([current_f0, lowest_f0])
-    fft_size = int(2 ** np.ceil(np.log2(3. * fs / lowest_f0 + 1)))
+    fft_size = int(2 ** np.ceil(np.log2(3.0 * fs / lowest_f0 + 1)))
     boundary0 = int(np.ceil(100 / (float(fs) / fft_size)))
     boundary1 = int(np.ceil(4000 / (float(fs) / fft_size)))
     boundary2 = int(np.ceil(7900 / (float(fs) / fft_size)))
 
-    waveform = d4c_get_windowed_waveform(x, fs, current_f0, current_position,
-                                         1.5, 2)
+    waveform = d4c_get_windowed_waveform(x, fs, current_f0, current_position, 1.5, 2)
     power_spectrum = np.abs(np.fft.fft(waveform, int(fft_size)) ** 2)
-    power_spectrum[0:boundary0 + 1] = 0.
+    power_spectrum[0 : boundary0 + 1] = 0.0
     cumulative_spectrum = np.cumsum(power_spectrum)
     if (cumulative_spectrum[boundary1] / cumulative_spectrum[boundary2]) > threshold:
         vuv = 1
     return vuv
 
 
-def d4c_get_windowed_waveform(x, fs, current_f0, current_position, half_length,
-                              window_type):
+def d4c_get_windowed_waveform(
+    x, fs, current_f0, current_position, half_length, window_type
+):
     half_window_length = int(np.round(half_length * fs / current_f0))
     base_index = np.arange(-half_window_length, half_window_length + 1)
     index = np.round(current_position * fs + 0.001) + base_index + 1
-    safe_index = np.minimum(len(x), np.maximum(1, np.round(index))).astype("int32") - 1
+    safe_index = np.minimum(len(x), np.maximum(1, np.round(index))).astype('int32') - 1
 
     segment = x[safe_index]
     time_axis = base_index / float(fs) / float(half_length)
@@ -2667,20 +2851,23 @@ def d4c_get_windowed_waveform(x, fs, current_f0, current_position, half_length,
         window1 = 0.08 * np.cos(np.pi * time_axis * current_f0 * 2)
         window1 += 0.5 * np.cos(np.pi * time_axis * current_f0) + 0.42
     else:
-        raise ValueError("Unknown window type")
-    waveform = segment * window1 - window1 * np.mean(segment * window1) / np.mean(window1)
+        raise ValueError('Unknown window type')
+    waveform = segment * window1 - window1 * np.mean(segment * window1) / np.mean(
+        window1
+    )
     return waveform
 
 
 def d4c_get_static_centroid(x, fs, current_f0, current_position, fft_size):
-    waveform1 = d4c_get_windowed_waveform(x, fs, current_f0,
-                                          current_position + 1. / current_f0 / 4., 2, 2)
-    waveform2 = d4c_get_windowed_waveform(x, fs, current_f0,
-                                          current_position - 1. / current_f0 / 4., 2, 2)
+    waveform1 = d4c_get_windowed_waveform(
+        x, fs, current_f0, current_position + 1.0 / current_f0 / 4.0, 2, 2
+    )
+    waveform2 = d4c_get_windowed_waveform(
+        x, fs, current_f0, current_position - 1.0 / current_f0 / 4.0, 2, 2
+    )
     centroid1 = d4c_get_centroid(waveform1, fft_size)
     centroid2 = d4c_get_centroid(waveform2, fft_size)
-    centroid = d4c_dc_correction(centroid1 + centroid2, fs, fft_size,
-                                 current_f0)
+    centroid = d4c_dc_correction(centroid1 + centroid2, fs, fft_size, current_f0)
     return centroid
 
 
@@ -2692,7 +2879,10 @@ def d4c_get_centroid(x, fft_size):
 
     spectrum = np.fft.fft(x, fft_size)
     weighted_spectrum = np.fft.fft(-x * 1j * time_axis, fft_size)
-    centroid = -(weighted_spectrum.imag) * spectrum.real + spectrum.imag * weighted_spectrum.real
+    centroid = (
+        -(weighted_spectrum.imag) * spectrum.real
+        + spectrum.imag * weighted_spectrum.real
+    )
     return centroid
 
 
@@ -2700,13 +2890,15 @@ def d4c_dc_correction(signal, fs, fft_size, f0):
     fft_size = int(fft_size)
     frequency_axis = np.arange(fft_size) / fft_size * fs
     low_frequency_axis = frequency_axis[frequency_axis < f0 + fs / fft_size]
-    low_frequency_replica = interp1d(f0 - low_frequency_axis,
-                                     signal[frequency_axis < f0 + fs / fft_size],
-                                     kind="linear",
-                                     fill_value="extrapolate")(low_frequency_axis)
+    low_frequency_replica = interp1d(
+        f0 - low_frequency_axis,
+        signal[frequency_axis < f0 + fs / fft_size],
+        kind='linear',
+        fill_value='extrapolate',
+    )(low_frequency_axis)
     idx = frequency_axis < f0
-    signal[idx] = low_frequency_replica[idx[:len(low_frequency_replica)]] + signal[idx]
-    signal[int(fft_size / 2.) + 1:] = signal[1: int(fft_size / 2.)][::-1]
+    signal[idx] = low_frequency_replica[idx[: len(low_frequency_replica)]] + signal[idx]
+    signal[int(fft_size / 2.0) + 1 :] = signal[1 : int(fft_size / 2.0)][::-1]
     return signal
 
 
@@ -2716,10 +2908,16 @@ def d4c_linear_smoothing(group_delay, fs, fft_size, width):
 
     double_segment = np.cumsum(double_spectrum * (fs / float(fft_size)))
     center_frequency = np.arange(int(fft_size / 2) + 1) / float(fft_size) * fs
-    low_levels = cheaptrick_interp1h(double_frequency_axis + fs / float(fft_size) / 2.,
-                                     double_segment, center_frequency - width / 2.)
-    high_levels = cheaptrick_interp1h(double_frequency_axis + fs / float(fft_size) / 2.,
-                                      double_segment, center_frequency + width / 2.)
+    low_levels = cheaptrick_interp1h(
+        double_frequency_axis + fs / float(fft_size) / 2.0,
+        double_segment,
+        center_frequency - width / 2.0,
+    )
+    high_levels = cheaptrick_interp1h(
+        double_frequency_axis + fs / float(fft_size) / 2.0,
+        double_segment,
+        center_frequency + width / 2.0,
+    )
     smoothed_spectrum = (high_levels - low_levels) / width
     return smoothed_spectrum
 
@@ -2728,83 +2926,119 @@ def d4c_get_smoothed_power_spectrum(waveform, fs, f0, fft_size):
     power_spectrum = np.abs(np.fft.fft(waveform, int(fft_size))) ** 2
     spectral_envelope = d4c_dc_correction(power_spectrum, fs, fft_size, f0)
     spectral_envelope = d4c_linear_smoothing(spectral_envelope, fs, fft_size, f0)
-    spectral_envelope = np.concatenate([spectral_envelope,
-                                        spectral_envelope[1:-1][::-1]])
+    spectral_envelope = np.concatenate(
+        [spectral_envelope, spectral_envelope[1:-1][::-1]]
+    )
     return spectral_envelope
 
 
-def d4c_get_static_group_delay(static_centroid, smoothed_power_spectrum, fs, f0,
-                               fft_size):
+def d4c_get_static_group_delay(
+    static_centroid, smoothed_power_spectrum, fs, f0, fft_size
+):
     group_delay = static_centroid / smoothed_power_spectrum
-    group_delay = d4c_linear_smoothing(group_delay, fs, fft_size, f0 / 2.)
+    group_delay = d4c_linear_smoothing(group_delay, fs, fft_size, f0 / 2.0)
     group_delay = np.concatenate([group_delay, group_delay[1:-1][::-1]])
     smoothed_group_delay = d4c_linear_smoothing(group_delay, fs, fft_size, f0)
-    group_delay = group_delay[:int(fft_size / 2) + 1] - smoothed_group_delay
+    group_delay = group_delay[: int(fft_size / 2) + 1] - smoothed_group_delay
     group_delay = np.concatenate([group_delay, group_delay[1:-1][::-1]])
     return group_delay
 
 
-def d4c_get_coarse_aperiodicity(group_delay, fs, fft_size,
-                                frequency_interval, number_of_aperiodicities, window1):
+def d4c_get_coarse_aperiodicity(
+    group_delay, fs, fft_size, frequency_interval, number_of_aperiodicities, window1
+):
     boundary = np.round(fft_size / len(window1) * 8)
     half_window_length = np.floor(len(window1) / 2)
     coarse_aperiodicity = np.zeros((number_of_aperiodicities, 1))
     for i in range(1, number_of_aperiodicities + 1):
         center = np.floor(frequency_interval * i / (fs / float(fft_size)))
-        segment = group_delay[int(center - half_window_length):int(center + half_window_length + 1)] * window1
+        segment = (
+            group_delay[
+                int(center - half_window_length) : int(center + half_window_length + 1)
+            ]
+            * window1
+        )
         power_spectrum = np.abs(np.fft.fft(segment, int(fft_size))) ** 2
-        cumulative_power_spectrum = np.cumsum(np.sort(power_spectrum[:int(fft_size / 2) + 1]))
+        cumulative_power_spectrum = np.cumsum(
+            np.sort(power_spectrum[: int(fft_size / 2) + 1])
+        )
         coarse_aperiodicity[i - 1] = -10 * np.log10(
-            cumulative_power_spectrum[int(fft_size / 2 - boundary) - 1] / cumulative_power_spectrum[-1])
+            cumulative_power_spectrum[int(fft_size / 2 - boundary) - 1]
+            / cumulative_power_spectrum[-1]
+        )
     return coarse_aperiodicity
 
 
-def d4c_estimate_one_slice(x, fs, current_f0, frequency_interval,
-                           current_position, fft_size, number_of_aperiodicities, window1):
+def d4c_estimate_one_slice(
+    x,
+    fs,
+    current_f0,
+    frequency_interval,
+    current_position,
+    fft_size,
+    number_of_aperiodicities,
+    window1,
+):
     if current_f0 == 0:
         coarse_aperiodicity = np.zeros((number_of_aperiodicities, 1))
         return coarse_aperiodicity
 
-    static_centroid = d4c_get_static_centroid(x, fs, current_f0,
-                                              current_position, fft_size)
-    waveform = d4c_get_windowed_waveform(x, fs, current_f0, current_position,
-                                         2, 1)
-    smoothed_power_spectrum = d4c_get_smoothed_power_spectrum(waveform, fs,
-                                                              current_f0, fft_size)
-    static_group_delay = d4c_get_static_group_delay(static_centroid,
-                                                    smoothed_power_spectrum, fs, current_f0, fft_size)
-    coarse_aperiodicity = d4c_get_coarse_aperiodicity(static_group_delay,
-                                                      fs, fft_size, frequency_interval, number_of_aperiodicities,
-                                                      window1)
+    static_centroid = d4c_get_static_centroid(
+        x, fs, current_f0, current_position, fft_size
+    )
+    waveform = d4c_get_windowed_waveform(x, fs, current_f0, current_position, 2, 1)
+    smoothed_power_spectrum = d4c_get_smoothed_power_spectrum(
+        waveform, fs, current_f0, fft_size
+    )
+    static_group_delay = d4c_get_static_group_delay(
+        static_centroid, smoothed_power_spectrum, fs, current_f0, fft_size
+    )
+    coarse_aperiodicity = d4c_get_coarse_aperiodicity(
+        static_group_delay,
+        fs,
+        fft_size,
+        frequency_interval,
+        number_of_aperiodicities,
+        window1,
+    )
     return coarse_aperiodicity
 
 
-def d4c(x, fs, temporal_positions_h, f0_h, vuv_h, threshold="default",
-        fft_size="auto"):
+def d4c(x, fs, temporal_positions_h, f0_h, vuv_h, threshold='default', fft_size='auto'):
     f0_low_limit = 47
-    if fft_size == "auto":
-        fft_size = 2 ** np.ceil(np.log2(4. * fs / f0_low_limit + 1.))
+    if fft_size == 'auto':
+        fft_size = 2 ** np.ceil(np.log2(4.0 * fs / f0_low_limit + 1.0))
     else:
-        raise ValueError("Only fft_size auto currently supported")
+        raise ValueError('Only fft_size auto currently supported')
     f0_low_limit_for_spectrum = 71
-    fft_size_for_spectrum = 2 ** np.ceil(np.log2(3 * fs / f0_low_limit_for_spectrum + 1.))
+    fft_size_for_spectrum = 2 ** np.ceil(
+        np.log2(3 * fs / f0_low_limit_for_spectrum + 1.0)
+    )
     threshold = 0.85
     upper_limit = 15000
     frequency_interval = 3000
     f0 = f0_h.copy()
     temporal_positions = temporal_positions_h.copy()
-    f0[vuv_h == 0] = 0.
+    f0[vuv_h == 0] = 0.0
 
     number_of_aperiodicities = int(
-        np.floor(np.min([upper_limit, fs / 2. - frequency_interval]) / float(frequency_interval)))
+        np.floor(
+            np.min([upper_limit, fs / 2.0 - frequency_interval])
+            / float(frequency_interval)
+        )
+    )
     window_length = np.floor(frequency_interval / (fs / float(fft_size))) * 2 + 1
     window1 = harvest_nuttall(window_length)
     aperiodicity = np.zeros((int(fft_size_for_spectrum / 2) + 1, len(f0)))
     coarse_ap = np.zeros((1, len(f0)))
 
-    frequency_axis = np.arange(int(fft_size_for_spectrum / 2) + 1) * float(fs) / fft_size_for_spectrum
+    frequency_axis = (
+        np.arange(int(fft_size_for_spectrum / 2) + 1)
+        * float(fs)
+        / fft_size_for_spectrum
+    )
     coarse_axis = np.arange(number_of_aperiodicities + 2) * frequency_interval
-    coarse_axis[-1] = fs / 2.
+    coarse_axis[-1] = fs / 2.0
 
     for i in range(len(f0)):
         r = d4c_love_train(x, fs, f0[i], temporal_positions_h[i], threshold)
@@ -2812,39 +3046,58 @@ def d4c(x, fs, temporal_positions_h, f0_h, vuv_h, threshold="default",
             aperiodicity[:, i] = 1 - 0.000000000001
             continue
         current_f0 = max([f0_low_limit, f0[i]])
-        coarse_aperiodicity = d4c_estimate_one_slice(x, fs, current_f0,
-                                                     frequency_interval, temporal_positions[i], fft_size,
-                                                     number_of_aperiodicities, window1)
+        coarse_aperiodicity = d4c_estimate_one_slice(
+            x,
+            fs,
+            current_f0,
+            frequency_interval,
+            temporal_positions[i],
+            fft_size,
+            number_of_aperiodicities,
+            window1,
+        )
         coarse_ap[0, i] = coarse_aperiodicity.ravel()[0]
-        coarse_aperiodicity = np.maximum(0, coarse_aperiodicity - (current_f0 - 100) * 2. / 100.)
+        coarse_aperiodicity = np.maximum(
+            0, coarse_aperiodicity - (current_f0 - 100) * 2.0 / 100.0
+        )
         piece = np.concatenate([[-60], -coarse_aperiodicity.ravel(), [-0.000000000001]])
-        part = interp1d(coarse_axis, piece, kind="linear")(frequency_axis) / 20.
+        part = interp1d(coarse_axis, piece, kind='linear')(frequency_axis) / 20.0
         aperiodicity[:, i] = 10 ** part
     return temporal_positions_h, f0_h, vuv_h, aperiodicity.T, coarse_ap.squeeze()
 
 
-def world_synthesis_time_base_generation(temporal_positions, f0, fs, vuv,
-                                         time_axis, default_f0):
-    f0_interpolated_raw = interp1d(temporal_positions, f0, kind="linear",
-                                   fill_value="extrapolate")(time_axis)
-    vuv_interpolated = interp1d(temporal_positions, vuv, kind="linear",
-                                fill_value="extrapolate")(time_axis)
+def world_synthesis_time_base_generation(
+    temporal_positions, f0, fs, vuv, time_axis, default_f0
+):
+    f0_interpolated_raw = interp1d(
+        temporal_positions, f0, kind='linear', fill_value='extrapolate'
+    )(time_axis)
+    vuv_interpolated = interp1d(
+        temporal_positions, vuv, kind='linear', fill_value='extrapolate'
+    )(time_axis)
     vuv_interpolated = vuv_interpolated > 0.5
-    f0_interpolated = f0_interpolated_raw * vuv_interpolated.astype("float32")
-    f0_interpolated[f0_interpolated == 0] = f0_interpolated[f0_interpolated == 0] + default_f0
+    f0_interpolated = f0_interpolated_raw * vuv_interpolated.astype('float32')
+    f0_interpolated[f0_interpolated == 0] = (
+        f0_interpolated[f0_interpolated == 0] + default_f0
+    )
     total_phase = np.cumsum(2 * np.pi * f0_interpolated / float(fs))
 
     core = np.mod(total_phase, 2 * np.pi)
     core = np.abs(core[1:] - core[:-1])
     # account for diff, avoid deprecation warning with [:-1]
-    pulse_locations = time_axis[:-1][core > (np.pi / 2.)]
-    pulse_locations_index = np.round(pulse_locations * fs).astype("int32")
+    pulse_locations = time_axis[:-1][core > (np.pi / 2.0)]
+    pulse_locations_index = np.round(pulse_locations * fs).astype('int32')
     return pulse_locations, pulse_locations_index, vuv_interpolated
 
 
-def world_synthesis_get_spectral_parameters(temporal_positions,
-                                            temporal_position_index, spectrogram, amplitude_periodic,
-                                            amplitude_random, pulse_locations):
+def world_synthesis_get_spectral_parameters(
+    temporal_positions,
+    temporal_position_index,
+    spectrogram,
+    amplitude_periodic,
+    amplitude_random,
+    pulse_locations,
+):
     floor_index = int(np.floor(temporal_position_index) - 1)
     assert floor_index >= 0
     ceil_index = int(np.ceil(temporal_position_index) - 1)
@@ -2856,19 +3109,34 @@ def world_synthesis_get_spectral_parameters(temporal_positions,
         periodic_slice = amplitude_periodic[:, floor_index]
         aperiodic_slice = amplitude_random[:, floor_index]
     else:
-        cs = np.concatenate([spectrogram[:, floor_index][None],
-                             spectrogram[:, ceil_index][None]], axis=0)
+        cs = np.concatenate(
+            [spectrogram[:, floor_index][None], spectrogram[:, ceil_index][None]],
+            axis=0,
+        )
         mmm = max([t1, min([t2, pulse_locations])])
-        spectrum_slice = interp1d(np.array([t1, t2]), cs,
-                                  kind="linear", axis=0)(mmm.copy())
-        cp = np.concatenate([amplitude_periodic[:, floor_index][None],
-                             amplitude_periodic[:, ceil_index][None]], axis=0)
-        periodic_slice = interp1d(np.array([t1, t2]), cp,
-                                  kind="linear", axis=0)(mmm.copy())
-        ca = np.concatenate([amplitude_random[:, floor_index][None],
-                             amplitude_random[:, ceil_index][None]], axis=0)
-        aperiodic_slice = interp1d(np.array([t1, t2]), ca,
-                                   kind="linear", axis=0)(mmm.copy())
+        spectrum_slice = interp1d(np.array([t1, t2]), cs, kind='linear', axis=0)(
+            mmm.copy()
+        )
+        cp = np.concatenate(
+            [
+                amplitude_periodic[:, floor_index][None],
+                amplitude_periodic[:, ceil_index][None],
+            ],
+            axis=0,
+        )
+        periodic_slice = interp1d(np.array([t1, t2]), cp, kind='linear', axis=0)(
+            mmm.copy()
+        )
+        ca = np.concatenate(
+            [
+                amplitude_random[:, floor_index][None],
+                amplitude_random[:, ceil_index][None],
+            ],
+            axis=0,
+        )
+        aperiodic_slice = interp1d(np.array([t1, t2]), ca, kind='linear', axis=0)(
+            mmm.copy()
+        )
     return spectrum_slice, periodic_slice, aperiodic_slice
 
 
@@ -2914,8 +3182,7 @@ def fftfilt(b, x, *n):
             # cost of the overlap-add method for 1 length-N block is
             # N*(1+log2(N)). For the sake of efficiency, only FFT
             # lengths that are powers of 2 are considered:
-            N = 2 ** np.arange(np.ceil(np.log2(N_b)),
-                               np.floor(np.log2(N_x)))
+            N = 2 ** np.arange(np.ceil(np.log2(N_b)), np.floor(np.log2(N_x)))
             cost = np.ceil(N_x / (N - N_b + 1)) * N * (np.log2(N) + 1)
             N_fft = N[np.argmin(cost)]
         else:
@@ -2937,19 +3204,20 @@ def fftfilt(b, x, *n):
         il = min([i + L, N_x])
         k = min([i + N_fft, N_x])
         yt = np.fft.ifft(np.fft.fft(x[i:il], N_fft) * H, N_fft)  # Overlap..
-        y[i:k] = y[i:k] + yt[:k - i]  # and add
+        y[i:k] = y[i:k] + yt[: k - i]  # and add
         i += L
     return y
 
 
-def world_synthesis(f0_d4c, vuv_d4c, aperiodicity_d4c,
-                    spectrogram_ct, fs_ct, random_seed=1999):
+def world_synthesis(
+    f0_d4c, vuv_d4c, aperiodicity_d4c, spectrogram_ct, fs_ct, random_seed=1999
+):
     # swap 0 and 1 axis
     spectrogram_ct = spectrogram_ct.T
     fs = fs_ct
     # coarse -> fine aper
     if len(aperiodicity_d4c.shape) == 1 or aperiodicity_d4c.shape[1] == 1:
-        print("Coarse aperiodicity detected - interpolating to full size")
+        print('Coarse aperiodicity detected - interpolating to full size')
         aper = np.zeros_like(spectrogram_ct)
         if len(aperiodicity_d4c.shape) == 1:
             aperiodicity_d4c = aperiodicity_d4c[None, :]
@@ -2959,44 +3227,54 @@ def world_synthesis(f0_d4c, vuv_d4c, aperiodicity_d4c,
         frequency_interval = 3000
         upper_limit = 15000
         number_of_aperiodicities = int(
-            np.floor(np.min([upper_limit, fs / 2. - frequency_interval]) / float(frequency_interval)))
+            np.floor(
+                np.min([upper_limit, fs / 2.0 - frequency_interval])
+                / float(frequency_interval)
+            )
+        )
         coarse_axis = np.arange(number_of_aperiodicities + 2) * frequency_interval
-        coarse_axis[-1] = fs / 2.
+        coarse_axis[-1] = fs / 2.0
         f0_low_limit_for_spectrum = 71
-        fft_size_for_spectrum = 2 ** np.ceil(np.log2(3 * fs / f0_low_limit_for_spectrum + 1.))
+        fft_size_for_spectrum = 2 ** np.ceil(
+            np.log2(3 * fs / f0_low_limit_for_spectrum + 1.0)
+        )
 
-        frequency_axis = np.arange(int(fft_size_for_spectrum / 2) + 1) * float(fs) / fft_size_for_spectrum
+        frequency_axis = (
+            np.arange(int(fft_size_for_spectrum / 2) + 1)
+            * float(fs)
+            / fft_size_for_spectrum
+        )
 
         for i in range(len(f0_d4c)):
             ca = coarse_aper_d4c[0, i]
             cf = f0_d4c[i]
-            coarse_aperiodicity = np.maximum(0, ca - (cf - 100) * 2. / 100.)
+            coarse_aperiodicity = np.maximum(0, ca - (cf - 100) * 2.0 / 100.0)
             piece = np.concatenate([[-60], -ca.ravel(), [-0.000000000001]])
-            part = interp1d(coarse_axis, piece, kind="linear")(frequency_axis) / 20.
+            part = interp1d(coarse_axis, piece, kind='linear')(frequency_axis) / 20.0
             aper[:, i] = 10 ** part
         aperiodicity_d4c = aper
     else:
         aperiodicity_d4c = aperiodicity_d4c.T
 
-    default_f0 = 500.
+    default_f0 = 500.0
     random_state = np.random.RandomState(1999)
     spectrogram = spectrogram_ct
     aperiodicity = aperiodicity_d4c
     # max 30s, if greater than thrown an error
     max_len = 5000000
     _, temporal_positions = _world_get_temporal_positions(max_len, fs)
-    temporal_positions = temporal_positions[:spectrogram.shape[1]]
+    temporal_positions = temporal_positions[: spectrogram.shape[1]]
     # temporal_positions = temporal_positions_d4c
     # from IPython import embed; embed()
     # raise ValueError()
     vuv = vuv_d4c
     f0 = f0_d4c
 
-    time_axis = np.arange(temporal_positions[0], temporal_positions[-1],
-                          1. / fs)
-    y = 0. * time_axis
-    r = world_synthesis_time_base_generation(temporal_positions, f0, fs, vuv,
-                                             time_axis, default_f0)
+    time_axis = np.arange(temporal_positions[0], temporal_positions[-1], 1.0 / fs)
+    y = 0.0 * time_axis
+    r = world_synthesis_time_base_generation(
+        temporal_positions, f0, fs, vuv, time_axis, default_f0
+    )
     pulse_locations, pulse_locations_index, interpolated_vuv = r
     fft_size = int((len(spectrogram) - 1) * 2)
     base_index = np.arange(-fft_size / 2, fft_size / 2) + 1
@@ -3004,53 +3282,75 @@ def world_synthesis(f0_d4c, vuv_d4c, aperiodicity_d4c,
     tmp_complex_cepstrum = np.zeros((fft_size,), dtype=np.complex128)
     latter_index = np.arange(int(fft_size / 2) + 1, fft_size + 1) - 1
 
-    temporal_position_index = interp1d(temporal_positions, np.arange(1, len(temporal_positions) + 1), kind="linear",
-                                       fill_value="extrapolate")(pulse_locations)
-    temporal_postion_index = np.maximum(1, np.minimum(len(temporal_positions),
-                                                      temporal_position_index)) - 1
+    temporal_position_index = interp1d(
+        temporal_positions,
+        np.arange(1, len(temporal_positions) + 1),
+        kind='linear',
+        fill_value='extrapolate',
+    )(pulse_locations)
+    temporal_postion_index = (
+        np.maximum(1, np.minimum(len(temporal_positions), temporal_position_index)) - 1
+    )
 
     amplitude_aperiodic = aperiodicity ** 2
-    amplitude_periodic = np.maximum(0.001, (1. - amplitude_aperiodic))
+    amplitude_periodic = np.maximum(0.001, (1.0 - amplitude_aperiodic))
 
     for i in range(len(pulse_locations_index)):
-        spectrum_slice, periodic_slice, aperiodic_slice = world_synthesis_get_spectral_parameters(
-            temporal_positions, temporal_position_index[i], spectrogram,
-            amplitude_periodic, amplitude_aperiodic, pulse_locations[i])
+        (
+            spectrum_slice,
+            periodic_slice,
+            aperiodic_slice,
+        ) = world_synthesis_get_spectral_parameters(
+            temporal_positions,
+            temporal_position_index[i],
+            spectrogram,
+            amplitude_periodic,
+            amplitude_aperiodic,
+            pulse_locations[i],
+        )
         idx = min(len(pulse_locations_index), i + 2) - 1
         noise_size = pulse_locations_index[idx] - pulse_locations_index[i]
-        output_buffer_index = np.maximum(1, np.minimum(y_length, pulse_locations_index[i] + 1 + base_index)).astype(
-            "int32") - 1
+        output_buffer_index = (
+            np.maximum(
+                1, np.minimum(y_length, pulse_locations_index[i] + 1 + base_index)
+            ).astype('int32')
+            - 1
+        )
 
         if interpolated_vuv[pulse_locations_index[i]] >= 0.5:
             tmp_periodic_spectrum = spectrum_slice * periodic_slice
             # eps in matlab/octave
-            tmp_periodic_spectrum[tmp_periodic_spectrum == 0] = 2.2204E-16
-            periodic_spectrum = np.concatenate([tmp_periodic_spectrum,
-                                                tmp_periodic_spectrum[1:-1][::-1]])
-            tmp_cepstrum = np.real(np.fft.fft(np.log(np.abs(periodic_spectrum)) / 2.))
+            tmp_periodic_spectrum[tmp_periodic_spectrum == 0] = 2.2204e-16
+            periodic_spectrum = np.concatenate(
+                [tmp_periodic_spectrum, tmp_periodic_spectrum[1:-1][::-1]]
+            )
+            tmp_cepstrum = np.real(np.fft.fft(np.log(np.abs(periodic_spectrum)) / 2.0))
             tmp_complex_cepstrum[latter_index] = tmp_cepstrum[latter_index] * 2
             tmp_complex_cepstrum[0] = tmp_cepstrum[0]
 
-            response = np.fft.fftshift(np.real(np.fft.ifft(np.exp(np.fft.ifft(
-                tmp_complex_cepstrum)))))
-            y[output_buffer_index] += response * np.sqrt(
-                max([1, noise_size]))
+            response = np.fft.fftshift(
+                np.real(np.fft.ifft(np.exp(np.fft.ifft(tmp_complex_cepstrum))))
+            )
+            y[output_buffer_index] += response * np.sqrt(max([1, noise_size]))
             tmp_aperiodic_spectrum = spectrum_slice * aperiodic_slice
         else:
             tmp_aperiodic_spectrum = spectrum_slice
 
-        tmp_aperiodic_spectrum[tmp_aperiodic_spectrum == 0] = 2.2204E-16
-        aperiodic_spectrum = np.concatenate([tmp_aperiodic_spectrum,
-                                             tmp_aperiodic_spectrum[1:-1][::-1]])
-        tmp_cepstrum = np.real(np.fft.fft(np.log(np.abs(aperiodic_spectrum)) / 2.))
+        tmp_aperiodic_spectrum[tmp_aperiodic_spectrum == 0] = 2.2204e-16
+        aperiodic_spectrum = np.concatenate(
+            [tmp_aperiodic_spectrum, tmp_aperiodic_spectrum[1:-1][::-1]]
+        )
+        tmp_cepstrum = np.real(np.fft.fft(np.log(np.abs(aperiodic_spectrum)) / 2.0))
         tmp_complex_cepstrum[latter_index] = tmp_cepstrum[latter_index] * 2
         tmp_complex_cepstrum[0] = tmp_cepstrum[0]
         rc = np.fft.ifft(tmp_complex_cepstrum)
         erc = np.exp(rc)
         response = np.fft.fftshift(np.real(np.fft.ifft(erc)))
-        noise_input = random_state.randn(max([3, noise_size]), )
+        noise_input = random_state.randn(max([3, noise_size]),)
 
-        y[output_buffer_index] = y[output_buffer_index] + fftfilt(noise_input - np.mean(noise_input), response)
+        y[output_buffer_index] = y[output_buffer_index] + fftfilt(
+            noise_input - np.mean(noise_input), response
+        )
     return y
 
 
@@ -3061,15 +3361,15 @@ def _mgc_b2c(wc, c, alpha):
         prev = copy.copy(wc_o)
         wc_o[0] = c[i]
         if desired_order >= 1:
-            wc_o[1] = (1. - alpha ** 2) * prev[0] + alpha * prev[1]
+            wc_o[1] = (1.0 - alpha ** 2) * prev[0] + alpha * prev[1]
         for m in range(2, desired_order + 1):
             wc_o[m] = prev[m - 1] + alpha * (prev[m] - wc_o[m - 1])
     return wc_o
 
 
 def _mgc_ptrans(p, m, alpha):
-    d = 0.
-    o = 0.
+    d = 0.0
+    o = 0.0
 
     d = p[m]
     for i in range(1, m)[::-1]:
@@ -3078,7 +3378,7 @@ def _mgc_ptrans(p, m, alpha):
         p[i] = o
 
     o = alpha * d
-    p[0] = (1. - alpha ** 2) * p[0] + 2 * o
+    p[0] = (1.0 - alpha ** 2) * p[0] + 2 * o
 
 
 def _mgc_qtrans(q, m, alpha):
@@ -3090,7 +3390,7 @@ def _mgc_qtrans(q, m, alpha):
 
 
 def _mgc_gain(er, c, m, g):
-    t = 0.
+    t = 0.0
     if g != 0:
         for i in range(1, m + 1):
             t += er[i] * c[i]
@@ -3114,26 +3414,26 @@ def _mgc_fill_hankel(A, t):
 
 
 def _mgc_ignorm(c, gamma):
-    if gamma == 0.:
+    if gamma == 0.0:
         c[0] = np.log(c[0])
         return c
     gain = c[0] ** gamma
     c[1:] *= gain
-    c[0] = (gain - 1.) / gamma
+    c[0] = (gain - 1.0) / gamma
 
 
 def _mgc_gnorm(c, gamma):
-    if gamma == 0.:
+    if gamma == 0.0:
         c[0] = np.exp(c[0])
         return c
-    gain = 1. + gamma * c[0]
+    gain = 1.0 + gamma * c[0]
     c[1:] /= gain
-    c[0] = gain ** (1. / gamma)
+    c[0] = gain ** (1.0 / gamma)
 
 
 def _mgc_b2mc(mc, alpha):
     m = len(mc)
-    o = 0.
+    o = 0.0
     d = mc[m - 1]
     for i in range(m - 1)[::-1]:
         o = mc[i] + alpha * d
@@ -3147,7 +3447,7 @@ def _mgc_mc2b(mc, alpha):
         mc[i] = mc[i] - alpha * mc[i + 1]
 
 
-def _mgc_gc2gc(src_ceps, src_gamma=0., dst_order=None, dst_gamma=0.):
+def _mgc_gc2gc(src_ceps, src_gamma=0.0, dst_order=None, dst_gamma=0.0):
     if dst_order == None:
         dst_order = len(src_ceps) - 1
 
@@ -3157,8 +3457,8 @@ def _mgc_gc2gc(src_ceps, src_gamma=0., dst_order=None, dst_gamma=0.):
     dst_ceps[0] = copy.deepcopy(src_ceps[0])
 
     for m in range(2, dst_order + 2):
-        ss1 = 0.
-        ss2 = 0.
+        ss1 = 0.0
+        ss2 = 0.0
         min_1 = m1 if (m1 < m - 1) else m - 2
         itr = list(range(2, min_1 + 2))
         if len(itr) < 1:
@@ -3184,38 +3484,58 @@ def _mgc_gc2gc(src_ceps, src_gamma=0., dst_order=None, dst_gamma=0.):
             ss1 += ((m - itr) * cc_a).sum()
 
         if m <= m1 + 1:
-            dst_ceps[m - 1] = src_ceps[m - 1] + (dst_gamma * ss2 - src_gamma * ss1) / (m - 1.)
+            dst_ceps[m - 1] = src_ceps[m - 1] + (dst_gamma * ss2 - src_gamma * ss1) / (
+                m - 1.0
+            )
         else:
-            dst_ceps[m - 1] = (dst_gamma * ss2 - src_gamma * ss1) / (m - 1.)
+            dst_ceps[m - 1] = (dst_gamma * ss2 - src_gamma * ss1) / (m - 1.0)
     return dst_ceps
 
 
-def _mgc_newton(mgc_stored, periodogram, order, alpha, gamma,
-                recursion_order, iter_number, y_fft, z_fft, cr, pr, rr, ri,
-                qr, qi, Tm, Hm, Tm_plus_Hm, b):
+def _mgc_newton(
+    mgc_stored,
+    periodogram,
+    order,
+    alpha,
+    gamma,
+    recursion_order,
+    iter_number,
+    y_fft,
+    z_fft,
+    cr,
+    pr,
+    rr,
+    ri,
+    qr,
+    qi,
+    Tm,
+    Hm,
+    Tm_plus_Hm,
+    b,
+):
     # a lot of inplace operations to match the Julia code
-    cr[1:order + 1] = mgc_stored[1:order + 1]
+    cr[1 : order + 1] = mgc_stored[1 : order + 1]
 
     if alpha != 0:
-        cr_res = _mgc_b2c(cr[:recursion_order + 1], cr[:order + 1], -alpha)
-        cr[:recursion_order + 1] = cr_res[:]
+        cr_res = _mgc_b2c(cr[: recursion_order + 1], cr[: order + 1], -alpha)
+        cr[: recursion_order + 1] = cr_res[:]
 
-    y = sp.fftpack.fft(np.cast["float64"](cr))
+    y = sp.fftpack.fft(np.cast['float64'](cr))
     c = mgc_stored
     x = periodogram
-    if gamma != 0.:
-        gamma_inv = 1. / gamma
+    if gamma != 0.0:
+        gamma_inv = 1.0 / gamma
     else:
         gamma_inv = np.inf
 
-    if gamma == -1.:
+    if gamma == -1.0:
         pr[:] = copy.deepcopy(x)
         new_pr = copy.deepcopy(pr)
-    elif gamma == 0.:
+    elif gamma == 0.0:
         pr[:] = copy.deepcopy(x) / np.exp(2 * np.real(y))
         new_pr = copy.deepcopy(pr)
     else:
-        tr = 1. + gamma * np.real(y)
+        tr = 1.0 + gamma * np.real(y)
         ti = -gamma * np.imag(y)
         trr = tr * tr
         tii = ti * ti
@@ -3228,10 +3548,10 @@ def _mgc_newton(mgc_stored, periodogram, order, alpha, gamma,
         t /= s
         qr[:] = (trr - tii) * t
         s = tr * ti * t
-        qi[:] = (s + s)
+        qi[:] = s + s
         new_pr = copy.deepcopy(pr)
 
-    if gamma != -1.:
+    if gamma != -1.0:
         """
         print()
         print(pr.sum())
@@ -3243,18 +3563,18 @@ def _mgc_newton(mgc_stored, periodogram, order, alpha, gamma,
         """
         pass
 
-    y_fft[:] = copy.deepcopy(pr) + 0.j
+    y_fft[:] = copy.deepcopy(pr) + 0.0j
     z_fft[:] = np.fft.fft(y_fft) / len(y_fft)
     pr[:] = copy.deepcopy(np.real(z_fft))
-    if alpha != 0.:
-        idx_1 = pr[:2 * order + 1]
-        idx_2 = pr[:recursion_order + 1]
+    if alpha != 0.0:
+        idx_1 = pr[: 2 * order + 1]
+        idx_2 = pr[: recursion_order + 1]
         idx_3 = _mgc_b2c(idx_1, idx_2, alpha)
-        pr[:2 * order + 1] = idx_3[:]
+        pr[: 2 * order + 1] = idx_3[:]
 
-    if gamma == 0. or gamma == -1.:
-        qr[:2 * order + 1] = pr[:2 * order + 1]
-        rr[:order + 1] = copy.deepcopy(pr[:order + 1])
+    if gamma == 0.0 or gamma == -1.0:
+        qr[: 2 * order + 1] = pr[: 2 * order + 1]
+        rr[: order + 1] = copy.deepcopy(pr[: order + 1])
     else:
         for i in range(len(qr)):
             y_fft[i] = qr[i] + 1j * qi[i]
@@ -3266,40 +3586,42 @@ def _mgc_newton(mgc_stored, periodogram, order, alpha, gamma,
         z_fft[:] = np.fft.fft(y_fft) / len(y_fft)
         rr[:] = np.real(z_fft)
 
-        if alpha != 0.:
-            qr_new = _mgc_b2c(qr[:recursion_order + 1], qr[:recursion_order + 1], alpha)
-            qr[:recursion_order + 1] = qr_new[:]
-            rr_new = _mgc_b2c(rr[:order + 1], rr[:recursion_order + 1], alpha)
-            rr[:order + 1] = rr_new[:]
+        if alpha != 0.0:
+            qr_new = _mgc_b2c(
+                qr[: recursion_order + 1], qr[: recursion_order + 1], alpha
+            )
+            qr[: recursion_order + 1] = qr_new[:]
+            rr_new = _mgc_b2c(rr[: order + 1], rr[: recursion_order + 1], alpha)
+            rr[: order + 1] = rr_new[:]
 
     if alpha != 0:
         _mgc_ptrans(pr, order, alpha)
         _mgc_qtrans(qr, order, alpha)
 
-    eta = 0.
-    if gamma != -1.:
+    eta = 0.0
+    if gamma != -1.0:
         eta = _mgc_gain(rr, c, order, gamma)
         c[0] = np.sqrt(eta)
 
-    if gamma == -1.:
-        qr[:] = 0.
-    elif gamma != 0.:
+    if gamma == -1.0:
+        qr[:] = 0.0
+    elif gamma != 0.0:
         for i in range(2, 2 * order + 1):
-            qr[i] *= 1. + gamma
+            qr[i] *= 1.0 + gamma
 
     te = pr[:order]
     _mgc_fill_toeplitz(Tm, te)
-    he = qr[2: 2 * order + 1]
+    he = qr[2 : 2 * order + 1]
     _mgc_fill_hankel(Hm, he)
 
     Tm_plus_Hm[:] = Hm[:] + Tm[:]
-    b[:order] = rr[1:order + 1]
+    b[:order] = rr[1 : order + 1]
     res = np.linalg.solve(Tm_plus_Hm, b)
     b[:] = res[:]
 
-    c[1:order + 1] += res[:order]
+    c[1 : order + 1] += res[:order]
 
-    if gamma == -1.:
+    if gamma == -1.0:
         eta = _mgc_gain(rr, c, order, gamma)
         c[0] = np.sqrt(eta)
     return np.log(eta), new_pr
@@ -3307,7 +3629,7 @@ def _mgc_newton(mgc_stored, periodogram, order, alpha, gamma,
 
 def _mgc_mgcepnorm(b_gamma, alpha, gamma, otype):
     if otype != 0:
-        raise ValueError("Not yet implemented for otype != 0")
+        raise ValueError('Not yet implemented for otype != 0')
 
     mgc = copy.deepcopy(b_gamma)
     _mgc_ignorm(mgc, gamma)
@@ -3315,7 +3637,17 @@ def _mgc_mgcepnorm(b_gamma, alpha, gamma, otype):
     return mgc
 
 
-def _sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2, maxiter=30, criteria=0.001, otype=0, verbose=False):
+def _sp2mgc(
+    sp,
+    order=20,
+    alpha=0.35,
+    gamma=-0.41,
+    miniter=2,
+    maxiter=30,
+    criteria=0.001,
+    otype=0,
+    verbose=False,
+):
     # Based on r9y9 Julia code
     # https://github.com/r9y9/MelGeneralizedCepstrums.jl
     periodogram = np.abs(sp) ** 2
@@ -3324,32 +3656,50 @@ def _sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2, maxiter=30, criter
     iter_number = 1
 
     def _z():
-        return np.zeros((slen,), dtype="float64")
+        return np.zeros((slen,), dtype='float64')
 
     def _o():
-        return np.zeros((order,), dtype="float64")
+        return np.zeros((order,), dtype='float64')
 
     def _o2():
-        return np.zeros((order, order), dtype="float64")
+        return np.zeros((order, order), dtype='float64')
 
     cr = _z()
     pr = _z()
     rr = _z()
-    ri = _z().astype("float128")
+    ri = _z().astype('float128')
     qr = _z()
-    qi = _z().astype("float128")
+    qi = _z().astype('float128')
     Tm = _o2()
     Hm = _o2()
     Tm_plus_Hm = _o2()
     b = _o()
     y = _z() + 0j
     z = _z() + 0j
-    b_gamma = np.zeros((order + 1,), dtype="float64")
+    b_gamma = np.zeros((order + 1,), dtype='float64')
     # return pr_new due to oddness with Julia having different numbers
     # in pr at end of function vs back in this scope
-    eta0, pr_new = _mgc_newton(b_gamma, periodogram, order, alpha, -1.,
-                               recursion_order, iter_number, y, z, cr, pr, rr,
-                               ri, qr, qi, Tm, Hm, Tm_plus_Hm, b)
+    eta0, pr_new = _mgc_newton(
+        b_gamma,
+        periodogram,
+        order,
+        alpha,
+        -1.0,
+        recursion_order,
+        iter_number,
+        y,
+        z,
+        cr,
+        pr,
+        rr,
+        ri,
+        qr,
+        qi,
+        Tm,
+        Hm,
+        Tm_plus_Hm,
+        b,
+    )
     pr[:] = pr_new
     """
     print(eta0)
@@ -3369,29 +3719,47 @@ def _sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2, maxiter=30, criter
     print(sum(b))
     raise ValueError()
     """
-    if gamma != -1.:
-        d = np.zeros((order + 1,), dtype="float64")
-        if alpha != 0.:
-            _mgc_ignorm(b_gamma, -1.)
+    if gamma != -1.0:
+        d = np.zeros((order + 1,), dtype='float64')
+        if alpha != 0.0:
+            _mgc_ignorm(b_gamma, -1.0)
             _mgc_b2mc(b_gamma, alpha)
             d = copy.deepcopy(b_gamma)
-            _mgc_gnorm(d, -1.)
+            _mgc_gnorm(d, -1.0)
             # numbers are slightly different here - numerical diffs?
         else:
             d = copy.deepcopy(b_gamma)
-        b_gamma = _mgc_gc2gc(d, -1., order, gamma)
+        b_gamma = _mgc_gc2gc(d, -1.0, order, gamma)
 
-        if alpha != 0.:
+        if alpha != 0.0:
             _mgc_ignorm(b_gamma, gamma)
             _mgc_mc2b(b_gamma, alpha)
             _mgc_gnorm(b_gamma, gamma)
 
-    if gamma != -1.:
+    if gamma != -1.0:
         eta_t = eta0
         for i in range(1, maxiter + 1):
-            eta, pr_new = _mgc_newton(b_gamma, periodogram, order, alpha,
-                                      gamma, recursion_order, i, y, z, cr, pr, rr,
-                                      ri, qr, qi, Tm, Hm, Tm_plus_Hm, b)
+            eta, pr_new = _mgc_newton(
+                b_gamma,
+                periodogram,
+                order,
+                alpha,
+                gamma,
+                recursion_order,
+                i,
+                y,
+                z,
+                cr,
+                pr,
+                rr,
+                ri,
+                qr,
+                qi,
+                Tm,
+                Hm,
+                Tm_plus_Hm,
+                b,
+            )
             pr[:] = pr_new
             """
             print(eta0)
@@ -3413,11 +3781,11 @@ def _sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2, maxiter=30, criter
             """
             err = np.abs((eta_t - eta) / eta)
             if verbose:
-                print(("iter %i, criterion: %f" % (i, err)))
+                print(('iter %i, criterion: %f' % (i, err)))
             if i >= miniter:
                 if err < criteria:
                     if verbose:
-                        print(("optimization complete at iter %i" % i))
+                        print(('optimization complete at iter %i' % i))
                     break
             eta_t = eta
     mgc_arr = _mgc_mgcepnorm(b_gamma, alpha, gamma, otype)
@@ -3431,19 +3799,38 @@ def _sp_collect_result(result):
     _sp_convert_results.append(result)
 
 
-def _sp_convert(c_i, order, alpha, gamma, miniter, maxiter, criteria,
-                otype, verbose):
+def _sp_convert(c_i, order, alpha, gamma, miniter, maxiter, criteria, otype, verbose):
     i = c_i[0]
     tot_i = c_i[1]
     sp_i = c_i[2]
-    r_i = (i, _sp2mgc(sp_i, order=order, alpha=alpha, gamma=gamma,
-                      miniter=miniter, maxiter=maxiter, criteria=criteria,
-                      otype=otype, verbose=verbose))
+    r_i = (
+        i,
+        _sp2mgc(
+            sp_i,
+            order=order,
+            alpha=alpha,
+            gamma=gamma,
+            miniter=miniter,
+            maxiter=maxiter,
+            criteria=criteria,
+            otype=otype,
+            verbose=verbose,
+        ),
+    )
     return r_i
 
 
-def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
-           maxiter=30, criteria=0.001, otype=0, verbose=False):
+def sp2mgc(
+    sp,
+    order=20,
+    alpha=0.35,
+    gamma=-0.41,
+    miniter=2,
+    maxiter=30,
+    criteria=0.001,
+    otype=0,
+    verbose=False,
+):
     """
     Accepts 1D or 2D one-sided spectrum (complex or real valued).
 
@@ -3457,9 +3844,17 @@ def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
 
     if len(sp.shape) == 1:
         sp = np.concatenate((sp, sp[:, 1:][:, ::-1]), axis=0)
-        return _sp2mgc(sp, order=order, alpha=alpha, gamma=gamma,
-                       miniter=miniter, maxiter=maxiter, criteria=criteria,
-                       otype=otype, verbose=verbose)
+        return _sp2mgc(
+            sp,
+            order=order,
+            alpha=alpha,
+            gamma=gamma,
+            miniter=miniter,
+            maxiter=maxiter,
+            criteria=criteria,
+            otype=otype,
+            verbose=verbose,
+        )
     else:
         sp = np.concatenate((sp, sp[:, 1:][:, ::-1]), axis=1)
         # Slooow, use multiprocessing to speed up a bit
@@ -3469,13 +3864,25 @@ def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
         p = Pool()
         start = time.time()
         if verbose:
-            print(("Starting conversion of %i frames" % sp.shape[0]))
-            print("This may take some time...")
+            print(('Starting conversion of %i frames' % sp.shape[0]))
+            print('This may take some time...')
 
         # takes ~360s for 630 frames, 1 process
         itr = p.map_async(
-            functools.partial(_sp_convert, order=order, alpha=alpha, gamma=gamma, miniter=miniter, maxiter=maxiter,
-                              criteria=criteria, otype=otype, verbose=False), c, callback=_sp_collect_result)
+            functools.partial(
+                _sp_convert,
+                order=order,
+                alpha=alpha,
+                gamma=gamma,
+                miniter=miniter,
+                maxiter=maxiter,
+                criteria=criteria,
+                otype=otype,
+                verbose=False,
+            ),
+            c,
+            callback=_sp_collect_result,
+        )
 
         sz = len(c) // itr._chunksize
         if (sz * itr._chunksize) != len(c):
@@ -3487,10 +3894,10 @@ def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
             if verbose:
                 if remaining != last_remaining:
                     last_remaining = remaining
-                    print(("%i chunks of %i complete" % (sz - remaining, sz)))
+                    print(('%i chunks of %i complete' % (sz - remaining, sz)))
             if itr.ready():
                 break
-            time.sleep(.5)
+            time.sleep(0.5)
 
         """
         # takes ~455s for 630 frames
@@ -3509,7 +3916,7 @@ def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
         p.join()
         stop = time.time()
         if verbose:
-            print(("Processed %i frames in %s seconds" % (sp.shape[0], stop - start)))
+            print(('Processed %i frames in %s seconds' % (sp.shape[0], stop - start)))
         # map_async result comes in chunks
         flat = [a_i for a in _sp_convert_results for a_i in a]
         final = [o[1] for o in sorted(flat, key=lambda x: x[0])]
@@ -3518,8 +3925,17 @@ def sp2mgc(sp, order=20, alpha=0.35, gamma=-0.41, miniter=2,
         return np.array(final)
 
 
-def win2mgc(windowed_signal, order=20, alpha=0.35, gamma=-0.41, miniter=2,
-            maxiter=30, criteria=0.001, otype=0, verbose=False):
+def win2mgc(
+    windowed_signal,
+    order=20,
+    alpha=0.35,
+    gamma=-0.41,
+    miniter=2,
+    maxiter=30,
+    criteria=0.001,
+    otype=0,
+    verbose=False,
+):
     """
     Accepts 1D or 2D array of windowed signal frames.
 
@@ -3532,11 +3948,19 @@ def win2mgc(windowed_signal, order=20, alpha=0.35, gamma=-0.41, miniter=2,
     """
     if len(windowed_signal.shape) == 1:
         sp = np.fft.fft(windowed_signal)
-        return _sp2mgc(sp, order=order, alpha=alpha, gamma=gamma,
-                       miniter=miniter, maxiter=maxiter, criteria=criteria,
-                       otype=otype, verbose=verbose)
+        return _sp2mgc(
+            sp,
+            order=order,
+            alpha=alpha,
+            gamma=gamma,
+            miniter=miniter,
+            maxiter=maxiter,
+            criteria=criteria,
+            otype=otype,
+            verbose=verbose,
+        )
     else:
-        raise ValueError("2D input not yet complete for win2mgc")
+        raise ValueError('2D input not yet complete for win2mgc')
 
 
 def _mgc_freqt(wc, c, alpha):
@@ -3549,15 +3973,15 @@ def _mgc_freqt(wc, c, alpha):
         if dst_order >= 0:
             wc[0] = c[-i] + alpha * prev[0]
         if dst_order >= 1:
-            wc[1] = (1. - alpha * alpha) * prev[0] + alpha * prev[1]
+            wc[1] = (1.0 - alpha * alpha) * prev[0] + alpha * prev[1]
         for m in range(2, dst_order + 1):
             wc[m] = prev[m - 1] + alpha * (prev[m] - wc[m - 1])
 
 
 def _mgc_mgc2mgc(src_ceps, src_alpha, src_gamma, dst_order, dst_alpha, dst_gamma):
     dst_ceps = np.zeros((dst_order + 1,))
-    alpha = (dst_alpha - src_alpha) / (1. - dst_alpha * src_alpha)
-    if alpha == 0.:
+    alpha = (dst_alpha - src_alpha) / (1.0 - dst_alpha * src_alpha)
+    if alpha == 0.0:
         new_dst_ceps = copy.deepcopy(src_ceps)
         _mgc_gnorm(new_dst_ceps, src_gamma)
         dst_ceps = _mgc_gc2gc(new_dst_ceps, src_gamma, dst_order, dst_gamma)
@@ -3582,13 +4006,29 @@ def _mgc_convert(c_i, alpha, gamma, fftlen):
     i = c_i[0]
     tot_i = c_i[1]
     mgc_i = c_i[2]
-    r_i = (i, _mgc_mgc2mgc(mgc_i, src_alpha=alpha, src_gamma=gamma,
-                           dst_order=fftlen // 2, dst_alpha=0., dst_gamma=0.))
+    r_i = (
+        i,
+        _mgc_mgc2mgc(
+            mgc_i,
+            src_alpha=alpha,
+            src_gamma=gamma,
+            dst_order=fftlen // 2,
+            dst_alpha=0.0,
+            dst_gamma=0.0,
+        ),
+    )
     return r_i
 
 
-def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
-           mode="world_pad", verbose=False):
+def mgc2sp(
+    mgc_arr,
+    alpha=0.35,
+    gamma=-0.41,
+    fftlen='auto',
+    fs=None,
+    mode='world_pad',
+    verbose=False,
+):
     """
     Accepts 1D or 2D array of mgc
 
@@ -3599,21 +4039,21 @@ def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
     Based on r9y9 Julia code
     https://github.com/r9y9/MelGeneralizedCepstrums.jl
     """
-    if mode != "world_pad":
-        raise ValueError("Only currently supported mode is world_pad")
+    if mode != 'world_pad':
+        raise ValueError('Only currently supported mode is world_pad')
 
-    if fftlen == "auto":
+    if fftlen == 'auto':
         if fs == None:
             raise ValueError("fs must be provided for fftlen 'auto'")
         f0_low_limit = 71
-        fftlen = int(2 ** np.ceil(np.log2(3. * float(fs) / f0_low_limit + 1)))
+        fftlen = int(2 ** np.ceil(np.log2(3.0 * float(fs) / f0_low_limit + 1)))
         if verbose:
-            print(("setting fftlen to %i" % fftlen))
+            print(('setting fftlen to %i' % fftlen))
 
     if len(mgc_arr.shape) == 1:
-        c = _mgc_mgc2mgc(mgc_arr, alpha, gamma, fftlen // 2, 0., 0.)
+        c = _mgc_mgc2mgc(mgc_arr, alpha, gamma, fftlen // 2, 0.0, 0.0)
         buf = np.zeros((fftlen,), dtype=c.dtype)
-        buf[:len(c)] = c[:]
+        buf[: len(c)] = c[:]
         return np.fft.rfft(buf)
     else:
         # Slooow, use multiprocessing to speed up a bit
@@ -3623,14 +4063,17 @@ def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
         p = Pool()
         start = time.time()
         if verbose:
-            print(("Starting conversion of %i frames" % mgc_arr.shape[0]))
-            print("This may take some time...")
+            print(('Starting conversion of %i frames' % mgc_arr.shape[0]))
+            print('This may take some time...')
         # itr = p.map(functools.partial(_mgc_convert, alpha=alpha, gamma=gamma, fftlen=fftlen), c)
         # raise ValueError()
 
         # 500.1 s for 630 frames process
-        itr = p.map_async(functools.partial(_mgc_convert, alpha=alpha, gamma=gamma, fftlen=fftlen), c,
-                          callback=_mgc_collect_result)
+        itr = p.map_async(
+            functools.partial(_mgc_convert, alpha=alpha, gamma=gamma, fftlen=fftlen),
+            c,
+            callback=_mgc_collect_result,
+        )
 
         sz = len(c) // itr._chunksize
         if (sz * itr._chunksize) != len(c):
@@ -3642,15 +4085,17 @@ def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
             if verbose:
                 if last_remaining != remaining:
                     last_remaining = remaining
-                    print(("%i chunks of %i complete" % (sz - remaining, sz)))
+                    print(('%i chunks of %i complete' % (sz - remaining, sz)))
             if itr.ready():
                 break
-            time.sleep(.5)
+            time.sleep(0.5)
         p.close()
         p.join()
         stop = time.time()
         if verbose:
-            print(("Processed %i frames in %s seconds" % (mgc_arr.shape[0], stop - start)))
+            print(
+                ('Processed %i frames in %s seconds' % (mgc_arr.shape[0], stop - start))
+            )
         # map_async result comes in chunks
         flat = [a_i for a in _mgc_convert_results for a_i in a]
         final = [o[1] for o in sorted(flat, key=lambda x: x[0])]
@@ -3658,15 +4103,16 @@ def mgc2sp(mgc_arr, alpha=0.35, gamma=-0.41, fftlen="auto", fs=None,
             _mgc_convert_results.pop()
         c = np.array(final)
         buf = np.zeros((len(c), fftlen), dtype=c.dtype)
-        buf[:, :c.shape[1]] = c[:]
+        buf[:, : c.shape[1]] = c[:]
         return np.exp(np.fft.rfft(buf, axis=-1).real)
 
 
-def implot(arr, scale=None, title="", cmap="gray"):
+def implot(arr, scale=None, title='', cmap='gray'):
     import matplotlib.pyplot as plt
-    if scale is "specgram":
+
+    if scale is 'specgram':
         # plotting part
-        mag = 20. * np.log10(np.abs(arr))
+        mag = 20.0 * np.log10(np.abs(arr))
         # Transpose so time is X axis, and invert y axis so
         # frequency is low at bottom
         mag = mag.T[::-1, :]
@@ -3674,7 +4120,7 @@ def implot(arr, scale=None, title="", cmap="gray"):
         mag = arr
     f, ax = plt.subplots()
     ax.matshow(mag, cmap=cmap)
-    plt.axis("off")
+    plt.axis('off')
     x1 = mag.shape[0]
     y1 = mag.shape[1]
 
@@ -3698,10 +4144,14 @@ def test_lpc_to_lsf():
     # Matlab style vectors for testing
     # lsf = [0.7842 1.5605 1.8776 1.8984 2.3593]
     # a = [1.0000  0.6149  0.9899  0.0000  0.0031 -0.0082];
-    lsf = [[0.7842, 1.5605, 1.8776, 1.8984, 2.3593],
-           [0.7842, 1.5605, 1.8776, 1.8984, 2.3593]]
-    a = [[1.0000, 0.6149, 0.9899, 0.0000, 0.0031, -0.0082],
-         [1.0000, 0.6149, 0.9899, 0.0000, 0.0031, -0.0082]]
+    lsf = [
+        [0.7842, 1.5605, 1.8776, 1.8984, 2.3593],
+        [0.7842, 1.5605, 1.8776, 1.8984, 2.3593],
+    ]
+    a = [
+        [1.0000, 0.6149, 0.9899, 0.0000, 0.0031, -0.0082],
+        [1.0000, 0.6149, 0.9899, 0.0000, 0.0031, -0.0082],
+    ]
     a = np.array(a)
     lsf = np.array(lsf)
     lsf_r = lpc_to_lsf(a)
@@ -3716,9 +4166,15 @@ def test_lpc_to_lsf():
 
 def test_lpc_analysis_truncate():
     # Test that truncate doesn't crash and actually truncates
-    [a, g, e] = lpc_analysis(np.random.randn(85), order=8, window_step=80,
-                             window_size=80, emphasis=0.9, truncate=True)
-    assert (a.shape[0] == 1)
+    [a, g, e] = lpc_analysis(
+        np.random.randn(85),
+        order=8,
+        window_step=80,
+        window_size=80,
+        emphasis=0.9,
+        truncate=True,
+    )
+    assert a.shape[0] == 1
 
 
 def test_feature_build():
@@ -3727,29 +4183,28 @@ def test_feature_build():
     X = X.astype('float32') / (2 ** 15)
     wsz = 256
     wst = 128
-    a, g, e = lpc_analysis(X, order=8, window_step=wst,
-                           window_size=wsz, emphasis=0.9,
-                           copy=True)
-    v, p = voiced_unvoiced(X, window_size=wsz,
-                           window_step=wst)
+    a, g, e = lpc_analysis(
+        X, order=8, window_step=wst, window_size=wsz, emphasis=0.9, copy=True
+    )
+    v, p = voiced_unvoiced(X, window_size=wsz, window_step=wst)
     c = compress(e, n_components=64)
     # First component of a is always 1
-    combined = np.hstack((a[:, 1:], g, c[:a.shape[0]]))
+    combined = np.hstack((a[:, 1:], g, c[: a.shape[0]]))
     features = np.zeros((a.shape[0], 2 * combined.shape[1]))
     start_indices = v * combined.shape[1]
     start_indices = start_indices.astype('int32')
     end_indices = (v + 1) * combined.shape[1]
     end_indices = end_indices.astype('int32')
     for i in range(features.shape[0]):
-        features[i, start_indices[i]:end_indices[i]] = combined[i]
+        features[i, start_indices[i] : end_indices[i]] = combined[i]
 
 
 def test_mdct_and_inverse():
     fs, X = fetch_sample_music()
     X_dct = mdct_slow(X)
     X_r = imdct_slow(X_dct)
-    assert np.all(np.abs(X_r[:len(X)] - X) < 1E-3)
-    assert np.abs(X_r[:len(X)] - X).mean() < 1E-6
+    assert np.all(np.abs(X_r[: len(X)] - X) < 1e-3)
+    assert np.abs(X_r[: len(X)] - X).mean() < 1e-6
 
 
 def test_all():
@@ -3771,7 +4226,7 @@ def run_lpc_example():
     X_r = overlap_dct_uncompress(c, 400)
     wavfile.write('lpc_uncompress.wav', samplerate, soundsc(X_r))
 
-    print("Calculating sinusoids")
+    print('Calculating sinusoids')
     f_hz, m = sinusoid_analysis(X, input_sample_rate=16000)
     Xs_sine = sinusoid_synthesis(f_hz, m)
     orig_fname = 'lpc_orig.wav'
@@ -3779,9 +4234,15 @@ def run_lpc_example():
     wavfile.write(orig_fname, samplerate, soundsc(X))
     wavfile.write(sine_fname, samplerate, soundsc(Xs_sine))
 
-    lpc_order_list = [8, ]
-    dct_components_list = [200, ]
-    window_size_list = [400, ]
+    lpc_order_list = [
+        8,
+    ]
+    dct_components_list = [
+        200,
+    ]
+    window_size_list = [
+        400,
+    ]
     # Seems like a dct component size of ~2/3rds the step
     # (1/3rd the window for 50% overlap) works well.
     for lpc_order in lpc_order_list:
@@ -3789,47 +4250,60 @@ def run_lpc_example():
             for window_size in window_size_list:
                 # 50% overlap
                 window_step = window_size // 2
-                a, g, e = lpc_analysis(X, order=lpc_order,
-                                       window_step=window_step,
-                                       window_size=window_size, emphasis=0.9,
-                                       copy=True)
-                print("Calculating LSF")
+                a, g, e = lpc_analysis(
+                    X,
+                    order=lpc_order,
+                    window_step=window_step,
+                    window_size=window_size,
+                    emphasis=0.9,
+                    copy=True,
+                )
+                print('Calculating LSF')
                 lsf = lpc_to_lsf(a)
                 # Not window_size - window_step! Need to implement overlap
-                print("Calculating compression")
-                c = dct_compress(e, n_components=dct_components,
-                                 window_size=window_step)
-                co = overlap_dct_compress(e, n_components=dct_components,
-                                          window_size=window_step)
+                print('Calculating compression')
+                c = dct_compress(
+                    e, n_components=dct_components, window_size=window_step
+                )
+                co = overlap_dct_compress(
+                    e, n_components=dct_components, window_size=window_step
+                )
                 block_excitation = dct_uncompress(c, window_size=window_step)
-                overlap_excitation = overlap_dct_uncompress(co,
-                                                            window_size=window_step)
+                overlap_excitation = overlap_dct_uncompress(co, window_size=window_step)
                 a_r = lsf_to_lpc(lsf)
                 f, m = lpc_to_frequency(a_r, g)
-                block_lpc = lpc_synthesis(a_r, g, block_excitation,
-                                          emphasis=0.9,
-                                          window_step=window_step)
-                overlap_lpc = lpc_synthesis(a_r, g, overlap_excitation,
-                                            emphasis=0.9,
-                                            window_step=window_step)
-                v, p = voiced_unvoiced(X, window_size=window_size,
-                                       window_step=window_step)
-                noisy_lpc = lpc_synthesis(a_r, g, voiced_frames=v,
-                                          emphasis=0.9,
-                                          window_step=window_step)
+                block_lpc = lpc_synthesis(
+                    a_r, g, block_excitation, emphasis=0.9, window_step=window_step
+                )
+                overlap_lpc = lpc_synthesis(
+                    a_r, g, overlap_excitation, emphasis=0.9, window_step=window_step
+                )
+                v, p = voiced_unvoiced(
+                    X, window_size=window_size, window_step=window_step
+                )
+                noisy_lpc = lpc_synthesis(
+                    a_r, g, voiced_frames=v, emphasis=0.9, window_step=window_step
+                )
                 if dct_components is None:
                     dct_components = window_size
                 noisy_fname = 'lpc_noisy_synth_%iwin_%ilpc_%idct.wav' % (
-                    window_size, lpc_order, dct_components)
+                    window_size,
+                    lpc_order,
+                    dct_components,
+                )
                 block_fname = 'lpc_block_synth_%iwin_%ilpc_%idct.wav' % (
-                    window_size, lpc_order, dct_components)
+                    window_size,
+                    lpc_order,
+                    dct_components,
+                )
                 overlap_fname = 'lpc_overlap_synth_%iwin_%ilpc_%idct.wav' % (
-                    window_size, lpc_order, dct_components)
+                    window_size,
+                    lpc_order,
+                    dct_components,
+                )
                 wavfile.write(noisy_fname, samplerate, soundsc(noisy_lpc))
-                wavfile.write(block_fname, samplerate,
-                              soundsc(block_lpc))
-                wavfile.write(overlap_fname, samplerate,
-                              soundsc(overlap_lpc))
+                wavfile.write(block_fname, samplerate, soundsc(block_lpc))
+                wavfile.write(overlap_fname, samplerate, soundsc(overlap_lpc))
 
 
 def run_fft_vq_example():
@@ -3845,8 +4319,7 @@ def run_fft_vq_example():
         f_phs = complex_to_angle(f_c)
         f_sincos = angle_to_sin_cos(f_phs)
         f_r = np.hstack((f_mag, f_sincos))
-        f_r = f_r.reshape((len(f_r) // time_smoothing,
-                           time_smoothing * f_r.shape[1]))
+        f_r = f_r.reshape((len(f_r) // time_smoothing, time_smoothing * f_r.shape[1]))
         return f_r, n_fft
 
     def preprocess_train(list_of_data, random_state):
@@ -3858,10 +4331,11 @@ def run_fft_vq_example():
         f_r, n_fft = _pre(list_of_data)
         memberships, distances = vq(f_r, clusters)
         vq_r = clusters[memberships]
-        vq_r = vq_r.reshape((time_smoothing * len(vq_r),
-                             vq_r.shape[1] // time_smoothing))
-        f_mag = vq_r[:, :n_fft // 2 + 1]
-        f_sincos = vq_r[:, n_fft // 2 + 1:]
+        vq_r = vq_r.reshape(
+            (time_smoothing * len(vq_r), vq_r.shape[1] // time_smoothing)
+        )
+        f_mag = vq_r[:, : n_fft // 2 + 1]
+        f_sincos = vq_r[:, n_fft // 2 + 1 :]
         extent = f_sincos.shape[1] // 2
         f_phs = sin_cos_to_angle(f_sincos[:, :extent], f_sincos[:, extent:])
         vq_c = abs_and_angle_to_complex(f_mag, f_phs)
@@ -3892,20 +4366,20 @@ def run_fft_vq_example():
     fix_d1 = np.concatenate(d1)
     fix_d2 = np.concatenate(d2)
 
-    wavfile.write("fft_train_no_agc.wav", fs, soundsc(fix_d1))
-    wavfile.write("fft_test_no_agc.wav", fs, soundsc(fix_d2))
-    wavfile.write("fft_vq_train_no_agc.wav", fs, soundsc(vq_d1, fs))
-    wavfile.write("fft_vq_test_no_agc.wav", fs, soundsc(vq_d2, fs))
+    wavfile.write('fft_train_no_agc.wav', fs, soundsc(fix_d1))
+    wavfile.write('fft_test_no_agc.wav', fs, soundsc(fix_d2))
+    wavfile.write('fft_vq_train_no_agc.wav', fs, soundsc(vq_d1, fs))
+    wavfile.write('fft_vq_test_no_agc.wav', fs, soundsc(vq_d2, fs))
 
-    agc_d1, freq_d1, energy_d1 = time_attack_agc(fix_d1, fs, .5, 5)
-    agc_d2, freq_d2, energy_d2 = time_attack_agc(fix_d2, fs, .5, 5)
-    agc_vq_d1, freq_vq_d1, energy_vq_d1 = time_attack_agc(vq_d1, fs, .5, 5)
-    agc_vq_d2, freq_vq_d2, energy_vq_d2 = time_attack_agc(vq_d2, fs, .5, 5)
+    agc_d1, freq_d1, energy_d1 = time_attack_agc(fix_d1, fs, 0.5, 5)
+    agc_d2, freq_d2, energy_d2 = time_attack_agc(fix_d2, fs, 0.5, 5)
+    agc_vq_d1, freq_vq_d1, energy_vq_d1 = time_attack_agc(vq_d1, fs, 0.5, 5)
+    agc_vq_d2, freq_vq_d2, energy_vq_d2 = time_attack_agc(vq_d2, fs, 0.5, 5)
 
-    wavfile.write("fft_train_agc.wav", fs, soundsc(agc_d1))
-    wavfile.write("fft_test_agc.wav", fs, soundsc(agc_d2))
-    wavfile.write("fft_vq_train_agc.wav", fs, soundsc(agc_vq_d1, fs))
-    wavfile.write("fft_vq_test_agc.wav", fs, soundsc(agc_vq_d2))
+    wavfile.write('fft_train_agc.wav', fs, soundsc(agc_d1))
+    wavfile.write('fft_test_agc.wav', fs, soundsc(agc_d2))
+    wavfile.write('fft_vq_train_agc.wav', fs, soundsc(agc_vq_d1, fs))
+    wavfile.write('fft_vq_test_agc.wav', fs, soundsc(agc_vq_d2))
 
 
 def run_dct_vq_example():
@@ -3934,7 +4408,7 @@ def run_dct_vq_example():
     # This doesn't work very well due to only taking a sample from the end as
     # test
     fs, d = fetch_sample_music()
-    sub = int(.8 * d.shape[0])
+    sub = int(0.8 * d.shape[0])
     d1 = [d[:sub]]
     d2 = [d[sub:]]
 
@@ -3955,10 +4429,10 @@ def run_dct_vq_example():
     fix_d1 = np.concatenate(d1)
     fix_d2 = np.concatenate(d2)
 
-    wavfile.write("dct_train_no_agc.wav", fs, soundsc(fix_d1))
-    wavfile.write("dct_test_no_agc.wav", fs, soundsc(fix_d2))
-    wavfile.write("dct_vq_train_no_agc.wav", fs, soundsc(vq_d1))
-    wavfile.write("dct_vq_test_no_agc.wav", fs, soundsc(vq_d2))
+    wavfile.write('dct_train_no_agc.wav', fs, soundsc(fix_d1))
+    wavfile.write('dct_test_no_agc.wav', fs, soundsc(fix_d2))
+    wavfile.write('dct_vq_train_no_agc.wav', fs, soundsc(vq_d1))
+    wavfile.write('dct_vq_test_no_agc.wav', fs, soundsc(vq_d2))
 
     """
     import matplotlib.pyplot as plt
@@ -3968,15 +4442,15 @@ def run_dct_vq_example():
     plt.show()
     """
 
-    agc_d1, freq_d1, energy_d1 = time_attack_agc(fix_d1, fs, .5, 5)
-    agc_d2, freq_d2, energy_d2 = time_attack_agc(fix_d2, fs, .5, 5)
-    agc_vq_d1, freq_vq_d1, energy_vq_d1 = time_attack_agc(vq_d1, fs, .5, 5)
-    agc_vq_d2, freq_vq_d2, energy_vq_d2 = time_attack_agc(vq_d2, fs, .5, 5)
+    agc_d1, freq_d1, energy_d1 = time_attack_agc(fix_d1, fs, 0.5, 5)
+    agc_d2, freq_d2, energy_d2 = time_attack_agc(fix_d2, fs, 0.5, 5)
+    agc_vq_d1, freq_vq_d1, energy_vq_d1 = time_attack_agc(vq_d1, fs, 0.5, 5)
+    agc_vq_d2, freq_vq_d2, energy_vq_d2 = time_attack_agc(vq_d2, fs, 0.5, 5)
 
-    wavfile.write("dct_train_agc.wav", fs, soundsc(agc_d1))
-    wavfile.write("dct_test_agc.wav", fs, soundsc(agc_d2))
-    wavfile.write("dct_vq_train_agc.wav", fs, soundsc(agc_vq_d1))
-    wavfile.write("dct_vq_test_agc.wav", fs, soundsc(agc_vq_d2))
+    wavfile.write('dct_train_agc.wav', fs, soundsc(agc_d1))
+    wavfile.write('dct_test_agc.wav', fs, soundsc(agc_d2))
+    wavfile.write('dct_vq_train_agc.wav', fs, soundsc(agc_vq_d1))
+    wavfile.write('dct_vq_test_agc.wav', fs, soundsc(agc_vq_d2))
 
 
 def run_phase_reconstruction_example():
@@ -3985,8 +4459,9 @@ def run_phase_reconstruction_example():
     # says
     fftsize = 512
     step = 64
-    X_s = np.abs(stft(d, fftsize=fftsize, step=step, real=False,
-                      compute_onesided=False))
+    X_s = np.abs(
+        stft(d, fftsize=fftsize, step=step, real=False, compute_onesided=False)
+    )
     X_t = iterate_invert_spectrogram(X_s, fftsize, step, verbose=True)
 
     """
@@ -3999,8 +4474,8 @@ def run_phase_reconstruction_example():
     plt.close()
     """
 
-    wavfile.write("phase_original.wav", fs, soundsc(d))
-    wavfile.write("phase_reconstruction.wav", fs, soundsc(X_t))
+    wavfile.write('phase_original.wav', fs, soundsc(d))
+    wavfile.write('phase_reconstruction.wav', fs, soundsc(X_t))
 
 
 def run_phase_vq_example():
@@ -4009,9 +4484,12 @@ def run_phase_vq_example():
         # fruit perhaps due to samplerates
         n_fft = 256
         step = 32
-        f_r = np.vstack([np.abs(stft(dd, n_fft, step=step, real=False,
-                                     compute_onesided=False))
-                         for dd in list_of_data])
+        f_r = np.vstack(
+            [
+                np.abs(stft(dd, n_fft, step=step, real=False, compute_onesided=False))
+                for dd in list_of_data
+            ]
+        )
         return f_r, n_fft, step
 
     def preprocess_train(list_of_data, random_state):
@@ -4041,12 +4519,12 @@ def run_phase_vq_example():
     fix_d2 = np.concatenate(d2)
     vq_d2 = apply_preprocess(d2, clusters)
 
-    wavfile.write("phase_train_no_agc.wav", fs, soundsc(fix_d1))
-    wavfile.write("phase_vq_test_no_agc.wav", fs, soundsc(vq_d2))
+    wavfile.write('phase_train_no_agc.wav', fs, soundsc(fix_d1))
+    wavfile.write('phase_vq_test_no_agc.wav', fs, soundsc(vq_d2))
 
-    agc_d1, freq_d1, energy_d1 = time_attack_agc(fix_d1, fs, .5, 5)
-    agc_d2, freq_d2, energy_d2 = time_attack_agc(fix_d2, fs, .5, 5)
-    agc_vq_d2, freq_vq_d2, energy_vq_d2 = time_attack_agc(vq_d2, fs, .5, 5)
+    agc_d1, freq_d1, energy_d1 = time_attack_agc(fix_d1, fs, 0.5, 5)
+    agc_d2, freq_d2, energy_d2 = time_attack_agc(fix_d2, fs, 0.5, 5)
+    agc_vq_d2, freq_vq_d2, energy_vq_d2 = time_attack_agc(vq_d2, fs, 0.5, 5)
 
     """
     import matplotlib.pyplot as plt
@@ -4058,23 +4536,23 @@ def run_phase_vq_example():
     plt.show()
     """
 
-    wavfile.write("phase_train_agc.wav", fs, soundsc(agc_d1))
-    wavfile.write("phase_test_agc.wav", fs, soundsc(agc_d2))
-    wavfile.write("phase_vq_test_agc.wav", fs, soundsc(agc_vq_d2))
+    wavfile.write('phase_train_agc.wav', fs, soundsc(agc_d1))
+    wavfile.write('phase_test_agc.wav', fs, soundsc(agc_d2))
+    wavfile.write('phase_vq_test_agc.wav', fs, soundsc(agc_vq_d2))
 
 
 def run_cqt_example():
     try:
-        fs, d = fetch_sample_file("/Users/User/cqt_resources/kempff1.wav")
+        fs, d = fetch_sample_file('/Users/User/cqt_resources/kempff1.wav')
     except ValueError:
-        print("WARNING: Using sample music instead but kempff1.wav is the example")
+        print('WARNING: Using sample music instead but kempff1.wav is the example')
         fs, d = fetch_sample_music()
     X = d[:44100]
     X_cq, c_dc, c_nyq, multiscale, shift, window_lens = cqt(X, fs)
     X_r = icqt(X_cq, c_dc, c_nyq, multiscale, shift, window_lens)
     SNR = 20 * np.log10(np.linalg.norm(X - X_r) / np.linalg.norm(X))
-    wavfile.write("cqt_original.wav", fs, soundsc(X))
-    wavfile.write("cqt_reconstruction.wav", fs, soundsc(X_r))
+    wavfile.write('cqt_original.wav', fs, soundsc(X))
+    wavfile.write('cqt_reconstruction.wav', fs, soundsc(X_r))
 
 
 def run_fft_dct_example():
@@ -4088,56 +4566,60 @@ def run_fft_dct_example():
     X_dct = fftpack.dct(X_rr, axis=-1, norm='ortho')
     X_dct_sub = X_dct[1:] - X_dct[:-1]
     std = X_dct_sub.std(axis=0, keepdims=True)
-    X_dct_sub += .01 * std * random_state.randn(
-        X_dct_sub.shape[0], X_dct_sub.shape[1])
+    X_dct_sub += 0.01 * std * random_state.randn(X_dct_sub.shape[0], X_dct_sub.shape[1])
     X_dct_unsub = np.cumsum(X_dct_sub, axis=0)
     X_idct = fftpack.idct(X_dct_unsub, axis=-1, norm='ortho')
     X_irr = real_to_complex_view(X_idct)
-    X_r = istft(X_irr, n_fft)[:len(X)]
+    X_r = istft(X_irr, n_fft)[: len(X)]
 
     SNR = 20 * np.log10(np.linalg.norm(X - X_r) / np.linalg.norm(X))
     print(SNR)
 
-    wavfile.write("fftdct_orig.wav", fs, soundsc(X))
-    wavfile.write("fftdct_rec.wav", fs, soundsc(X_r))
+    wavfile.write('fftdct_orig.wav', fs, soundsc(X))
+    wavfile.write('fftdct_rec.wav', fs, soundsc(X_r))
 
 
 def run_world_example():
     fs, d = fetch_sample_speech_tapestry()
-    d = d.astype("float32") / 2 ** 15
+    d = d.astype('float32') / 2 ** 15
     temporal_positions_h, f0_h, vuv_h, f0_candidates_h = harvest(d, fs)
-    temporal_positions_ct, spectrogram_ct, fs_ct = cheaptrick(d, fs,
-                                                              temporal_positions_h, f0_h, vuv_h)
-    temporal_positions_d4c, f0_d4c, vuv_d4c, aper_d4c, coarse_aper_d4c = d4c(d, fs,
-                                                                             temporal_positions_h, f0_h, vuv_h)
+    temporal_positions_ct, spectrogram_ct, fs_ct = cheaptrick(
+        d, fs, temporal_positions_h, f0_h, vuv_h
+    )
+    temporal_positions_d4c, f0_d4c, vuv_d4c, aper_d4c, coarse_aper_d4c = d4c(
+        d, fs, temporal_positions_h, f0_h, vuv_h
+    )
     # y = world_synthesis(f0_d4c, vuv_d4c, aper_d4c, spectrogram_ct, fs_ct)
     y = world_synthesis(f0_d4c, vuv_d4c, coarse_aper_d4c, spectrogram_ct, fs_ct)
-    wavfile.write("out.wav", fs, soundsc(y))
+    wavfile.write('out.wav', fs, soundsc(y))
 
 
 def run_mgc_example():
     import matplotlib.pyplot as plt
-    fs, x = wavfile.read("test16k.wav")
+
+    fs, x = wavfile.read('test16k.wav')
     pos = 3000
     fftlen = 1024
     win = np.blackman(fftlen) / np.sqrt(np.sum(np.blackman(fftlen) ** 2))
-    xw = x[pos:pos + fftlen] * win
+    xw = x[pos : pos + fftlen] * win
     sp = 20 * np.log10(np.abs(np.fft.rfft(xw)))
     mgc_order = 20
     mgc_alpha = 0.41
     mgc_gamma = -0.35
-    mgc_arr = win2mgc(xw, order=mgc_order, alpha=mgc_alpha, gamma=mgc_gamma, verbose=True)
+    mgc_arr = win2mgc(
+        xw, order=mgc_order, alpha=mgc_alpha, gamma=mgc_gamma, verbose=True
+    )
     xwsp = 20 * np.log10(np.abs(np.fft.rfft(xw)))
     sp = mgc2sp(mgc_arr, mgc_alpha, mgc_gamma, fftlen)
     plt.plot(xwsp)
-    plt.plot(20. / np.log(10) * np.real(sp), "r")
+    plt.plot(20.0 / np.log(10) * np.real(sp), 'r')
     plt.xlim(1, len(xwsp))
     plt.show()
 
 
 def run_world_mgc_example():
     fs, d = fetch_sample_speech_tapestry()
-    d = d.astype("float32") / 2 ** 15
+    d = d.astype('float32') / 2 ** 15
 
     # harcoded for 16k from
     # https://github.com/CSTR-Edinburgh/merlin/blob/master/misc/scripts/vocoder/world/extract_features_for_merlin.sh
@@ -4153,13 +4635,14 @@ def run_world_mgc_example():
 
     def enc():
         temporal_positions_h, f0_h, vuv_h, f0_candidates_h = harvest(d, fs)
-        temporal_positions_ct, spectrogram_ct, fs_ct = cheaptrick(d, fs,
-                                                                  temporal_positions_h, f0_h, vuv_h)
-        temporal_positions_d4c, f0_d4c, vuv_d4c, aper_d4c, coarse_aper_d4c = d4c(d, fs,
-                                                                                 temporal_positions_h, f0_h, vuv_h)
+        temporal_positions_ct, spectrogram_ct, fs_ct = cheaptrick(
+            d, fs, temporal_positions_h, f0_h, vuv_h
+        )
+        temporal_positions_d4c, f0_d4c, vuv_d4c, aper_d4c, coarse_aper_d4c = d4c(
+            d, fs, temporal_positions_h, f0_h, vuv_h
+        )
 
-        mgc_arr = sp2mgc(spectrogram_ct, mgc_order, mgc_alpha, mgc_gamma,
-                         verbose=True)
+        mgc_arr = sp2mgc(spectrogram_ct, mgc_order, mgc_alpha, mgc_gamma, verbose=True)
         return mgc_arr, spectrogram_ct, f0_d4c, vuv_d4c, coarse_aper_d4c
 
     mgc_arr, spectrogram_ct, f0_d4c, vuv_d4c, coarse_aper_d4c = enc()
@@ -4176,7 +4659,7 @@ def run_world_mgc_example():
 
     y = world_synthesis(f0_d4c, vuv_d4c, coarse_aper_d4c, sp_r, fs)
     # y = world_synthesis(f0_d4c, vuv_d4c, aper_d4c, sp_r, fs)
-    wavfile.write("out_mgc.wav", fs, soundsc(y))
+    wavfile.write('out_mgc.wav', fs, soundsc(y))
 
 
 def get_frame(signal, winsize, no):
@@ -4186,7 +4669,7 @@ def get_frame(signal, winsize, no):
     return signal[start:end]
 
 
-class LTSD():
+class LTSD:
     """
     LTSD VAD code from jfsantos
     """
@@ -4209,14 +4692,18 @@ class LTSD():
         windownum = int(len(nsignal) // (self.winsize // 2) - 1)
         avgamp = np.zeros(self.winsize)
         for l in range(windownum):
-            avgamp += sp.absolute(sp.fft(get_frame(nsignal, self.winsize, l) * self.window))
+            avgamp += sp.absolute(
+                sp.fft(get_frame(nsignal, self.winsize, l) * self.window)
+            )
         return avgamp / float(windownum)
 
     def compute(self, signal):
         self.windownum = int(len(signal) // (self.winsize // 2) - 1)
         ltsds = np.zeros(self.windownum)
         # Calculate the average noise spectrum amplitude based 20 frames in the head parts of input signal.
-        self.avgnoise = self.compute_noise_avg_spectrum(signal[0:self.winsize * 20]) ** 2
+        self.avgnoise = (
+            self.compute_noise_avg_spectrum(signal[0 : self.winsize * 20]) ** 2
+        )
         for l in range(self.windownum):
             ltsds[l] = self.ltsd(signal, l, 5)
         return ltsds
@@ -4231,7 +4718,10 @@ class LTSD():
     def ltsd(self, signal, l, order):
         if l < order or l + order >= self.windownum:
             return 0
-        return 10.0 * np.log10(np.sum(self.ltse(signal, l, order) ** 2 / self.avgnoise) / float(len(self.avgnoise)))
+        return 10.0 * np.log10(
+            np.sum(self.ltse(signal, l, order) ** 2 / self.avgnoise)
+            / float(len(self.avgnoise))
+        )
 
 
 def ltsd_vad(x, fs, threshold=9, winsize=8192):
@@ -4243,7 +4733,7 @@ def ltsd_vad(x, fs, threshold=9, winsize=8192):
     x = (x - x.min()) / (x.max() - x.min())
     # works with 16 bit
     x = x * (2 ** 15)
-    x = x.astype("int32")
+    x = x.astype('int32')
     window = sp.hanning(winsize)
     ltsd = LTSD(winsize, window, 5)
     s_vad = ltsd.compute(x)
@@ -4268,7 +4758,7 @@ def ltsd_vad(x, fs, threshold=9, winsize=8192):
         else:
             f_vad[sss:ses] = True
     f_vad[ses:] = False
-    x = x.astype("float64")
+    x = x.astype('float64')
     x = x / float(2 ** 15)
     x = x * (orig_scale_max - orig_scale_min) + orig_scale_min
     x = x.astype(orig_dtype)
@@ -4278,24 +4768,24 @@ def ltsd_vad(x, fs, threshold=9, winsize=8192):
 def run_ltsd_example():
     fs, d = fetch_sample_speech_tapestry()
     winsize = 1024
-    d = d.astype("float32") / 2 ** 15
+    d = d.astype('float32') / 2 ** 15
     d -= d.mean()
 
     pad = 3 * fs
     noise_pwr = np.percentile(d, 1) ** 2
-    noise_pwr = max(1E-9, noise_pwr)
+    noise_pwr = max(1e-9, noise_pwr)
     d = np.concatenate((np.zeros((pad,)) + noise_pwr * np.random.randn(pad), d))
     _, vad_segments = ltsd_vad(d, fs, winsize=winsize)
     v_up = np.where(vad_segments == True)[0]
     s = v_up[0]
-    st = v_up[-1] + int(.5 * fs)
+    st = v_up[-1] + int(0.5 * fs)
     d = d[s:st]
 
-    bname = "tapestry.wav".split(".")[0]
-    wavfile.write("%s_out.wav" % bname, fs, soundsc(d))
+    bname = 'tapestry.wav'.split('.')[0]
+    wavfile.write('%s_out.wav' % bname, fs, soundsc(d))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run_ltsd_example()
     """
     Trying to run all examples will seg fault on my laptop - probably memory!

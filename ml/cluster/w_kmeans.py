@@ -9,15 +9,19 @@ import scipy.sparse as sp
 # from sklearn.base import BaseEstimator, ClusterMixin, TransformerMixin
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.utils.extmath import row_norms, squared_norm
+
 # from sklearn.utils.sparsefuncs_fast import assign_rows_csr
 from sklearn.utils.sparsefuncs import mean_variance_axis
+
 # from sklearn.utils.fixes import astype
 from sklearn.utils import check_array
 from sklearn.utils import check_random_state
 from sklearn.utils import as_float_array
+
 # from sklearn.utils import gen_batches
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils.validation import FLOAT_DTYPES
+
 # from sklearn.utils.random import choice
 from joblib import Parallel
 from joblib import delayed
@@ -40,7 +44,9 @@ else:
 # Initialization heuristic
 
 
-def _k_init_with_weights(X, weights, n_clusters, x_squared_norms, random_state, n_local_trials=None):
+def _k_init_with_weights(
+    X, weights, n_clusters, x_squared_norms, random_state, n_local_trials=None
+):
     """Init n_clusters seeds according to k-means++, using weights
     Parameters
     -----------
@@ -92,8 +98,8 @@ def _k_init_with_weights(X, weights, n_clusters, x_squared_norms, random_state, 
     # Initialize list of closest distances and calculate current potential
 
     closest_dist_sq = euclidean_distances(
-        centers[0, np.newaxis], X, Y_norm_squared=x_squared_norms,
-        squared=True)
+        centers[0, np.newaxis], X, Y_norm_squared=x_squared_norms, squared=True
+    )
     closest_dist_sq_weighted = closest_dist_sq * weights  ##check if dimensions agree
     current_pot_weighted = closest_dist_sq_weighted.sum()
 
@@ -106,8 +112,11 @@ def _k_init_with_weights(X, weights, n_clusters, x_squared_norms, random_state, 
 
         # Compute distances to center candidates
         distance_to_candidates = euclidean_distances(
-            X[candidate_ids], X, Y_norm_squared=x_squared_norms, squared=True)  # here we use the true distances
-        distance_to_candidates_weighted = distance_to_candidates * weights  ##check syntax
+            X[candidate_ids], X, Y_norm_squared=x_squared_norms, squared=True
+        )  # here we use the true distances
+        distance_to_candidates_weighted = (
+            distance_to_candidates * weights
+        )  ##check syntax
 
         # Decide which candidate is the best
         best_candidate = None
@@ -115,8 +124,9 @@ def _k_init_with_weights(X, weights, n_clusters, x_squared_norms, random_state, 
         best_dist_sq = None
         for trial in range(n_local_trials):
             # Compute potential when including center candidate
-            new_dist_sq = np.minimum(closest_dist_sq,
-                                     distance_to_candidates[trial])  ###check here too
+            new_dist_sq = np.minimum(
+                closest_dist_sq, distance_to_candidates[trial]
+            )  ###check here too
             # new_pot = new_dist_sq.sum()
             new_pot_weighted = (new_dist_sq * weights).sum()
 
@@ -144,14 +154,16 @@ def _k_init_with_weights(X, weights, n_clusters, x_squared_norms, random_state, 
 def _validate_center_shape(X, n_centers, centers):
     """Check if centers is compatible with X and n_centers"""
     if len(centers) != n_centers:
-        raise ValueError('The shape of the initial centers (%s) '
-                         'does not match the number of clusters %i'
-                         % (centers.shape, n_centers))
+        raise ValueError(
+            'The shape of the initial centers (%s) '
+            'does not match the number of clusters %i' % (centers.shape, n_centers)
+        )
     if centers.shape[1] != X.shape[1]:
         raise ValueError(
-            "The number of features of the initial centers %s "
-            "does not match the number of features of the data %s."
-            % (centers.shape[1], X.shape[1]))
+            'The number of features of the initial centers %s '
+            'does not match the number of features of the data %s.'
+            % (centers.shape[1], X.shape[1])
+        )
 
 
 def _tolerance(X, tol):
@@ -185,8 +197,7 @@ def _labels_inertia_precompute_dense(X, x_squared_norms, centers, distances):
     """
     n_samples = X.shape[0]
     k = centers.shape[0]
-    all_distances = euclidean_distances(centers, X, x_squared_norms,
-                                        squared=True)
+    all_distances = euclidean_distances(centers, X, x_squared_norms, squared=True)
     labels = np.empty(n_samples, dtype=np.int32)
     labels.fill(-1)
     mindist = np.empty(n_samples)
@@ -202,8 +213,9 @@ def _labels_inertia_precompute_dense(X, x_squared_norms, centers, distances):
     return labels, inertia
 
 
-def _labels_inertia(X, x_squared_norms, centers,
-                    precompute_distances=True, distances=None):
+def _labels_inertia(
+    X, x_squared_norms, centers, precompute_distances=True, distances=None
+):
     """E step of the K-means EM algorithm.
     Compute the labels and the inertia of the given samples and centers.
     This will compute the distances in-place.
@@ -237,18 +249,22 @@ def _labels_inertia(X, x_squared_norms, centers,
     # distances will be changed in-place
     if sp.issparse(X):
         inertia = _k_means._assign_labels_csr(
-            X, x_squared_norms, centers, labels, distances=distances)
+            X, x_squared_norms, centers, labels, distances=distances
+        )
     else:
         if precompute_distances:
-            return _labels_inertia_precompute_dense(X, x_squared_norms,
-                                                    centers, distances)
+            return _labels_inertia_precompute_dense(
+                X, x_squared_norms, centers, distances
+            )
         inertia = _k_means._assign_labels_array(
-            X, x_squared_norms, centers, labels, distances=distances)
+            X, x_squared_norms, centers, labels, distances=distances
+        )
     return labels, inertia
 
 
-def _init_centroids_with_weights(X, weights, k, init, random_state=None, x_squared_norms=None,
-                                 init_size=None):
+def _init_centroids_with_weights(
+    X, weights, k, init, random_state=None, x_squared_norms=None, init_size=None
+):
     """Compute the initial centroids
     Parameters
     ----------
@@ -284,22 +300,23 @@ def _init_centroids_with_weights(X, weights, k, init, random_state=None, x_squar
     if init_size is not None and init_size < n_samples:
         if init_size < k:
             warnings.warn(
-                "init_size=%d should be larger than k=%d. "
-                "Setting it to 3*k" % (init_size, k),
-                RuntimeWarning, stacklevel=2)
+                'init_size=%d should be larger than k=%d. '
+                'Setting it to 3*k' % (init_size, k),
+                RuntimeWarning,
+                stacklevel=2,
+            )
             init_size = 3 * k
-        init_indices = np.random.random_integers(
-            0, n_samples - 1, init_size)
+        init_indices = np.random.random_integers(0, n_samples - 1, init_size)
         X = X[init_indices]
         x_squared_norms = x_squared_norms[init_indices]
         n_samples = X.shape[0]
     elif n_samples < k:
-        raise ValueError(
-            "n_samples=%d should be larger than k=%d" % (n_samples, k))
+        raise ValueError('n_samples=%d should be larger than k=%d' % (n_samples, k))
 
     if isinstance(init, string_types) and init == 'kmeans++_with_weights':
-        centers = _k_init_with_weights(X, weights, k, random_state=random_state,
-                                       x_squared_norms=x_squared_norms)
+        centers = _k_init_with_weights(
+            X, weights, k, random_state=random_state, x_squared_norms=x_squared_norms
+        )
     elif isinstance(init, string_types) and init == 'random':
         seeds = np.random.permutation(n_samples)[:k]
         centers = X[seeds]
@@ -308,9 +325,11 @@ def _init_centroids_with_weights(X, weights, k, init, random_state=None, x_squar
     elif callable(init):
         centers = init(X, k, random_state=random_state)
     else:
-        raise ValueError("the init parameter for the k-means should "
-                         "be 'kmeans++_with_weights' or 'random' or an ndarray, "
-                         "'%s' (type '%s') was passed." % (init, type(init)))
+        raise ValueError(
+            'the init parameter for the k-means should '
+            "be 'kmeans++_with_weights' or 'random' or an ndarray, "
+            "'%s' (type '%s') was passed." % (init, type(init))
+        )
 
     if sp.issparse(centers):
         centers = centers.toarray()
@@ -319,9 +338,18 @@ def _init_centroids_with_weights(X, weights, k, init, random_state=None, x_squar
     return centers
 
 
-def _kmeans_single_with_weights(X, weights, n_clusters, x_squared_norms, max_iter=300,
-                                init='kmeans++_with_weights', verbose=False, random_state=None,
-                                tol=1e-4, precompute_distances=True):
+def _kmeans_single_with_weights(
+    X,
+    weights,
+    n_clusters,
+    x_squared_norms,
+    max_iter=300,
+    init='kmeans++_with_weights',
+    verbose=False,
+    random_state=None,
+    tol=1e-4,
+    precompute_distances=True,
+):
     """A single run of k-means with weights, assumes preparation completed prior.
     Parameters
     ----------
@@ -373,10 +401,16 @@ def _kmeans_single_with_weights(X, weights, n_clusters, x_squared_norms, max_ite
 
     best_labels, best_inertia, best_centers = None, None, None
     # init
-    centers = _init_centroids_with_weights(X, weights, n_clusters, init, random_state=random_state,
-                                           x_squared_norms=x_squared_norms)
+    centers = _init_centroids_with_weights(
+        X,
+        weights,
+        n_clusters,
+        init,
+        random_state=random_state,
+        x_squared_norms=x_squared_norms,
+    )
     if verbose:
-        print("Initialization complete")
+        print('Initialization complete')
 
     # Allocate memory to store the distances for each sample to its
     # closer center for reallocation in case of ties
@@ -386,10 +420,13 @@ def _kmeans_single_with_weights(X, weights, n_clusters, x_squared_norms, max_ite
     for i in range(max_iter):
         centers_old = centers.copy()
         # labels assignment is also called the E-step of EM
-        labels, _ = \
-            _labels_inertia(X, x_squared_norms, centers,
-                            precompute_distances=precompute_distances,
-                            distances=distances)
+        labels, _ = _labels_inertia(
+            X,
+            x_squared_norms,
+            centers,
+            precompute_distances=precompute_distances,
+            distances=distances,
+        )
 
         # computation of the means is also called the M-step of EM
         # if sp.issparse(X):
@@ -407,11 +444,19 @@ def _kmeans_single_with_weights(X, weights, n_clusters, x_squared_norms, max_ite
         n_samples_in_cluster = np.bincount(labels, minlength=n_clusters)
 
         if sp.issparse(X):
-            centers = _k_means._centers_sparse(np.multiply(X, weights.reshape(len(weights), 1)), labels, n_clusters,
-                                               distances)
+            centers = _k_means._centers_sparse(
+                np.multiply(X, weights.reshape(len(weights), 1)),
+                labels,
+                n_clusters,
+                distances,
+            )
         else:
-            centers = _k_means._centers_dense(np.multiply(X, weights.reshape(len(weights), 1)), labels, n_clusters,
-                                              distances)
+            centers = _k_means._centers_dense(
+                np.multiply(X, weights.reshape(len(weights), 1)),
+                labels,
+                n_clusters,
+                distances,
+            )
 
         weights_clusters = np.zeros(n_clusters)
 
@@ -428,7 +473,7 @@ def _kmeans_single_with_weights(X, weights, n_clusters, x_squared_norms, max_ite
         inertia = np.sum(weights * row_norms_diff)
 
         if verbose:
-            print(("Iteration %2d, inertia %.3f" % (i, inertia)))
+            print(('Iteration %2d, inertia %.3f' % (i, inertia)))
 
         if best_inertia is None or inertia < best_inertia:
             best_labels = labels.copy()
@@ -438,20 +483,25 @@ def _kmeans_single_with_weights(X, weights, n_clusters, x_squared_norms, max_ite
         shift = squared_norm(centers_old - centers)
         if shift <= tol:
             if verbose:
-                print(("Converged at iteration %d" % i))
+                print(('Converged at iteration %d' % i))
 
             break
 
     if shift > 0:
         # rerun E-step in case of non-convergence so that predicted labels
         # match cluster centers
-        best_labels, _ = \
-            _labels_inertia(X, x_squared_norms, best_centers,
-                            precompute_distances=precompute_distances,
-                            distances=distances)
+        best_labels, _ = _labels_inertia(
+            X,
+            x_squared_norms,
+            best_centers,
+            precompute_distances=precompute_distances,
+            distances=distances,
+        )
         # weighted best_inertia is computed here
         best_centers_labelled = best_centers[best_labels]
-        best_row_norms_diff = row_norms(X - best_centers_labelled, squared=True)[np.newaxis, :]
+        best_row_norms_diff = row_norms(X - best_centers_labelled, squared=True)[
+            np.newaxis, :
+        ]
         best_inertia = np.sum(weights * best_row_norms_diff)
     return best_labels, best_inertia, best_centers, i + 1
 
@@ -508,8 +558,8 @@ def _k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=None):
     # print 'initial center id= ', center_id
     # Initialize list of closest distances and calculate current potential
     closest_dist_sq = euclidean_distances(
-        centers[0, np.newaxis], X, Y_norm_squared=x_squared_norms,
-        squared=True)
+        centers[0, np.newaxis], X, Y_norm_squared=x_squared_norms, squared=True
+    )
     # print 'closest_dist_sq = '
     current_pot = closest_dist_sq.sum()
     # print 'current_pot='
@@ -524,7 +574,8 @@ def _k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=None):
 
         # Compute distances to center candidates
         distance_to_candidates = euclidean_distances(
-            X[candidate_ids], X, Y_norm_squared=x_squared_norms, squared=True)
+            X[candidate_ids], X, Y_norm_squared=x_squared_norms, squared=True
+        )
         # print 'distance to candidates', distance_to_candidates
 
         # Decide which candidate is the best
@@ -533,8 +584,7 @@ def _k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=None):
         best_dist_sq = None
         for trial in range(n_local_trials):
             # Compute potential when including center candidate
-            new_dist_sq = np.minimum(closest_dist_sq,
-                                     distance_to_candidates[trial])
+            new_dist_sq = np.minimum(closest_dist_sq, distance_to_candidates[trial])
             new_pot = new_dist_sq.sum()
 
             # Store result if it is the best local trial so far
@@ -557,10 +607,21 @@ def _k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=None):
 #########kmeans with weights###########
 
 
-def k_means_with_weights(X, weights, n_clusters, init='kmeans++_with_weights', precompute_distances='auto',
-                         n_init=10, max_iter=300, verbose=False,
-                         tol=1e-4, random_state=None, copy_x=True, n_jobs=1,
-                         return_n_iter=False):
+def k_means_with_weights(
+    X,
+    weights,
+    n_clusters,
+    init='kmeans++_with_weights',
+    precompute_distances='auto',
+    n_init=10,
+    max_iter=300,
+    verbose=False,
+    tol=1e-4,
+    random_state=None,
+    copy_x=True,
+    n_jobs=1,
+    return_n_iter=False,
+):
     """K-means clustering algorithm with weights.
 
     Parameters
@@ -632,13 +693,17 @@ def k_means_with_weights(X, weights, n_clusters, init='kmeans++_with_weights', p
         Returned only if `return_n_iter` is set to True.
     """
     if n_init <= 0:
-        raise ValueError("Invalid number of initializations."
-                         " n_init=%d must be bigger than zero." % n_init)
+        raise ValueError(
+            'Invalid number of initializations.'
+            ' n_init=%d must be bigger than zero.' % n_init
+        )
     # random_state = check_random_state(random_state)
 
     if max_iter <= 0:
-        raise ValueError('Number of iterations should be a positive number,'
-                         ' got %d instead' % max_iter)
+        raise ValueError(
+            'Number of iterations should be a positive number,'
+            ' got %d instead' % max_iter
+        )
 
     best_inertia = np.infty
     X = as_float_array(X, copy=copy_x)
@@ -654,9 +719,10 @@ def k_means_with_weights(X, weights, n_clusters, init='kmeans++_with_weights', p
     elif isinstance(precompute_distances, bool):
         pass
     else:
-        raise ValueError("precompute_distances should be 'auto' or True/False"
-                         ", but a value of %r was passed" %
-                         precompute_distances)
+        raise ValueError(
+            "precompute_distances should be 'auto' or True/False"
+            ', but a value of %r was passed' % precompute_distances
+        )
 
     # subtract of mean of x for more accurate distance computations
     if not sp.issparse(X) or hasattr(init, '__array__'):
@@ -673,8 +739,10 @@ def k_means_with_weights(X, weights, n_clusters, init='kmeans++_with_weights', p
         if n_init != 1:
             warnings.warn(
                 'Explicit initial center position passed: '
-                'performing only one init in k-means instead of n_init=%d'
-                % n_init, RuntimeWarning, stacklevel=2)
+                'performing only one init in k-means instead of n_init=%d' % n_init,
+                RuntimeWarning,
+                stacklevel=2,
+            )
             n_init = 1
 
     # precompute squared norms of data points
@@ -687,9 +755,17 @@ def k_means_with_weights(X, weights, n_clusters, init='kmeans++_with_weights', p
         for it in range(n_init):
             # run a k-means once
             labels, inertia, centers, n_iter_ = _kmeans_single_with_weights(
-                X, weights, n_clusters, max_iter=max_iter, init=init, verbose=verbose,
-                precompute_distances=precompute_distances, tol=tol,
-                x_squared_norms=x_squared_norms, random_state=random_state)
+                X,
+                weights,
+                n_clusters,
+                max_iter=max_iter,
+                init=init,
+                verbose=verbose,
+                precompute_distances=precompute_distances,
+                tol=tol,
+                x_squared_norms=x_squared_norms,
+                random_state=random_state,
+            )
             # determine if these results are the best so far
             if best_inertia is None or inertia < best_inertia:
                 best_labels = labels.copy()
@@ -700,13 +776,21 @@ def k_means_with_weights(X, weights, n_clusters, init='kmeans++_with_weights', p
         # parallelisation of k-means runs
         seeds = random_state.randint(np.iinfo(np.int32).max, size=n_init)
         results = Parallel(n_jobs=n_jobs, verbose=0)(
-            delayed(_kmeans_single_with_weights)(X, weights, n_clusters, max_iter=max_iter,
-                                                 init=init, verbose=verbose, tol=tol,
-                                                 precompute_distances=precompute_distances,
-                                                 x_squared_norms=x_squared_norms,
-                                                 # Change seed to ensure variety
-                                                 random_state=seed)
-            for seed in seeds)
+            delayed(_kmeans_single_with_weights)(
+                X,
+                weights,
+                n_clusters,
+                max_iter=max_iter,
+                init=init,
+                verbose=verbose,
+                tol=tol,
+                precompute_distances=precompute_distances,
+                x_squared_norms=x_squared_norms,
+                # Change seed to ensure variety
+                random_state=seed,
+            )
+            for seed in seeds
+        )
         # Get results with the lowest inertia
         labels, inertia, centers, n_iters = list(zip(*results))
         best = np.argmin(inertia)
@@ -792,9 +876,19 @@ class KMeansWeighted(object):
 
     """
 
-    def __init__(self, n_clusters=8, init='kmeans++_with_weights', n_init=10, max_iter=300,
-                 tol=1e-4, precompute_distances='auto',
-                 verbose=0, random_state=None, copy_x=True, n_jobs=1):
+    def __init__(
+        self,
+        n_clusters=8,
+        init='kmeans++_with_weights',
+        n_init=10,
+        max_iter=300,
+        tol=1e-4,
+        precompute_distances='auto',
+        verbose=0,
+        random_state=None,
+        copy_x=True,
+        n_jobs=1,
+    ):
 
         self.n_clusters = n_clusters
         self.init = init
@@ -811,19 +905,21 @@ class KMeansWeighted(object):
         """Verify that the number of samples given is larger than k"""
         X = check_array(X, accept_sparse='csr', dtype=np.float64)
         if X.shape[0] < self.n_clusters:
-            raise ValueError("n_samples=%d should be >= n_clusters=%d" % (
-                X.shape[0], self.n_clusters))
+            raise ValueError(
+                'n_samples=%d should be >= n_clusters=%d'
+                % (X.shape[0], self.n_clusters)
+            )
         return X
 
     def _check_test_data(self, X):
-        X = check_array(X, accept_sparse='csr', dtype=FLOAT_DTYPES,
-                        warn_on_dtype=True)
+        X = check_array(X, accept_sparse='csr', dtype=FLOAT_DTYPES, warn_on_dtype=True)
         n_samples, n_features = X.shape
         expected_n_features = self.cluster_centers_.shape[1]
         if not n_features == expected_n_features:
-            raise ValueError("Incorrect number of features. "
-                             "Got %d features, expected %d" % (
-                                 n_features, expected_n_features))
+            raise ValueError(
+                'Incorrect number of features. '
+                'Got %d features, expected %d' % (n_features, expected_n_features)
+            )
 
         return X
 
@@ -841,14 +937,26 @@ class KMeansWeighted(object):
             print((X.shape))
         X = self._check_fit_data(X)
 
-        self.cluster_centers_, self.labels_, self.inertia_, self.n_iter_ = \
-            k_means_with_weights(
-                X, weights, n_clusters=self.n_clusters, init=self.init,
-                n_init=self.n_init, max_iter=self.max_iter,
-                verbose=self.verbose, return_n_iter=True,
-                precompute_distances=self.precompute_distances,
-                tol=self.tol, random_state=self.random_state, copy_x=self.copy_x,
-                n_jobs=self.n_jobs)
+        (
+            self.cluster_centers_,
+            self.labels_,
+            self.inertia_,
+            self.n_iter_,
+        ) = k_means_with_weights(
+            X,
+            weights,
+            n_clusters=self.n_clusters,
+            init=self.init,
+            n_init=self.n_init,
+            max_iter=self.max_iter,
+            verbose=self.verbose,
+            return_n_iter=True,
+            precompute_distances=self.precompute_distances,
+            tol=self.tol,
+            random_state=self.random_state,
+            copy_x=self.copy_x,
+            n_jobs=self.n_jobs,
+        )
         return self
 
     def fit_predict(self, X, weights, y=None):

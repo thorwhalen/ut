@@ -8,8 +8,9 @@ import pandas as pd
 
 super_methods_p = re.compile('super\(\)\.(?P<super_method>\w+)\(')
 
-ordered_unik_elements = partial(reduce,
-                                lambda unik, new_items: unik + [x for x in new_items if x not in unik])
+ordered_unik_elements = partial(
+    reduce, lambda unik, new_items: unik + [x for x in new_items if x not in unik]
+)
 
 
 class MethodNotFoundInMro(NotImplementedError):
@@ -24,9 +25,13 @@ def find_super_methods_in_code_line(code_line):
 
 def find_super_methods_in_code_object(code_obj):
     code_lines, _ = inspect.getsourcelines(code_obj)
-    super_methods = filter(None, map(find_super_methods_in_code_line,
-                                     filter(lambda x: not x.startswith('#'),
-                                            map(str.strip, code_lines))))
+    super_methods = filter(
+        None,
+        map(
+            find_super_methods_in_code_line,
+            filter(lambda x: not x.startswith('#'), map(str.strip, code_lines)),
+        ),
+    )
     return list(super_methods)
 
 
@@ -42,7 +47,9 @@ def method_calls_super_method_of_same_name(method):
     return method.__name__ in super_methods
 
 
-def mro_for_method(cls, method, mro=None, method_not_found_error=True, include_overridden_methods=False):
+def mro_for_method(
+    cls, method, mro=None, method_not_found_error=True, include_overridden_methods=False
+):
     if not isinstance(method, str):
         method = method.__name__
     if mro is None:
@@ -53,25 +60,39 @@ def mro_for_method(cls, method, mro=None, method_not_found_error=True, include_o
     super_cls = None
     for i, super_cls in enumerate(mro, 1):
         method_func = super_cls.__dict__.get(method, None)
-        if method_func is not None:  # we found the class where the method that will be called is
-            super_methods.append(super_cls)  # add this to the list (it's the first element)
+        if (
+            method_func is not None
+        ):  # we found the class where the method that will be called is
+            super_methods.append(
+                super_cls
+            )  # add this to the list (it's the first element)
             # get the list of super methods called in the code:
             if not method_calls_super_method_of_same_name(method_func):
                 _super_method_expected = False
                 if not include_overridden_methods:
                     break
             else:
-                _super_method_expected = True  # flag to indicate that a super method is expected
+                _super_method_expected = (
+                    True  # flag to indicate that a super method is expected
+                )
                 # if our target method is called (with super) in that code...
                 # extend our list with the the list of super methods called further in the mro...
                 if i >= mro_length:
-                    raise ValueError("There was a super method call, but no more classes in the mro!")
+                    raise ValueError(
+                        'There was a super method call, but no more classes in the mro!'
+                    )
 
     if super_cls is not None and _super_method_expected:
-        warn("Method {} defined in {}, but call to super method has no resolution.".format(method, super_cls))
+        warn(
+            'Method {} defined in {}, but call to super method has no resolution.'.format(
+                method, super_cls
+            )
+        )
 
     if method_not_found_error and len(super_methods) == 0:
-        raise MethodNotFoundInMro("Method {} isn't implemented in the mro of class {}".format(method, cls))
+        raise MethodNotFoundInMro(
+            "Method {} isn't implemented in the mro of class {}".format(method, cls)
+        )
 
     return super_methods
 
@@ -82,19 +103,30 @@ def _no_dunder(x):
 
 def mk_cls_identifier(cls_identifier='name'):
     if cls_identifier == 'module_path':
+
         def id_of_cls(cls):
             return cls.__module__ + '.' + cls.__qualname__
+
     elif cls_identifier == 'name':
+
         def id_of_cls(cls):
             return cls.__qualname__
+
     else:
+
         def id_of_cls(cls):
             return cls
+
     return id_of_cls
 
 
-def method_resolutions(cls, methods=None, cls_identifier=None, method_not_found_error=True,
-                       include_overridden_methods=False):
+def method_resolutions(
+    cls,
+    methods=None,
+    cls_identifier=None,
+    method_not_found_error=True,
+    include_overridden_methods=False,
+):
     """
 
     :param cls:
@@ -160,25 +192,45 @@ def method_resolutions(cls, methods=None, cls_identifier=None, method_not_found_
         methods = ['__init__'] + list(filter(_no_dunder, cls.__dict__.keys()))
     id_of_cls = mk_cls_identifier(cls_identifier)
     _mro_for_method = {
-        method: list(map(id_of_cls,
-                         mro_for_method(cls, method, None, method_not_found_error, include_overridden_methods)))
-        for method in methods}
+        method: list(
+            map(
+                id_of_cls,
+                mro_for_method(
+                    cls,
+                    method,
+                    None,
+                    method_not_found_error,
+                    include_overridden_methods,
+                ),
+            )
+        )
+        for method in methods
+    }
 
     return _mro_for_method
 
 
-def df_of_method_resolutions(cls, methods=None, cls_identifier='name', method_not_found_error=True,
-                             include_overridden_methods=False):
+def df_of_method_resolutions(
+    cls,
+    methods=None,
+    cls_identifier='name',
+    method_not_found_error=True,
+    include_overridden_methods=False,
+):
     _mro_for_method = method_resolutions(
-        cls, methods, cls_identifier, method_not_found_error, include_overridden_methods)
-    d = {method: {k: i for i, k in enumerate(resolutions)} for method, resolutions in _mro_for_method.items()}
+        cls, methods, cls_identifier, method_not_found_error, include_overridden_methods
+    )
+    d = {
+        method: {k: i for i, k in enumerate(resolutions)}
+        for method, resolutions in _mro_for_method.items()
+    }
     d = pd.DataFrame(d).T
     methods = list(_mro_for_method.keys())
     id_of_cls = mk_cls_identifier(cls_identifier)
     d_cols = set(d.columns)
     cols = [c for c in map(id_of_cls, cls.mro()) if c in d_cols]
     d = d.loc[methods, cols].fillna(-1).astype(int)
-    d[d == -1] = ""
+    d[d == -1] = ''
     return d
 
 
@@ -221,11 +273,19 @@ def all_methods_in_the_order_they_were_encountered_in_mro(cls):
     all_methods = []
     for _cls in cls.mro():
         methods = [k for k, v in _cls.__dict__.items() if callable(v)]
-        all_methods = all_methods + [method for method in methods if method not in all_methods]
+        all_methods = all_methods + [
+            method for method in methods if method not in all_methods
+        ]
     return all_methods
 
 
-def mro_class_methods(cls, include=None, exclude=None, cls_identifier='name', include_overridden_methods=False):
+def mro_class_methods(
+    cls,
+    include=None,
+    exclude=None,
+    cls_identifier='name',
+    include_overridden_methods=False,
+):
     """
     Get the methods that each class of the mro contains, organized by class.
     :param cls: class to analyze
@@ -281,7 +341,9 @@ def mro_class_methods(cls, include=None, exclude=None, cls_identifier='name', in
 
     # handle methods calling super methods of the same name (and warn if supers without resolution)
     cls_resolution_for_method = {
-        method: mro_for_method(cls, method, include_overridden_methods=include_overridden_methods)
+        method: mro_for_method(
+            cls, method, include_overridden_methods=include_overridden_methods
+        )
         for method in all_methods
     }
 
@@ -293,9 +355,18 @@ def mro_class_methods(cls, include=None, exclude=None, cls_identifier='name', in
     return {id_of_cls(_cls): methods for _cls, methods in methods_of_cls.items()}
 
 
-def df_of_mro_class_methods(cls, include=None, exclude=None, cls_identifier='name', include_overridden_methods=False):
+def df_of_mro_class_methods(
+    cls,
+    include=None,
+    exclude=None,
+    cls_identifier='name',
+    include_overridden_methods=False,
+):
     methods_of_cls = mro_class_methods(cls, include, exclude, cls_identifier)
-    df = pd.DataFrame(index=ordered_unik_elements(methods_of_cls.values()), columns=methods_of_cls.keys())
+    df = pd.DataFrame(
+        index=ordered_unik_elements(methods_of_cls.values()),
+        columns=methods_of_cls.keys(),
+    )
     df = df.fillna('')
     for cls_name, methods in methods_of_cls.items():
         for method in methods:

@@ -24,10 +24,11 @@ class S3(object):
 
         :type bucket_name: str
         """
-        self.conn = boto.s3.connect_to_region(region,
-                                              aws_access_key_id=get_environment_variable('VEN_S3_SECRET'),
-                                              aws_secret_access_key=get_environment_variable('VEN_S3_ACCESS_KEY')
-                                              )
+        self.conn = boto.s3.connect_to_region(
+            region,
+            aws_access_key_id=get_environment_variable('VEN_S3_SECRET'),
+            aws_secret_access_key=get_environment_variable('VEN_S3_ACCESS_KEY'),
+        )
         if bucket_name not in [b.name for b in self.conn.get_all_buckets()]:
             self.conn.create_bucket(bucket_name, location=Location.EU)
         self.bucket = self.conn.get_bucket(bucket_name)
@@ -99,7 +100,9 @@ class S3(object):
         k = self.bucket.lookup(folder + key_name)
         return k.get_contents_to_string()
 
-    def download(self, key_name, filepath='', s3_folder='', local_folder='', suffix='', prefix=''):
+    def download(
+        self, key_name, filepath='', s3_folder='', local_folder='', suffix='', prefix=''
+    ):
         if not filepath:
             filepath = key_name
         filepath = local_folder + prefix + filepath + suffix

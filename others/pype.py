@@ -19,7 +19,11 @@ class Pype:
 
     def fix(self, *args, **kwargs):
         """use this function to supply more args at any time"""
-        return type(self)(self.func, *(self.args + args), **dict(list(self.kwargs.items()) + list(kwargs.items())))
+        return type(self)(
+            self.func,
+            *(self.args + args),
+            **dict(list(self.kwargs.items()) + list(kwargs.items()))
+        )
 
     def __or__(self, rhs):
         """combines two Pypes into a Chain"""
@@ -104,7 +108,8 @@ pFgrep = pypeThunk(Filter, _fgrep)
 
 def _first(iter):
     l = list(iter)
-    if len(l) == 0: return None
+    if len(l) == 0:
+        return None
     return l[0]
 
 
@@ -134,14 +139,17 @@ def getHist(values, mincount=0):
 pHist = Sink(getHist)
 
 
-def _cut(lines, fields=0, delim=None, odelim=" ", suppress=False):
+def _cut(lines, fields=0, delim=None, odelim=' ', suppress=False):
     """a more sensible version of the GNU cut utility: cuts on whitespace by default"""
     for line in lines:
         words = line.split(delim)
         try:
-            yield odelim.join([words[f] for f in fields]) if isinstance(fields, list) else words[fields]
+            yield odelim.join([words[f] for f in fields]) if isinstance(
+                fields, list
+            ) else words[fields]
         except IndexError:
-            if not suppress: yield ""
+            if not suppress:
+                yield ''
 
 
 pCut = pypeThunk(Sink, _cut)
@@ -155,17 +163,19 @@ def _uniq(values):
         sameasprev = v == prev
         first = False
         prev = v
-        if first or not sameasprev: yield v
+        if first or not sameasprev:
+            yield v
 
 
 pUniq = Sink(_uniq)
 
 
-def _writeToFile(values, filename=None, file=None, delim="\n"):
-    out = open(filename, "w") if filename else file
+def _writeToFile(values, filename=None, file=None, delim='\n'):
+    out = open(filename, 'w') if filename else file
     for v in values:
-        out.write("%s%s" % (v, delim))
-    if filename: out.close()
+        out.write('%s%s' % (v, delim))
+    if filename:
+        out.close()
 
 
 pWrite = pypeThunk(Sink, _writeToFile)
@@ -173,4 +183,4 @@ pPrint = Sink(_writeToFile, file=sys.stdout)
 pError = Sink(_writeToFile, file=sys.stderr)
 
 """export all pypes, and the Pype subclasses"""
-__all__ = [w for w in dir() if w[0] == 'p'] + "Map Reduce Sink Filter".split()
+__all__ = [w for w in dir() if w[0] == 'p'] + 'Map Reduce Sink Filter'.split()

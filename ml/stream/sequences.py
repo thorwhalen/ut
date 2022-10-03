@@ -1,5 +1,3 @@
-
-
 from sklearn.base import BaseEstimator
 from collections import Counter
 import pandas as pd
@@ -8,7 +6,6 @@ from ut.util.uiter import window
 
 
 class NextElementPredictor(BaseEstimator):
-
     def predict(self, seqs):
         preds = self.predict_proba(seqs)
         return [max(pred, key=lambda key: pred[key]) for pred in preds]
@@ -17,12 +14,16 @@ class NextElementPredictor(BaseEstimator):
         return list(map(self._predict_proba_conditioned_on_recent_subseq, seqs))
 
     def _predict_proba_conditioned_on_recent_subseq(self, recent_subseq):
-        raise NotImplementedError("Need to implement this method")
+        raise NotImplementedError('Need to implement this method')
 
 
 class MarkovNextElementPred(NextElementPredictor):
 
-    _list_of_attributes_to_display = ['markov_window', 'empty_element', 'keep_stats_in_memory']
+    _list_of_attributes_to_display = [
+        'markov_window',
+        'empty_element',
+        'keep_stats_in_memory',
+    ]
 
     def __init__(self, markov_window=2, empty_element=-1, keep_stats_in_memory=True):
         self.markov_window = markov_window
@@ -64,7 +65,7 @@ class MarkovNextElementPred(NextElementPredictor):
         if self.element_prob_ is not None:
             return self.element_prob_
         else:
-            element_prob_ = (self.pair_prob * self.total_tuple_count)
+            element_prob_ = self.pair_prob * self.total_tuple_count
             element_prob_ = element_prob_.groupby(level=0).sum()
             element_prob_ = element_prob_.drop(labels=self.empty_element)
             # element_prob_ = element_prob_.iloc[
@@ -82,14 +83,16 @@ class MarkovNextElementPred(NextElementPredictor):
         if self.conditional_prob_ is not None:
             return self.conditional_prob_
         else:
-            conditional_prob_ = self._drop_empty_elements_of_sr(self.pair_prob, levels=[self.markov_window - 1])
+            conditional_prob_ = self._drop_empty_elements_of_sr(
+                self.pair_prob, levels=[self.markov_window - 1]
+            )
             conditional_levels = list(range(self.markov_window - 1))
             conditional_prob_ = conditional_prob_.div(
-                conditional_prob_.groupby(level=conditional_levels).sum(), level=0)  # TODO: Only works for two levels
+                conditional_prob_.groupby(level=conditional_levels).sum(), level=0
+            )  # TODO: Only works for two levels
             if self.keep_stats_in_memory:
                 self.conditional_prob_ = conditional_prob_
             return conditional_prob_
-
 
     @property
     def initial_element_prob(self):
@@ -99,7 +102,9 @@ class MarkovNextElementPred(NextElementPredictor):
         if self.initial_element_prob_ is not None:
             return self.initial_element_prob_
         else:
-            initial_element_prob_ = self.pair_prob.xs(self.empty_element, level=0, drop_level=True)
+            initial_element_prob_ = self.pair_prob.xs(
+                self.empty_element, level=0, drop_level=True
+            )
             initial_element_prob_ /= initial_element_prob_.sum()
             if self.keep_stats_in_memory:
                 self.initial_element_prob_ = initial_element_prob_
@@ -139,9 +144,12 @@ class MarkovNextElementPred(NextElementPredictor):
 
     def _partial_fit_of_a_single_snips(self, snips):
         self._reset_properties()
-        self.snip_tuples_counter_.update(window(self._empty_element_padding + list(snips) + self._empty_element_padding,
-                                                n=self.markov_window))
-
+        self.snip_tuples_counter_.update(
+            window(
+                self._empty_element_padding + list(snips) + self._empty_element_padding,
+                n=self.markov_window,
+            )
+        )
 
     def _drop_empty_elements_of_sr(self, sr, levels=None, renormalize=False):
         if levels is None:
@@ -156,6 +164,10 @@ class MarkovNextElementPred(NextElementPredictor):
         pass
 
     def __repr__(self):
-        d = {attr: getattr(self, attr) for attr in self._list_of_attributes_to_display if attr in self.__dict__}
+        d = {
+            attr: getattr(self, attr)
+            for attr in self._list_of_attributes_to_display
+            if attr in self.__dict__
+        }
         d['total_tuple_count'] = self.total_tuple_count
         return self.__class__.__name__ + '\n' + str(d)

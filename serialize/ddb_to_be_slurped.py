@@ -1,4 +1,3 @@
-
 __author__ = 'mattjmorris'
 
 from .dynamo import Dynamo
@@ -10,7 +9,6 @@ from ut.coll import order_conserving
 
 
 class DDBToBeSlurped(Dynamo):
-
     def __init__(self, access_key=None, secret=None):
         """
         ! Use test_mode factory method for instantiating this class with test_slurps and test_failed_slurps tables
@@ -56,5 +54,3 @@ class DDBToBeSlurped(Dynamo):
 
     def get_table_as_df(self):
         return DataFrame([dict(r) for r in self.table.scan()])
-
-

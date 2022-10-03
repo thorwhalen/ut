@@ -103,13 +103,21 @@ def make_sure_to_close(closeable_obj, close_method='close'):
 def decorate_all_methods(decorator, exclude=(), include=()):
     def decorate(obj):
         if not include:
-            inclusion_list = [x[0] for x in
-                              [x for x in inspect.getmembers(obj) if not x[0].startswith('__') and callable(x[1])]]
+            inclusion_list = [
+                x[0]
+                for x in [
+                    x
+                    for x in inspect.getmembers(obj)
+                    if not x[0].startswith('__') and callable(x[1])
+                ]
+            ]
         else:
             inclusion_list = include
         inclusion_list = list(set(inclusion_list).difference(exclude))
         inclusion_list = [x for x in inclusion_list if callable(getattr(obj, x))]
-        inclusion_dict = {method_name: getattr(obj, method_name) for method_name in inclusion_list}
+        inclusion_dict = {
+            method_name: getattr(obj, method_name) for method_name in inclusion_list
+        }
         for method_name, method in inclusion_dict.items():
             setattr(obj, method_name, decorator(method))
         return obj
@@ -191,7 +199,8 @@ def autoargs(*include, **kwargs):
         attrs, varargs, varkw, defaults = inspect.getargspec(func)
 
         def sieve(attr):
-            if kwargs and attr in kwargs['exclude']: return False
+            if kwargs and attr in kwargs['exclude']:
+                return False
             if not include or attr in include:
                 return True
             else:
@@ -201,19 +210,23 @@ def autoargs(*include, **kwargs):
         def wrapper(self, *args, **kwargs):
             # handle default values
             for attr, val in zip(reversed(attrs), reversed(defaults)):
-                if sieve(attr): setattr(self, attr, val)
+                if sieve(attr):
+                    setattr(self, attr, val)
             # handle positional arguments
             positional_attrs = attrs[1:]
             for attr, val in zip(positional_attrs, args):
-                if sieve(attr): setattr(self, attr, val)
+                if sieve(attr):
+                    setattr(self, attr, val)
             # handle varargs
             if varargs:
-                remaining_args = args[len(positional_attrs):]
-                if sieve(varargs): setattr(self, varargs, remaining_args)
+                remaining_args = args[len(positional_attrs) :]
+                if sieve(varargs):
+                    setattr(self, varargs, remaining_args)
             # handle varkw
             if kwargs:
                 for attr, val in kwargs.items():
-                    if sieve(attr): setattr(self, attr, val)
+                    if sieve(attr):
+                        setattr(self, attr, val)
             return func(self, *args, **kwargs)
 
         return wrapper
@@ -350,7 +363,9 @@ def inject_param_initialization(inFunction):
         _self = args[0]
         _self.__dict__.update(kwargs)
         # Get all of argument's names of the inFunction
-        _total_names = inFunction.__code__.co_varnames[1:inFunction.__code__.co_argcount]
+        _total_names = inFunction.__code__.co_varnames[
+            1 : inFunction.__code__.co_argcount
+        ]
         # Get all of the values
         _values = args[1:]
         # Get only the names that don't belong to kwargs
@@ -413,7 +428,8 @@ def autoassign(*names, **kwargs):
         def decorated(self, *args, **kwargs):
             assigned = dict(sieve(zip(fargnames, args)))
             assigned.update(sieve(iter(kwargs.items())))
-            for _ in starmap(assigned.setdefault, defaults): pass
+            for _ in starmap(assigned.setdefault, defaults):
+                pass
             self.__dict__.update(assigned)
             return f(self, *args, **kwargs)
 

@@ -1,5 +1,3 @@
-
-
 import unittest
 import requests
 from ut.pdict.to import Struct
@@ -7,10 +5,10 @@ import pandas as pd
 
 __author__ = 'thor'
 
-__doc__ = """
+__doc__ = '''
 python connector for http://www.datamuse.com/api/
 Based on code from https://github.com/margaret/python-datamuse
-"""
+'''
 
 word_params_set = {
     'ml',
@@ -34,13 +32,13 @@ word_params_set = {
     'topics',
     'lc',
     'rc',
-    'max'
+    'max',
 }
 
 word_params_struct = Struct({k: k for k in word_params_set})
 
 
-class Datamuse():
+class Datamuse:
     """
     See http://www.datamuse.com/api/
 
@@ -111,13 +109,9 @@ class Datamuse():
         'topics',
         'lc',
         'rc',
-        'max'
-    }
-    suggest_params = {
-        's',
         'max',
-        'v'
     }
+    suggest_params = {'s', 'max', 'v'}
     wp = Struct({k: k for k in word_params})
 
     def __init__(self, output_format=None):
@@ -126,7 +120,9 @@ class Datamuse():
     def validate_args(self, args, param_set):
         for arg in args:
             if arg not in param_set:
-                raise ValueError('{0} is not a valid parameter for this endpoint.'.format(arg))
+                raise ValueError(
+                    '{0} is not a valid parameter for this endpoint.'.format(arg)
+                )
 
     def get_resource(self, endpoint, **kwargs):
         # I feel like this should have some kind of error handling...
@@ -156,7 +152,7 @@ class Datamuse():
         """
         reformatted = {
             'word': [response['word'] for response in datamuse_response],
-            'score': [response['score'] for response in datamuse_response]
+            'score': [response['score'] for response in datamuse_response],
         }
         return pd.DataFrame.from_dict(reformatted)
 
@@ -171,19 +167,19 @@ class DatamuseTestCase(unittest.TestCase):
         args = {'sl': 'orange', 'max': self.max}
         data = self.api.words(**args)
         self.assertTrue(type(data), list)
-        print(("sounds like", data))
+        print(('sounds like', data))
 
     def test_rhymes(self):
         args = {'rel_rhy': 'orange', 'max': self.max}
         data = self.api.words(**args)
         self.assertTrue(len(data) <= self.max)
-        print(("rhyme", data))
+        print(('rhyme', data))
 
     def test_near_rhymes(self):
         args = {'rel_nry': 'orange', 'max': self.max}
         data = self.api.words(**args)
         self.assertTrue(len(data) <= self.max)
-        print(("near rhyme", data))
+        print(('near rhyme', data))
 
     def test_bad_request(self):
         args = {'foo': 42}
@@ -192,5 +188,5 @@ class DatamuseTestCase(unittest.TestCase):
 
 
 # though really you can just run `nosetests -sv` from this directory
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

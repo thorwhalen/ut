@@ -1,5 +1,3 @@
-
-
 from sklearn.model_selection import BaseCrossValidator
 from collections import defaultdict
 from ut.ml.cluster.supervised import _choose_distribution_according_to_weights
@@ -35,19 +33,24 @@ class SupervisedLeaveOneOut(BaseCrossValidator):
             for this_yy_idx in yy_idx:
                 yield this_yy_idx
 
-
     def get_n_splits(self, X=None, y=None, groups=None):
         """Returns the number of splitting iterations in the cross-validator"""
         if self.n_splits is None:
             self._mk_attrs()
-            per_unique_y_splits = min(DEFAULT_PER_UNIQUE_Y_SPLITS, min(self.y_count_.values()))
+            per_unique_y_splits = min(
+                DEFAULT_PER_UNIQUE_Y_SPLITS, min(self.y_count_.values())
+            )
             self.n_splits = per_unique_y_splits * len(self.y_count_)
         return self.n_splits
 
-
     def _mk_attrs(self, X=None, y=None, groups=None):
         self.y_idx_ = defaultdict(list)
-        list(map(lambda i, y_item: self.y_idx_[y_item].append(i), *list(zip(*enumerate(y)))));
+        list(
+            map(
+                lambda i, y_item: self.y_idx_[y_item].append(i),
+                *list(zip(*enumerate(y)))
+            )
+        )
         self.y_count_ = {k: len(v) for k, v in self.y_idx_.items()}
         weights = list(self.y_count_.values())
         self.min_n_samples_per_unik_y = min(min(weights), self.min_n_samples_per_unik_y)
@@ -57,8 +60,11 @@ class SupervisedLeaveOneOut(BaseCrossValidator):
             self.n_splits = self.min_n_samples_per_unik_y * self.n_unik_ys_
         self.n_splits = max(self.n_splits, self.min_n_samples_per_unik_y * len(weights))
 
-        n_to_choose_from_each_unique_y = \
-            _choose_distribution_according_to_weights(array(weights) - self.min_n_samples_per_unik_y,
-                                                      self.n_splits - self.min_n_samples_per_unik_y * self.n_unik_ys_) \
-            + self.min_n_samples_per_unik_y * ones(self.n_unik_ys_)
-        self.n_to_choose_from_y_ = {k: int(v) for k, v in zip(list(self.y_count_.keys()), n_to_choose_from_each_unique_y)}
+        n_to_choose_from_each_unique_y = _choose_distribution_according_to_weights(
+            array(weights) - self.min_n_samples_per_unik_y,
+            self.n_splits - self.min_n_samples_per_unik_y * self.n_unik_ys_,
+        ) + self.min_n_samples_per_unik_y * ones(self.n_unik_ys_)
+        self.n_to_choose_from_y_ = {
+            k: int(v)
+            for k, v in zip(list(self.y_count_.keys()), n_to_choose_from_each_unique_y)
+        }

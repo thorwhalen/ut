@@ -58,4 +58,3 @@ def datetimes_ranges_defining_months(from_date, to_date):
     from_month = from_date.month
     to_year = to_date.year
     to_month = to_date.month
-

@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from sklearn.feature_extraction import DictVectorizer
@@ -8,7 +6,6 @@ from sklearn.externals import six
 import numpy as np
 from pandas import DataFrame
 from collections import Counter
-
 
 
 class IterDictVectorizer(DictVectorizer):
@@ -88,7 +85,10 @@ class IterDictVectorizer(DictVectorizer):
     sklearn.preprocessing.OneHotEncoder : handles nominal/categorical features
       encoded as columns of integers.
     """
-    def __init__(self, dtype=np.float64, separator="=", sparse=True, sort=True, min_count=0):
+
+    def __init__(
+        self, dtype=np.float64, separator='=', sparse=True, sort=True, min_count=0
+    ):
         self.dtype = dtype
         self.separator = separator
         self.sparse = sparse
@@ -112,7 +112,7 @@ class IterDictVectorizer(DictVectorizer):
         feature_names = []
         vocab = {}
 
-        feature_template = "{}" + self.separator + "{}"
+        feature_template = '{}' + self.separator + '{}'
 
         if isinstance(X, DataFrame):
             counts_of = dict()
@@ -161,22 +161,37 @@ class IterDictVectorizer(DictVectorizer):
 
 
 class IterDictVectorizerWithText(object):
-    def __init__(self, dtype=np.float64, separator="=", sparse=True, sort=True, min_count=0,
-                 text_vectorizers={}):
+    def __init__(
+        self,
+        dtype=np.float64,
+        separator='=',
+        sparse=True,
+        sort=True,
+        min_count=0,
+        text_vectorizers={},
+    ):
         self.dict_vectorizer = IterDictVectorizer(
-            dtype=dtype, separator=separator, sparse=sparse, sort=sort, min_count=min_count
+            dtype=dtype,
+            separator=separator,
+            sparse=sparse,
+            sort=sort,
+            min_count=min_count,
         )
         self.text_vectorizers = text_vectorizers
 
     def fit(self, X, y=None):
         # input validation
-        assert isinstance(X, DataFrame), "X must be a pandas DataFrame"
+        assert isinstance(X, DataFrame), 'X must be a pandas DataFrame'
         if not set(self.text_vectorizers.keys()).issubset(X.columns):
-            RuntimeError("The following columns were specified in text_vectorizers, but were not in X:\n" +
-                         "  {}".format(set(self.text_vectorizers.keys()).difference(X.columns)))
+            RuntimeError(
+                'The following columns were specified in text_vectorizers, but were not in X:\n'
+                + '  {}'.format(set(self.text_vectorizers.keys()).difference(X.columns))
+            )
 
         # carry out the normal IterDictVectorizer.fit() for columns not in text_vectorizers
-        self.dict_vectorizer_cols_ = set(X.columns).difference(list(self.text_vectorizers.keys()))
+        self.dict_vectorizer_cols_ = set(X.columns).difference(
+            list(self.text_vectorizers.keys())
+        )
         self.dict_vectorizer.fit(X[self.dict_vectorizer_cols_])
         self.vocabulary_ = self.dict_vectorizer.vocabulary_
 
@@ -184,12 +199,21 @@ class IterDictVectorizerWithText(object):
         for col in set(X.columns).intersection(list(self.text_vectorizers.keys())):
             self.text_vectorizers[col].fit(X[col])
             offset = len(self.vocabulary_)
-            self.vocabulary_ = dict(self.vocabulary_,
-                                    **{k : v + offset for k, v in self.text_vectorizers[col].items()})
+            self.vocabulary_ = dict(
+                self.vocabulary_,
+                **{k: v + offset for k, v in self.text_vectorizers[col].items()}
+            )
 
         self.feature_names_ = list(self.vocabulary_.keys())
 
     def transform(self, X, y=None):
         X1 = self.dict_vectorizer.transform(X[self.dict_vectorizer_cols_])
-        X2 = np.hstack((map(lambda col: self.text_vectorizers[col].transform(X[col]), list(self.text_vectorizers.keys()))))
+        X2 = np.hstack(
+            (
+                map(
+                    lambda col: self.text_vectorizers[col].transform(X[col]),
+                    list(self.text_vectorizers.keys()),
+                )
+            )
+        )
         return np.hstack((X1, X2))

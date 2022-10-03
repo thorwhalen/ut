@@ -9,10 +9,11 @@
 import random
 import numpy as np
 from scipy.spatial.distance import cdist  # $scipy/spatial/distance.py
+
 # http://docs.scipy.org/doc/scipy/reference/spatial.html
 from scipy.sparse import issparse  # $scipy/sparse/csr.py
 
-__date__ = "2011-11-17 Nov denis"
+__date__ = '2011-11-17 Nov denis'
 
 
 # X sparse, any cdist metric: real app ?
@@ -20,7 +21,7 @@ __date__ = "2011-11-17 Nov denis"
 # vs unsupervised / semi-supervised svm
 
 # ...............................................................................
-def kmeans(X, centres, delta=.001, maxiter=10, metric="euclidean", p=2, verbose=1):
+def kmeans(X, centres, delta=0.001, maxiter=10, metric='euclidean', p=2, verbose=1):
     """ centres, Xtocentre, distances = kmeans( X, initial centres ... )
     in:
         X N x dim  may be sparse
@@ -41,16 +42,19 @@ def kmeans(X, centres, delta=.001, maxiter=10, metric="euclidean", p=2, verbose=
     """
     if not issparse(X):
         X = np.asanyarray(X)  # ?
-    centres = centres.todense() if issparse(centres) \
-        else centres.copy()
+    centres = centres.todense() if issparse(centres) else centres.copy()
     N, dim = X.shape
     k, cdim = centres.shape
     if dim != cdim:
-        raise ValueError("kmeans: X %s and centres %s must have the same number of columns" % (
-            X.shape, centres.shape))
+        raise ValueError(
+            'kmeans: X %s and centres %s must have the same number of columns'
+            % (X.shape, centres.shape)
+        )
     if verbose:
-        print("kmeans: X %s  centres %s  delta=%.2g  maxiter=%d  metric=%s" % (
-            X.shape, centres.shape, delta, maxiter, metric))
+        print(
+            'kmeans: X %s  centres %s  delta=%.2g  maxiter=%d  metric=%s'
+            % (X.shape, centres.shape, delta, maxiter, metric)
+        )
     allx = np.arange(N)
     prevdist = 0
     for jiter in range(1, maxiter + 1):
@@ -59,9 +63,8 @@ def kmeans(X, centres, delta=.001, maxiter=10, metric="euclidean", p=2, verbose=
         distances = D[allx, xtoc]
         avdist = distances.mean()  # median ?
         if verbose >= 2:
-            print("kmeans: av |X - nearest centre| = %.4g" % avdist)
-        if (1 - delta) * prevdist <= avdist <= prevdist \
-                or jiter == maxiter:
+            print('kmeans: av |X - nearest centre| = %.4g' % avdist)
+        if (1 - delta) * prevdist <= avdist <= prevdist or jiter == maxiter:
             break
         prevdist = avdist
         for jc in range(k):  # (1 pass in C)
@@ -69,7 +72,7 @@ def kmeans(X, centres, delta=.001, maxiter=10, metric="euclidean", p=2, verbose=
             if len(c) > 0:
                 centres[jc] = X[c].mean(axis=0)
     if verbose:
-        print("kmeans: %d iterations  cluster sizes:" % jiter, np.bincount(xtoc))
+        print('kmeans: %d iterations  cluster sizes:' % jiter, np.bincount(xtoc))
     if verbose >= 2:
         r50 = np.zeros(k)
         r90 = np.zeros(k)
@@ -77,8 +80,8 @@ def kmeans(X, centres, delta=.001, maxiter=10, metric="euclidean", p=2, verbose=
             dist = distances[xtoc == j]
             if len(dist) > 0:
                 r50[j], r90[j] = np.percentile(dist, (50, 90))
-        print("kmeans: cluster 50 % radius", r50.astype(int))
-        print("kmeans: cluster 90 % radius", r90.astype(int))
+        print('kmeans: cluster 50 % radius', r50.astype(int))
+        print('kmeans: cluster 90 % radius', r90.astype(int))
         # scale L1 / dim, L2 / sqrt(dim) ?
     return centres, xtoc, distances
 
@@ -131,7 +134,7 @@ def randomsample(X, n):
     return X[sampleix]
 
 
-def nearestcentres(X, centres, metric="euclidean", p=2):
+def nearestcentres(X, centres, metric='euclidean', p=2):
     """ each X -> nearest centre, any metric
             euclidean2 (~ withinss) is more sensitive to outliers,
             cityblock (manhattan, L1) less sensitive
@@ -140,10 +143,9 @@ def nearestcentres(X, centres, metric="euclidean", p=2):
     return D.argmin(axis=1)
 
 
-def Lqmetric(x, y=None, q=.5):
+def Lqmetric(x, y=None, q=0.5):
     # yes a metric, may increase weight of near matches; see ...
-    return (np.abs(x - y) ** q).mean() if y is not None \
-        else (np.abs(x) ** q).mean()
+    return (np.abs(x - y) ** q).mean() if y is not None else (np.abs(x) ** q).mean()
 
 
 # ...............................................................................
@@ -162,10 +164,10 @@ class Kmeans:
         self.X = X
         if centres is None:
             self.centres, self.Xtocentre, self.distances = kmeanssample(
-                X, k=k, nsample=nsample, **kwargs)
+                X, k=k, nsample=nsample, **kwargs
+            )
         else:
-            self.centres, self.Xtocentre, self.distances = kmeans(
-                X, centres, **kwargs)
+            self.centres, self.Xtocentre, self.distances = kmeans(X, centres, **kwargs)
 
     def __iter__(self):
         for jc in range(len(self.centres)):
@@ -173,7 +175,7 @@ class Kmeans:
 
 
 # ...............................................................................
-if __name__ == "__main__":
+if __name__ == '__main__':
     import random
     import sys
     from time import time
@@ -182,28 +184,38 @@ if __name__ == "__main__":
     dim = 10
     ncluster = 10
     kmsample = 100  # 0: random centres, > 0: kmeanssample
-    kmdelta = .001
+    kmdelta = 0.001
     kmiter = 10
-    metric = "cityblock"  # "chebyshev" = max, "cityblock" L1,  Lqmetric
+    metric = 'cityblock'  # "chebyshev" = max, "cityblock" L1,  Lqmetric
     seed = 1
 
-    exec ("\n".join(sys.argv[1:]))  # run this.py N= ...
+    exec('\n'.join(sys.argv[1:]))  # run this.py N= ...
     np.set_printoptions(1, threshold=200, edgeitems=5, suppress=True)
     np.random.seed(seed)
     random.seed(seed)
 
-    print("N %d  dim %d  ncluster %d  kmsample %d  metric %s" % (
-        N, dim, ncluster, kmsample, metric))
+    print(
+        'N %d  dim %d  ncluster %d  kmsample %d  metric %s'
+        % (N, dim, ncluster, kmsample, metric)
+    )
     X = np.random.exponential(size=(N, dim))
     # cf scikits-learn datasets/
     t0 = time()
     if kmsample > 0:
-        centres, xtoc, dist = kmeanssample(X, ncluster, nsample=kmsample,
-                                           delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2)
+        centres, xtoc, dist = kmeanssample(
+            X,
+            ncluster,
+            nsample=kmsample,
+            delta=kmdelta,
+            maxiter=kmiter,
+            metric=metric,
+            verbose=2,
+        )
     else:
         randomcentres = randomsample(X, ncluster)
-        centres, xtoc, dist = kmeans(X, randomcentres,
-                                     delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2)
-    print("%.0f msec" % ((time() - t0) * 1000))
+        centres, xtoc, dist = kmeans(
+            X, randomcentres, delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2
+        )
+    print('%.0f msec' % ((time() - t0) * 1000))
 
     # also ~/py/np/kmeans/test-kmeans.py

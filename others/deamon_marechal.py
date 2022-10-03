@@ -42,7 +42,9 @@ class Daemon:
     Usage: subclass the Daemon class and override the run() method
     """
 
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def __init__(
+        self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'
+    ):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
@@ -60,11 +62,11 @@ class Daemon:
                 # exit first parent
                 sys.exit(0)
         except OSError as e:
-            sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
+            sys.stderr.write('fork #1 failed: %d (%s)\n' % (e.errno, e.strerror))
             sys.exit(1)
 
         # decouple from parent environment
-        os.chdir("/")
+        os.chdir('/')
         os.setsid()
         os.umask(0)
 
@@ -75,7 +77,7 @@ class Daemon:
                 # exit from second parent
                 sys.exit(0)
         except OSError as e:
-            sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
+            sys.stderr.write('fork #2 failed: %d (%s)\n' % (e.errno, e.strerror))
             sys.exit(1)
 
         # redirect standard file descriptors
@@ -91,7 +93,7 @@ class Daemon:
         # write pidfile
         atexit.register(self.delpid)
         pid = str(os.getpid())
-        file(self.pidfile, 'w+').write("%s\n" % pid)
+        file(self.pidfile, 'w+').write('%s\n' % pid)
 
     def delpid(self):
         os.remove(self.pidfile)
@@ -109,7 +111,7 @@ class Daemon:
             pid = None
 
         if pid:
-            message = "pidfile %s already exist. Daemon already running?\n"
+            message = 'pidfile %s already exist. Daemon already running?\n'
             sys.stderr.write(message % self.pidfile)
             sys.exit(1)
 
@@ -130,9 +132,9 @@ class Daemon:
             pid = None
 
         if not pid:
-            message = "pidfile %s does not exist. Daemon not running?\n"
+            message = 'pidfile %s does not exist. Daemon not running?\n'
             sys.stderr.write(message % self.pidfile)
-            return # not an error in a restart
+            return  # not an error in a restart
 
         # Try killing the daemon process
         try:
@@ -141,7 +143,7 @@ class Daemon:
                 time.sleep(0.1)
         except OSError as err:
             err = str(err)
-            if err.find("No such process") > 0:
+            if err.find('No such process') > 0:
                 if os.path.exists(self.pidfile):
                     os.remove(self.pidfile)
             else:

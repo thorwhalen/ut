@@ -8,14 +8,14 @@ dflt_ignore_misunderstood_validation_instructions = False
 
 dflt_arg_pattern = r'.+'
 
-day_format = "%Y-%m-%d"
+day_format = '%Y-%m-%d'
 day_format_pattern = re.compile('\d{4}-\d{2}-\d{2}')
 #
 # # CHUNK_SREF = 'chunk_sref'
 # # uploads_SREF = 'uploads_sref'
 #
 # capture_all_remaining = "(.*)"
-until_slash = "[^/]+"
+until_slash = '[^/]+'
 until_slash_capture = '(' + until_slash + ')'
 #
 capture_template = '({format})'
@@ -63,16 +63,29 @@ def mk_named_capture_patterns(mapping_dict):
 
 
 def template_to_pattern(mapping_dict, template):
-    p = re.compile("{}".format("|".join(['{' + re.escape(x) + '}' for x in list(mapping_dict.keys())])))
-    return p.sub(lambda x: mapping_dict[x.string[(x.start() + 1):(x.end() - 1)]], template)
+    p = re.compile(
+        '{}'.format(
+            '|'.join(['{' + re.escape(x) + '}' for x in list(mapping_dict.keys())])
+        )
+    )
+    return p.sub(
+        lambda x: mapping_dict[x.string[(x.start() + 1) : (x.end() - 1)]], template
+    )
 
 
 def mk_extract_pattern(template, format_dict, named_capture_patterns, name):
     mapping_dict = dict(format_dict, **{name: named_capture_patterns[name]})
-    p = re.compile("{}".format("|".join(
-        ['{' + re.escape(x) + '}' for x in list(mapping_dict.keys())])))
+    p = re.compile(
+        '{}'.format(
+            '|'.join(['{' + re.escape(x) + '}' for x in list(mapping_dict.keys())])
+        )
+    )
 
-    return re.compile(p.sub(lambda x: mapping_dict[x.string[(x.start() + 1):(x.end() - 1)]], template))
+    return re.compile(
+        p.sub(
+            lambda x: mapping_dict[x.string[(x.start() + 1) : (x.end() - 1)]], template
+        )
+    )
 
 
 def mk_prefix_templates_dicts(template):
@@ -86,14 +99,20 @@ def mk_prefix_templates_dicts(template):
             if name is None:
                 next_name = names[0]
             else:
-                next_name = names[1 + next(i for i, _name in enumerate(names) if _name == name)]
+                next_name = names[
+                    1 + next(i for i, _name in enumerate(names) if _name == name)
+                ]
             p = '{' + next_name + '}'
             template_idx_of_next_name = re.search(p, template).start()
-            prefix_template_dict_including_name[name] = template[:template_idx_of_next_name]
+            prefix_template_dict_including_name[name] = template[
+                :template_idx_of_next_name
+            ]
 
     prefix_template_dict_excluding_name = dict()
     for i, name in enumerate(names):
-        prefix_template_dict_excluding_name[name] = prefix_template_dict_including_name[none_and_names[i]]
+        prefix_template_dict_excluding_name[name] = prefix_template_dict_including_name[
+            none_and_names[i]
+        ]
     prefix_template_dict_excluding_name[None] = template
 
     return prefix_template_dict_including_name, prefix_template_dict_excluding_name
@@ -110,6 +129,7 @@ def process_info_dict_for_example(info_dict):
 def example_process_kwargs(**kwargs):
     from datetime import datetime
     from ut.util.utime import second_ms, utcnow_ms
+
     if 's_ums' in kwargs:
         kwargs['s_ums'] = int(kwargs['s_ums'])
     if 'e_ums' in kwargs:
@@ -120,16 +140,22 @@ def example_process_kwargs(**kwargs):
         # get the day in the expected format
         if isinstance(day, str):
             if day == 'now':
-                day = datetime.utcfromtimestamp(int(utcnow_ms() / second_ms)).strftime(day_format)
+                day = datetime.utcfromtimestamp(int(utcnow_ms() / second_ms)).strftime(
+                    day_format
+                )
             elif day == 'from_s_ums':
-                assert 's_ums' in kwargs, "need to have s_ums argument"
-                day = datetime.utcfromtimestamp(int(kwargs['s_ums'] / second_ms)).strftime(day_format)
+                assert 's_ums' in kwargs, 'need to have s_ums argument'
+                day = datetime.utcfromtimestamp(
+                    int(kwargs['s_ums'] / second_ms)
+                ).strftime(day_format)
             else:
                 assert day_format_pattern.match(day)
         elif isinstance(day, datetime):
             day = day.strftime(day_format)
         elif 's_ums' in kwargs:  # if day is neither a string nor a datetime
-            day = datetime.utcfromtimestamp(int(kwargs['s_ums'] / second_ms)).strftime(day_format)
+            day = datetime.utcfromtimestamp(int(kwargs['s_ums'] / second_ms)).strftime(
+                day_format
+            )
 
         kwargs['day'] = day
 
@@ -139,20 +165,21 @@ def example_process_kwargs(**kwargs):
 naming_kwargs_for_kind = dict(
     example=dict(
         template='s3://bucket-{group}/example/files/{user}/{subuser}/{day}/{s_ums}_{e_ums}',
-        format_dict={'s_ums': '\d+', 'e_ums': '\d+', 'day': "[^/]+"},
+        format_dict={'s_ums': '\d+', 'e_ums': '\d+', 'day': '[^/]+'},
         process_kwargs=example_process_kwargs,
-        process_info_dict=process_info_dict_for_example
+        process_info_dict=process_info_dict_for_example,
     ),
     uploads=dict(
         template='s3://uploads/{group}/upload/files/{user}/{day}/{subuser}/{filename}',
-        format_dict={'day': "[^/]+", 'filepath': '.+'}
-    )
+        format_dict={'day': '[^/]+', 'filepath': '.+'},
+    ),
 )
 
 
 class LinearNaming(object):
-    def __init__(self, template, format_dict=None,
-                 process_kwargs=None, process_info_dict=None):
+    def __init__(
+        self, template, format_dict=None, process_kwargs=None, process_info_dict=None
+    ):
 
         if format_dict is None:
             format_dict = {}
@@ -171,7 +198,9 @@ class LinearNaming(object):
 
         extract_pattern = {}
         for name in names:
-            extract_pattern[name] = mk_extract_pattern(template, format_dict, named_capture_patterns, name)
+            extract_pattern[name] = mk_extract_pattern(
+                template, format_dict, named_capture_patterns, name
+            )
 
         self.names = names
         self.format_dict = format_dict
@@ -181,11 +210,19 @@ class LinearNaming(object):
         self.process_kwargs = process_kwargs
         self.process_info_dict = process_info_dict
 
-        self.prefix_template_including_name, self.prefix_template_excluding_name = \
-            mk_prefix_templates_dicts(self.template)
+        (
+            self.prefix_template_including_name,
+            self.prefix_template_excluding_name,
+        ) = mk_prefix_templates_dicts(self.template)
 
         _prefix_pattern = '$|'.join(
-            [x.format(**self.format_dict) for x in sorted(list(self.prefix_template_including_name.values()), key=len)])
+            [
+                x.format(**self.format_dict)
+                for x in sorted(
+                    list(self.prefix_template_including_name.values()), key=len
+                )
+            ]
+        )
         _prefix_pattern += '$'
         self.prefix_pattern = re.compile(_prefix_pattern)
 
@@ -376,37 +413,55 @@ class LinearNaming(object):
 
     def __repr__(self):
         kv = self.__dict__.copy()
-        exclude = ['process_kwargs', 'extract_pattern', 'prefix_pattern',
-                   'prefix_template_including_name', 'prefix_template_excluding_name']
+        exclude = [
+            'process_kwargs',
+            'extract_pattern',
+            'prefix_pattern',
+            'prefix_template_including_name',
+            'prefix_template_excluding_name',
+        ]
         for f in exclude:
             kv.pop(f)
-        s = ""
-        s += "  * {}: {}\n\n".format('template', kv.pop('template'))
-        s += "  * {}: {}\n\n".format('format_dict', kv.pop('format_dict'))
+        s = ''
+        s += '  * {}: {}\n\n'.format('template', kv.pop('template'))
+        s += '  * {}: {}\n\n'.format('format_dict', kv.pop('format_dict'))
 
         for k, v in kv.items():
             if hasattr(v, 'pattern'):
                 v = v.pattern
-            s += "  * {}: {}\n\n".format(k, v)
+            s += '  * {}: {}\n\n'.format(k, v)
         return s
 
 
 class NamingInterface(object):
-    def __init__(self,
-                 params=None,
-                 validation_funs=dflt_validation_funs,
-                 all_kwargs_should_be_in_validation_dict=dflt_all_kwargs_should_be_in_validation_dict,
-                 ignore_misunderstood_validation_instructions=dflt_ignore_misunderstood_validation_instructions,
-                 **kwargs):
+    def __init__(
+        self,
+        params=None,
+        validation_funs=dflt_validation_funs,
+        all_kwargs_should_be_in_validation_dict=dflt_all_kwargs_should_be_in_validation_dict,
+        ignore_misunderstood_validation_instructions=dflt_ignore_misunderstood_validation_instructions,
+        **kwargs
+    ):
         if params is None:
             params = {}
 
-        validation_dict = {var: info.get('validation', {}) for var, info in params.items()}
+        validation_dict = {
+            var: info.get('validation', {}) for var, info in params.items()
+        }
         default_dict = {var: info.get('default', None) for var, info in params.items()}
-        arg_pattern = {var: info.get('arg_pattern', dflt_arg_pattern) for var, info in params.items()}
-        named_arg_pattern = {var: '(?P<' + var + '>' + pat + ')' for var, pat in arg_pattern.items()}
-        to_str = {var: info['to_str'] for var, info in params.items() if 'to_str' in info}
-        to_val = {var: info['to_val'] for var, info in params.items() if 'to_val' in info}
+        arg_pattern = {
+            var: info.get('arg_pattern', dflt_arg_pattern)
+            for var, info in params.items()
+        }
+        named_arg_pattern = {
+            var: '(?P<' + var + '>' + pat + ')' for var, pat in arg_pattern.items()
+        }
+        to_str = {
+            var: info['to_str'] for var, info in params.items() if 'to_str' in info
+        }
+        to_val = {
+            var: info['to_val'] for var, info in params.items() if 'to_val' in info
+        }
 
         self.validation_dict = validation_dict
         self.default_dict = default_dict
@@ -416,19 +471,29 @@ class NamingInterface(object):
         self.to_val = to_val
 
         self.validation_funs = validation_funs
-        self.all_kwargs_should_be_in_validation_dict = all_kwargs_should_be_in_validation_dict
-        self.ignore_misunderstood_validation_instructions = ignore_misunderstood_validation_instructions
+        self.all_kwargs_should_be_in_validation_dict = (
+            all_kwargs_should_be_in_validation_dict
+        )
+        self.ignore_misunderstood_validation_instructions = (
+            ignore_misunderstood_validation_instructions
+        )
 
     def validate_kwargs(self, **kwargs):
-        return validate_kwargs(kwargs_to_validate=kwargs,
-                               validation_dict=self.validation_dict,
-                               validation_funs=self.validation_funs,
-                               all_kwargs_should_be_in_validation_dict=self.all_kwargs_should_be_in_validation_dict,
-                               ignore_misunderstood_validation_instructions=self.ignore_misunderstood_validation_instructions)
+        return validate_kwargs(
+            kwargs_to_validate=kwargs,
+            validation_dict=self.validation_dict,
+            validation_funs=self.validation_funs,
+            all_kwargs_should_be_in_validation_dict=self.all_kwargs_should_be_in_validation_dict,
+            ignore_misunderstood_validation_instructions=self.ignore_misunderstood_validation_instructions,
+        )
 
     def default_for(self, arg, **kwargs):
         default = self.default_dict[arg]
-        if not isinstance(default, dict) or 'args' not in default or 'func' not in default:
+        if (
+            not isinstance(default, dict)
+            or 'args' not in default
+            or 'func' not in default
+        ):
             return default
         else:  # call the func on the default['args'] values given in kwargs
             args = {arg_: kwargs[arg_] for arg_ in default['args']}
@@ -441,10 +506,10 @@ class NamingInterface(object):
         return {k: self.to_val[k](v) for k, v in kwargs.items() if k in self.to_val}
 
     def name_for(self, **kwargs):
-        raise NotImplementedError("Interface method: Method needs to be implemented")
+        raise NotImplementedError('Interface method: Method needs to be implemented')
 
     def info_for(self, **kwargs):
-        raise NotImplementedError("Interface method: Method needs to be implemented")
+        raise NotImplementedError('Interface method: Method needs to be implemented')
 
     def is_valid_name(self, name):
-        raise NotImplementedError("Interface method: Method needs to be implemented")
+        raise NotImplementedError('Interface method: Method needs to be implemented')

@@ -1,7 +1,6 @@
-
-
 from sklearn.decomposition.pca import PCA, _infer_dimension_
 from ut.ml.sk.utils.validation import weighted_data
+
 # from wpca import WPCA
 from ut.ml.sk.decomposition.wpca import WPCA
 
@@ -13,10 +12,12 @@ import numpy as np
 from scipy import linalg
 from sklearn.decomposition.pca import PCA
 from ut.ml.utils import trailing_underscore_attributes, get_model_attributes
+
 # from scipy.special import gammaln
 
 from sklearn.utils.validation import as_float_array
 from sklearn.utils.validation import check_array
+
 # from sklearn.utils.extmath import fast_dot, fast_logdet, randomized_svd
 # from sklearn.utils.validation import check_is_fitted
 
@@ -76,9 +77,12 @@ all fitted attributes were close
 >>> XX = random.rand(3, X.shape[1])
 >>> assert allclose(abs(model_1.transform(XX) / model_2.transform(XX)), 1), "transformation of X not close"
     """
+
     def fit(self, X, y=None):
         X, w = weighted_data(X)
-        return super(self.__class__, self).fit(X, weights=tile(reshape(w, (len(w), 1)), X.shape[1]))
+        return super(self.__class__, self).fit(
+            X, weights=tile(reshape(w, (len(w), 1)), X.shape[1])
+        )
 
     def transform(self, X):
         X, w = weighted_data(X)
@@ -105,10 +109,11 @@ class MyWeightedPCA(PCA):
         # Center data
         # self.mean_ = average(X, axis=0, weights=w)
         # X -= self.mean_
-        U, S, V = linalg.svd((X.T * reshape(sqrt(w), (1, len(X)))).T, full_matrices=True)
+        U, S, V = linalg.svd(
+            (X.T * reshape(sqrt(w), (1, len(X)))).T, full_matrices=True
+        )
         explained_variance_ = (S ** 2) / n_samples_weighted
-        explained_variance_ratio_ = (explained_variance_ /
-                                     explained_variance_.sum())
+        explained_variance_ratio_ = explained_variance_ / explained_variance_.sum()
 
         components_ = V
 
@@ -117,14 +122,15 @@ class MyWeightedPCA(PCA):
             n_components = n_features
         elif n_components == 'mle':
             if n_samples < n_features:
-                raise ValueError("n_components='mle' is only supported "
-                                 "if n_samples >= n_features")
+                raise ValueError(
+                    "n_components='mle' is only supported " 'if n_samples >= n_features'
+                )
 
-            n_components = _infer_dimension_(explained_variance_,
-                                             n_samples, n_features)
+            n_components = _infer_dimension_(explained_variance_, n_samples, n_features)
         elif not 0 <= n_components <= n_features:
-            raise ValueError("n_components=%r invalid for n_features=%d"
-                             % (n_components, n_features))
+            raise ValueError(
+                'n_components=%r invalid for n_features=%d' % (n_components, n_features)
+            )
 
         if 0 < n_components < 1.0:
             # number of components for which the cumulated explained variance
@@ -137,10 +143,10 @@ class MyWeightedPCA(PCA):
         if n_components < min(n_features, n_samples):
             self.noise_variance_ = explained_variance_[n_components:].mean()
         else:
-            self.noise_variance_ = 0.
+            self.noise_variance_ = 0.0
 
         # store n_samples to revert whitening when getting covariance
-        self.n_samples_ = n_samples_weighted # n_samples
+        self.n_samples_ = n_samples_weighted  # n_samples
 
         self.components_ = components_[:n_components]
         self.explained_variance_ = explained_variance_[:n_components]
@@ -149,11 +155,6 @@ class MyWeightedPCA(PCA):
         self.n_components_ = n_components
 
         return (U, S, V)
-
-
-
-
-
 
         #
         # # Center data

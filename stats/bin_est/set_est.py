@@ -16,7 +16,9 @@ default['success'] = 'success'
 default['trial'] = 'trial'
 default['rate'] = 'rate'
 default['set_elements_name'] = 'element'  # category of the elements used in the sets
-default['set_column'] = 'set'  # name of column that contains the sets (which will index the data)
+default[
+    'set_column'
+] = 'set'  # name of column that contains the sets (which will index the data)
 
 
 class SetEst(object):
@@ -31,7 +33,9 @@ class SetEst(object):
         self.d = d
         # compute other columns and attributes
         self.index_type = type(self.d.index.values[0])
-        self.set_elements = list(unique(list(itertools.chain.from_iterable(self.d.index.values))))
+        self.set_elements = list(
+            unique(list(itertools.chain.from_iterable(self.d.index.values)))
+        )
         self.n_elements = len(self.set_elements)
         self.add_bitmap()
         self.add_stats()
@@ -40,7 +44,7 @@ class SetEst(object):
         # init poset
         self._poset = None  # will be computes if and when used
         # vector to map bitmaps to ints
-        self.hash_base = array([2**i for i in range(self.n_elements)])
+        self.hash_base = array([2 ** i for i in range(self.n_elements)])
         self.hash_base_matrix = matrix(self.hash_base).T
         self.hash_to_value = dict()
 
@@ -51,7 +55,9 @@ class SetEst(object):
     #     val_col = val_col or self.success
 
     def add_bitmap(self):
-        ddd = ms.pmath.poset.family_of_sets_to_bitmap(self.d.index.values)[self.set_elements]
+        ddd = ms.pmath.poset.family_of_sets_to_bitmap(self.d.index.values)[
+            self.set_elements
+        ]
         self.d = pd.concat([self.d, ddd], axis=1)
         # self.d[self.set_elements] = ddd
 
@@ -64,7 +70,9 @@ class SetEst(object):
     def add_stats(self):
         self.d.loc[:, 'n_members'] = list(map(len, self.d.index.values))
         if self.trial in self.d.columns:
-            self.d.loc[:, self.rate] = self.d[self.success] / array(list(map(float, self.d[self.trial])))
+            self.d.loc[:, self.rate] = self.d[self.success] / array(
+                list(map(float, self.d[self.trial]))
+            )
 
     def rm_bitmap(self):
         self.d = self.dd()
@@ -73,7 +81,9 @@ class SetEst(object):
         return self.d[self.set_elements].as_matrix()
 
     def non_element_columns(self):
-        return ms.pcoll.order_conserving.setdiff(list(self.d.columns), self.set_elements)
+        return ms.pcoll.order_conserving.setdiff(
+            list(self.d.columns), self.set_elements
+        )
 
     def sort_d(self, columns=None, **kwargs):
         self.d = self.d.sort(columns=columns, **kwargs)
@@ -89,7 +99,9 @@ class SetEst(object):
         self.d = self.d.reset_index(drop=False)
         self.d.loc[:, index_name] = self.d.loc[:, index_name].apply(change_to_type)
         self.d = self.d.set_index(index_name)
-        self.index_type = type(self.d.index.values[0])  # couldn't I use change_to_type here?
+        self.index_type = type(
+            self.d.index.values[0]
+        )  # couldn't I use change_to_type here?
 
     def subset_summed_d(self, cols=None):
         cols = cols or [self.success, self.trial]
@@ -107,25 +119,36 @@ class SetEst(object):
             t = self.dd().iloc[self.poset()[idx, :]]
         return t.sort(['n_members', self.trial, self.success], ascending=False)
 
-
     @staticmethod
     def _process_input_for_factories(df, kwargs):
-        kwargs['success'] = kwargs.get('success',
-                                       list(set(kwargs.get('set_column', default['set_column']))
-                                       .difference(df.columns))[0])
+        kwargs['success'] = kwargs.get(
+            'success',
+            list(
+                set(kwargs.get('set_column', default['set_column'])).difference(
+                    df.columns
+                )
+            )[0],
+        )
         df = df.copy()
-        df[kwargs['set_column']] = list(map(tuple, list(map(unique, df[kwargs['set_column']]))))
+        df[kwargs['set_column']] = list(
+            map(tuple, list(map(unique, df[kwargs['set_column']])))
+        )
         return df, dict(default, **kwargs)
 
     @staticmethod
     def _mk_data_from_set_success_df(df, **kwargs):
-        df = df[[kwargs['set_column'], kwargs['success']]] \
-            .groupby(kwargs['set_column']) \
+        df = (
+            df[[kwargs['set_column'], kwargs['success']]]
+            .groupby(kwargs['set_column'])
             .agg(['sum', 'count'])[kwargs['success']]
-        df = ms.daf.ch.ch_col_names(df, new_names=[kwargs['success'], kwargs['trial']], old_names=['sum', 'count'])
+        )
+        df = ms.daf.ch.ch_col_names(
+            df,
+            new_names=[kwargs['success'], kwargs['trial']],
+            old_names=['sum', 'count'],
+        )
         df = df.sort([kwargs['success'], kwargs['trial']], ascending=False)
         return df
-
 
     @staticmethod
     def from_set_success_df(df, **kwargs):
@@ -146,9 +169,13 @@ class SetEst(object):
         df = SetEst._mk_data_from_set_success_df(df, **kwargs)
         # make missing combos data and append to existing data
         existing_combos = df.index.values
-        set_elements = list(unique(list(itertools.chain.from_iterable(existing_combos))))
+        set_elements = list(
+            unique(list(itertools.chain.from_iterable(existing_combos)))
+        )
         missing_combos = set(powerset(set_elements)).difference(existing_combos)
-        missing_combo_data = pd.DataFrame({kwargs['success']: 0, kwargs['trial']: 0}, index=missing_combos)
+        missing_combo_data = pd.DataFrame(
+            {kwargs['success']: 0, kwargs['trial']: 0}, index=missing_combos
+        )
         # append to existing data
         df = pd.concat([df, missing_combo_data], axis=0)
         # make a SetEst from the set_success df
@@ -166,13 +193,18 @@ class Shapley(SetEst):
         self.compute_subset_val_map()
 
     def compute_subset_val_map(self):
-        self.subset_val_map = {tuple(k): v for k, v in zip(self.bitmap_matrix(), self.d[self.val_col])}
+        self.subset_val_map = {
+            tuple(k): v for k, v in zip(self.bitmap_matrix(), self.d[self.val_col])
+        }
 
     def get_subset_val(self, subset):
         return self.subset_val_map.get(tuple(subset), 0)
 
     def compute_shapley_values(self):
-        return {element: self._compute_single_shapley_value(element) for element in self.set_elements}
+        return {
+            element: self._compute_single_shapley_value(element)
+            for element in self.set_elements
+        }
 
     def _compute_single_shapley_value(self, element):
         t = self._mk_marginal_values_for_element(element)
@@ -189,14 +221,21 @@ class Shapley(SetEst):
         subsets_intersecting_with_element = self.bitmap_matrix()[element_row_lidx, :]
         t['subset_sizes'] = sum(subsets_intersecting_with_element, axis=1)
         subsets_intersecting_with_element[:, element_col_lidx] = 0
-        t['success'] = t[self.val_col] - array(list(map(self.get_subset_val, subsets_intersecting_with_element)))
+        t['success'] = t[self.val_col] - array(
+            list(map(self.get_subset_val, subsets_intersecting_with_element))
+        )
         return t
 
     def _compute_single_shapley_value_experimental(self, element):
         def group_stats_fun(g):
             return g['success'].sum() / float(g['subset_sizes'].iloc[0])
+
         t = self._mk_marginal_values_for_element(element)
-        tt = t[['subset_sizes', 'success']].groupby('subset_sizes').apply(group_stats_fun)
+        tt = (
+            t[['subset_sizes', 'success']]
+            .groupby('subset_sizes')
+            .apply(group_stats_fun)
+        )
         return mean(tt)
         # tt = t[['subset_sizes', 'success']].groupby('subset_sizes').mean()
         # return mean(tt['success'])
@@ -207,9 +246,13 @@ class Shapley(SetEst):
         df = Shapley._mk_data_from_set_success_df(df, **kwargs)
         # make missing combos data and append to existing data
         existing_combos = df.index.values
-        set_elements = list(unique(list(itertools.chain.from_iterable(existing_combos))))
+        set_elements = list(
+            unique(list(itertools.chain.from_iterable(existing_combos)))
+        )
         missing_combos = set(powerset(set_elements)).difference(existing_combos)
-        missing_combo_data = pd.DataFrame({kwargs['success']: 0, kwargs['trial']: 0}, index=missing_combos)
+        missing_combo_data = pd.DataFrame(
+            {kwargs['success']: 0, kwargs['trial']: 0}, index=missing_combos
+        )
         # append to existing data
         df = pd.concat([df, missing_combo_data], axis=0)
         # make a SetEst from the set_success df

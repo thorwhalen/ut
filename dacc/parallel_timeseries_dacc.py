@@ -9,7 +9,6 @@ from ut.pplot.to import simple_plotly
 
 
 class ParallelTimeSeriesDacc(object):
-
     def __init__(self, data_source, date_var, index_var, ts_vars_name='vars', **kwargs):
         if isinstance(data_source, pd.DataFrame):
             self.df = data_source
@@ -27,30 +26,45 @@ class ParallelTimeSeriesDacc(object):
                 search_kwargs = kwargs.get('search_kwargs', {})
                 search_kwargs = dict({'_id': False}, **search_kwargs)
                 exclude_fields = search_kwargs.pop('exclude_fields', [])
-                self.df = ec.search_and_export_to_df(exclude_fields=exclude_fields, **search_kwargs)
+                self.df = ec.search_and_export_to_df(
+                    exclude_fields=exclude_fields, **search_kwargs
+                )
 
             else:
-                raise NotImplementedError("Unrecognized data_source: {}".format(data_source))
+                raise NotImplementedError(
+                    'Unrecognized data_source: {}'.format(data_source)
+                )
         else:
-            raise NotImplementedError("Unrecognized data_source type: {}".format(type(data_source)))
+            raise NotImplementedError(
+                'Unrecognized data_source type: {}'.format(type(data_source))
+            )
 
-        assert set([date_var, index_var]).issubset(self.df.columns), \
-            "Both {} and {} must be columns of the data".format(date_var, index_var)
+        assert set([date_var, index_var]).issubset(
+            self.df.columns
+        ), 'Both {} and {} must be columns of the data'.format(date_var, index_var)
         self.date_var = date_var
         self.index_var = index_var
         self.ts_vars_name = ts_vars_name
-        self.var_names = [x for x in self.df.columns if x not in [self.date_var, self.index_var]]
+        self.var_names = [
+            x for x in self.df.columns if x not in [self.date_var, self.index_var]
+        ]
         self.df.columns.set_names([self.ts_vars_name], inplace=True)
 
         # pivoting data
         original_length = len(self.df)
         self.df.drop_duplicates(subset=[self.index_var, self.date_var], inplace=True)
         if len(self.df) != original_length:
-            raise RuntimeWarning("There are duplicate ({},{}), so I'm deleting offending records"
-                                 .format(self.index_var, self.date_var))
+            raise RuntimeWarning(
+                "There are duplicate ({},{}), so I'm deleting offending records".format(
+                    self.index_var, self.date_var
+                )
+            )
             self.df = self.df[~self.df[self.date_var].notnull()]
-            raise AssertionError("There are duplicate ({},{}), so I can't pivot the data"
-                                 .format(self.index_var, self.date_var))
+            raise AssertionError(
+                "There are duplicate ({},{}), so I can't pivot the data".format(
+                    self.index_var, self.date_var
+                )
+            )
         self.df = self.df.pivot(index=self.date_var, columns=self.index_var)
         self.df.sort_index(inplace=True)
 
@@ -64,17 +78,18 @@ class ParallelTimeSeriesDacc(object):
             df = self.df
         return np.unique(df.columns.get_level_values(level=1))
 
-
     @staticmethod
     def drop_columns_with_insufficient_dates(d, min_num_of_dates):
         """
         Drop columns that don't have a minimum number of non-NaN dates
         """
-        print(("original shape: {}".format(d.shape)))
+        print(('original shape: {}'.format(d.shape)))
         num_of_dates = (~d.isnull()).sum()
-        num_of_dates = num_of_dates[num_of_dates > min_num_of_dates].sort(inplace=False, ascending=False)
+        num_of_dates = num_of_dates[num_of_dates > min_num_of_dates].sort(
+            inplace=False, ascending=False
+        )
         d = d[num_of_dates.index.values].dropna(how='all')
-        print(("shape with at least {} dates: {}".format(min_num_of_dates, d.shape)))
+        print(('shape with at least {} dates: {}'.format(min_num_of_dates, d.shape)))
         return d
 
     @staticmethod
@@ -96,12 +111,28 @@ class ParallelTimeSeriesDacc(object):
         t = df[[xvar, yvar]].dropna()
         t = t[t[yvar] >= min_y]
         n_xvar_more_than_yvar = sum(t[xvar] > t[yvar])
-        print(("{:.2f}% ({}/{}) of '{}' > '{}'".format(100 * n_xvar_more_than_yvar / float(len(t)),
-                                                      n_xvar_more_than_yvar, len(t),
-                                                      xvar, yvar)))
+        print(
+            (
+                "{:.2f}% ({}/{}) of '{}' > '{}'".format(
+                    100 * n_xvar_more_than_yvar / float(len(t)),
+                    n_xvar_more_than_yvar,
+                    len(t),
+                    xvar,
+                    yvar,
+                )
+            )
+        )
 
-    def plot_time_series(self, d, title=None, y_labels=None,
-                         width_factor=2, length=18, only_first_non_null=True, with_plotly=False):
+    def plot_time_series(
+        self,
+        d,
+        title=None,
+        y_labels=None,
+        width_factor=2,
+        length=18,
+        only_first_non_null=True,
+        with_plotly=False,
+    ):
         # idSite = 349
 
         if isinstance(d, tuple):
@@ -133,7 +164,7 @@ class ParallelTimeSeriesDacc(object):
                     plt.ylabel(y_labels[i].replace('_', '\n'))
                 else:
                     plt.ylabel(y_labels[i])
-                ax.yaxis.set_label_position("right")
+                ax.yaxis.set_label_position('right')
 
             if i + 1 < n:
                 plt.xlabel('')
@@ -156,6 +187,6 @@ def _choose_title_and_y_label(d):
         elif len(np.unique(level_2_vals)) == 1:
             return level_2_vals[0], level_1_vals
         else:
-            return " & ".join(d.columns.names), col_vals
+            return ' & '.join(d.columns.names), col_vals
     except TypeError:
-        return " & ".join(d.columns.names), col_vals
+        return ' & '.join(d.columns.names), col_vals

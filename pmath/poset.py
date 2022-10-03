@@ -56,7 +56,9 @@ def family_of_sets_to_bitmap(family_of_sets, output='df'):
     See Also:
         bitmap_to_family_of_sets(bitmap, set_labels) (reverse operation)
     """
-    df = pd.DataFrame([{element: 1 for element in s} for s in family_of_sets], index=family_of_sets).fillna(0)
+    df = pd.DataFrame(
+        [{element: 1 for element in s} for s in family_of_sets], index=family_of_sets
+    ).fillna(0)
     if output == 'df':
         return df
     else:
@@ -79,7 +81,9 @@ def bitmap_to_family_of_sets(bitmap, set_labels=None):
     else:
         if set_labels is None:
             set_labels = arange(shape(bitmap)[1])
-    assert shape(bitmap)[1] == len(set_labels), "number of set labels must equal the number of elements (num of cols)"
+    assert shape(bitmap)[1] == len(
+        set_labels
+    ), 'number of set labels must equal the number of elements (num of cols)'
     return [set_labels[lidx] for lidx in bitmap]
 
 

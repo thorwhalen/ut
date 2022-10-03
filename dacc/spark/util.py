@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from itertools import islice

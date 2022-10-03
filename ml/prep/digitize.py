@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from numpy import *
@@ -21,7 +19,9 @@ class IncrementalStats(BaseEstimator):
 
     def fit_partial(self, X):
         if not hasattr(self, 'column_stats_'):  # initialize livestats
-            self.column_stats_ = [LiveStats(p=self.quantiles) for x in range(X.shape[1])]
+            self.column_stats_ = [
+                LiveStats(p=self.quantiles) for x in range(X.shape[1])
+            ]
         if not hasattr(self, 'n_columns_'):
             self.n_columns_ = X.shape[1]
         for i, col in enumerate(X.T):
@@ -31,13 +31,16 @@ class IncrementalStats(BaseEstimator):
     def quantiles_matrix(self):
         def get_quantiles_series(livestats_obj):
             quantiles = livestats_obj.quantiles()
-            sr = pd.Series(data=[x[1] for x in quantiles],
-                           index=[x[0] for x in quantiles])
+            sr = pd.Series(
+                data=[x[1] for x in quantiles], index=[x[0] for x in quantiles]
+            )
             sr.sort_index(inplace=True)
             return sr
+
         qmat = pd.concat(list(map(get_quantiles_series, self.column_stats_)), axis=1)
-        assert qmat.shape[0] == len(self.quantiles), \
-            "The concatination of the quantiles produced a different number of quantiles than it should"
+        assert qmat.shape[0] == len(
+            self.quantiles
+        ), 'The concatination of the quantiles produced a different number of quantiles than it should'
         return qmat.as_matrix()
 
 

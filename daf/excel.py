@@ -1,7 +1,9 @@
 """Reading excel (but more than just cell values: Also colors, formats, etc.)"""
 import pandas as pd
 import numpy as np
-from openpyxl import load_workbook  # Get it here: https://pypi.org/project/openpyxl/ (or pip install openpyxl)
+from openpyxl import (
+    load_workbook,
+)  # Get it here: https://pypi.org/project/openpyxl/ (or pip install openpyxl)
 
 
 def get_sheet_data(xls_filepath, sheetname=None):
@@ -12,7 +14,10 @@ def get_sheet_data(xls_filepath, sheetname=None):
 
 
 def pra(obj):
-    print(*(x for x in dir(obj) if not x[0].startswith('_') and not x[0].isupper()), sep='\t')
+    print(
+        *(x for x in dir(obj) if not x[0].startswith('_') and not x[0].isupper()),
+        sep='\t'
+    )
 
 
 def last_true_idx(series):

@@ -54,7 +54,8 @@ def get_cluster_representatives_indices(X, clus_labels, clus_centers):
     representative_indices = list()
     for label in unique(clus_labels):
         cluster_point_indices = where(clus_labels == label)[0]
-        min_idx = argmin(cdist(X[cluster_point_indices, :], [clus_centers[label, :]])[:, 0])
+        min_idx = argmin(
+            cdist(X[cluster_point_indices, :], [clus_centers[label, :]])[:, 0]
+        )
         representative_indices.append(cluster_point_indices[min_idx])
     return array(representative_indices)
-

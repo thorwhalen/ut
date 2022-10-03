@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from collections import Counter
@@ -9,6 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 from scipy import sparse
 from scipy.spatial.distance import cdist
 from ut.ml.cluster.w_kmeans import KMeansWeighted
+
 # from oscrap.sb.WeightedMiniBatchKMeans import MiniBatchKMeans as KMeansWeighted
 import pandas as pd
 
@@ -66,7 +65,12 @@ def order_clus_idx_and_centers_by_decreasing_frequencies(clus_idx, clus_centers)
     """
     clus_idx_freqs = Counter(clus_idx)  # count the clus_idx occurences
     most_common_first_clus_idx = list(zip(*clus_idx_freqs.most_common()))[0]
-    clus_idx_map = {k: v for k, v in zip(most_common_first_clus_idx, list(range(len(most_common_first_clus_idx))))}
+    clus_idx_map = {
+        k: v
+        for k, v in zip(
+            most_common_first_clus_idx, list(range(len(most_common_first_clus_idx)))
+        )
+    }
 
     clus_idx = array([clus_idx_map[idx] for idx in clus_idx])
     clus_centers = clus_centers[array(most_common_first_clus_idx)]
@@ -84,7 +88,12 @@ def order_clus_idx_by_decreasing_frequencies(clus_idx):
     """
     clus_idx_freqs = Counter(clus_idx)  # count the clus_idx occurences
     most_common_first_clus_idx = list(zip(*clus_idx_freqs.most_common()))[0]
-    clus_idx_map = {k: v for k, v in zip(most_common_first_clus_idx, list(range(len(most_common_first_clus_idx))))}
+    clus_idx_map = {
+        k: v
+        for k, v in zip(
+            most_common_first_clus_idx, list(range(len(most_common_first_clus_idx)))
+        )
+    }
 
     clus_idx = array([clus_idx_map[idx] for idx in clus_idx])
 

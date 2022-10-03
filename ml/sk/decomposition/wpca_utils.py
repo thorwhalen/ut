@@ -26,14 +26,16 @@ def check_array_with_weights(X, weights, **kwargs):
 
     # Make sure shapes match and missing data has weights=0
     if X.shape != weights.shape:
-        raise ValueError("Shape of `X` and `weights` should match")
+        raise ValueError('Shape of `X` and `weights` should match')
 
-    Wzero = (weights == 0)
+    Wzero = weights == 0
     X[Wzero] = 0
 
     if not np.all(np.isfinite(X)):
-        raise ValueError("Input contains NaN or infinity without "
-                         "a corresponding zero in `weights`.")
+        raise ValueError(
+            'Input contains NaN or infinity without '
+            'a corresponding zero in `weights`.'
+        )
     return X, weights
 
 
@@ -90,8 +92,7 @@ def solve_weighted(A, b, w):
     """
     A, b, w = list(map(np.asarray, (A, b, w)))
     ATw2 = A.T * w ** 2
-    return np.linalg.solve(np.dot(ATw2, A),
-                           np.dot(ATw2, b))
+    return np.linalg.solve(np.dot(ATw2, A), np.dot(ATw2, b))
 
 
 def weighted_mean(x, w=None, axis=None):
@@ -122,8 +123,9 @@ def weighted_mean(x, w=None, axis=None):
     w = np.asarray(w)
 
     if x.shape != w.shape:
-        raise NotImplementedError("Broadcasting is not implemented: "
-                                  "x and w must be the same shape.")
+        raise NotImplementedError(
+            'Broadcasting is not implemented: ' 'x and w must be the same shape.'
+        )
 
     if axis is None:
         wx_sum = np.einsum('i,i', np.ravel(x), np.ravel(w))
@@ -137,10 +139,9 @@ def weighted_mean(x, w=None, axis=None):
             raise ValueError("duplicate value in 'axis'")
 
         trans = sorted(set(range(x.ndim)).difference(axis)) + list(axis)
-        operand = "...{0},...{0}".format(''.join(chr(ord('i') + i)
-                                                 for i in range(len(axis))))
-        wx_sum = np.einsum(operand,
-                           np.transpose(x, trans),
-                           np.transpose(w, trans))
+        operand = '...{0},...{0}'.format(
+            ''.join(chr(ord('i') + i) for i in range(len(axis)))
+        )
+        wx_sum = np.einsum(operand, np.transpose(x, trans), np.transpose(w, trans))
 
     return wx_sum / np.sum(w, axis)

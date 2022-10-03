@@ -1,6 +1,3 @@
-
-
-
 class ClientError(Exception):
     status_code = 400
 
@@ -110,42 +107,46 @@ class ExpectationFailed(ClientError):
 
 class ForbiddenAttribute(Forbidden):
     def __init__(self, attr, payload=None):
-        super(self.__class__, self).__init__("Forbidden attribute: " + attr, payload)
+        super(self.__class__, self).__init__('Forbidden attribute: ' + attr, payload)
 
 
 class ForbiddenMethod(Forbidden):
     def __init__(self, method, payload=None):
-        super(self.__class__, self).__init__("Forbidden method: " + method, payload)
+        super(self.__class__, self).__init__('Forbidden method: ' + method, payload)
 
 
 class ForbiddenProperty(Forbidden):
     def __init__(self, property, payload=None):
-        super(self.__class__, self).__init__("Forbidden property: " + property, payload)
+        super(self.__class__, self).__init__('Forbidden property: ' + property, payload)
 
 
 class MissingAttribute(BadRequest):
-    def __init__(self, message="No attribute (method or property) was specified.", payload=None):
+    def __init__(
+        self, message='No attribute (method or property) was specified.', payload=None
+    ):
         super(self.__class__, self).__init__(message, payload)
 
 
 class MissingMethod(BadRequest):
-    def __init__(self, message="No method was specified.", payload=None):
+    def __init__(self, message='No method was specified.', payload=None):
         super(self.__class__, self).__init__(message, payload)
 
 
 class MissingProp(BadRequest):
     def __init__(self, payload=None):
-        super(self.__class__, self).__init__("No prop was specified.", payload)
+        super(self.__class__, self).__init__('No prop was specified.', payload)
 
 
 class UnknownMethod(BadRequest):
     def __init__(self, method, payload=None):
-        super(self.__class__, self).__init__("Unknown method: {}".format(method), payload)
+        super(self.__class__, self).__init__(
+            'Unknown method: {}'.format(method), payload
+        )
 
 
 class UnknownProp(BadRequest):
     def __init__(self, prop, payload=None):
-        super(self.__class__, self).__init__("Unknown prop: {}".format(prop), payload)
+        super(self.__class__, self).__init__('Unknown prop: {}'.format(prop), payload)
 
 
 class UnknownParameters(BadRequest):
@@ -153,5 +154,5 @@ class UnknownParameters(BadRequest):
         super(self.__class__, self).__init__(message, payload)
 
 
-class UnknownError():
+class UnknownError:
     pass

@@ -5,7 +5,6 @@ import pandas as pd
 
 
 class ElasticCom(object):
-
     def __init__(self, index, doc_type, hosts='localhost:9200', **kwargs):
         self.index = index
         self.doc_type = doc_type
@@ -20,7 +19,9 @@ class ElasticCom(object):
             t = self.es.search(*args, **kwargs)
             kwargs['size'] = t['hits']['total']
 
-        return get_search_hits(self.es.search(*args, **kwargs), _id=_id, data_key=data_key)
+        return get_search_hits(
+            self.es.search(*args, **kwargs), _id=_id, data_key=data_key
+        )
 
     def search_and_export_to_df(self, *args, **kwargs):
         convert_numeric = kwargs.pop('convert_numeric', True)
@@ -45,7 +46,7 @@ def get_search_hits(es_response, _id=True, data_key=None):
                     data_key = 'fields'
                     break
             if data_key is None:
-                raise ValueError("Neither _source nor fields were in response hits")
+                raise ValueError('Neither _source nor fields were in response hits')
 
         if _id is False:
             return [x.get(data_key, None) for x in response_hits]
@@ -53,7 +54,6 @@ def get_search_hits(es_response, _id=True, data_key=None):
             return [dict(_id=x['_id'], **x.get(data_key, {})) for x in response_hits]
     else:
         return []
-
 
 
 # NOTES:

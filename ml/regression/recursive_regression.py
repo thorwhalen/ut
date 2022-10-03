@@ -1,5 +1,3 @@
-
-
 from sklearn.base import RegressorMixin, TransformerMixin
 from sklearn.linear_model import LinearRegression
 from numpy import zeros, vstack

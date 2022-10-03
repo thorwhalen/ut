@@ -22,7 +22,9 @@ from numpy import floor
 is_not_none = partial(is_not, None)
 
 
-def running_mean(it, chk_size=2, chk_step=1):  # TODO: A version of this with chk_step as well
+def running_mean(
+    it, chk_size=2, chk_step=1
+):  # TODO: A version of this with chk_step as well
     """
     Running mean (moving average) on iterator.
     Note: When input it is list-like, ut.stats.smooth.sliders version of running_mean is 4 times more efficient with
@@ -68,7 +70,7 @@ def running_mean(it, chk_size=2, chk_step=1):  # TODO: A version of this with ch
                     fifo.append(x)
                     yield c / chk_size
             else:
-                raise RuntimeError("This should really never happen, by design.")
+                raise RuntimeError('This should really never happen, by design.')
                 # Below was an attempt at a faster solution than using the islice as is done above.
                 # raise NotImplementedError("Not yet implemented (correctly)")
                 # for chk in chunker(it, chk_size=chk_size, chk_step=chk_step, return_tail=False):
@@ -83,8 +85,9 @@ def running_mean(it, chk_size=2, chk_step=1):  # TODO: A version of this with ch
                 yield x
 
 
-def _inefficient_indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
-                                                   start_at=None, stop_at=None, key=None, return_tail=True):
+def _inefficient_indexed_sliding_window_chunk_iter(
+    it, chk_size, chk_step=None, start_at=None, stop_at=None, key=None, return_tail=True
+):
     """
     a function to get (an iterator of) segments (bt, tt) of chunks from (an iterator of) ordered timestamps,
     given a chk_size, chk_step, and a start_at time.
@@ -137,9 +140,9 @@ class GeneratorLen(object):
         return self.gen
 
 
-def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
-                                      start_at=None, stop_at=None,
-                                      key=None, return_tail=True):
+def indexed_sliding_window_chunk_iter(
+    it, chk_size, chk_step=None, start_at=None, stop_at=None, key=None, return_tail=True
+):
     """
       a function to get (an iterator of) segments (bt, tt) of chunks from (an iterator of) ordered timestamps,
       given a chk_size, chk_step, and a start_at time.
@@ -356,7 +359,9 @@ def indexed_sliding_window_chunk_iter(it, chk_size, chk_step=None,
             chk = [i for i in chk if bt <= key(i) < tt]
 
 
-def fast_chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False):
+def fast_chunker(
+    it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=False
+):
     """
       a function to get (an iterator of) segments (bt, tt) of chunks from the iterator of {1,2,3...end},
       given a chk_size, chk_step, and a start_at time.
@@ -627,8 +632,12 @@ def fast_chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_t
         it = chain([x], it)  # put that first element back in the iterator
 
     # checking a few things
-    assert isinstance(chk_size, int) and chk_size > 0, 'chk_size should be a positive interger'
-    assert isinstance(chk_step, int) and chk_step > 0, 'chk_step should be a positive integer'
+    assert (
+        isinstance(chk_size, int) and chk_size > 0
+    ), 'chk_size should be a positive interger'
+    assert (
+        isinstance(chk_step, int) and chk_step > 0
+    ), 'chk_step should be a positive integer'
     assert isinstance(start_at, int), 'start_at should be an integer'
     assert stop_at > start_at, 'stop_at should be larger than start_at'
 
@@ -801,7 +810,10 @@ def grouper(iterable, n=1, fillvalue='drop'):
     """
     args = [iter(iterable)] * n
     if fillvalue == 'drop':
-        return map(lambda x: [xx for xx in x if xx is not None], zip_longest(fillvalue=None, *args))
+        return map(
+            lambda x: [xx for xx in x if xx is not None],
+            zip_longest(fillvalue=None, *args),
+        )
     else:
         return zip_longest(fillvalue=fillvalue, *args)
 
@@ -832,14 +844,14 @@ def seq_batch(seq, n=1, return_tail=True, fillvalue=None):
     seq_len = len(seq)
     tail_len = seq_len % n
     for ndx in range(0, seq_len - tail_len, n):
-        yield seq[ndx:(ndx + n)]
+        yield seq[ndx : (ndx + n)]
 
     # handing the tail...
     if tail_len > 0 and return_tail is not False:
         if return_tail is True:
-            yield seq[(seq_len - tail_len):]
+            yield seq[(seq_len - tail_len) :]
         else:
-            t = list(seq[(seq_len - tail_len):]) + [fillvalue] * (n - tail_len)
+            t = list(seq[(seq_len - tail_len) :]) + [fillvalue] * (n - tail_len)
             if isinstance(t, ndarray):
                 yield array(t)
             else:
@@ -888,11 +900,13 @@ def random_subset(iterator, K):
     return result
 
 
-def print_iter_progress(iterator,
-                        print_progress_every=None,
-                        header_template="{hour:02.0f}:{minute:02.0f}:{second:02.0f} - iteration {iteration}",
-                        data_msg_intro_str="",
-                        data_to_string=None):
+def print_iter_progress(
+    iterator,
+    print_progress_every=None,
+    header_template='{hour:02.0f}:{minute:02.0f}:{second:02.0f} - iteration {iteration}',
+    data_msg_intro_str='',
+    data_to_string=None,
+):
     """
     Wraps an iterator, allowing one to use the iterator as one would, but will print progress messages every
     print_progress_every iterations.
@@ -931,10 +945,28 @@ def print_iter_progress(iterator,
             if mod(i, print_progress_every) == 0:
                 t = datetime.now().time()
                 if data_to_string is None:
-                    print((print_template.format(hour=t.hour, minute=t.minute, second=t.second, iteration=i)))
+                    print(
+                        (
+                            print_template.format(
+                                hour=t.hour,
+                                minute=t.minute,
+                                second=t.second,
+                                iteration=i,
+                            )
+                        )
+                    )
                 else:
-                    print((print_template.format(hour=t.hour, minute=t.minute, second=t.second, iteration=i,
-                                                 data_str=data_to_string(x))))
+                    print(
+                        (
+                            print_template.format(
+                                hour=t.hour,
+                                minute=t.minute,
+                                second=t.second,
+                                iteration=i,
+                                data_str=data_to_string(x),
+                            )
+                        )
+                    )
             yield x
 
 
@@ -951,8 +983,8 @@ def accumulate(iterable, func=operator.add):
 
 
 def window(seq, n=2):
-    "Returns a sliding window (of width n) over data from the iterable"
-    "   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   "
+    'Returns a sliding window (of width n) over data from the iterable'
+    '   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   '
     it = iter(seq)
     result = tuple(islice(it, n))
     if len(result) == n:
@@ -980,17 +1012,17 @@ def all_subsets_of(iterable, include_empty_set=True):
 
 
 def take(n, iterable):
-    "Return first n items of the iterable as a list"
+    'Return first n items of the iterable as a list'
     return list(islice(iterable, n))
 
 
 def tabulate(function, start=0):
-    "Return function(0), function(1), ..."
+    'Return function(0), function(1), ...'
     return map(function, itertools.count(start))
 
 
 def consume(iterator, n):
-    "Advance the iterator n-steps ahead. If n is none, consume entirely."
+    'Advance the iterator n-steps ahead. If n is none, consume entirely.'
     # Use functions that consume iterators at C speed.
     if n is None:
         # feed the entire iterator into a zero-length deque
@@ -1001,12 +1033,12 @@ def consume(iterator, n):
 
 
 def nth(iterable, n, default=None):
-    "Returns the nth item or a default value"
+    'Returns the nth item or a default value'
     return next(islice(iterable, n, None), default)
 
 
 def quantify(iterable, pred=bool):
-    "Count how many times the predicate is true"
+    'Count how many times the predicate is true'
     return sum(map(pred, iterable))
 
 
@@ -1019,7 +1051,7 @@ def padnone(iterable):
 
 
 def ncycles(iterable, n):
-    "Returns the sequence elements n times"
+    'Returns the sequence elements n times'
     return chain.from_iterable(itertools.repeat(tuple(iterable), n))
 
 
@@ -1028,7 +1060,7 @@ def dotproduct(vec1, vec2):
 
 
 def flatten(listOfLists):
-    "Flatten one level of nesting"
+    'Flatten one level of nesting'
     return chain.from_iterable(listOfLists)
 
 
@@ -1043,7 +1075,7 @@ def repeatfunc(func, times=None, *args):
 
 
 def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    's -> (s0,s1), (s1,s2), (s2, s3), ...'
     a, b = itertools.tee(iterable)
     next(b, None)
     return zip(a, b)
@@ -1070,7 +1102,7 @@ def roundrobin(*iterables):
 
 
 def powerset(iterable):
-    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+    'powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)'
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
@@ -1136,20 +1168,20 @@ def iter_except(func, exception, first=None):
 
 
 def random_product(*args, **kwds):
-    "Random selection from itertools.product(*args, **kwds)"
+    'Random selection from itertools.product(*args, **kwds)'
     pools = list(map(tuple, args)) * kwds.get('repeat', 1)
     return tuple(itertools.random.choice(pool) for pool in pools)
 
 
 def random_permutation(iterable, r=None):
-    "Random selection from itertools.permutations(iterable, r)"
+    'Random selection from itertools.permutations(iterable, r)'
     pool = tuple(iterable)
     r = len(pool) if r is None else r
     return tuple(itertools.random.sample(pool, r))
 
 
 def random_combination(iterable, r):
-    "Random selection from combinations(iterable, r)"
+    'Random selection from combinations(iterable, r)'
     pool = tuple(iterable)
     n = len(pool)
     indices = sorted(itertools.random.sample(range(n), r))
@@ -1157,7 +1189,7 @@ def random_combination(iterable, r):
 
 
 def random_combination_with_replacement(iterable, r):
-    "Random selection from combinations_with_replacement(iterable, r)"
+    'Random selection from combinations_with_replacement(iterable, r)'
     pool = tuple(iterable)
     n = len(pool)
     indices = sorted(itertools.random.randrange(n) for i in range(r))
@@ -1218,7 +1250,9 @@ def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=F
             chk_idx = 0
             while chk_idx < n_chks:
                 x = list(islice(it, chk_size))
-                if len(x) < chk_size:  # TODO: Might be able to handle this case outside the loop?
+                if (
+                    len(x) < chk_size
+                ):  # TODO: Might be able to handle this case outside the loop?
                     if return_tail:
                         yield x
                     break
@@ -1226,7 +1260,14 @@ def chunker(it, chk_size, chk_step=None, start_at=0, stop_at=None, return_tail=F
                 chk_idx += 1
         else:
             from warnings import warn
+
             warn("Haven't implemented the true iterator case")
-            for x in chunker(list(it), chk_size, chk_step=chk_step, start_at=start_at, stop_at=stop_at,
-                             return_tail=return_tail):
+            for x in chunker(
+                list(it),
+                chk_size,
+                chk_step=chk_step,
+                start_at=start_at,
+                stop_at=stop_at,
+                return_tail=return_tail,
+            ):
                 yield x

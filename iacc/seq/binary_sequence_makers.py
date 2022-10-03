@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from numpy import array, zeros
@@ -13,7 +11,9 @@ def timedelta_to_integer_days(t):
     return int(t.total_seconds() / 86400)
 
 
-def mk_binary_bins_sequence_from_timestamp_array(ordered_timestamps, time_binning_func=timedelta_to_integer_hours):
+def mk_binary_bins_sequence_from_timestamp_array(
+    ordered_timestamps, time_binning_func=timedelta_to_integer_hours
+):
     """
     Takes an ordered sequence of timestamps of events, bins them, and returns an array of 0s and 1s where 0 marks
      the occurrence of (at least one) event in the bin.
@@ -36,13 +36,18 @@ def mk_binary_bins_sequence_from_timestamp_array(ordered_timestamps, time_binnin
     array([ 1.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,
             1.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  1.])
     """
-    t = array(list(map(time_binning_func, ordered_timestamps - min(array(ordered_timestamps)))))
+    t = array(
+        list(
+            map(time_binning_func, ordered_timestamps - min(array(ordered_timestamps)))
+        )
+    )
     bin_sequence = zeros(t.max() + 1)
     bin_sequence[t] = 1
     return bin_sequence
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import doctest
+
     doctest.testmod()
-    print("---> Tests succeeded!")
+    print('---> Tests succeeded!')

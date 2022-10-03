@@ -24,11 +24,15 @@ class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
     An (incremental) decomposition of the matrix formed from the normalized log10 melspectrogram will be fit,
     and the fit will also learn the mean and variance of the diff of the amplitude sequence (which also carries meaning)
     """
-    def __init__(self, spectr_decomp=IncrementalPCA(),
-                 amp_diff_scaler=StandardScaler(),
-                 mel_kwargs={'n_fft': 2048, 'hop_length': 512, 'n_mels': 128},
-                 common_sr=44100,
-                 min_amp=1e-10):
+
+    def __init__(
+        self,
+        spectr_decomp=IncrementalPCA(),
+        amp_diff_scaler=StandardScaler(),
+        mel_kwargs={'n_fft': 2048, 'hop_length': 512, 'n_mels': 128},
+        common_sr=44100,
+        min_amp=1e-10,
+    ):
         self.spectr_decomp = spectr_decomp
         self.amp_diff_scaler = amp_diff_scaler
         self.mel_kwargs = mel_kwargs
@@ -60,7 +64,9 @@ class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
         return np.hstack(
             (
                 self.spectr_decomp.transform(_deamplituded_mel.T),
-                self.amp_diff_scaler.transform(np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1))))
+                self.amp_diff_scaler.transform(
+                    np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1)))
+                ),
             )
         )
 
@@ -73,13 +79,13 @@ class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
 
         return (mel_spectrogram.T + amplitude_seq.T).T
 
-
     def transform_as_dict(self, X):
         _deamplituded_mel, diff_amplitude_seq = self.deamplituded_mel(X)
         return {
             'scaled_amp_diff': self.amp_diff_scaler.transform(
-                np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1)))),
-            'eigen': self.spectr_decomp.transform(_deamplituded_mel.T)
+                np.vstack((self.log10_min_amp, diff_amplitude_seq.reshape(-1, 1)))
+            ),
+            'eigen': self.spectr_decomp.transform(_deamplituded_mel.T),
         }
 
     def wf_transform(self, wf, sr):
@@ -108,7 +114,6 @@ class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
         plt.axis('tight')
 
 
-
 class EigenSound(object):
     def __init__(self, pca_components, mel_kwargs, n_components=None):
         if n_components is not None:
@@ -124,7 +129,9 @@ class EigenSound(object):
             sound = (sound.wf, sound.sr)
         if isinstance(sound, tuple):
             # then melspectr is actually the original sound waveform (wf, sr), so get the melspectr
-            sound = librosa.feature.melspectrogram(y=sound[0], sr=sound[1], **self.mel_kwargs)
+            sound = librosa.feature.melspectrogram(
+                y=sound[0], sr=sound[1], **self.mel_kwargs
+            )
         return sound
 
     def transform_melspectr(self, sound, display=False):
@@ -147,17 +154,17 @@ class EigenSound(object):
             return melspectr
 
     def plot_two_first_eigens(self, sound, title=True, plot_kwargs={}):
-        X = self.transform_melspectr(sound);
+        X = self.transform_melspectr(sound)
         plot_kwargs = dict(plot_kwargs, **{'alpha': 0.3})
         plt.plot(X[0, :], X[1, :], '-o', **plot_kwargs)
         plt.annotate('begining', xy=(X[0, 0], X[1, 0]))
         plt.annotate('end', xy=(X[0, -1], X[1, -1]))
         if title:
             if title is True:
-                title = "two first eigensounds"
+                title = 'two first eigensounds'
                 if isinstance(sound, Sound):
                     if sound.name:
-                        title += "\n of {}".format(sound.name)
+                        title += '\n of {}'.format(sound.name)
             plt.title(title)
 
 
@@ -171,7 +178,9 @@ class GeneralEigenSound(object):
             sound = (sound.wf, sound.sr)
         if isinstance(sound, tuple):
             # then melspectr is actually the original sound waveform (wf, sr), so get the melspectr
-            sound = librosa.feature.melspectrogram(y=sound[0], sr=sound[1], **self.mel_kwargs)
+            sound = librosa.feature.melspectrogram(
+                y=sound[0], sr=sound[1], **self.mel_kwargs
+            )
         return sound
 
     def transform_melspectr(self, sound, display=False):
@@ -193,15 +202,15 @@ class GeneralEigenSound(object):
             return melspectr
 
     def plot_two_first_eigens(self, sound, title=True, plot_kwargs={}):
-        X = self.transform_melspectr(sound);
+        X = self.transform_melspectr(sound)
         plot_kwargs = dict(plot_kwargs, **{'alpha': 0.3})
         plt.plot(X[0, :], X[1, :], '-o', **plot_kwargs)
         plt.annotate('begining', xy=(X[0, 0], X[1, 0]))
         plt.annotate('end', xy=(X[0, -1], X[1, -1]))
         if title:
             if title is True:
-                title = "two first eigensounds"
+                title = 'two first eigensounds'
                 if isinstance(sound, Sound):
                     if sound.name:
-                        title += "\n of {}".format(sound.name)
+                        title += '\n of {}'.format(sound.name)
             plt.title(title)

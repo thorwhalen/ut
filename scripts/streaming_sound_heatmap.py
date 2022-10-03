@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 
@@ -15,6 +13,7 @@ import plotly.graph_objs
 
 from requests.exceptions import ConnectionError
 
+
 def winner_normalizer(raw_probs):
     return raw_probs / raw_probs.max()
 
@@ -22,20 +21,27 @@ def winner_normalizer(raw_probs):
 # ip: '54.85.63.111:8083'
 # account: 'pop10_home@otosense.com', 'h4@otosense.com', 'shower@otosense.com'
 # datatypes: 'raw_probabilities, 'devices/status'
-def _get_request_url(minutes=5,
-                     ip='54.85.63.111:8083',
-                     account='generic3@otosense.com',
-                     datatype='raw_probabilities'):
+def _get_request_url(
+    minutes=5,
+    ip='54.85.63.111:8083',
+    account='generic3@otosense.com',
+    datatype='raw_probabilities',
+):
     return 'http://{ip}/api/account/{account}/{datatype}/interval/{minutes}'.format(
-        ip=ip, account=account, datatype=datatype, minutes=minutes)
+        ip=ip, account=account, datatype=datatype, minutes=minutes
+    )
 
 
-def _get_json_data(minutes=5,
-                   ip='54.85.63.111:8083',
-                   account='generic3@otosense.com',
-                   datatype='raw_probabilities',
-                   num_of_connection_tries=20):
-    request_string = _get_request_url(minutes=minutes, ip=ip, account=account, datatype=datatype)
+def _get_json_data(
+    minutes=5,
+    ip='54.85.63.111:8083',
+    account='generic3@otosense.com',
+    datatype='raw_probabilities',
+    num_of_connection_tries=20,
+):
+    request_string = _get_request_url(
+        minutes=minutes, ip=ip, account=account, datatype=datatype
+    )
     for i in range(num_of_connection_tries):
         try:
             response = requests.get(request_string)
@@ -67,36 +73,59 @@ def get_raw_prob_df(minutes=5, ip='54.85.63.111:8083', account='generic3@otosens
         return _get_raw_prob_df_from_json_data(data)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     defaults = dict(
-        account="generic3@otosense.com",
+        account='generic3@otosense.com',
         sensitivity=1,
         median_multiplier=2,
         stream_id='h9pmg5ux9z',
         windows_minutes=1,
-        debug=0
+        debug=0,
     )
     parser = argparse.ArgumentParser()
-    parser.add_argument("--account", type=str,
-                        help="account to listen to (default={})".format(defaults['account']),
-                        default=defaults['account'])
-    parser.add_argument("--sensitivity", type=int,
-                        help="all normalized probs will be ^(1/sensitivity) (default={})".format(
-                            defaults['sensitivity']),
-                        default=defaults['sensitivity'])
-    parser.add_argument("--median_multiplier", type=int,
-                        help="A number to multiply the median of sound probs by. "
-                             "Result will be used as normalizing factor (default={})".format(defaults['median_multiplier']),
-                        default=defaults['sensitivity'])
-    parser.add_argument("--stream_id", type=str,
-                        help="plotly stream_id (default={})".format(defaults['stream_id']),
-                        default=defaults['stream_id'])
-    parser.add_argument("--windows_minutes", type=int,
-                        help="minutes of sliding window (default={})".format(defaults['windows_minutes']),
-                        default=defaults['windows_minutes'])
-    parser.add_argument("--debug", type=int,
-                        help="debug level (default={})".format(defaults['debug']),
-                        default=defaults['debug'])
+    parser.add_argument(
+        '--account',
+        type=str,
+        help='account to listen to (default={})'.format(defaults['account']),
+        default=defaults['account'],
+    )
+    parser.add_argument(
+        '--sensitivity',
+        type=int,
+        help='all normalized probs will be ^(1/sensitivity) (default={})'.format(
+            defaults['sensitivity']
+        ),
+        default=defaults['sensitivity'],
+    )
+    parser.add_argument(
+        '--median_multiplier',
+        type=int,
+        help='A number to multiply the median of sound probs by. '
+        'Result will be used as normalizing factor (default={})'.format(
+            defaults['median_multiplier']
+        ),
+        default=defaults['sensitivity'],
+    )
+    parser.add_argument(
+        '--stream_id',
+        type=str,
+        help='plotly stream_id (default={})'.format(defaults['stream_id']),
+        default=defaults['stream_id'],
+    )
+    parser.add_argument(
+        '--windows_minutes',
+        type=int,
+        help='minutes of sliding window (default={})'.format(
+            defaults['windows_minutes']
+        ),
+        default=defaults['windows_minutes'],
+    )
+    parser.add_argument(
+        '--debug',
+        type=int,
+        help='debug level (default={})'.format(defaults['debug']),
+        default=defaults['debug'],
+    )
 
     args = parser.parse_args()
     args = vars(args)
@@ -113,15 +142,14 @@ if __name__ == "__main__":
     # Make instance of stream id object
     stream = plotly.graph_objs.Stream(
         token=stream_id,  # (!) link stream id to 'token' key
-        maxpoints=80  # (!) keep a max of 80 pts on screen
+        maxpoints=80,  # (!) keep a max of 80 pts on screen
     )
 
     mat = np.random.rand(5, 50)
 
     # Initialize trace of streaming plot by embedding the unique stream_id
     trace1 = plotly.graph_objs.Heatmap(
-        z=mat,
-        stream=stream  # (!) embed stream id, 1 per trace
+        z=mat, stream=stream  # (!) embed stream id, 1 per trace
     )
 
     data = plotly.graph_objs.Data([trace1])
@@ -134,8 +162,14 @@ if __name__ == "__main__":
 
     # (@) Send fig to Plotly, initialize streaming plot, open new tab
     unique_url = py.plot(fig, filename='s7_first-stream', auto_open=False)
-    print(("Json request REST url:\n\t{}".format(_get_request_url(minutes=windows_minutes, account=account))))
-    print(("Stream image URL:\n\t{}".format(unique_url)))
+    print(
+        (
+            'Json request REST url:\n\t{}'.format(
+                _get_request_url(minutes=windows_minutes, account=account)
+            )
+        )
+    )
+    print(('Stream image URL:\n\t{}'.format(unique_url)))
 
     # (@) Make instance of the Stream link object,
     # with same stream id as Stream id object
@@ -151,10 +185,12 @@ if __name__ == "__main__":
         i += 1
         # increment mat
         # mat = hstack([mat[:, 1:], rand(mat.shape[0], 1)])
-        data = _get_json_data(minutes=windows_minutes,
-                              ip='54.85.63.111:8083',
-                              account=account,
-                              datatype='raw_probabilities')
+        data = _get_json_data(
+            minutes=windows_minutes,
+            ip='54.85.63.111:8083',
+            account=account,
+            datatype='raw_probabilities',
+        )
         mat = pd.DataFrame([x.get('data') for x in data])
 
         # if max_sound_probabilities is None:
@@ -175,8 +211,7 @@ if __name__ == "__main__":
 
         sounds = list(mat.columns)
         mat = mat.T.as_matrix()
-        mat **= (1 / sensitivity)
-
+        mat **= 1 / sensitivity
 
         # (@) write to Plotly stream!
         s.write(plotly.graph_objs.Heatmap(z=mat, y=sounds))

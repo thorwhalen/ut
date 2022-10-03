@@ -8,6 +8,7 @@ import pickle
 from scipy.sparse import issparse
 import dill
 from copy import deepcopy
+
 # from types import NoneType
 from sklearn.base import TransformerMixin
 from sklearn.linear_model import LinearRegression
@@ -16,6 +17,7 @@ from sklearn.preprocessing import LabelEncoder
 
 class ExtrapolateTransformation(TransformerMixin):
     """A wrapper that endows a TransformerMixin that has no transform method with one."""
+
     def __init__(self, transformer, extrapolator=LinearRegression()):
         self.transformer = transformer
         self.extrapolator = extrapolator
@@ -44,24 +46,42 @@ class ExtrapolateTransformation(TransformerMixin):
 
 
 # default_as_is_types = (list, np.ndarray, tuple, dict, float, int)
-default_as_is_types = (list, np.ndarray, tuple, dict, float, int, set, np.int32,
-                       str, np.matrixlib.defmatrix.matrix, type(None))
+default_as_is_types = (
+    list,
+    np.ndarray,
+    tuple,
+    dict,
+    float,
+    int,
+    set,
+    np.int32,
+    str,
+    np.matrixlib.defmatrix.matrix,
+    type(None),
+)
 # default_as_is_types = (list, tuple, dict, float, int, set, np.int32,
 #                        basestring, NoneType)
+
 
 def trailing_underscore_attributes(obj):
     return [k for k in obj.__dict__ if k[-1] == '_']
 
 
-def trailing_underscore_attributes_with_include_and_exclude(obj, include=(), exclude=()):
-    return [k for k in obj.__dict__ if k in include or (k[-1] == '_' and k not in exclude)]
+def trailing_underscore_attributes_with_include_and_exclude(
+    obj, include=(), exclude=()
+):
+    return [
+        k for k in obj.__dict__ if k in include or (k[-1] == '_' and k not in exclude)
+    ]
 
 
-def get_model_attributes(model,
-                         include=(),
-                         exclude=(),
-                         model_name_as_dict_root=True,
-                         as_is_types=default_as_is_types):
+def get_model_attributes(
+    model,
+    include=(),
+    exclude=(),
+    model_name_as_dict_root=True,
+    as_is_types=default_as_is_types,
+):
     """
     Export parameters of the model (or any object) to a dict.
     :param include: list of attributes to include (the function will automatically include attributes ending with
@@ -72,7 +92,9 @@ def get_model_attributes(model,
     :param version: String to include in the "version" field of the json
     :return: Nothing if dumping to json file, or the json string if argument filepath=None
     """
-    if isinstance(model, as_is_types):  # if model is in as_is_types list, just return it
+    if isinstance(
+        model, as_is_types
+    ):  # if model is in as_is_types list, just return it
         return model
     elif not hasattr(model, '__dict__') or len(model.__dict__) == 0:
         states = pickle.dumps(model)
@@ -86,19 +108,30 @@ def get_model_attributes(model,
                     attribute_set = model.__dict__
             elif include == 'all_but_double_underscore':
                 if len(exclude) > 0:
-                    attribute_set = [k for k in model.__dict__ if k not in exclude and not k.startswith('__')]
+                    attribute_set = [
+                        k
+                        for k in model.__dict__
+                        if k not in exclude and not k.startswith('__')
+                    ]
                 else:
                     attribute_set = model.__dict__
         else:
-            attribute_set = trailing_underscore_attributes_with_include_and_exclude(model, include, exclude)
+            attribute_set = trailing_underscore_attributes_with_include_and_exclude(
+                model, include, exclude
+            )
         # attribute_set = set(trailing_underscore_attributes(model)).union(include).difference(exclude)
 
         # recursion on the values that are not in as_is_types
-        states = {k: get_model_attributes(getattr(model, k),  #model.__getattribute__(k),
-                                          include,
-                                          exclude,
-                                          model_name_as_dict_root,
-                                          as_is_types) for k in attribute_set}
+        states = {
+            k: get_model_attributes(
+                getattr(model, k),  # model.__getattribute__(k),
+                include,
+                exclude,
+                model_name_as_dict_root,
+                as_is_types,
+            )
+            for k in attribute_set
+        }
     # wrap in model name
     if model_name_as_dict_root:
         return {model.__class__.__name__: states}
@@ -106,45 +139,45 @@ def get_model_attributes(model,
         return states
 
 
-def get_model_attributes_dict_for_json(model,
-                                       include=(),
-                                       exclude=(),
-                                       model_name_as_dict_root=True,
-                                       as_is_types=default_as_is_types):
+def get_model_attributes_dict_for_json(
+    model,
+    include=(),
+    exclude=(),
+    model_name_as_dict_root=True,
+    as_is_types=default_as_is_types,
+):
     if isinstance(model, as_is_types):
         return model
     elif isinstance(model, np.ndarray):
         return model.tolist()
     else:
-        return json_friendly_dict(get_model_attributes(model,
-                                    include,
-                                    exclude,
-                                    model_name_as_dict_root,
-                                    as_is_types
-                                    ))
+        return json_friendly_dict(
+            get_model_attributes(
+                model, include, exclude, model_name_as_dict_root, as_is_types
+            )
+        )
 
 
-def export_model_params_to_json(model,
-                                include=(),
-                                exclude=(),
-                                model_name_as_dict_root=True,
-                                as_is_types=default_as_is_types,
-                                filepath='',
-                                version=None,
-                                include_date=False,
-                                indent=None):
+def export_model_params_to_json(
+    model,
+    include=(),
+    exclude=(),
+    model_name_as_dict_root=True,
+    as_is_types=default_as_is_types,
+    filepath='',
+    version=None,
+    include_date=False,
+    indent=None,
+):
     """
     Export parameters of the model to a json file or return a json string.
     :param filepath: Filepath to dump the json string to, or "" to just return the string, or None to return the dict
     :param version: String to include in the "version" field of the json
     :return: Nothing if dumping to json file, or the json string if argument filepath=None
     """
-    model_params = get_model_attributes(model,
-                                        include,
-                                        exclude,
-                                        model_name_as_dict_root,
-                                        as_is_types
-                                        )
+    model_params = get_model_attributes(
+        model, include, exclude, model_name_as_dict_root, as_is_types
+    )
     model_params = model_params.copy()
 
     if include_date:
@@ -157,17 +190,24 @@ def export_model_params_to_json(model,
         if filepath == '':
             return dumps(model_params, indent=indent, cls=NumpyAwareJSONEncoder)
         else:
-            print(("Saving the centroid_model_params to {}".format(filepath)))
-            dump(model_params, open(filepath, 'w'), indent=indent, cls=NumpyAwareJSONEncoder)
+            print(('Saving the centroid_model_params to {}'.format(filepath)))
+            dump(
+                model_params,
+                open(filepath, 'w'),
+                indent=indent,
+                cls=NumpyAwareJSONEncoder,
+            )
     else:
         return model_params
 
 
-def import_model_from_spec(spec,
-                           objects={}.copy(),
-                           type_conversions=(),
-                           field_conversions={}.copy(),
-                           force_dict_wrap=False):
+def import_model_from_spec(
+    spec,
+    objects={}.copy(),
+    type_conversions=(),
+    field_conversions={}.copy(),
+    force_dict_wrap=False,
+):
     if isinstance(spec, dict):
         model_dict_imported = dict()
         for k, v in spec.items():
@@ -180,15 +220,25 @@ def import_model_from_spec(spec,
                     obj = deepcopy(obj)
 
                 for kk, vv in v.items():
-                    setattr(obj, kk,
-                            import_model_from_spec(vv, objects, type_conversions, field_conversions, force_dict_wrap))
+                    setattr(
+                        obj,
+                        kk,
+                        import_model_from_spec(
+                            vv,
+                            objects,
+                            type_conversions,
+                            field_conversions,
+                            force_dict_wrap,
+                        ),
+                    )
                 model_dict_imported[k] = obj
             elif k in field_conversions:
                 # print k
                 model_dict_imported[k] = field_conversions[k](v)
             else:
-                model_dict_imported[k] = import_model_from_spec(v, objects, type_conversions, field_conversions,
-                                                                force_dict_wrap)
+                model_dict_imported[k] = import_model_from_spec(
+                    v, objects, type_conversions, field_conversions, force_dict_wrap
+                )
         if len(model_dict_imported) == 1 and not force_dict_wrap:
             return model_dict_imported[list(model_dict_imported.keys())[0]]
         else:

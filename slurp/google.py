@@ -7,9 +7,9 @@ class Google(Browser):
 
     URL = 'http://www.google.com/search'
     SEARCH_PARAMS = {
-        'q': '',      # the search term
+        'q': '',  # the search term
         'num': '10',  # the number of results per page this
-        'pws': '0'    # personalization turned off
+        'pws': '0',  # personalization turned off
     }
 
     def __init__(self, proxies=None, auth=None, num_results=10):
@@ -46,8 +46,14 @@ class Google(Browser):
         headers = self.HEADERS.copy()
         headers['User-Agent'] = self.random_user_agent()
 
-        r = requests.get(self.URL, headers=headers, params=search_params,
-                         timeout=10.0, proxies=self.proxies, auth=self.auth)
+        r = requests.get(
+            self.URL,
+            headers=headers,
+            params=search_params,
+            timeout=10.0,
+            proxies=self.proxies,
+            auth=self.auth,
+        )
 
         if not r.ok:
             raise ValueError('HTTP Error: {} for query {}'.format(r.status_code, query))
@@ -69,8 +75,14 @@ class Google(Browser):
         headers = self.HEADERS.copy()
         headers['User-Agent'] = self.random_user_agent()
 
-        r = requests.get(self.URL, headers=headers, params=search_params,
-                         timeout=10.0, proxies=self.proxies, auth=self.auth)
+        r = requests.get(
+            self.URL,
+            headers=headers,
+            params=search_params,
+            timeout=10.0,
+            proxies=self.proxies,
+            auth=self.auth,
+        )
 
         if not r.ok:
             print(('HTTP Error: {} for query {}'.format(r.status_code, query)))

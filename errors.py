@@ -2,10 +2,12 @@ from functools import wraps
 from typing import Any, Callable
 from warnings import warn
 
-raise NotImplementedError("""
+raise NotImplementedError(
+    '''
 This module worked, almost, and then I broke it in an attempt to make it better. 
 Don't use.
-""")
+'''
+)
 
 
 def _first_arg(*args, **kwargs):
@@ -39,6 +41,7 @@ def always_false(exc_type, exc_val, exc_tb):
 
 class ExcCondition:
     """A medley of exception conditions (to be used with HandleExceptions instances)"""
+
     always_true = always_true
     always_false = always_false
     handle_all = always_true
@@ -53,6 +56,7 @@ class ExcCondition:
 
 class ExcCallback:
     """A medley of exception callbacks (to be used with HandleExceptions instances)"""
+
     always_true = always_true
     always_false = always_false
     ignore = always_true
@@ -68,7 +72,7 @@ class ExcCallback:
     def warn_and_ignore(msg=None, category=None, stacklevel=1, source=None):
         def exc_callback(exc_type, exc_val, exc_tb):
             nonlocal msg
-            msg = msg or f"{exc_type}: {exc_val}"
+            msg = msg or f'{exc_type}: {exc_val}'
             warn(msg, category=category, stacklevel=stacklevel, source=source)
             return True
 
@@ -77,7 +81,7 @@ class ExcCallback:
     @staticmethod
     def print_and_raise(msg=None):
         def exc_callback(exc_type, exc_val, exc_tb):
-            print(msg or f"{exc_type}: {exc_val}")
+            print(msg or f'{exc_type}: {exc_val}')
             return True
 
         return if_first_arg_is_none_return_val(exc_callback, True)
@@ -95,13 +99,16 @@ class HandleExceptions:
     >>> print('hi')
     hi
     """
+
     conditions = ExcCondition
     callbacks = ExcCallback
 
-    def __init__(self,
-                 condition: TypeValTbFunc,
-                 if_condition: TypeValTbFunc = ExcCallback.raise_on_error,
-                 if_not_condition: TypeValTbFunc = ExcCallback.ignore):
+    def __init__(
+        self,
+        condition: TypeValTbFunc,
+        if_condition: TypeValTbFunc = ExcCallback.raise_on_error,
+        if_not_condition: TypeValTbFunc = ExcCallback.ignore,
+    ):
         self.condition = condition
         self.if_condition = if_condition
         self.if_not_condition = if_not_condition
@@ -145,7 +152,8 @@ class ModuleNotFoundWarning(HandleExceptions):
     def __init__(self):
         super().__init__(
             condition=ExcCondition.from_exception_classes(ModuleNotFoundError),
-            if_condition=ExcCallback.warn_and_ignore())
+            if_condition=ExcCallback.warn_and_ignore(),
+        )
 
 
 class IgnoreErrors(HandleExceptions):
@@ -168,12 +176,13 @@ class IgnoreErrors(HandleExceptions):
         super().__init__(
             condition=ExcCondition.from_exception_classes(error_classes),
             if_condition=ExcCallback.ignore,
-            if_not_condition=ExcCallback.raise_on_error
+            if_not_condition=ExcCallback.raise_on_error,
         )
         self.error_classes = error_classes
 
 
-class ExpectedError(RuntimeError): ...
+class ExpectedError(RuntimeError):
+    ...
 
 
 class ExpectErrors(IgnoreErrors):
@@ -200,14 +209,17 @@ class ExpectErrors(IgnoreErrors):
       ...
     NameError: name 'ExpectError' is not defined
     """
+
     """Context manager that expects some specific error classes (and their sublcasses),
     raising a ExpectedError if those errors don't happen. """
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         expected_error_happened = super().__exit__(exc_type, exc_val, exc_tb)
         if not expected_error_happened:
-            raise ExpectedError("Expected one of these errors (or subclasses thereof) to be raised:"
-                                f"\n{self.error_classes}")
+            raise ExpectedError(
+                'Expected one of these errors (or subclasses thereof) to be raised:'
+                f'\n{self.error_classes}'
+            )
         return expected_error_happened
 
 
@@ -228,6 +240,7 @@ class HandleExceptions:
             return self.if_condition(exc_type, exc_val, exc_tb)
         else:
             return self.if_not_condition(exc_type, exc_val, exc_tb)
+
 
 #
 # class ModuleNotFoundErrorNiceMessage:

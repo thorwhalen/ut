@@ -22,7 +22,7 @@ callable_filt_for = {
     'callable': callable,
     'class': inspect.isclass,
     'function': inspect.isfunction,
-    'function_or_class': lambda x: inspect.isclass(x) or inspect.isfunction(x)
+    'function_or_class': lambda x: inspect.isclass(x) or inspect.isfunction(x),
 }
 
 DFLT_CALLABLE_FILT = 'callable'  # other choices: inspect.isfunction, inspect.isclass
@@ -37,7 +37,7 @@ def get_callable_filt(callable_filt):
     if isinstance(callable_filt, str):
         callable_filt = callable_filt_for.get(callable_filt, None)
         if callable_filt is None:
-            raise ValueError(f"No such callable_filt: {callable_filt}")
+            raise ValueError(f'No such callable_filt: {callable_filt}')
     return callable_filt
 
 
@@ -81,13 +81,19 @@ def get_callables_from(callables, callable_filt=DFLT_CALLABLE_FILT):
         if not inspect.isclass(callables):
             yield from [callables]
         else:
-            yield from get_callables_from(callables_of_class(callables), callable_filt=callable_filt)
+            yield from get_callables_from(
+                callables_of_class(callables), callable_filt=callable_filt
+            )
     else:
         if isinstance(callables, str) or isinstance(callables, ModuleType):
-            yield from get_callables_from(callables_of_module(callables), callable_filt=callable_filt)
+            yield from get_callables_from(
+                callables_of_module(callables), callable_filt=callable_filt
+            )
         elif inspect.isclass(callables):
             yield callables
-            yield from get_callables_from(callables_of_class(callables), callable_filt=callable_filt)
+            yield from get_callables_from(
+                callables_of_class(callables), callable_filt=callable_filt
+            )
         else:
             try:
                 for c in callables:
@@ -95,8 +101,10 @@ def get_callables_from(callables, callable_filt=DFLT_CALLABLE_FILT):
                         continue  # hack to avoid a case I don't understand
                     yield from get_callables_from(c, callable_filt=callable_filt)
             except:
-                raise TypeError(f"Don't know how to handle the input: {c}\n"
-                                "Wasn't a callable, string, module, or iterable of such.")
+                raise TypeError(
+                    f"Don't know how to handle the input: {c}\n"
+                    "Wasn't a callable, string, module, or iterable of such."
+                )
 
 
 class SignatureExtractor:
@@ -139,7 +147,9 @@ def name_arg_default_dict_of_callables(callables: Iterator[Callable]) -> dict:
     d = dict()
     for obj in callables:
         try:
-            d[obj.__qualname__] = {x['name']: x['default'] for x in extract_name_and_default(obj)}
+            d[obj.__qualname__] = {
+                x['name']: x['default'] for x in extract_name_and_default(obj)
+            }
         except Exception as e:
             pass  # TODO: Give choice to warn instead of ignore
     return d
@@ -154,7 +164,9 @@ def arg_default_dict_of_callables(callables, callable_filt=DFLT_CALLABLE_FILT) -
     :return: A dict
     """
     callable_filt = get_callable_filt(callable_filt)
-    return name_arg_default_dict_of_callables(get_callables_from(callables, callable_filt=callable_filt))
+    return name_arg_default_dict_of_callables(
+        get_callables_from(callables, callable_filt=callable_filt)
+    )
 
 
 def non_null_counts(df: pd.DataFrame, null_val=np.nan):
@@ -167,7 +179,9 @@ def non_null_counts(df: pd.DataFrame, null_val=np.nan):
     return row_null_zero_count, col_null_zero_count
 
 
-def _df_of_callable_arg_default_dict(callable_arg_default_dict, null_fill='') -> pd.DataFrame:
+def _df_of_callable_arg_default_dict(
+    callable_arg_default_dict, null_fill=''
+) -> pd.DataFrame:
     """
     Get a dataframe from a callable_arg_default_dict
     :param module:
@@ -182,7 +196,8 @@ def _df_of_callable_arg_default_dict(callable_arg_default_dict, null_fill='') ->
 
 
 def callables_signatures_df(
-        callables, callable_filt=DFLT_CALLABLE_FILT, null_fill='') -> pd.DataFrame:
+    callables, callable_filt=DFLT_CALLABLE_FILT, null_fill=''
+) -> pd.DataFrame:
     """
     Get a dataframe representing the signatures of the input callables.
     :param callables = get_callables_from(callables, callable_filt=callable_filt)
@@ -201,18 +216,32 @@ def callables_signatures_df(
     return _df_of_callable_arg_default_dict(d, null_fill=null_fill)
 
 
-def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=False, ax=None,
-            xlabel_top=True, ylabel_left=True, xlabel_bottom=True, ylabel_right=True, **kwargs):
+def heatmap(
+    X,
+    y=None,
+    col_labels=None,
+    figsize=None,
+    cmap=None,
+    return_gcf=False,
+    ax=None,
+    xlabel_top=True,
+    ylabel_left=True,
+    xlabel_bottom=True,
+    ylabel_right=True,
+    **kwargs,
+):
     """
     Make a heatmap of a matrix or pandas.DataFrame, but let the function figure stuff out.
     """
     import pandas as pd
     import numpy as np
+
     n_items, n_cols = X.shape
     if col_labels is not None:
         if col_labels is not False:
-            assert len(col_labels) == n_cols, \
-                "col_labels length should be the same as the number of columns in the matrix"
+            assert (
+                len(col_labels) == n_cols
+            ), 'col_labels length should be the same as the number of columns in the matrix'
     elif isinstance(X, pd.DataFrame):
         col_labels = list(X.columns)
 
@@ -243,16 +272,32 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=Fals
 
     if y is not None:
         y = np.array(y)
-        assert all(sorted(y) == y), "This will only work if your row_labels are sorted"
+        assert all(sorted(y) == y), 'This will only work if your row_labels are sorted'
 
         unik_ys, unik_ys_idx = np.unique(y, return_index=True)
         for u, i in zip(unik_ys, unik_ys_idx):
-            plt.hlines(i - 0.5, 0 - 0.5, n_cols - 0.5, colors='b', linestyles='dotted', alpha=0.5)
-        plt.hlines(n_items - 0.5, 0 - 0.5, n_cols - 0.5, colors='b', linestyles='dotted', alpha=0.5)
-        plt.yticks(unik_ys_idx + np.diff(np.hstack((unik_ys_idx, n_items))) / 2, unik_ys)
+            plt.hlines(
+                i - 0.5,
+                0 - 0.5,
+                n_cols - 0.5,
+                colors='b',
+                linestyles='dotted',
+                alpha=0.5,
+            )
+        plt.hlines(
+            n_items - 0.5,
+            0 - 0.5,
+            n_cols - 0.5,
+            colors='b',
+            linestyles='dotted',
+            alpha=0.5,
+        )
+        plt.yticks(
+            unik_ys_idx + np.diff(np.hstack((unik_ys_idx, n_items))) / 2, unik_ys
+        )
     elif isinstance(X, pd.DataFrame):
         y_tick_labels = list(X.index)
-        plt.yticks(list(range(len(y_tick_labels))), y_tick_labels);
+        plt.yticks(list(range(len(y_tick_labels))), y_tick_labels)
 
     if col_labels is not None:
         plt.xticks(list(range(len(col_labels))), col_labels)
@@ -266,7 +311,9 @@ def heatmap(X, y=None, col_labels=None, figsize=None, cmap=None, return_gcf=Fals
         return plt.gcf()
 
 
-def heatmap_of_signatures(callables, callable_filt=DFLT_CALLABLE_FILT, figsize=None, cmap='gray_r'):
+def heatmap_of_signatures(
+    callables, callable_filt=DFLT_CALLABLE_FILT, figsize=None, cmap='gray_r'
+):
     """
     Visualize a matrix containing the all functions of the module, and their arguments.
     :param callables: A module (or module dot-path string), class, callable, or list thereof
@@ -285,7 +332,12 @@ def heatmap_of_signatures(callables, callable_filt=DFLT_CALLABLE_FILT, figsize=N
 
 
 def plot_nonnull_counts_of_signatures(
-        callables, callable_filt=DFLT_CALLABLE_FILT, n_top_items=50, figsize=None, hspace=0.5):
+    callables,
+    callable_filt=DFLT_CALLABLE_FILT,
+    n_top_items=50,
+    figsize=None,
+    hspace=0.5,
+):
     """
     For all callables of the input module, will plot (as a bar graph):
         The argument count of each callable
@@ -313,6 +365,10 @@ def plot_nonnull_counts_of_signatures(
 if __name__ == '__main__':
     import argh
 
-    argh.dispatch_commands([callables_signatures_df,
-                            heatmap_of_signatures,
-                            plot_nonnull_counts_of_signatures])
+    argh.dispatch_commands(
+        [
+            callables_signatures_df,
+            heatmap_of_signatures,
+            plot_nonnull_counts_of_signatures,
+        ]
+    )

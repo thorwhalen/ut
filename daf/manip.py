@@ -78,7 +78,9 @@ def cast_all_cols_to_numeric_if_possible(df):
     return df
 
 
-def digitize_and_group(df, digit_cols=None, digit_agg_fun='mean', agg_fun='mean', **kwargs):
+def digitize_and_group(
+    df, digit_cols=None, digit_agg_fun='mean', agg_fun='mean', **kwargs
+):
     digit_cols = digit_cols or df.columns
     t = digitize(df[digit_cols], index='int', **kwargs)
     mapping = {k: df[[k]].groupby(t[k]).agg(digit_agg_fun) for k in t.columns}
@@ -87,13 +89,13 @@ def digitize_and_group(df, digit_cols=None, digit_agg_fun='mean', agg_fun='mean'
 
 
 def digitize(df, bins=2, index='both int and mapping', **kwargs):
-    '''
+    """
     digitize(df, bins=2, index=None [, right (False)])
 
     df: a dataframe
     bins: number of bins or bin specification (for example, left or right (see right param) interval value)
     index: if 'int', will bins will be indexed by integers. Other options: 'int', 'by_lower_bin_val'
-    '''
+    """
     kwargs['right'] = kwargs.get('right', False)
     digit_map = _mk_bins_spec(df, bins)
     d = dict()
@@ -115,7 +117,9 @@ def digitize(df, bins=2, index='both int and mapping', **kwargs):
 
 def _mk_bins_spec(df, bins):
     if isinstance(bins, dict):
-        return {c: _mk_single_variable_bin_spec(df[c], bins[c]) for c in list(bins.keys())}
+        return {
+            c: _mk_single_variable_bin_spec(df[c], bins[c]) for c in list(bins.keys())
+        }
     else:
         bin_spec = {c: _mk_single_variable_bin_spec(df[c], bins) for c in df.columns}
         return {c: v for c, v in bin_spec.items() if v is not None}
@@ -143,7 +147,7 @@ def _unique_quantiles_bins(x, num_of_quantiles=2):
                 p = _unique_quantiles_bins(x[~x.isin(dups)], num_of_quantiles)
                 return sorted(np.concatenate([p, dups]))
             else:
-                RuntimeWarning("returning a few less bins than requested")
+                RuntimeWarning('returning a few less bins than requested')
                 return sorted(np.unique(p.values))
             # p = x[~x.isin(dups)].quantile(q=np.linspace(0, 1, num=max(2, num_of_quantiles - len(dups))))
             # if len(p.values) + len(dups) > num_of_quantiles:
@@ -174,12 +178,14 @@ def recursive_update(d, u, inplace=True):
 def map_col_vals_to_ints(df, column_to_change, return_map=False):
     cols = df.columns
     unik_vals_map = ch_col_names(
-        pd.DataFrame(df[column_to_change].unique()).reset_index(), ['tmp_new_col', column_to_change])
+        pd.DataFrame(df[column_to_change].unique()).reset_index(),
+        ['tmp_new_col', column_to_change],
+    )
     df = pd.merge(df, unik_vals_map)
     df = rm_cols_if_present(df, column_to_change)
     df = ch_col_names(df, column_to_change, 'tmp_new_col')
     if return_map:
-        return df[cols],
+        return (df[cols],)
     else:
         return df[cols]
 
@@ -207,19 +213,23 @@ def rm_cols_if_present(df, cols):
     return df[colloc.setdiff(df.columns, cols)]
 
 
-def gather_col_values(df,
-                      cols_to_gather=None,
-                      gathered_col_name='gathered_cols',
-                      keep_cols_that_were_gathered=False,
-                      remove_empty_values=True):
+def gather_col_values(
+    df,
+    cols_to_gather=None,
+    gathered_col_name='gathered_cols',
+    keep_cols_that_were_gathered=False,
+    remove_empty_values=True,
+):
     if cols_to_gather is None:
         cols_to_gather = df.columns
     df = df.copy()
     if remove_empty_values == False:
         df[gathered_col_name] = [list(x[1:]) for x in df[cols_to_gather].itertuples()]
     else:
-        df[gathered_col_name] = \
-            [[xx for xx in x if xx] for x in [list(x[1:]) for x in df[cols_to_gather].itertuples()]]
+        df[gathered_col_name] = [
+            [xx for xx in x if xx]
+            for x in [list(x[1:]) for x in df[cols_to_gather].itertuples()]
+        ]
     if keep_cols_that_were_gathered == False:
         df = df[colloc.setdiff(df.columns, cols_to_gather)]
     return df
@@ -269,7 +279,9 @@ def rollout_cols(df, cols_to_rollout=None):
         3   333
     """
     # if no cols_to_rollout is given, (try to) rollout all columns that are iterable (lists, etc.)
-    cols_to_rollout = cols_to_rollout or daf_diagnosis.cols_that_are_of_the_type(df, util_var.is_an_iter)
+    cols_to_rollout = cols_to_rollout or daf_diagnosis.cols_that_are_of_the_type(
+        df, util_var.is_an_iter
+    )
     # make sure cols_to_rollout is a list
     cols_to_rollout = util_ulist.ascertain_list(cols_to_rollout)
     # get non_rollout_columns
@@ -278,8 +290,9 @@ def rollout_cols(df, cols_to_rollout=None):
     # all cols_to_rollout have the same list lengths
     rollout_lengths = np.array(df[cols_to_rollout[0]].apply(len))
     # create a rollout_df dataframe (this will be the output)
-    rollout_df = pd.DataFrame(list(range(np.sum(
-        rollout_lengths))))  # TODO: I CANNOT F**ING BELIEVE I'M DOING THIS!!! But found no other way to make a dataframe empty, and then construct it on the fly!
+    rollout_df = pd.DataFrame(
+        list(range(np.sum(rollout_lengths)))
+    )  # TODO: I CANNOT F**ING BELIEVE I'M DOING THIS!!! But found no other way to make a dataframe empty, and then construct it on the fly!
     # rollout cols_to_rollout
     for c in cols_to_rollout:
         rollout_df[c] = np.concatenate(list(df[c]))
@@ -313,7 +326,10 @@ def rollout_cols_alt(d, key):
 
 def extract_dict_col(df, col_to_extract):
     d = [pd.DataFrame([x]) for x in df[col_to_extract]]
-    return rm_cols_if_present(pd.concat([df, pd.concat(d, axis=0).reset_index(drop=True)], axis=1), col_to_extract)
+    return rm_cols_if_present(
+        pd.concat([df, pd.concat(d, axis=0).reset_index(drop=True)], axis=1),
+        col_to_extract,
+    )
 
     # accum_df = pd.DataFrame(columns=df.columns)
     # for i in range(len(df)):
@@ -344,11 +360,15 @@ def reorder_columns_as(df, col_order, inplace=False):
 
 
 def cols_that_are_of_the_type(df, type_spec):
-    DeprecationWarning("ut.daf.manip.cols_that_are_of_the_type depreciated: "
-                       "Use ut.daf.diagnosis.cols_that_are_of_the_type instead")
+    DeprecationWarning(
+        'ut.daf.manip.cols_that_are_of_the_type depreciated: '
+        'Use ut.daf.diagnosis.cols_that_are_of_the_type instead'
+    )
     if isinstance(type_spec, type):
         return [col for col in df.columns if isinstance(df[col][0], type_spec)]
-    elif util_var.is_callable(type_spec):  # assume it's a boolean function, and use it as a positive filter
+    elif util_var.is_callable(
+        type_spec
+    ):  # assume it's a boolean function, and use it as a positive filter
         return [col for col in df.columns if type_spec(df[col][0])]
 
 
@@ -398,5 +418,7 @@ def rm_nan_rows(df):
     return index_with_range(df.dropna())
 
 
-def assert_dependencies(df, cols, prefix_message=""):
-    assert has_columns(df, cols), "need (all) columns {}: {}".format(util_ulist.to_str(cols), prefix_message)
+def assert_dependencies(df, cols, prefix_message=''):
+    assert has_columns(df, cols), 'need (all) columns {}: {}'.format(
+        util_ulist.to_str(cols), prefix_message
+    )

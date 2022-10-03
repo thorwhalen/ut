@@ -36,29 +36,40 @@ from ut.util.log import printProgress
 
 
 class Geopop(object):
-    def __init__(self, pop_db='util', pop_col='geo_pop_density',
-                 coordinate_field='cen', pop_field='p15a', pop_dens_field='p15adens', area_field='areasqkm'):
-        self.mdacc = GeoMongoDacc(db=pop_db, collection=pop_col, coordinate_field=coordinate_field)
+    def __init__(
+        self,
+        pop_db='util',
+        pop_col='geo_pop_density',
+        coordinate_field='cen',
+        pop_field='p15a',
+        pop_dens_field='p15adens',
+        area_field='areasqkm',
+    ):
+        self.mdacc = GeoMongoDacc(
+            db=pop_db, collection=pop_col, coordinate_field=coordinate_field
+        )
         self.pop_field = pop_field
         self.coordinate_field = coordinate_field
         self.pop_dens_field = pop_dens_field
         self.area_field = area_field
 
     def population_of_nearest_latlon(self, lat, lon):
-        return self.mdacc.find_nearest_one(lat=lat, lon=lon, fields=[self.pop_field])[self.pop_field]
+        return self.mdacc.find_nearest_one(lat=lat, lon=lon, fields=[self.pop_field])[
+            self.pop_field
+        ]
 
     def within_radius_cursor(self, lat, lon, radius_km, fields=None):
         if fields is None:
-            fields = {'_id': False,
-                      self.pop_field: True,
-                      self.coordinate_field: True,
-                      self.pop_dens_field: True,
-                      self.area_field: True}
+            fields = {
+                '_id': False,
+                self.pop_field: True,
+                self.coordinate_field: True,
+                self.pop_dens_field: True,
+                self.area_field: True,
+            }
         return self.mdacc.find_in_circle(
-                lat=lat,
-                lon=lon,
-                max_km=radius_km,
-                fields=fields)
+            lat=lat, lon=lon, max_km=radius_km, fields=fields
+        )
 
     def population_within_radius(self, lat, lon, radius_km):
         """
@@ -70,13 +81,17 @@ class Geopop(object):
         if pop != 0:
             return pop
         else:
-            d = self.mdacc.find_nearest_one(lat=lat, lon=lon, fields=[self.pop_field, self.area_field])
+            d = self.mdacc.find_nearest_one(
+                lat=lat, lon=lon, fields=[self.pop_field, self.area_field]
+            )
             total_population = d[self.pop_field]
             total_area = d[self.area_field]
             circle_area = np.pi * radius_km ** 2
             return circle_area * total_population / total_area
 
-    def population_within_radius_density_approach_not_verified(self, lat, lon, radius_km):
+    def population_within_radius_density_approach_not_verified(
+        self, lat, lon, radius_km
+    ):
         """
         Estimates the population within a circle whose center is (lat,lon) and radius is radius_km.
         It does so by estimating the population density in the area, as the total of the centroid populations divided by
@@ -86,14 +101,22 @@ class Geopop(object):
         --> I haven't verified if this would work well near water surfaces.
         --> Perhaps it would be better (though less efficient) to use gridded stats instead of centroid stats.
         """
-        cursor = self.within_radius_cursor(lat, lon, radius_km,
-                                           fields={self.pop_field: True,
-                                                   self.coordinate_field: True,
-                                                   self.area_field: True})
+        cursor = self.within_radius_cursor(
+            lat,
+            lon,
+            radius_km,
+            fields={
+                self.pop_field: True,
+                self.coordinate_field: True,
+                self.area_field: True,
+            },
+        )
         d = pd.DataFrame([x for x in cursor])
 
         if len(d) == 0:
-            d = self.mdacc.find_nearest_one(lat=lat, lon=lon, fields=[self.pop_field, self.area_field])
+            d = self.mdacc.find_nearest_one(
+                lat=lat, lon=lon, fields=[self.pop_field, self.area_field]
+            )
             total_population = d[self.pop_field]
             total_area = d[self.area_field]
         else:
@@ -110,7 +133,9 @@ class Geopop(object):
         return self.total_population(cursor)
 
     def population_within_radius_approximation(self, lat, lon, radius_km):
-        d = self.mdacc.find_nearest_one(lat=lat, lon=lon, fields=[self.pop_field, self.coordinate_field])
+        d = self.mdacc.find_nearest_one(
+            lat=lat, lon=lon, fields=[self.pop_field, self.coordinate_field]
+        )
         return d
 
     def fuzzy_population_within_radius(self, lat, lon, radius_km):
@@ -121,18 +146,26 @@ class Geopop(object):
         d = pd.DataFrame([x for x in cursor])
         center = (lat, lon)
         if len(d) != 0:
-            distance = list(map(lambda xlat, xlon: vincenty((xlat, xlon), center).kilometers,
-                                                    [x[1] for x in d[self.coordinate_field]],
-                                                    [x[0] for x in d[self.coordinate_field]]))
+            distance = list(
+                map(
+                    lambda xlat, xlon: vincenty((xlat, xlon), center).kilometers,
+                    [x[1] for x in d[self.coordinate_field]],
+                    [x[0] for x in d[self.coordinate_field]],
+                )
+            )
             membership = [max(0, (radius_km - x) / radius_km) for x in distance]
             return sum(membership * d[self.pop_field])
         else:
-            d = self.mdacc.find_nearest_one(lat=lat, lon=lon, fields=[self.pop_field, self.area_field])
+            d = self.mdacc.find_nearest_one(
+                lat=lat, lon=lon, fields=[self.pop_field, self.area_field]
+            )
             total_population = d[self.pop_field]
             total_area = d[self.area_field]
             circle_area = np.pi * (radius_km ** 2)
             cone_area_population = circle_area * total_population / total_area
-            return cone_area_population / 3  # volume of cone of height 1 is 1/3 of area of circle base
+            return (
+                cone_area_population / 3
+            )  # volume of cone of height 1 is 1/3 of area of circle base
 
     #
     # def fuzzy_population(self, geo_pop_dict, radius):
@@ -141,23 +174,30 @@ class Geopop(object):
     def total_population(self, item_iterator):
         return float(sum([x[self.pop_field] for x in item_iterator]))
 
+
 _meters_to_bits = lambda meters: int(min(32, ceil(log(0.6 / meters, 2) + 26)))
 
 
-def _import_data_into_mongo(filepath='gl_centroids_utf8.csv',
-                            mongo_db='util',
-                            mongo_collection='geo_pop_density',
-                            index_precision_meters=76.8,
-                            print_mongo_import_progress_every=50000):
+def _import_data_into_mongo(
+    filepath='gl_centroids_utf8.csv',
+    mongo_db='util',
+    mongo_collection='geo_pop_density',
+    index_precision_meters=76.8,
+    print_mongo_import_progress_every=50000,
+):
 
     bits = _meters_to_bits(index_precision_meters)
-    printProgress("importing %s into dataframe" % filepath)
+    printProgress('importing %s into dataframe' % filepath)
     d = pd.read_csv(filepath, header=0, sep=',', quotechar="'")
     space_re = re.compile('\s')
-    d.columns = [space_re.sub('_', str(x).lower()) for x in d.columns]  # I want lower and no-space_columns
+    d.columns = [
+        space_re.sub('_', str(x).lower()) for x in d.columns
+    ]  # I want lower and no-space_columns
 
-    printProgress("importing dataframe rows into mongo (will print progress every %d items"
-                  % print_mongo_import_progress_every)
+    printProgress(
+        'importing dataframe rows into mongo (will print progress every %d items'
+        % print_mongo_import_progress_every
+    )
     mc = MongoClient()
     db = mc[mongo_db]
     db.drop_collection(mongo_collection)
@@ -168,47 +208,53 @@ def _import_data_into_mongo(filepath='gl_centroids_utf8.csv',
     for i, di in enumerate(d.iterrows()):
         ddi = _process_dict(dict(di[1]))
         if fmod(i, print_mongo_import_progress_every) == 0:
-            printProgress("  %d/%d" % (i, n))
+            printProgress('  %d/%d' % (i, n))
         try:
             mg_collection.insert(ddi, w=0)
         except InvalidStringData:
             ddi = {k: str_to_utf8_or_bust(v) for k, v in ddi.items()}
             mg_collection.insert(ddi, w=0)
 
-    printProgress("ensuring GEOSPHERE index with %d bits (for a precision of %d meters or more"
-                  % (bits, index_precision_meters))
+    printProgress(
+        'ensuring GEOSPHERE index with %d bits (for a precision of %d meters or more'
+        % (bits, index_precision_meters)
+    )
     from pymongo import GEOSPHERE
-    mg_collection.ensure_index([("cen", GEOSPHERE), ("bits", bits)])
-    printProgress("------------------------------ DONE ------------------------------")
+
+    mg_collection.ensure_index([('cen', GEOSPHERE), ('bits', bits)])
+    printProgress('------------------------------ DONE ------------------------------')
 
 
 def _process_dict(d):
     # replace the _id (it's the only exception to the rest of this,
     #    and will be recreated when dumped anyway)
-    d.pop('_id', None) # in case d comes from a mongo dict
-    d.pop('adminid', None) # it's frequently bull shit, so drop it
+    d.pop('_id', None)  # in case d comes from a mongo dict
+    d.pop('adminid', None)  # it's frequently bull shit, so drop it
     d['country'] = d['countrynm']  # I prefer to use country then countrynm
     d.pop('countrynm')
     # remove first and last single quotes from string values
-    d.update({k: str_to_utf8_or_bust(d[k]) for k in list(d.keys()) if isinstance(d[k], str)})
+    d.update(
+        {k: str_to_utf8_or_bust(d[k]) for k in list(d.keys()) if isinstance(d[k], str)}
+    )
     # do the same for keys, and while we're at it, remove "N.A" keys (and while we're at it, lower case keys)
-    d = {k.lower(): v for k, v in d.items() if v != "N.A."}
+    d = {k.lower(): v for k, v in d.items() if v != 'N.A.'}
     # make location keys
     try:
-        if not isinstance(d["lat_cen"], float) \
-                or not isinstance(d["long_cen"], float) \
-                or not isinstance(d["lat_lbl"], float) \
-                or not isinstance(d["long_lbl"], float):
+        if (
+            not isinstance(d['lat_cen'], float)
+            or not isinstance(d['long_cen'], float)
+            or not isinstance(d['lat_lbl'], float)
+            or not isinstance(d['long_lbl'], float)
+        ):
             return None
         else:
-            d["cen"] = [d["long_cen"], d["lat_cen"]]
-            d["lbl"] = [d["long_lbl"], d["lat_lbl"]]
+            d['cen'] = [d['long_cen'], d['lat_cen']]
+            d['lbl'] = [d['long_lbl'], d['lat_lbl']]
     except KeyError:
         return None
     # remove the original location fields
-    d.pop("lat_cen")
-    d.pop("long_cen")
-    d.pop("lat_lbl")
-    d.pop("long_lbl")
+    d.pop('lat_cen')
+    d.pop('long_cen')
+    d.pop('lat_lbl')
+    d.pop('long_lbl')
     return d
-

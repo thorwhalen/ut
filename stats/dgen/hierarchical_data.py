@@ -7,13 +7,15 @@ from numpy import triu_indices, ndarray
 from scipy.spatial.distance import cdist
 
 
-def make_hblobs(n_samples=100,
-                n_features=2,
-                centers=(2, 3),
-                cluster_std=1.0,
-                center_box=(-10.0, 10.0),
-                shuffle=True,
-                random_state=None):
+def make_hblobs(
+    n_samples=100,
+    n_features=2,
+    centers=(2, 3),
+    cluster_std=1.0,
+    center_box=(-10.0, 10.0),
+    shuffle=True,
+    random_state=None,
+):
     """
     It uses the sklearn.datasets make_blobs to generate "hierarchical blobs".
 
@@ -41,34 +43,67 @@ def make_hblobs(n_samples=100,
 
     if isinstance(centers, (list, tuple, ndarray)):
         if len(centers) == 1:
-            return make_blobs(n_samples, n_features, centers[0], cluster_std, center_box, shuffle, random_state)
+            return make_blobs(
+                n_samples,
+                n_features,
+                centers[0],
+                cluster_std,
+                center_box,
+                shuffle,
+                random_state,
+            )
         else:
             # assert prod(centers) <= n_samples, "prod(centers) < n_samples !!!"
             if isinstance(cluster_std, (float, int)):
                 cluster_std = [cluster_std] * len(centers)
             assert len(cluster_std) == len(centers)
 
-            level_centers, _ = make_blobs(n_samples=centers[0], n_features=n_features, centers=centers[0],
-                                          cluster_std=cluster_std[0],
-                                          center_box=center_box, shuffle=shuffle, random_state=random_state)
+            level_centers, _ = make_blobs(
+                n_samples=centers[0],
+                n_features=n_features,
+                centers=centers[0],
+                cluster_std=cluster_std[0],
+                center_box=center_box,
+                shuffle=shuffle,
+                random_state=random_state,
+            )
 
             for this_center, _cluster_std in zip(centers[1:], cluster_std[1:]):
                 n = this_center * len(level_centers)
-                min_dist = cdist(level_centers, level_centers)[triu_indices(len(level_centers), k=1)].min()
-                level_centers, y = make_blobs(n_samples=min(n_samples, n),
-                                              n_features=n_features,
-                                              centers=level_centers,
-                                              cluster_std=min_dist * _cluster_std,
-                                              center_box=center_box, shuffle=shuffle, random_state=random_state)
+                min_dist = cdist(level_centers, level_centers)[
+                    triu_indices(len(level_centers), k=1)
+                ].min()
+                level_centers, y = make_blobs(
+                    n_samples=min(n_samples, n),
+                    n_features=n_features,
+                    centers=level_centers,
+                    cluster_std=min_dist * _cluster_std,
+                    center_box=center_box,
+                    shuffle=shuffle,
+                    random_state=random_state,
+                )
 
-        min_dist = cdist(level_centers, level_centers)[triu_indices(len(level_centers), k=1)].min()
+        min_dist = cdist(level_centers, level_centers)[
+            triu_indices(len(level_centers), k=1)
+        ].min()
 
-        return make_blobs(n_samples=n_samples, n_features=n_features, centers=level_centers,
-                          cluster_std=min_dist * cluster_std[-1],
-                          center_box=center_box, shuffle=shuffle, random_state=random_state)
+        return make_blobs(
+            n_samples=n_samples,
+            n_features=n_features,
+            centers=level_centers,
+            cluster_std=min_dist * cluster_std[-1],
+            center_box=center_box,
+            shuffle=shuffle,
+            random_state=random_state,
+        )
 
     else:
-        return make_blobs(n_samples, n_features, centers, cluster_std, center_box, shuffle, random_state)
-
-
-
+        return make_blobs(
+            n_samples,
+            n_features,
+            centers,
+            cluster_std,
+            center_box,
+            shuffle,
+            random_state,
+        )

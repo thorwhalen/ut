@@ -1,5 +1,3 @@
-
-
 from numpy import array, ndim, argsort
 import sys
 from ut.util.pobj import inject_method
@@ -17,9 +15,11 @@ def cumul_before_partial_fit(self, min_data_len):
             if min_data_len in self.__dict__:
                 min_data_len = self.__dict__[min_data_len]
             else:
-                raise AttributeError("Your {} doesn't have attribute {}".format(
-                    self.__class__, min_data_len
-                ))
+                raise AttributeError(
+                    "Your {} doesn't have attribute {}".format(
+                        self.__class__, min_data_len
+                    )
+                )
         elif callable(min_data_len):
             min_data_len = min_data_len(self)
         else:
@@ -66,12 +66,16 @@ def predict_proba_of_label(self, X, label, normalize_preds=False):
         if ndim(X) == 1:
             pred = self.predict_proba(X.reshape(1, -1))
             if normalize_preds:
-                pred = (pred.T / pred.sum(axis=1).T).T  # added later on: Normalizing the preds (untested for ndim(X)==1)
+                pred = (
+                    pred.T / pred.sum(axis=1).T
+                ).T  # added later on: Normalizing the preds (untested for ndim(X)==1)
             return array(pred)[0, label_lidx][0]
         else:
             pred = self.predict_proba(X)
             if normalize_preds:
-                pred = (pred.T / pred.sum(axis=1).T).T  # added later on: Normalizing the preds
+                pred = (
+                    pred.T / pred.sum(axis=1).T
+                ).T  # added later on: Normalizing the preds
             return array(pred[:, label_lidx]).reshape(-1)
     else:
         raise LookupError("The label {} wasn't found in the model")
@@ -102,13 +106,19 @@ def label_prob_argsort(self, X, label):
 def true_positive_rate(self, X, y):
     return sum(self.predict(X) == y) / float(len(y))
 
+
 ######### This is so that we can get a set of the  methods outside...
 
-methods_set = set(dir(sys.modules[__name__])).difference(non_methods_set).difference({'non_methods_set'})
+methods_set = (
+    set(dir(sys.modules[__name__]))
+    .difference(non_methods_set)
+    .difference({'non_methods_set'})
+)
 
 
 ######### This is so that we can get an object that has these methods as attributes
 ######### (to make it easier to see what's available)
+
 
 class Struct(object):
     def __init__(self, method_names):
@@ -117,4 +127,3 @@ class Struct(object):
 
 
 model_methods = Struct(methods_set)
-

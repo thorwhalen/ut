@@ -47,7 +47,9 @@ def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
     {'a': {'b': 3, 'd': 'this should remain as is'}, 'new_ac': 'I am a.c', 'b': {'A': 10, 'B': 20}}
     """
     new_d = dict()
-    wildcard_prefixes = [k[:-1] for k in [k for k in list(key_path_trans.keys()) if k.endswith('*')]]
+    wildcard_prefixes = [
+        k[:-1] for k in [k for k in list(key_path_trans.keys()) if k.endswith('*')]
+    ]
 
     def to_trans_key(key_path):
         for prefix in wildcard_prefixes:
@@ -60,20 +62,28 @@ def transform_dict(d, key_path_trans, keep_unspecified_key_paths=True):
         if trans_key in key_path_trans:
             trans_func = key_path_trans[trans_key]
             if callable(trans_func):
-                set_value_in_nested_key_path(new_d, key_path, trans_func(val))  # apply trans_func to val
+                set_value_in_nested_key_path(
+                    new_d, key_path, trans_func(val)
+                )  # apply trans_func to val
             elif trans_func == DROP:
                 continue  # skip this one (so you won't have it in new_d)
             elif trans_func == ASIS:
                 set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
             elif isinstance(trans_func, (tuple, list)) and len(trans_func) == 2:
-                new_key_path = trans_func[0]  # the key path where we should store the value
+                new_key_path = trans_func[
+                    0
+                ]  # the key path where we should store the value
                 trans_func = trans_func[1]
-                set_value_in_nested_key_path(new_d, new_key_path, trans_func(val))  # apply trans_func to val
+                set_value_in_nested_key_path(
+                    new_d, new_key_path, trans_func(val)
+                )  # apply trans_func to val
             else:
                 if isinstance(trans_func, str):  # assume trans_func is a field name...
-                    set_value_in_nested_key_path(new_d, trans_func, val)  # ... which we want to rename key_path by.
+                    set_value_in_nested_key_path(
+                        new_d, trans_func, val
+                    )  # ... which we want to rename key_path by.
                 else:
-                    raise TypeError("trans_func must be a callable or a string")
+                    raise TypeError('trans_func must be a callable or a string')
         else:  # if trans_key is not listed in key_path_trans keys...
             if keep_unspecified_key_paths:  # then consider it as a "_keep_key_path"
                 set_value_in_nested_key_path(new_d, key_path, val)  # take value as is
@@ -91,7 +101,10 @@ def rollout(d, key, sep='.', copy=True):
             prefix = ''
         else:
             prefix = key + sep
-        return [dict({prefix + k: v for k, v in element.items()}, **d) for element in key_value]
+        return [
+            dict({prefix + k: v for k, v in element.items()}, **d)
+            for element in key_value
+        ]
     else:
         return list(chain(*map(lambda x: rollout(x, key=key, sep=sep, copy=copy), d)))
 
@@ -147,9 +160,10 @@ def recursively_update_with(a, b):
 
 
 def merge(a, b, path=None):
-    "merges b into a"
+    'merges b into a'
     a = a.copy()
-    if path is None: path = []
+    if path is None:
+        path = []
     for key in b:
         if key in a:
             if isinstance(a[key], dict) and isinstance(b[key], dict):

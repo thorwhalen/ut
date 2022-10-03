@@ -55,7 +55,10 @@ def listrows_to_md(listrows, center_aligned_columns=None, right_aligned_columns=
     | 1 | 2 | 3 |
     """
     widths = list(map(max, zip(*[list(map(len, row)) for row in listrows])))
-    rows = [rowstr_to_md([cell.ljust(width) for cell, width in zip(row, widths)]) for row in listrows]
+    rows = [
+        rowstr_to_md([cell.ljust(width) for cell, width in zip(row, widths)])
+        for row in listrows
+    ]
     separators = ['-' * width for width in widths]
 
     if right_aligned_columns is not None:
@@ -70,8 +73,13 @@ def listrows_to_md(listrows, center_aligned_columns=None, right_aligned_columns=
     return '\n'.join(rows)
 
 
-def linesstr_to_md(linesstr, ncols, line_sep='\n',
-                   center_aligned_columns=None, right_aligned_columns=None):
+def linesstr_to_md(
+    linesstr,
+    ncols,
+    line_sep='\n',
+    center_aligned_columns=None,
+    right_aligned_columns=None,
+):
     """
     >>> print(linesstr_to_md('A\\nB\\nC\\n1\\n2\\n3'))
     | A | B | C |

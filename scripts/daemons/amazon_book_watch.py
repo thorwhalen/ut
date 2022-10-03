@@ -13,8 +13,10 @@
 # from ut.dacc.mong.com import MongoStruct
 # # import pandas as pd
 from datetime import datetime
+
 # from random import randint
 import time
+
 # import pymongo
 from ut.webscrape.misc.amazon import AmazonBookWatch
 import ut as ms
@@ -26,29 +28,30 @@ frequency_in_hours = 1
 time_of_day_to_send_email = 8
 
 spec = {
-    'Vanessa Able': {'title_country_list': [
-        {'title': 'Never mind the bullocks', 'country': 'co.uk'},
-        {'title': 'Never mind the bullocks', 'country': 'com'},
-        {'title': 'The Nanologues', 'country': 'in'}
-    ],
-                'subscriber_emails': ['vanessa.able@gmail.com', 'thor@mscoms.com']
+    'Vanessa Able': {
+        'title_country_list': [
+            {'title': 'Never mind the bullocks', 'country': 'co.uk'},
+            {'title': 'Never mind the bullocks', 'country': 'com'},
+            {'title': 'The Nanologues', 'country': 'in'},
+        ],
+        'subscriber_emails': ['vanessa.able@gmail.com', 'thor@mscoms.com'],
     }
 }
 
-    # 'Miriam Williams': {'title_country_list': [
-    #     {'title': "Heaven's Harlots (Paperback)", 'country': 'com'},
-    #     {'title': "Heaven's Harlots (Hardcover)", 'country': 'com'},
-    #     {'title': "Women on Ice", 'country': 'com'}
-    # ],
-    #             'subscriber_emails': ['miriamboeri@gmail.com', 'thor@mscoms.com']
-    # }
+# 'Miriam Williams': {'title_country_list': [
+#     {'title': "Heaven's Harlots (Paperback)", 'country': 'com'},
+#     {'title': "Heaven's Harlots (Hardcover)", 'country': 'com'},
+#     {'title': "Women on Ice", 'country': 'com'}
+# ],
+#             'subscriber_emails': ['miriamboeri@gmail.com', 'thor@mscoms.com']
+# }
 
-    # 'Julia Cooke': {'title_country_list': [
-    #     {'title': 'The Other Side of Paradise', 'country': 'com'},
-    #     {'title': 'The Other Side of Paradise', 'country': 'co.uk'}
-    # ],
-    #             'subscriber_emails': ['julia.cooke@gmail.com', 'thor@mscoms.com']
-    # }
+# 'Julia Cooke': {'title_country_list': [
+#     {'title': 'The Other Side of Paradise', 'country': 'com'},
+#     {'title': 'The Other Side of Paradise', 'country': 'co.uk'}
+# ],
+#             'subscriber_emails': ['julia.cooke@gmail.com', 'thor@mscoms.com']
+# }
 
 # subscriber_emails = ['vanessa.able@gmail.com', 'thor@mscoms.com']
 
@@ -60,12 +63,15 @@ while True:
     if datetime.now().hour == time_of_day_to_send_email:
         try:
             for author, ispec in spec.items():
-                html = abw.mk_html_report(title_country_list=ispec['title_country_list'])
+                html = abw.mk_html_report(
+                    title_country_list=ispec['title_country_list']
+                )
                 amazon_sender = AmazonSender(to_addresses=ispec['subscriber_emails'])
-                amazon_sender.send_email(subject="{author}'s Book Watch".format(author=author), html=html)
+                amazon_sender.send_email(
+                    subject="{author}'s Book Watch".format(author=author), html=html
+                )
         except Exception as e:
             error_amazon_sender = AmazonSender(to_addresses='thor@mscoms.com')
-            error_amazon_sender.send_email(subject="Woops", html=e.message)
-
+            error_amazon_sender.send_email(subject='Woops', html=e.message)
 
     time.sleep(frequency_in_hours * 60 * 60)

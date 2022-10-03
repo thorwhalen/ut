@@ -1,15 +1,17 @@
-
-
 from ut.ml.sk.model_selection import SupervisedLeaveOneOut
 from ut.util.log import printProgress
 from numpy import array
 
 
-def partial_leave_one_out_test(model, X, y, n_splits=None, min_n_samples_per_unik_y=None, verbose=1):
-    loo = SupervisedLeaveOneOut(n_splits=n_splits, min_n_samples_per_unik_y=min_n_samples_per_unik_y)
+def partial_leave_one_out_test(
+    model, X, y, n_splits=None, min_n_samples_per_unik_y=None, verbose=1
+):
+    loo = SupervisedLeaveOneOut(
+        n_splits=n_splits, min_n_samples_per_unik_y=min_n_samples_per_unik_y
+    )
     n_splits = loo.get_n_splits()
     if verbose > 0:
-        printProgress("Number of tests: {}".format(n_splits))
+        printProgress('Number of tests: {}'.format(n_splits))
 
     predicted = list()
     actual = list()
@@ -17,7 +19,9 @@ def partial_leave_one_out_test(model, X, y, n_splits=None, min_n_samples_per_uni
         XX = X[train_idx, :]
         yy = y[train_idx]
         if verbose > 0:
-            printProgress('Test {}/{}'.format(i, n_splits), refresh=True, refresh_suffix='   ')
+            printProgress(
+                'Test {}/{}'.format(i, n_splits), refresh=True, refresh_suffix='   '
+            )
         model.fit(XX, yy)
         test_x = X[test_idx, :]
         test_y = y[test_idx]
@@ -25,5 +29,3 @@ def partial_leave_one_out_test(model, X, y, n_splits=None, min_n_samples_per_uni
         predicted.append(model.predict(test_x)[0])
 
     return array(predicted), array(actual)
-
-

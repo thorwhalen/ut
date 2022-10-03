@@ -1,4 +1,3 @@
-
 __author__ = 'mattjmorris'
 
 from .dynamo import Dynamo
@@ -7,13 +6,13 @@ from datetime import datetime, date, timedelta
 from pandas import DataFrame
 import re
 
-DAY_STR_FORMAT = "%Y-%m-%d"
+DAY_STR_FORMAT = '%Y-%m-%d'
 DAY_STR_RE = re.compile(r'^(\d{4})-(\d{2})-(\d{2})$')
-SECOND_STR_FORMAT = "%Y-%m-%d %H:%M:%S"
+SECOND_STR_FORMAT = '%Y-%m-%d %H:%M:%S'
 SECOND_STR_RE = re.compile(r'^(\d{4})-(\d{2})-(\d{2})\s(\d{2}:\d{2}:\d{2})$')
 
-class DDBRuns(Dynamo):
 
+class DDBRuns(Dynamo):
     @classmethod
     def from_test_mode(cls, access_key=None, secret=None):
         """
@@ -36,7 +35,9 @@ class DDBRuns(Dynamo):
         start_date_str = the start date for look-back of query performance data processing. * No default
         end_date_str = the end date for query performance data processing. Defaults to today.
         """
-        assert start_date_str, "start_date_str is required when saving a new run to runs table."
+        assert (
+            start_date_str
+        ), 'start_date_str is required when saving a new run to runs table.'
         assert DAY_STR_RE.match(start_date_str)
         if end_date_str:
             assert DAY_STR_RE.match(end_date_str)
@@ -45,7 +46,9 @@ class DDBRuns(Dynamo):
 
         dt_str = dt_str or datetime.now().strftime(SECOND_STR_FORMAT)
         end_date_str = end_date_str or datetime.now().strftime(DAY_STR_FORMAT)
-        return self.table.put_item(data={'dt': dt_str, 'start': start_date_str, 'end': end_date_str})
+        return self.table.put_item(
+            data={'dt': dt_str, 'start': start_date_str, 'end': end_date_str}
+        )
 
     def most_recent_start_date_str(self):
         """
@@ -57,7 +60,7 @@ class DDBRuns(Dynamo):
         else:
             # should already be sorted, but just in case...
             df.sort(columns=['dt'], ascending=True, inplace=True)
-            return df.iloc[len(df)-1]['start']
+            return df.iloc[len(df) - 1]['start']
 
     def most_recent_end_date_str(self):
         """
@@ -69,7 +72,7 @@ class DDBRuns(Dynamo):
         else:
             # should already be sorted, but just in case...
             df.sort(columns=['dt'], ascending=True, inplace=True)
-            return df.iloc[len(df)-1]['end']
+            return df.iloc[len(df) - 1]['end']
 
     def get_runs_df(self):
         """
@@ -85,17 +88,20 @@ class DDBRuns(Dynamo):
 
     def modify_throughput(self, requested_read, requested_write, table=None):
         table = table or self.table
-        return super(DDBRuns, self).modify_throughput(requested_read, requested_write, table)
+        return super(DDBRuns, self).modify_throughput(
+            requested_read, requested_write, table
+        )
 
     def truncate_table(self):
         """
         WARNING! Only use for test mode table
         """
-        assert self.table.table_name == 'test_runs', "Will only truncate test table. To truncate production table, run code manually"
+        assert (
+            self.table.table_name == 'test_runs'
+        ), 'Will only truncate test table. To truncate production table, run code manually'
         with self.table.batch_write() as batch:
             for item in self.table.scan():
                 batch.delete_item(dt=item['dt'])
-
 
     def thors_start_end_date_strings(self, new_run=True, days_ago_start=30):
         if new_run:
@@ -108,8 +114,12 @@ class DDBRuns(Dynamo):
         else:
             start_date_str = self.most_recent_start_date_str()
             end_date_str = self.most_recent_end_date_str()
-            assert start_date_str, "Start date string is None, please check the database since we are not doing a new run"
-            assert end_date_str, "End date string is None, please check the database since we are not doing a new run"
+            assert (
+                start_date_str
+            ), 'Start date string is None, please check the database since we are not doing a new run'
+            assert (
+                end_date_str
+            ), 'End date string is None, please check the database since we are not doing a new run'
         return start_date_str, end_date_str
 
     def _days_ago_str(self, num_days_ago):
@@ -117,7 +127,9 @@ class DDBRuns(Dynamo):
 
     def start_end_date_strings(self, new_run=True, days_ago_start=30):
         if new_run:
-            start_date_str = self.most_recent_end_date_str() or self._days_ago_str(days_ago_start)
+            start_date_str = self.most_recent_end_date_str() or self._days_ago_str(
+                days_ago_start
+            )
             end_date_str = date.today().strftime(DAY_STR_FORMAT)
         else:
             start_date_str = self.most_recent_start_date_str()

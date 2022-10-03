@@ -31,8 +31,15 @@ import pandas as pd
 
 
 class SOM(object):
-
-    def __init__(self, name, Data, mapsize=None, norm_method='var', initmethod='pca', neigh='Guassian'):
+    def __init__(
+        self,
+        name,
+        Data,
+        mapsize=None,
+        norm_method='var',
+        initmethod='pca',
+        neigh='Guassian',
+    ):
         """
         name and data, neigh== Bubble or Guassian
         """
@@ -55,7 +62,9 @@ class SOM(object):
         # self.set_data_labels()
 
     # set SOM topology
-    def set_topology(self, mapsize=None, mapshape='planar', lattice='rect', mask=None, compname=None):
+    def set_topology(
+        self, mapsize=None, mapshape='planar', lattice='rect', mask=None, compname=None
+    ):
         """
         all_mapshapes = ['planar','toroid','cylinder']
         all_lattices = ['hexa','rect']
@@ -73,7 +82,7 @@ class SOM(object):
         if mapsize == None:
             tmp = int(round(np.sqrt(self.dlen)))
             self.nnodes = tmp
-            self.mapsize = [int(3. / 5 * self.nnodes), int(2. / 5 * self.nnodes)]
+            self.mapsize = [int(3.0 / 5 * self.nnodes), int(2.0 / 5 * self.nnodes)]
         else:
             if len(mapsize) == 2:
                 if np.min(mapsize) == 1:
@@ -113,7 +122,7 @@ class SOM(object):
     def set_data_labels(self, dlabel=None):
         if dlabel == None:
             try:
-                dlen = (getattr(self, 'dlen'))
+                dlen = getattr(self, 'dlen')
                 cc = list()
                 for i in range(0, dlen):
                     cc.append('dlabel-' + str(i))
@@ -123,7 +132,7 @@ class SOM(object):
                 print('no data yet: plesae first set trainign data to the SOM')
         else:
             try:
-                dlen = (getattr(self, 'dlen'))
+                dlen = getattr(self, 'dlen')
                 if dlabel.shape == (1, dlen):
                     self.dlabel = dlabel.T  # [:,np.newaxis]
                 elif dlabel.shape == (dlen, 1):
@@ -145,8 +154,15 @@ class SOM(object):
             UD2[i, :] = grid_dist(self, i).reshape(1, cd)
         self.UD2 = UD2
 
-    def set_algorithm(self, initmethod='pca', algtype='batch', neighborhoodmethod='gaussian', alfatype='inv',
-                      alfaini=.5, alfafinal=.005):
+    def set_algorithm(
+        self,
+        initmethod='pca',
+        algtype='batch',
+        neighborhoodmethod='gaussian',
+        alfatype='inv',
+        alfaini=0.5,
+        alfafinal=0.005,
+    ):
         """
         initmethod = ['random', 'pca']
         algos = ['seq','batch']
@@ -162,8 +178,19 @@ class SOM(object):
 
     ###################################
     # visualize map
-    def view_map(self, what='codebook', which_dim='all', pack='Yes', text_size=2.8, save='No', save_dir='empty',
-                 grid='No', text='Yes', cmap='None', COL_SiZe=6):
+    def view_map(
+        self,
+        what='codebook',
+        which_dim='all',
+        pack='Yes',
+        text_size=2.8,
+        save='No',
+        save_dir='empty',
+        grid='No',
+        text='Yes',
+        cmap='None',
+        COL_SiZe=6,
+    ):
 
         mapsize = getattr(self, 'mapsize')
         if np.min(mapsize) > 1:
@@ -171,8 +198,18 @@ class SOM(object):
                 view_2d(self, text_size, which_dim=which_dim, what=what)
             else:
                 #         		print 'hi'
-                view_2d_Pack(self, text_size, which_dim=which_dim, what=what, save=save, save_dir=save_dir, grid=grid,
-                             text=text, CMAP=cmap, col_sz=COL_SiZe)
+                view_2d_Pack(
+                    self,
+                    text_size,
+                    which_dim=which_dim,
+                    what=what,
+                    save=save,
+                    save_dir=save_dir,
+                    grid=grid,
+                    text=text,
+                    CMAP=cmap,
+                    col_sz=COL_SiZe,
+                )
 
         elif np.min(mapsize) == 1:
             view_1d(self, text_size, which_dim=which_dim, what=what)
@@ -185,15 +222,30 @@ class SOM(object):
         n_nod = 0
         if getattr(self, 'initmethod') == 'random':
             # It produces random values in the range of min- max of each dimension based on a uniform distribution
-            mn = np.tile(np.min(getattr(self, 'data'), axis=0), (getattr(self, 'nnodes'), 1))
-            mx = np.tile(np.max(getattr(self, 'data'), axis=0), (getattr(self, 'nnodes'), 1))
-            setattr(self, 'codebook', mn + (mx - mn) * (np.random.rand(getattr(self, 'nnodes'), getattr(self, 'dim'))))
+            mn = np.tile(
+                np.min(getattr(self, 'data'), axis=0), (getattr(self, 'nnodes'), 1)
+            )
+            mx = np.tile(
+                np.max(getattr(self, 'data'), axis=0), (getattr(self, 'nnodes'), 1)
+            )
+            setattr(
+                self,
+                'codebook',
+                mn
+                + (mx - mn)
+                * (np.random.rand(getattr(self, 'nnodes'), getattr(self, 'dim'))),
+            )
         elif getattr(self, 'initmethod') == 'pca':
-            codebooktmp = lininit(self)  # it is based on two largest eigenvalues of correlation matrix
+            codebooktmp = lininit(
+                self
+            )  # it is based on two largest eigenvalues of correlation matrix
             setattr(self, 'codebook', codebooktmp)
         else:
             print('please select a corect initialization method')
-            print('set a correct one in SOM. current SOM.initmethod:  ', getattr(self, 'initmethod'))
+            print(
+                'set a correct one in SOM. current SOM.initmethod:  ',
+                getattr(self, 'initmethod'),
+            )
             print("possible init methods:'random', 'pca'")
 
     # Main loop of training
@@ -213,7 +265,10 @@ class SOM(object):
         # initialization
         if verbose == 'on':
             print()
-            print('initialization method = %s, initializing..' % getattr(self, 'initmethod'))
+            print(
+                'initialization method = %s, initializing..'
+                % getattr(self, 'initmethod')
+            )
             print()
             t0 = time()
         self.init_map()
@@ -231,22 +286,24 @@ class SOM(object):
         # Finetuning
         if verbose == 'on':
             print()
-        batchtrain(self, njob=n_job, phase='finetune', shared_memory='no', verbose=verbose)
+        batchtrain(
+            self, njob=n_job, phase='finetune', shared_memory='no', verbose=verbose
+        )
         err = np.mean(getattr(self, 'bmu')[1])
         if verbose == 'on':
             #         or verbose == 'off':
             #             print
             ts = round(time() - t0, 3)
             print()
-            print("Total time elapsed: %f secodns" % ts)
-            print("final quantization error: %f" % err)
+            print('Total time elapsed: %f secodns' % ts)
+            print('final quantization error: %f' % err)
         if verbose == 'final':
             #         or verbose == 'off':
             #             print
             ts = round(time() - t0, 3)
             print()
-            print("Total time elapsed: %f secodns" % ts)
-            print("final quantization error: %f" % err)
+            print('Total time elapsed: %f secodns' % ts)
+            print('final quantization error: %f' % err)
 
     # to project a data set to a trained SOM and find the index of bmu
 
@@ -321,6 +378,7 @@ class SOM(object):
 
     def find_K_nodes(self, data, K=5):
         from sklearn.neighbors import NearestNeighbors
+
         # we find the k most similar nodes to the input vector
         codebook = getattr(self, 'codebook')
         neigh = NearestNeighbors(n_neighbors=K)
@@ -345,8 +403,11 @@ class SOM(object):
 
     def cluster(self, method='Kmeans', n_clusters=8):
         import sklearn.cluster as clust
+
         km = clust.KMeans(n_clusters=n_clusters)
-        labels = km.fit_predict(denormalize_by(self.data_raw, self.codebook, n_method='var'))
+        labels = km.fit_predict(
+            denormalize_by(self.data_raw, self.codebook, n_method='var')
+        )
         setattr(self, 'cluster_labels', labels)
         return labels
 
@@ -369,15 +430,42 @@ class SOM(object):
         ax.yaxis.set_ticks([i for i in range(0, msz[0])])
         ax.xaxis.set_ticklabels([])
         ax.yaxis.set_ticklabels([])
-        ax.grid(True, linestyle='-', linewidth=.5)
-        a = plt.hist2d(coord[:, 1], coord[:, 0], bins=(msz[1], msz[0]), alpha=.0, norm=LogNorm(), cmap=cm.jet)
+        ax.grid(True, linestyle='-', linewidth=0.5)
+        a = plt.hist2d(
+            coord[:, 1],
+            coord[:, 0],
+            bins=(msz[1], msz[0]),
+            alpha=0.0,
+            norm=LogNorm(),
+            cmap=cm.jet,
+        )
         # clbar  = plt.colorbar()
-        x = np.arange(.5, msz[1] + .5, 1)
-        y = np.arange(.5, msz[0] + .5, 1)
+        x = np.arange(0.5, msz[1] + 0.5, 1)
+        y = np.arange(0.5, msz[0] + 0.5, 1)
         X, Y = np.meshgrid(x, y)
         area = a[0].T * 12
-        plt.scatter(X, Y, s=area, alpha=0.2, c='b', marker='o', cmap='jet', linewidths=3, edgecolor='r')
-        plt.scatter(X, Y, s=area, alpha=0.9, c='None', marker='o', cmap='jet', linewidths=3, edgecolor='r')
+        plt.scatter(
+            X,
+            Y,
+            s=area,
+            alpha=0.2,
+            c='b',
+            marker='o',
+            cmap='jet',
+            linewidths=3,
+            edgecolor='r',
+        )
+        plt.scatter(
+            X,
+            Y,
+            s=area,
+            alpha=0.9,
+            c='None',
+            marker='o',
+            cmap='jet',
+            linewidths=3,
+            edgecolor='r',
+        )
         plt.xlim(0, msz[1])
         plt.ylim(0, msz[0])
 
@@ -385,14 +473,41 @@ class SOM(object):
             proj = self.project_data(data)
             msz = getattr(self, 'mapsize')
             coord = self.ind_to_xy(proj)
-            a = plt.hist2d(coord[:, 1], coord[:, 0], bins=(msz[1], msz[0]), alpha=.0, norm=LogNorm(), cmap=cm.jet)
+            a = plt.hist2d(
+                coord[:, 1],
+                coord[:, 0],
+                bins=(msz[1], msz[0]),
+                alpha=0.0,
+                norm=LogNorm(),
+                cmap=cm.jet,
+            )
             # clbar  = plt.colorbar()
-            x = np.arange(.5, msz[1] + .5, 1)
-            y = np.arange(.5, msz[0] + .5, 1)
+            x = np.arange(0.5, msz[1] + 0.5, 1)
+            y = np.arange(0.5, msz[0] + 0.5, 1)
             X, Y = np.meshgrid(x, y)
             area = a[0].T * 50
-            plt.scatter(X, Y, s=area, alpha=0.2, c='b', marker='o', cmap='jet', linewidths=3, edgecolor='r')
-            plt.scatter(X, Y, s=area, alpha=0.9, c='None', marker='o', cmap='jet', linewidths=3, edgecolor='r')
+            plt.scatter(
+                X,
+                Y,
+                s=area,
+                alpha=0.2,
+                c='b',
+                marker='o',
+                cmap='jet',
+                linewidths=3,
+                edgecolor='r',
+            )
+            plt.scatter(
+                X,
+                Y,
+                s=area,
+                alpha=0.9,
+                c='None',
+                marker='o',
+                cmap='jet',
+                linewidths=3,
+                edgecolor='r',
+            )
             plt.xlim(0, msz[1])
             plt.ylim(0, msz[0])
 
@@ -418,26 +533,28 @@ class SOM(object):
             coord = self.ind_to_xy(proj)
             cents = self.ind_to_xy(np.arange(0, msz[0] * msz[1]))
             for i, txt in enumerate(codebook):
-                ax.annotate(txt, (cents[i, 1], cents[i, 0]), size=10, va="center")
+                ax.annotate(txt, (cents[i, 1], cents[i, 0]), size=10, va='center')
 
         if data != None:
             proj = self.project_data(data)
             coord = self.ind_to_xy(proj)
-            x = np.arange(.5, msz[1] + .5, 1)
-            y = np.arange(.5, msz[0] + .5, 1)
+            x = np.arange(0.5, msz[1] + 0.5, 1)
+            y = np.arange(0.5, msz[0] + 0.5, 1)
             cents = self.ind_to_xy(proj)
             #     		cents[:,1] = cents[:,1]+.2
             #     		print cents.shape
             label = codebook[proj]
             for i, txt in enumerate(label):
-                ax.annotate(txt, (cents[i, 1], cents[i, 0]), size=10, va="center")
+                ax.annotate(txt, (cents[i, 1], cents[i, 0]), size=10, va='center')
 
-        plt.imshow(codebook.reshape(msz[0], msz[1])[::], alpha=.5)
+        plt.imshow(codebook.reshape(msz[0], msz[1])[::], alpha=0.5)
         #     	plt.pcolor(codebook.reshape(msz[0],msz[1])[::-1],alpha=.5,cmap='jet')
         plt.show()
         return cents
 
-    def view_map_dot(self, colormap=None, cols=None, save='No', save_dir='', text_size=8):
+    def view_map_dot(
+        self, colormap=None, cols=None, save='No', save_dir='', text_size=8
+    ):
         if colormap == None:
             colormap = plt.cm.get_cmap('jet_r')
         data = self.data_raw
@@ -451,9 +568,19 @@ class SOM(object):
             plt.subplot(rows, cols, i + 1)
             mn = data[:, i].min()
             mx = data[:, i].max()
-            plt.scatter(coords[:, 1], self.mapsize[0] - 1 - coords[:, 0], c=data[:, i], vmax=mx, vmin=mn, s=180,
-                        marker='.', edgecolor='None', cmap=colormap, alpha=1)
-            eps = .75
+            plt.scatter(
+                coords[:, 1],
+                self.mapsize[0] - 1 - coords[:, 0],
+                c=data[:, i],
+                vmax=mx,
+                vmin=mn,
+                s=180,
+                marker='.',
+                edgecolor='None',
+                cmap=colormap,
+                alpha=1,
+            )
+            eps = 0.75
             plt.xlim(0 - eps, self.mapsize[1] - 1 + eps)
             plt.ylim(0 - eps, self.mapsize[0] - 1 + eps)
             plt.axis('off')
@@ -465,7 +592,7 @@ class SOM(object):
             plt.yticks([])
         plt.tight_layout()
         # 		plt.colorbar(sc,ticks=np.round(np.linspace(mn,mx,5),decimals=1),shrink=0.6)
-        plt.subplots_adjust(hspace=.16, wspace=.05)
+        plt.subplots_adjust(hspace=0.16, wspace=0.05)
         fig.set_size_inches(20, 20)
         if save == 'Yes':
             if save_dir != 'empty':
@@ -498,7 +625,7 @@ class SOM(object):
             data = normalize_by(data_raw[:, indX], data, method='var')
             # data = normalize(data, method='var')
         weights, ind = clf.kneighbors(data, n_neighbors=K, return_distance=True)
-        weights = 1. / weights
+        weights = 1.0 / weights
         sum_ = np.sum(weights, axis=1)
         weights = weights / sum_[:, np.newaxis]
         labels = np.sign(codebook[ind, Target])
@@ -537,13 +664,13 @@ class SOM(object):
             weights, ind = clf.kneighbors(data)
 
             ##Softmax function
-            weights = 1. / weights
+            weights = 1.0 / weights
             S_ = np.sum(np.exp(weights), axis=1)[:, np.newaxis]
             weights = np.exp(weights) / S_
 
         return weights, ind
 
-        # 
+        #
 
     def para_bmu_find(self, x, y, njb=1):
         dlen = x.shape[0]
@@ -553,11 +680,12 @@ class SOM(object):
         b = None
         # here it finds BMUs for chunk of data in parallel
         t_temp = time()
-        b = Parallel(n_jobs=njb, pre_dispatch='3*n_jobs')(delayed(chunk_based_bmu_find) \
-                                                              (self,
-                                                               x[i * dlen // njb:min((i + 1) * dlen // njb, dlen)], y,
-                                                               Y2) \
-                                                          for i in range(njb))
+        b = Parallel(n_jobs=njb, pre_dispatch='3*n_jobs')(
+            delayed(chunk_based_bmu_find)(
+                self, x[i * dlen // njb : min((i + 1) * dlen // njb, dlen)], y, Y2
+            )
+            for i in range(njb)
+        )
 
         # print 'bmu finding: %f seconds ' %round(time() - t_temp, 3)
         t1 = time()
@@ -624,19 +752,19 @@ def chunk_based_bmu_find(self, x, y, Y2):
     # it seems that smal batches for large dlen is really faster:
     # that is because of ddata in loops and n_jobs. for large data it slows down due to memory needs in parallel
     blen = min(50, dlen)
-    i0 = 0;
+    i0 = 0
     d = None
     t = time()
     while i0 + 1 <= dlen:
-        Low = (i0)
+        Low = i0
         High = min(dlen, i0 + blen)
         i0 = i0 + blen
-        ddata = x[Low:High + 1]
+        ddata = x[Low : High + 1]
         d = np.dot(y, ddata.T)
         d *= -2
         d += Y2.reshape(nnodes, 1)
-        bmu[Low:High + 1, 0] = np.argmin(d, axis=0)
-        bmu[Low:High + 1, 1] = np.min(d, axis=0)
+        bmu[Low : High + 1, 0] = np.argmin(d, axis=0)
+        bmu[Low : High + 1, 1] = np.min(d, axis=0)
         del ddata
         d = None
     return bmu
@@ -661,7 +789,7 @@ def batchtrain(self, njob=1, phase=None, shared_memory='no', verbose='on'):
 
     ms = max(mapsize[0], mapsize[1])
     if mn == 1:
-        ms = ms / 2.
+        ms = ms / 2.0
     # Based on somtoolbox, Matlab
     # case 'train',    sTrain.trainlen = ceil(50*mpd);
     # case 'rough',    sTrain.trainlen = ceil(10*mpd);
@@ -671,31 +799,31 @@ def batchtrain(self, njob=1, phase=None, shared_memory='no', verbose='on'):
         trainlen = int(np.ceil(30 * mpd))
         # radius for updating
         if initmethod == 'random':
-            radiusin = max(1, np.ceil(ms / 3.))
-            radiusfin = max(1, radiusin / 6.)
+            radiusin = max(1, np.ceil(ms / 3.0))
+            radiusfin = max(1, radiusin / 6.0)
         #         	radiusin = max(1, np.ceil(ms/1.))
         #         	radiusfin = max(1, radiusin/2.)
         elif initmethod == 'pca':
-            radiusin = max(1, np.ceil(ms / 8.))
-            radiusfin = max(1, radiusin / 4.)
+            radiusin = max(1, np.ceil(ms / 8.0))
+            radiusfin = max(1, radiusin / 4.0)
     elif phase == 'finetune':
         # train lening length
 
         # radius for updating
         if initmethod == 'random':
             trainlen = int(np.ceil(50 * mpd))
-            radiusin = max(1, ms / 12.)  # from radius fin in rough training
-            radiusfin = max(1, radiusin / 25.)
+            radiusin = max(1, ms / 12.0)  # from radius fin in rough training
+            radiusfin = max(1, radiusin / 25.0)
 
         #             radiusin = max(1, ms/2.) #from radius fin in rough training
         #             radiusfin = max(1, radiusin/2.)
         elif initmethod == 'pca':
             trainlen = int(np.ceil(40 * mpd))
-            radiusin = max(1, np.ceil(ms / 8.) / 4)
+            radiusin = max(1, np.ceil(ms / 8.0) / 4)
             radiusfin = 1  # max(1, ms/128)
 
     radius = np.linspace(radiusin, radiusfin, trainlen)
-    ##################################################    
+    ##################################################
 
     UD2 = getattr(self, 'UD2')
     New_Codebook_V = np.empty((nnodes, dim))
@@ -715,7 +843,10 @@ def batchtrain(self, njob=1, phase=None, shared_memory='no', verbose='on'):
     X2 = np.einsum('ij,ij->i', data, data)
     if verbose == 'on':
         print('%s training...' % phase)
-        print('radius_ini: %f , radius_final: %f, trainlen: %d' % (radiusin, radiusfin, trainlen))
+        print(
+            'radius_ini: %f , radius_final: %f, trainlen: %d'
+            % (radiusin, radiusfin, trainlen)
+        )
     neigh_func = getattr(self, 'neigh')
     for i in range(trainlen):
         if neigh_func == 'Guassian':
@@ -725,7 +856,10 @@ def batchtrain(self, njob=1, phase=None, shared_memory='no', verbose='on'):
             # in case of Bubble function
             #         	print radius[i], UD2.shape
             #         	print UD2
-            H = l(radius[i], np.sqrt(UD2.flatten())).reshape(nnodes, nnodes) + .000000000001
+            H = (
+                l(radius[i], np.sqrt(UD2.flatten())).reshape(nnodes, nnodes)
+                + 0.000000000001
+            )
         #         	print H
 
         t1 = time()
@@ -738,8 +872,10 @@ def batchtrain(self, njob=1, phase=None, shared_memory='no', verbose='on'):
         New_Codebook_V = self.update_codebook_voronoi(data, bmu, H, radius)
         # print 'updating nodes: ', round (time()- t2, 3)
         if verbose == 'on':
-            print("epoch: %d ---> elapsed time:  %f, quantization error: %f " % (
-            i + 1, round(time() - t1, 3), np.mean(np.sqrt(bmu[1] + X2))))
+            print(
+                'epoch: %d ---> elapsed time:  %f, quantization error: %f '
+                % (i + 1, round(time() - t1, 3), np.mean(np.sqrt(bmu[1] + X2)))
+            )
     setattr(self, 'codebook', New_Codebook_V)
     bmu[1] = np.sqrt(bmu[1] + X2)
     setattr(self, 'bmu', bmu)
@@ -767,8 +903,8 @@ def grid_dist(self, bmu_ind):
             rows = msize[0]
             cols = msize[1]
         except:
-            rows = 0.
-            cols = 0.
+            rows = 0.0
+            cols = 0.0
             pass
 
             # needs to be implemented
@@ -817,7 +953,7 @@ def view_2d(self, text_size, which_dim='all', what='codebook'):
             dim = getattr(self, 'dim')
             indtoshow = np.arange(0, dim).T
             ratio = float(dim) / float(dim)
-            ratio = np.max((.35, ratio))
+            ratio = np.max((0.35, ratio))
             sH, sV = 16, 16 * ratio * 1
             plt.figure(figsize=(sH, sV))
         elif type(which_dim) == int:
@@ -831,7 +967,7 @@ def view_2d(self, text_size, which_dim='all', what='codebook'):
             dim = len(which_dim)
             ratio = float(dim) / float(max_dim)
             # print max_dim, dim, ratio
-            ratio = np.max((.35, ratio))
+            ratio = np.max((0.35, ratio))
             indtoshow = np.asarray(which_dim).T
             sH, sV = 16, 16 * ratio * 1
             plt.figure(figsize=(sH, sV))
@@ -844,8 +980,11 @@ def view_2d(self, text_size, which_dim='all', what='codebook'):
 
         axisNum = 0
         compname = getattr(self, 'compname')
-        norm = matplotlib.colors.normalize(vmin=np.mean(codebook.flatten()) - 1 * np.std(codebook.flatten()),
-                                           vmax=np.mean(codebook.flatten()) + 1 * np.std(codebook.flatten()), clip=True)
+        norm = matplotlib.colors.normalize(
+            vmin=np.mean(codebook.flatten()) - 1 * np.std(codebook.flatten()),
+            vmax=np.mean(codebook.flatten()) + 1 * np.std(codebook.flatten()),
+            clip=True,
+        )
         while axisNum < dim:
             axisNum += 1
             ax = plt.subplot(no_row_in_plot, no_col_in_plot, axisNum)
@@ -864,9 +1003,20 @@ def view_2d(self, text_size, which_dim='all', what='codebook'):
         plt.show()
 
 
-def view_2d_Pack(self, text_size, which_dim='all', what='codebook', save='No', grid='Yes', save_dir='empty', text='Yes',
-                 CMAP='None', col_sz=None):
+def view_2d_Pack(
+    self,
+    text_size,
+    which_dim='all',
+    what='codebook',
+    save='No',
+    grid='Yes',
+    save_dir='empty',
+    text='Yes',
+    CMAP='None',
+    col_sz=None,
+):
     import matplotlib.cm as cm
+
     msz0, msz1 = getattr(self, 'mapsize')
     if CMAP == 'None':
         CMAP = cm.RdYlBu_r
@@ -881,7 +1031,7 @@ def view_2d_Pack(self, text_size, which_dim='all', what='codebook', save='No', g
             dim = getattr(self, 'dim')
             indtoshow = np.arange(0, dim).T
             ratio = float(dim) / float(dim)
-            ratio = np.max((.35, ratio))
+            ratio = np.max((0.35, ratio))
             sH, sV = 16, 16 * ratio * 1
         #             plt.figure(figsize=(sH,sV))
         elif type(which_dim) == int:
@@ -895,7 +1045,7 @@ def view_2d_Pack(self, text_size, which_dim='all', what='codebook', save='No', g
             dim = len(which_dim)
             ratio = float(dim) / float(max_dim)
             # print max_dim, dim, ratio
-            ratio = np.max((.35, ratio))
+            ratio = np.max((0.35, ratio))
             indtoshow = np.asarray(which_dim).T
             sH, sV = 16, 16 * ratio * 1
         #             plt.figure(figsize=(sH,sV))
@@ -909,17 +1059,38 @@ def view_2d_Pack(self, text_size, which_dim='all', what='codebook', save='No', g
 
         axisNum = 0
         compname = getattr(self, 'compname')
-        h = .1
-        w = .1
-        fig = plt.figure(figsize=(no_col_in_plot * 2.5 * (1 + w), no_row_in_plot * 2.5 * (1 + h)))
+        h = 0.1
+        w = 0.1
+        fig = plt.figure(
+            figsize=(no_col_in_plot * 2.5 * (1 + w), no_row_in_plot * 2.5 * (1 + h))
+        )
         #         print no_row_in_plot, no_col_in_plot
-        norm = matplotlib.colors.Normalize(vmin=np.median(codebook.flatten()) - 1.5 * np.std(codebook.flatten()),
-                                           vmax=np.median(codebook.flatten()) + 1.5 * np.std(codebook.flatten()),
-                                           clip=False)
+        norm = matplotlib.colors.Normalize(
+            vmin=np.median(codebook.flatten()) - 1.5 * np.std(codebook.flatten()),
+            vmax=np.median(codebook.flatten()) + 1.5 * np.std(codebook.flatten()),
+            clip=False,
+        )
 
         DD = pd.Series(data=codebook.flatten()).describe(
-            percentiles=[.03, .05, .1, .25, .3, .4, .5, .6, .7, .8, .9, .95, .97])
-        norm = matplotlib.colors.Normalize(vmin=DD.ix['3%'], vmax=DD.ix['97%'], clip=False)
+            percentiles=[
+                0.03,
+                0.05,
+                0.1,
+                0.25,
+                0.3,
+                0.4,
+                0.5,
+                0.6,
+                0.7,
+                0.8,
+                0.9,
+                0.95,
+                0.97,
+            ]
+        )
+        norm = matplotlib.colors.Normalize(
+            vmin=DD.ix['3%'], vmax=DD.ix['97%'], clip=False
+        )
 
         while axisNum < dim:
             axisNum += 1
@@ -957,8 +1128,8 @@ def view_2d_Pack(self, text_size, which_dim='all', what='codebook', save='No', g
         else:
             print('clustering based on default parameters...')
             codebook = self.cluster()
-        h = .2
-        w = .001
+        h = 0.2
+        w = 0.001
         fig = plt.figure(figsize=(msz0 / 2, msz1 / 2))
 
         ax = fig.add_subplot(1, 1, 1)
@@ -1010,7 +1181,7 @@ def view_1d(self, text_size, which_dim='all', what='codebook'):
             dim = getattr(self, 'dim')
             indtoshow = np.arange(0, dim).T
             ratio = float(dim) / float(dim)
-            ratio = np.max((.35, ratio))
+            ratio = np.max((0.35, ratio))
             sH, sV = 16, 16 * ratio * 1
             plt.figure(figsize=(sH, sV))
         elif type(which_dim) == int:
@@ -1024,7 +1195,7 @@ def view_1d(self, text_size, which_dim='all', what='codebook'):
             dim = len(which_dim)
             ratio = float(dim) / float(max_dim)
             # print max_dim, dim, ratio
-            ratio = np.max((.35, ratio))
+            ratio = np.max((0.35, ratio))
             indtoshow = np.asarray(which_dim).T
             sH, sV = 16, 16 * ratio * 1
             plt.figure(figsize=(sH, sV))
@@ -1063,7 +1234,7 @@ def lininit(self):
     # Furthe, we can get lower ranks by using just few of the eigen vevtors
     # T(2) = U(2)sigma(2) = XW(2) ---> 2 is the number of selected eigenvectors
     # This is how we initialize the map, just by using the first two first eigen vals and eigenvectors
-    # Further, we create a linear combination of them in the new map by giving values from -1 to 1 in each 
+    # Further, we create a linear combination of them in the new map by giving values from -1 to 1 in each
     # Direction of SOM map
     # it shoud be noted that here, X is the covariance matrix of original data
 
@@ -1080,10 +1251,10 @@ def lininit(self):
         mx = np.max(coord, axis=0)
         mn = np.min(coord, axis=0)
         coord = (coord - mn) / (mx - mn)
-        coord = (coord - .5) * 2
+        coord = (coord - 0.5) * 2
         data = getattr(self, 'data')
         me = np.mean(data, 0)
-        data = (data - me)
+        data = data - me
         codebook = np.tile(me, (nnodes, 1))
         pca = RandomizedPCA(n_components=2)  # Randomized PCA is scalable
         # pca = PCA(n_components=2)
@@ -1091,7 +1262,7 @@ def lininit(self):
         eigvec = pca.components_
         eigval = pca.explained_variance_
         norms = np.sqrt(np.einsum('ij,ij->i', eigvec, eigvec))
-        eigvec = ((eigvec.T / norms) * eigval).T;
+        eigvec = ((eigvec.T / norms) * eigval).T
         eigvec.shape
 
         for j in range(nnodes):
@@ -1108,11 +1279,11 @@ def lininit(self):
         # print coord
 
         coord = (coord - mn) / (mx - mn)
-        coord = (coord - .5) * 2
+        coord = (coord - 0.5) * 2
         # print coord
         data = getattr(self, 'data')
         me = np.mean(data, 0)
-        data = (data - me)
+        data = data - me
         codebook = np.tile(me, (nnodes, 1))
         pca = RandomizedPCA(n_components=1)  # Randomized PCA is scalable
         # pca = PCA(n_components=2)
@@ -1120,7 +1291,7 @@ def lininit(self):
         eigvec = pca.components_
         eigval = pca.explained_variance_
         norms = np.sqrt(np.einsum('ij,ij->i', eigvec, eigvec))
-        eigvec = ((eigvec.T / norms) * eigval).T;
+        eigvec = ((eigvec.T / norms) * eigval).T
         eigvec.shape
 
         for j in range(nnodes):
@@ -1168,6 +1339,7 @@ def l(a, b):
     c = np.zeros(b.shape)
     c[a - b >= 0] = 1
     return c
+
 
 ##Function to show hits
 # som_labels = sm.project_data(Tr_Data)

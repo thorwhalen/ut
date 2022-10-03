@@ -41,6 +41,7 @@ partial_formatter = PartialFormatter()
 
 # TODO: For those who love algorithmic optimization, there's some wasted to cut out here below.
 
+
 def _unformatted(d):
     for k, v in d.items():
         if isinstance(v, str) and len(partial_formatter.format_fields_set(v)) > 0:
@@ -106,8 +107,10 @@ def format_str_vals_of_dict(d, *, max_formatting_loops=10, **kwargs):
     missing_fields = set(_fields_to_format(d)) - provided_fields
 
     if missing_fields:
-        raise ValueError("I won't be able to complete that. You'll need to provide the values for:\n" +
-                         f"  {', '.join(missing_fields)}")
+        raise ValueError(
+            "I won't be able to complete that. You'll need to provide the values for:\n"
+            + f"  {', '.join(missing_fields)}"
+        )
 
     for i in range(max_formatting_loops):
         unformatted = set(_unformatted(d))
@@ -118,14 +121,17 @@ def format_str_vals_of_dict(d, *, max_formatting_loops=10, **kwargs):
         else:
             break
     else:
-        raise ValueError(f"There are still some unformatted fields, "
-                         f"but I reached my max {max_formatting_loops} allowed loops. " +
-                         f"Those fields are: {set(_fields_to_format(d)) - (set(d) | set(kwargs))}")
+        raise ValueError(
+            f'There are still some unformatted fields, '
+            f'but I reached my max {max_formatting_loops} allowed loops. '
+            + f'Those fields are: {set(_fields_to_format(d)) - (set(d) | set(kwargs))}'
+        )
 
     return d
 
 
 #######################################################################################################################
+
 
 def compile_str_from_parsed(parsed):
     """The (quasi-)inverse of string.Formatter.parse.
@@ -174,7 +180,11 @@ def compile_str_from_parsed(parsed):
 
 def transform_format_str(format_str, parsed_tuple_trans_func):
     return compile_str_from_parsed(
-        map(lambda args: parsed_tuple_trans_func(*args), dflt_formatter.parse(format_str)))
+        map(
+            lambda args: parsed_tuple_trans_func(*args),
+            dflt_formatter.parse(format_str),
+        )
+    )
 
 
 def _empty_field_name(literal_text, field_name, format_spec, conversion):
@@ -257,14 +267,14 @@ def match_format_string(format_str, s):
 
     # Now replace keyword arguments with named groups matching them. We also escape between keyword
     # arguments so we support meta-characters there. Re-join tokens to form our regexp pattern
-    tokens[1::2] = map(u'(?P<{}>.*)'.format, keywords)
+    tokens[1::2] = map('(?P<{}>.*)'.format, keywords)
     tokens[0::2] = map(re.escape, tokens[0::2])
     pattern = ''.join(tokens)
 
     # Use our pattern to match the given string, raise if it doesn't match
     matches = re.match(pattern, s)
     if not matches:
-        raise Exception("Format string did not match")
+        raise Exception('Format string did not match')
 
     # Return a dict with all of our keywords and their values
     return {x: matches.group(x) for x in keywords}
@@ -288,8 +298,10 @@ def format_params_in_str_format(format_string):
     >>> list(format_params_in_str_format(format_string))
     [0, 2, 0, None, 'name']
     """
-    return map(lambda x: int(x) if str.isnumeric(x) else x if x != '' else None,
-               filter(_is_not_none, (x[1] for x in dflt_formatter.parse(format_string))))
+    return map(
+        lambda x: int(x) if str.isnumeric(x) else x if x != '' else None,
+        filter(_is_not_none, (x[1] for x in dflt_formatter.parse(format_string))),
+    )
 
 
 def n_format_params_in_str_format(format_string):
@@ -320,18 +332,21 @@ def arg_and_kwargs_indices(format_string):
 
 def _validate_str_format_arg_and_kwargs_keys(args_keys, kwargs_keys):
     """check that str_format is entirely manual or entirely automatic field specification"""
-    if any(not x for x in kwargs_keys):  # {} (automatic field numbering) show up as '' in args_keys
+    if any(
+        not x for x in kwargs_keys
+    ):  # {} (automatic field numbering) show up as '' in args_keys
         # so need to check that args_keys is empty and kwargs has only None (no "manual" names)
         if (len(args_keys) != 0) or (len(kwargs_keys) != 1):
             raise ValueError(
-                f"cannot switch from manual field specification (i.e. {{number}} or {{name}}) "
-                "to automatic (i.e. {}) field numbering. But you did:\n{str_format}")
+                f'cannot switch from manual field specification (i.e. {{number}} or {{name}}) '
+                'to automatic (i.e. {}) field numbering. But you did:\n{str_format}'
+            )
         return None, None
     else:
         return args_keys, kwargs_keys
 
 
-pipe_split_p = re.compile("\s*\|\s*")
+pipe_split_p = re.compile('\s*\|\s*')
 func_and_arg_p = re.compile('(?P<func>\w+)\((?P<args>.*)\)', flags=re.DOTALL)
 comma_sep_p = re.compile('\s*,\s*')
 
@@ -443,16 +458,18 @@ class PipelineTemplate(Formatter):
                 else:
                     try:
                         f = eval(spec)
-                        value = eval("f(value)")  # TODO: evals are not secure. Put safety checks in place.
+                        value = eval(
+                            'f(value)'
+                        )  # TODO: evals are not secure. Put safety checks in place.
                     except Exception:
                         value = super(PipelineTemplate, self).format_field(value, spec)
             except ValueError as e:
-                raise ValueError("{}: {}".format(spec, e.args[0]))
+                raise ValueError('{}: {}'.format(spec, e.args[0]))
         return str(value)
 
 
 def wrapper(prefix='', suffix=''):
-    return "{prefix}{{}}{suffix}".format(prefix=prefix, suffix=suffix).format
+    return '{prefix}{{}}{suffix}'.format(prefix=prefix, suffix=suffix).format
 
 
 def mapper(func):
@@ -460,5 +477,5 @@ def mapper(func):
 
 
 def templater(template):
-    template = template.replace("{{}}", "{}")
+    template = template.replace('{{}}', '{}')
     return template.format

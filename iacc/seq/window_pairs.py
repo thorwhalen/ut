@@ -9,11 +9,13 @@ from collections import defaultdict, Counter
 
 DEBUG_LEVEL = 0
 
-def wp_iter_with_sliding_discrete_step(data_range,  # length of the interval we'll retrieve the windows from
-                                       x_range=1,  # length of the x window
-                                       y_range=1,  # length of the y window
-                                       offset=0  # the offset from the end of the x window (0 when y window starts immediately after)
-                                       ):
+
+def wp_iter_with_sliding_discrete_step(
+    data_range,  # length of the interval we'll retrieve the windows from
+    x_range=1,  # length of the x window
+    y_range=1,  # length of the y window
+    offset=0,  # the offset from the end of the x window (0 when y window starts immediately after)
+):
     """
     Returns a SLIDING DISCRETE STEP "window pair iterator".
     A "window pair iterator" is an iterator which yields a 4-tuple that are indices of two sliding windows.
@@ -38,7 +40,9 @@ def wp_iter_with_sliding_discrete_step(data_range,  # length of the interval we'
     """
 
     # input validation
-    assert offset >= -x_range, "offset cannot be smaller than -x_spec['range'] (y-window can't start before x-window)"
+    assert (
+        offset >= -x_range
+    ), "offset cannot be smaller than -x_spec['range'] (y-window can't start before x-window)"
 
     # compute the number of steps of the iteration
     n_steps = data_range - np.max([x_range, x_range + offset + y_range])
@@ -46,10 +50,9 @@ def wp_iter_with_sliding_discrete_step(data_range,  # length of the interval we'
     if n_steps == 0:
         raise StopIteration()
     else:
-        base_window_idx = array([0,
-                                 x_range,
-                                 x_range + offset,
-                                 x_range + offset + y_range])
+        base_window_idx = array(
+            [0, x_range, x_range + offset, x_range + offset + y_range]
+        )
         for step in range(n_steps):
             yield base_window_idx + step
         raise StopIteration()
@@ -63,10 +66,10 @@ def wp_iter_with_sliding_discrete_step(data_range,  # length of the interval we'
 # FUTURE_HORIZON_TIME = 4
 # FUTURE_HORIZON_IDX = 5
 
-def slow_past_present_future_idx_and_duration_iter(timestamp_seq,
-                                              past_range,
-                                              future_range=None,
-                                              timestamps_are_sorted=True):
+
+def slow_past_present_future_idx_and_duration_iter(
+    timestamp_seq, past_range, future_range=None, timestamps_are_sorted=True
+):
     if not timestamps_are_sorted:
         timestamp_seq = sorted(timestamp_seq)
     timestamp_seq = array(timestamp_seq)
@@ -90,11 +93,15 @@ def slow_past_present_future_idx_and_duration_iter(timestamp_seq,
         if next_future_distance < _shift:
             _shift = next_future_distance
         # yield the indices triple, duration, and _present_ts
-        yield ((where(timestamp_seq > _past_ts)[0][0],
-               where(timestamp_seq <= _present_ts)[0][-1],
-               where(timestamp_seq <= _future_ts)[0][-1]),
-               _shift,
-               _present_ts)
+        yield (
+            (
+                where(timestamp_seq > _past_ts)[0][0],
+                where(timestamp_seq <= _present_ts)[0][-1],
+                where(timestamp_seq <= _future_ts)[0][-1],
+            ),
+            _shift,
+            _present_ts,
+        )
 
         # shift past, present and future
         _past_ts += _shift
@@ -118,7 +125,7 @@ def _idx_and_duration(timestamp_seq, timestamps_are_sorted=False):
     unik_timestamps = [timestamp_seq[0]]
     cumulating_zero_durs = False
     for i in range(1, len(timestamp_seq)):
-        _dur = timestamp_seq[i] - timestamp_seq[i-1]
+        _dur = timestamp_seq[i] - timestamp_seq[i - 1]
         if _dur == 0:
             if not cumulating_zero_durs:
                 cumulating_zero_durs = True
@@ -140,10 +147,9 @@ _idx = 0
 _time_to_next = 1
 
 
-def past_present_future_idx_and_duration_iter(timestamp_seq,
-                                              past_range,
-                                              future_range=None,
-                                              timestamps_are_sorted=False):
+def past_present_future_idx_and_duration_iter(
+    timestamp_seq, past_range, future_range=None, timestamps_are_sorted=False
+):
     """
     A window pairs iterator that slides the (past,future) windows (through a sequence of events whose timestamps
     are given by the input timestamp_seq) capturing the times when an event enters or leaves the windows
@@ -232,7 +238,7 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
     idx, dur, timestamp_seq = _idx_and_duration(timestamp_seq, timestamps_are_sorted)
     dur = hstack((dur, 0))
     if DEBUG_LEVEL:
-        print(("idx={}\ndur={}\ntimestamp_seq={}".format(idx, dur, timestamp_seq)))
+        print(('idx={}\ndur={}\ntimestamp_seq={}'.format(idx, dur, timestamp_seq)))
     first_timestamp = timestamp_seq[0]
     # dur = diff(timestamp_seq)
     # idx = arange(len(timestamp_seq)).astype(int)
@@ -245,36 +251,59 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
         time_to_next[_past] = dur[0]
 
         ppf_idx[_present] = where(timestamp_seq <= first_timestamp + past_range)[0][-1]
-        time_to_next[_present] = \
+        time_to_next[_present] = (
             timestamp_seq[ppf_idx[_present] + 1] - first_timestamp - past_range
+        )
 
-        ppf_idx[_future] = where(timestamp_seq <= first_timestamp + past_range + future_range)[0][-1]
-        time_to_next[_future] = \
-            timestamp_seq[ppf_idx[_future] + 1] - first_timestamp - past_range - future_range
+        ppf_idx[_future] = where(
+            timestamp_seq <= first_timestamp + past_range + future_range
+        )[0][-1]
+        time_to_next[_future] = (
+            timestamp_seq[ppf_idx[_future] + 1]
+            - first_timestamp
+            - past_range
+            - future_range
+        )
 
         if DEBUG_LEVEL:
-            print(("time_to_next={}".format(time_to_next)))
+            print(('time_to_next={}'.format(time_to_next)))
         return present_timestamp, time_to_next.argsort()
 
     def _shift_dimension(this_idx, shift_by):
         """ Shift a single dimension, updating _idx and _time_to_next"""
-        if time_to_next[this_idx] <= shift_by:  # if the next smallest item is the same (<= for float imprecision)
+        if (
+            time_to_next[this_idx] <= shift_by
+        ):  # if the next smallest item is the same (<= for float imprecision)
             ppf_idx[this_idx] += 1
             if ppf_idx[this_idx] >= n + 1:
-                return None  # should be "caught" by caller: Means "no more further states"
+                return (
+                    None  # should be "caught" by caller: Means "no more further states"
+                )
             else:
                 if this_idx != 0:
                     time_to_next[this_idx] = dur[ppf_idx[this_idx]]
                     if DEBUG_LEVEL:
-                        print(("ppf_idx={}".format(ppf_idx)))
-                        print(("time_to_next[{}] = dur[{}] = {}".format(
-                            this_idx, ppf_idx[this_idx], dur[ppf_idx[this_idx]])))
+                        print(('ppf_idx={}'.format(ppf_idx)))
+                        print(
+                            (
+                                'time_to_next[{}] = dur[{}] = {}'.format(
+                                    this_idx, ppf_idx[this_idx], dur[ppf_idx[this_idx]]
+                                )
+                            )
+                        )
                 else:
                     time_to_next[this_idx] = dur[ppf_idx[this_idx] - 1]
                     if DEBUG_LEVEL:
-                        print(("--ppf_idx={}".format(ppf_idx)))
-                        print(("--time_to_next[{}] = dur[{}] = {}".format(
-                            this_idx, ppf_idx[this_idx] - 1, dur[ppf_idx[this_idx] - 1])))
+                        print(('--ppf_idx={}'.format(ppf_idx)))
+                        print(
+                            (
+                                '--time_to_next[{}] = dur[{}] = {}'.format(
+                                    this_idx,
+                                    ppf_idx[this_idx] - 1,
+                                    dur[ppf_idx[this_idx] - 1],
+                                )
+                            )
+                        )
         else:
             time_to_next[this_idx] -= shift_by
 
@@ -286,11 +315,17 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
             print(('---> shifting by {}'.format(shift_by)))
         present_timestamp += shift_by
 
-        if _shift_dimension(time_to_next_order[0], shift_by) is None:  # shift smallest dimension...
+        if (
+            _shift_dimension(time_to_next_order[0], shift_by) is None
+        ):  # shift smallest dimension...
             return None, None  # ... and return None if we're at the end.
-        elif _shift_dimension(time_to_next_order[1], shift_by) is None:  # shift next smallest dimension...
+        elif (
+            _shift_dimension(time_to_next_order[1], shift_by) is None
+        ):  # shift next smallest dimension...
             return None, None  # ... and return None if we're at the end.
-        elif _shift_dimension(time_to_next_order[2], shift_by) is None:  # shift next smallest dimension...
+        elif (
+            _shift_dimension(time_to_next_order[2], shift_by) is None
+        ):  # shift next smallest dimension...
             return None, None  # ... and return None if we're at the end.
 
         # next_idx = time_to_next_order[0]
@@ -298,49 +333,60 @@ def past_present_future_idx_and_duration_iter(timestamp_seq,
         # if DEBUG_LEVEL:
         #         print("time_to_next[{}] = dur[{}] = {}".format(
         #             next_idx, ppf_idx[next_idx] - 1, time_to_next[next_idx]))
-        return time_to_next.argsort(), present_timestamp  # if you got this far, return the new dimension order
+        return (
+            time_to_next.argsort(),
+            present_timestamp,
+        )  # if you got this far, return the new dimension order
 
     _present_timestamp, _time_to_next_order = _init_state()
 
     if DEBUG_LEVEL:
-        print("---------------")
-        print(("ppf_idx: {}".format(ppf_idx)))
-        print(("time_to_next: {}".format(time_to_next)))
-        print(("time_to_next_order: {}".format(_time_to_next_order)))
-        print(("present_timestamp: {}".format(_present_timestamp)))
+        print('---------------')
+        print(('ppf_idx: {}'.format(ppf_idx)))
+        print(('time_to_next: {}'.format(time_to_next)))
+        print(('time_to_next_order: {}'.format(_time_to_next_order)))
+        print(('present_timestamp: {}'.format(_present_timestamp)))
     _duration = time_to_next[_time_to_next_order[0]]
     if _duration != 0:
-        yield (idx[ppf_idx[_past]][0], idx[ppf_idx[_present]][-1], idx[ppf_idx[_future]][-1]), \
-              _duration, \
-              _present_timestamp
+        yield (
+            idx[ppf_idx[_past]][0],
+            idx[ppf_idx[_present]][-1],
+            idx[ppf_idx[_future]][-1],
+        ), _duration, _present_timestamp
     while True:
-        _time_to_next_order, _present_timestamp = _shift_state(_time_to_next_order, _present_timestamp)
+        _time_to_next_order, _present_timestamp = _shift_state(
+            _time_to_next_order, _present_timestamp
+        )
         if _time_to_next_order is None:
             raise StopIteration
         else:
             if DEBUG_LEVEL:
-                print("---------------")
-                print(("ppf_idx: {}".format(ppf_idx)))
-                print(("time_to_next: {}".format(time_to_next)))
-                print(("time_to_next_order: {}".format(_time_to_next_order)))
-                print(("present_timestamp: {}".format(_present_timestamp)))
+                print('---------------')
+                print(('ppf_idx: {}'.format(ppf_idx)))
+                print(('time_to_next: {}'.format(time_to_next)))
+                print(('time_to_next_order: {}'.format(_time_to_next_order)))
+                print(('present_timestamp: {}'.format(_present_timestamp)))
             _duration = time_to_next[_time_to_next_order[0]]
             if _duration != 0:
-                yield (idx[ppf_idx[_past]][0], idx[ppf_idx[_present]][-1], idx[ppf_idx[_future]][-1]), \
-                      _duration, \
-                      _present_timestamp
+                yield (
+                    idx[ppf_idx[_past]][0],
+                    idx[ppf_idx[_present]][-1],
+                    idx[ppf_idx[_future]][-1],
+                ), _duration, _present_timestamp
 
 
 class FeaturePairFactory(object):
-    def __init__(self,
-                 past_feat_func,
-                 past_range,
-                 future_feat_func=None,
-                 future_range=None,
-                 min_timestamp=None,
-                 max_timestamp=None,
-                 data_is_sorted=False,
-                 timestamp_field='timestamp'):
+    def __init__(
+        self,
+        past_feat_func,
+        past_range,
+        future_feat_func=None,
+        future_range=None,
+        min_timestamp=None,
+        max_timestamp=None,
+        data_is_sorted=False,
+        timestamp_field='timestamp',
+    ):
 
         if future_range is None:
             future_range = past_range
@@ -359,11 +405,14 @@ class FeaturePairFactory(object):
             self.sort_data_according_to_timestamps = lambda data: data.sort_index()
         else:
             self.get_timestamps = lambda data: data[timestamp_field]
-            self.sort_data_according_to_timestamps = lambda data: data.sort_values(timestamp_field)
+            self.sort_data_according_to_timestamps = lambda data: data.sort_values(
+                timestamp_field
+            )
 
     def _data_in_date_range(self, data):
-        lidx = array(self.get_timestamps(data) >= self.min_timestamp) \
-               & array(self.get_timestamps(data) < self.max_timestamp)
+        lidx = array(self.get_timestamps(data) >= self.min_timestamp) & array(
+            self.get_timestamps(data) < self.max_timestamp
+        )
         return data[lidx]
 
     def _get_data_iterator(self, data):
@@ -372,21 +421,27 @@ class FeaturePairFactory(object):
         data = self._data_in_date_range(data)
 
         ppfd = past_present_future_idx_and_duration_iter(
-            timestamp_seq=[self.min_timestamp] + self.get_timestamps(data).tolist() + [self.max_timestamp],
+            timestamp_seq=[self.min_timestamp]
+            + self.get_timestamps(data).tolist()
+            + [self.max_timestamp],
             past_range=self.past_range,
-            future_range=self.future_range
+            future_range=self.future_range,
         )
 
         for ppf, duration, present_timestamp in ppfd:
-            yield data.iloc[ppf[0]:ppf[1]], data.iloc[ppf[1]:ppf[2]], duration, present_timestamp
+            yield data.iloc[ppf[0] : ppf[1]], data.iloc[
+                ppf[1] : ppf[2]
+            ], duration, present_timestamp
 
     def feature_pair_and_duration_iter(self, data):
         data_iterator = self._get_data_iterator(data)
         for past_data, future_data, duration, present_timestamp in data_iterator:
-            yield {'past': self.past_feat_func(past_data),
-                   'future': self.future_feat_func(future_data),
-                   'duration': duration,
-                   'present_timestamp': present_timestamp}
+            yield {
+                'past': self.past_feat_func(past_data),
+                'future': self.future_feat_func(future_data),
+                'duration': duration,
+                'present_timestamp': present_timestamp,
+            }
 
 
 def _event_exists(arr):
@@ -397,19 +452,22 @@ def _columnwise_event_exists(df):
     return df.apply(_event_exists)
 
 
-def extract_series(df,  # data to extract from
-                         window_iterator=None,  # window iterator
-                         x_extractor=_columnwise_event_exists,  # function to apply to the windowed df to get x
-                         y_extractor=_columnwise_event_exists  # function to apply to the windowed df to get y
-                        ):
+def extract_series(
+    df,  # data to extract from
+    window_iterator=None,  # window iterator
+    x_extractor=_columnwise_event_exists,  # function to apply to the windowed df to get x
+    y_extractor=_columnwise_event_exists,  # function to apply to the windowed df to get y
+):
     """
 
     """
 
     # combine the extractors
     def _extractor(window_idx):
-        return (x_extractor(df.iloc[window_idx[0]:window_idx[1]]),
-                y_extractor(df.iloc[window_idx[2]:window_idx[3]]))
+        return (
+            x_extractor(df.iloc[window_idx[0] : window_idx[1]]),
+            y_extractor(df.iloc[window_idx[2] : window_idx[3]]),
+        )
 
     # get a default window_iterator if none given
     if window_iterator is None:
@@ -423,7 +481,10 @@ def agg_counts(pairs_of_series_iter):
     accum = defaultdict(Counter)
 
     for pair in pairs_of_series_iter:
-        pair_iter = map(lambda x: list(zip(*x)), product(iter(pair[0].to_dict().items()), iter(pair[1].to_dict().items())))
+        pair_iter = map(
+            lambda x: list(zip(*x)),
+            product(iter(pair[0].to_dict().items()), iter(pair[1].to_dict().items())),
+        )
         for x in pair_iter:
             accum[x[0]].update([x[1]])
 

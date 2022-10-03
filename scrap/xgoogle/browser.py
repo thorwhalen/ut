@@ -33,27 +33,28 @@ BROWSERS = (
     'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_6; en-us) AppleWebKit/525.27.1 (KHTML, like Gecko) Version/3.2.1 Safari/525.27.1',
     'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322)',
     'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727)',
-    'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+    'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
 )
 
 TIMEOUT = 5  # socket timeout
+
 
 class BrowserError(Exception):
     def __init__(self, url, error):
         self.url = url
         self.error = error
 
+
 class PoolHTTPConnection(http.client.HTTPConnection):
     def connect(self):
         """Connect to the host and port specified in __init__."""
-        msg = "getaddrinfo returns an empty list"
-        for res in socket.getaddrinfo(self.host, self.port, 0,
-                                      socket.SOCK_STREAM):
+        msg = 'getaddrinfo returns an empty list'
+        for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
             try:
                 self.sock = socket.socket(af, socktype, proto)
                 if self.debuglevel > 0:
-                    print("connect: (%s, %s)" % (self.host, self.port))
+                    print('connect: (%s, %s)' % (self.host, self.port))
                 self.sock.settimeout(TIMEOUT)
                 self.sock.connect(sa)
             except socket.error as msg:
@@ -67,23 +68,26 @@ class PoolHTTPConnection(http.client.HTTPConnection):
         if not self.sock:
             raise socket.error(msg)
 
+
 class PoolHTTPHandler(urllib.request.HTTPHandler):
     def http_open(self, req):
         return self.do_open(PoolHTTPConnection, req)
+
 
 class Browser(object):
     def __init__(self, user_agent=BROWSERS[0], debug=False, use_pool=False):
         self.headers = {
             'User-Agent': user_agent,
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-us,en;q=0.5'
+            'Accept-Language': 'en-us,en;q=0.5',
         }
         self.debug = debug
 
     def get_page(self, url, data=None):
         handlers = [PoolHTTPHandler]
         opener = urllib.request.build_opener(*handlers)
-        if data: data = urllib.parse.urlencode(data)
+        if data:
+            data = urllib.parse.urlencode(data)
         request = urllib.request.Request(url, data, self.headers)
         try:
             response = opener.open(request)
@@ -93,13 +97,12 @@ class Browser(object):
         except (socket.error, socket.sslerror) as msg:
             raise BrowserError(url, msg)
         except socket.timeout as e:
-            raise BrowserError(url, "timeout")
+            raise BrowserError(url, 'timeout')
         except KeyboardInterrupt:
             raise
         except:
-            raise BrowserError(url, "unknown error")
+            raise BrowserError(url, 'unknown error')
 
     def set_random_user_agent(self):
         self.headers['User-Agent'] = random.choice(BROWSERS)
         return self.headers['User-Agent']
-

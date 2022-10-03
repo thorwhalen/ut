@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import matplotlib.pylab as plt
 
@@ -12,10 +10,10 @@ def plot_cumul_explained_variance(model):
     :return:
     """
     n = len(model.explained_variance_ratio_)
-    plt.plot(list(range(1, n + 1)), np.cumsum(model.explained_variance_ratio_), '-o');
-    plt.xticks(list(range(1, n + 1)));
-    plt.xlabel("Num of components");
-    plt.ylabel("Cumulative explained Variance");
+    plt.plot(list(range(1, n + 1)), np.cumsum(model.explained_variance_ratio_), '-o')
+    plt.xticks(list(range(1, n + 1)))
+    plt.xlabel('Num of components')
+    plt.ylabel('Cumulative explained Variance')
 
 
 def add_correlation_line(line2d=None, xy_line=True, include_corr=True):
@@ -39,12 +37,6 @@ def add_correlation_line(line2d=None, xy_line=True, include_corr=True):
 
         if include_corr:
             corr = np.corrcoef(x, y)[0, 1]
-            plt.text(min_val * 1.01, max_val * 0.99, "corr={:.4f}".format(corr))
+            plt.text(min_val * 1.01, max_val * 0.99, 'corr={:.4f}'.format(corr))
 
     plt.plot(x, m * x + b, 'k-')
-
-
-
-
-
-

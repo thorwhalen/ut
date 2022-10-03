@@ -5,6 +5,7 @@ import re
 import json
 
 from ut.others.lru_cache import lru_cache
+
 # from werkzeug.exceptions import InternalServerError
 
 import ut.wserv.errors as err
@@ -46,7 +47,7 @@ def get_pattern_from_attr_permissions_dict(attr_permissions):
     he.wants.me: False
     """
 
-    s = ""
+    s = ''
 
     # process inclusions
     corrected_list = []
@@ -90,7 +91,9 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
     elif isinstance(result, ndarray):
         return {result_field: result.tolist()}
     elif isinstance(result, dict) and len(result) > 0:
-        first_key, first_val = next(iter(result.items()))  # look at the first key to determine what to do with the dict
+        first_key, first_val = next(
+            iter(result.items())
+        )  # look at the first key to determine what to do with the dict
         if isinstance(first_key, int):
             key_trans = chr
         else:
@@ -98,7 +101,11 @@ def default_to_jdict(result, result_field=DFLT_RESULT_FIELD):
         if isinstance(first_val, ndarray):
             return {result_field: {key_trans(k): v.tolist() for k, v in result.items()}}
         elif isinstance(first_val, dict):
-            return {result_field: {key_trans(k): default_to_jdict(v) for k, v in result.items()}}
+            return {
+                result_field: {
+                    key_trans(k): default_to_jdict(v) for k, v in result.items()
+                }
+            }
         else:
             return {key_trans(k): v for k, v in result.items()}
     elif isinstance(result, (Series, DataFrame)):
@@ -123,9 +130,11 @@ def extract_kwargs(request, convert_arg=None, file_var='file'):
     for k in list(request.args.keys()):
         if k in convert_arg:
             if 'default' in convert_arg[k]:
-                kwargs[k] = request.args.get(k,
-                                             type=convert_arg[k].get('type', str),
-                                             default=convert_arg[k]['default'])
+                kwargs[k] = request.args.get(
+                    k,
+                    type=convert_arg[k].get('type', str),
+                    default=convert_arg[k]['default'],
+                )
             else:
                 kwargs[k] = request.args.get(k, type=convert_arg[k].get('type', str))
         else:
@@ -143,16 +152,18 @@ def extract_kwargs(request, convert_arg=None, file_var='file'):
 
 
 class ObjWrapper(object):
-    def __init__(self,
-                 obj_constructor,
-                 obj_constructor_arg_names=None,  # used to determine the params of the object constructors
-                 convert_arg=None,  # input processing: Dict specifying how to prepare ws arguments for methods
-                 file_var='file',  # input processing: name of the variable to use if there's a 'file' in request.files
-                 permissible_attr_pattern='[^_].*',  # what attributes are allowed to be accessed
-                 to_jdict=default_to_jdict,  # output processing: Function to convert an output to a jsonizable dict
-                 obj_str='obj',  # name of object to use in error messages
-                 cache_size=5,
-                 debug=0):
+    def __init__(
+        self,
+        obj_constructor,
+        obj_constructor_arg_names=None,  # used to determine the params of the object constructors
+        convert_arg=None,  # input processing: Dict specifying how to prepare ws arguments for methods
+        file_var='file',  # input processing: name of the variable to use if there's a 'file' in request.files
+        permissible_attr_pattern='[^_].*',  # what attributes are allowed to be accessed
+        to_jdict=default_to_jdict,  # output processing: Function to convert an output to a jsonizable dict
+        obj_str='obj',  # name of object to use in error messages
+        cache_size=5,
+        debug=0,
+    ):
         """
         An class to wrap a "controller" class for a web service API.
         It takes care of LRU caching objects constructed before (so they don't need to be re-constructed for every
@@ -191,7 +202,9 @@ class ObjWrapper(object):
         self.file_var = file_var
 
         if isinstance(permissible_attr_pattern, dict):
-            self.permissible_attr_pattern = get_pattern_from_attr_permissions_dict(permissible_attr_pattern)
+            self.permissible_attr_pattern = get_pattern_from_attr_permissions_dict(
+                permissible_attr_pattern
+            )
         else:
             self.permissible_attr_pattern = re.compile(permissible_attr_pattern)
         self.to_jdict = to_jdict
@@ -206,7 +219,9 @@ class ObjWrapper(object):
         :param request: the flask request object
         :return: a dict of kwargs corresponding to the union of post and get arguments
         """
-        kwargs = extract_kwargs(request, convert_arg=self.convert_arg, file_var=self.file_var)
+        kwargs = extract_kwargs(
+            request, convert_arg=self.convert_arg, file_var=self.file_var
+        )
 
         return dict(kwargs)
 
@@ -229,7 +244,9 @@ class ObjWrapper(object):
         # get the leaf object
         if attr is None:
             raise err.MissingAttribute()
-        obj = get_attr_recursively(obj, attr)  # at this point obj is the nested attribute object
+        obj = get_attr_recursively(
+            obj, attr
+        )  # at this point obj is the nested attribute object
 
         # call a method or return a property
         if callable(obj):
@@ -256,8 +273,10 @@ class ObjWrapper(object):
         """
         kwargs = self._get_kwargs_from_request(request)
         if self.debug > 0:
-            print(("robj: kwargs = {}".format(kwargs)))
-        obj_kwargs = {k: kwargs.pop(k) for k in self.obj_constructor_arg_names if k in kwargs}
+            print(('robj: kwargs = {}'.format(kwargs)))
+        obj_kwargs = {
+            k: kwargs.pop(k) for k in self.obj_constructor_arg_names if k in kwargs
+        }
 
         attr = kwargs.pop('attr', None)
         if attr is None:
@@ -267,7 +286,13 @@ class ObjWrapper(object):
             print(str(self.permissible_attr_pattern.pattern))
             raise err.ForbiddenAttribute(attr)
         if self.debug > 0:
-            print(("robj: attr={}, obj_kwargs = {}, kwargs = {}".format(attr, obj_kwargs, kwargs)))
+            print(
+                (
+                    'robj: attr={}, obj_kwargs = {}, kwargs = {}'.format(
+                        attr, obj_kwargs, kwargs
+                    )
+                )
+            )
         return self.obj(obj=obj_kwargs, attr=attr, **kwargs)
 
 
@@ -285,6 +310,7 @@ def obj_str_from_obj(obj):
         return obj.__class__.__name__
     except AttributeError:
         return 'obj'
+
 
 # Will delete another day. Just spent two hours making this beautiful and useful object, and then realized
 # it had a name, and code for it (is even integrated in the standard libraries of Python 3+

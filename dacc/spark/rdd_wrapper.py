@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 import ut.dacc.spark.util as sutil
@@ -18,5 +16,3 @@ class RDD(object):
 
     def iterate(self):
         return self.rdd.toLocalIterator()
-
-

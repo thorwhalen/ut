@@ -6,6 +6,7 @@ from numpy import *
 from matplotlib.pyplot import *
 import numpy as np
 from collections import Counter
+
 # from numpy.random import rand
 # from numpy.random import permutation
 
@@ -33,7 +34,7 @@ class Pot(object):
         elif data is not None:
             if isinstance(data, pd.DataFrame):
                 # inject the dataframe in the tb attribute: It's the potential data
-                assert 'pval' in data.columns, "dataframe had no pval column"
+                assert 'pval' in data.columns, 'dataframe had no pval column'
                 self.tb = data
             elif isinstance(data, dict):
                 if 'pval' not in list(data.keys()):
@@ -43,7 +44,7 @@ class Pot(object):
                 try:
                     self.tb = data.tb.copy()
                 except Exception:
-                    raise ValueError("Unknown construction type")
+                    raise ValueError('Unknown construction type')
         else:
             self.tb = pd.DataFrame({'pval': 1}, index=[''])  # default "unit" potential
         self.tb.index = [''] * len(self.tb)
@@ -73,7 +74,9 @@ class Pot(object):
         """
         var_list = colloc.intersect(ascertain_list(var_list), self.vars())
         if var_list:  # if non-empty, marginalize out other variables
-            return Pot(self.tb[var_list + ['pval']].groupby(var_list).sum().reset_index())
+            return Pot(
+                self.tb[var_list + ['pval']].groupby(var_list).sum().reset_index()
+            )
         else:  # if _var_list is empty, return a singleton potential containing the sum of the vals of self.tb
             return Pot(pd.DataFrame({'pval': self.tb['pval'].sum()}, index=['']))
 
@@ -101,8 +104,10 @@ class Pot(object):
         If item is a dict, it normalizes according to the keys, and slices according to the dict.
         --> This resembles P(A|B=1) kind of thing...
         """
-        print("I'm trying to discourage using | now (might want to use it for fuzzy logic at some point")
-        print("--> Use / instead of |. ")
+        print(
+            "I'm trying to discourage using | now (might want to use it for fuzzy logic at some point"
+        )
+        print('--> Use / instead of |. ')
         if isinstance(item, str):
             return self / self.project_to([item])
         elif isinstance(item, list):
@@ -127,7 +132,9 @@ class Pot(object):
             elif isinstance(item, str):
                 return self.project_to(item)
             else:
-                raise TypeError("Unknown type for item (must be None, dict, list, or string)")
+                raise TypeError(
+                    'Unknown type for item (must be None, dict, list, or string)'
+                )
         else:
             return Pot(pd.DataFrame({'pval': self.tb['pval'].sum()}, index=['']))
 
@@ -208,7 +215,7 @@ class Pot(object):
         elif n == 1:
             return t.tb.pval[0]
         else:
-            raise RuntimeError("In pval_of(): get_slice returned more than one value")
+            raise RuntimeError('In pval_of(): get_slice returned more than one value')
 
     def binarize(self, var_values_to_map_to_1_dict):
         """
@@ -239,7 +246,9 @@ class Pot(object):
 
     def rect_perspective_df(self):
         vars = self.vars()
-        assert len(self.vars()) == 2, "You can only get the rect_perspective_df of a pot with exactly two variables"
+        assert (
+            len(self.vars()) == 2
+        ), 'You can only get the rect_perspective_df of a pot with exactly two variables'
         return self.tb.set_index([vars[0], vars[1]]).unstack(vars[1])['pval']
 
     ###########################################
@@ -253,9 +262,13 @@ class Pot(object):
         producing val_x and val_y columns that will contain the original left and right values, aligned with the join.
         Note: If the vars intersection is empty, the join will correspond to the cartesian product of the variables.
         """
-        on = colloc.intersect(self.vars(), pot.vars())  # we will merge on the intersection of the variables (not pval)
+        on = colloc.intersect(
+            self.vars(), pot.vars()
+        )  # we will merge on the intersection of the variables (not pval)
         if on:
-            return pd.merge(self.tb, pot.tb, how='inner', on=on, sort=True, suffixes=('_x', '_y'))
+            return pd.merge(
+                self.tb, pot.tb, how='inner', on=on, sort=True, suffixes=('_x', '_y')
+            )
         else:  # if no common variables, take the cartesian product
             return cartesian_product(self.tb, pot.tb)
 
@@ -277,10 +290,9 @@ class Pot(object):
         else:
             return self.tb.__repr__()
 
-    #def assert_pot_validity(self):
+    # def assert_pot_validity(self):
     #    assert 'pval' in self.tb.columns, "the potential dataframe has no column named 'pval'"
     #    assert len(self.tb.)
-
 
     #################################################################################
     # FACTORIES
@@ -304,10 +316,14 @@ class Pot(object):
             if vars is None:
                 example_key = list(counts.keys())[0]
                 vars = list(range(len(example_key)))
-            return Pot(pd.DataFrame(
-                [dict(pval=v, **{kk: vv for kk, vv in zip(vars, k)}) for k, v in counts.items()])
+            return Pot(
+                pd.DataFrame(
+                    [
+                        dict(pval=v, **{kk: vv for kk, vv in zip(vars, k)})
+                        for k, v in counts.items()
+                    ]
+                )
             )
-
 
     @classmethod
     def from_count_df_to_count(cls, count_df, count_col='pval'):
@@ -316,7 +332,7 @@ class Pot(object):
         count_col
         """
         pot_vars = list(colloc.setdiff(count_df.columns, [count_col]))
-        tb = count_df[pot_vars+[count_col]].groupby(pot_vars).sum().reset_index()
+        tb = count_df[pot_vars + [count_col]].groupby(pot_vars).sum().reset_index()
         tb = ch_col_names(tb, 'pval', count_col)
         return Pot(tb)
 
@@ -333,16 +349,32 @@ class Pot(object):
             return Pot(tb)
 
     @classmethod
-    def rand(cls, n_var_vals=[2, 2], var_names=None, granularity=None, try_to_get_unique_values=False):
+    def rand(
+        cls,
+        n_var_vals=[2, 2],
+        var_names=None,
+        granularity=None,
+        try_to_get_unique_values=False,
+    ):
         # check inputs
-        assert len(n_var_vals) <= 26, "You can't request more than 26 variables: That's just crazy"
+        assert (
+            len(n_var_vals) <= 26
+        ), "You can't request more than 26 variables: That's just crazy"
         if var_names is None:
-            var_names = [str(chr(x)) for x in range(ord('A'),ord('Z'))]
-        assert len(n_var_vals) <= len(var_names), "You can't have less var_names than you have n_var_vals"
-        assert min(array(n_var_vals)) >= 2, "n_var_vals elements should be >= 2"
+            var_names = [str(chr(x)) for x in range(ord('A'), ord('Z'))]
+        assert len(n_var_vals) <= len(
+            var_names
+        ), "You can't have less var_names than you have n_var_vals"
+        assert min(array(n_var_vals)) >= 2, 'n_var_vals elements should be >= 2'
 
         # make the df by taking the cartesian product of the n_var_vals defined ranges
-        df = reduce(cartesian_product, [pd.DataFrame(data=list(range(x)), columns=[y]) for x, y in zip(n_var_vals, var_names)])
+        df = reduce(
+            cartesian_product,
+            [
+                pd.DataFrame(data=list(range(x)), columns=[y])
+                for x, y in zip(n_var_vals, var_names)
+            ],
+        )
 
         n_vals = len(df)
 
@@ -389,7 +421,7 @@ class ProbPot(Pot):
         elif n == 1:
             return t.tb.pval[0]
         else:
-            raise RuntimeError("In prob_of(): get_slice returned more than one value")
+            raise RuntimeError('In prob_of(): get_slice returned more than one value')
 
     def given(self, conditional_vars):
         return ProbPot(self.__div__(conditional_vars))
@@ -397,8 +429,9 @@ class ProbPot(Pot):
     def relative_risk(self, event_var, exposure_var, event_val=1, exposed_val=1):
         prob = self >> [event_var, exposure_var]
         prob.binarize({event_var: event_val, exposure_var: exposed_val})
-        return (prob / {exposure_var: 1})[{event_var: 1}] \
-               / (prob / {exposure_var: 0})[{event_var: 1}]
+        return (prob / {exposure_var: 1})[{event_var: 1}] / (prob / {exposure_var: 0})[
+            {event_var: 1}
+        ]
 
     @staticmethod
     def plot_relrisk_matrix(relrisk):
@@ -406,28 +439,40 @@ class ProbPot(Pot):
         matrix_shape = (t['exposure'].nunique(), t['event'].nunique())
         m = ut.daf.to.map_vals_to_ints_inplace(t, cols_to_map=['exposure'])
         m = m['exposure']
-        ut.daf.to.map_vals_to_ints_inplace(t, cols_to_map={'event': dict(list(zip(m, list(range(len(m))))))})
+        ut.daf.to.map_vals_to_ints_inplace(
+            t, cols_to_map={'event': dict(list(zip(m, list(range(len(m))))))}
+        )
         RR = zeros(matrix_shape)
         RR[t['exposure'], t['event']] = t['relative_risk']
         RR[list(range(len(m))), list(range(len(m)))] = nan
 
         RRL = np.log2(RR)
+
         def normalizor(X):
             min_x = nanmin(X)
             range_x = nanmax(X) - min_x
             return lambda x: (x - min_x) / range_x
+
         normalize_this = normalizor(RRL)
         center = normalize_this(0)
 
-
-
-        color_map = shifted_color_map(cmap=cm.get_cmap('coolwarm'), start=0, midpoint=center, stop=1)
-        imshow(RRL, cmap=color_map, interpolation='none');
+        color_map = shifted_color_map(
+            cmap=cm.get_cmap('coolwarm'), start=0, midpoint=center, stop=1
+        )
+        imshow(RRL, cmap=color_map, interpolation='none')
 
         xticks(list(range(shape(RRL)[0])), m, rotation=90)
         yticks(list(range(shape(RRL)[1])), m)
         cbar = colorbar()
-        cbar.ax.set_yticklabels(["%.02f" % x for x in np.exp2(array(ut.pplot.get.get_colorbar_tick_labels_as_floats(cbar)))])
+        cbar.ax.set_yticklabels(
+            [
+                '%.02f' % x
+                for x in np.exp2(
+                    array(ut.pplot.get.get_colorbar_tick_labels_as_floats(cbar))
+                )
+            ]
+        )
+
 
 #
 #
@@ -446,10 +491,12 @@ def from_points_to_binary(d, mid_fun=median):
 
 ##### Other utils
 
+
 def relative_risk(joint_prob_pot, event_var, exposure_var):
     prob = joint_prob_pot >> [event_var, exposure_var]
-    return (prob / {exposure_var: 1})[{event_var: 1}] \
-           / (prob / {exposure_var: 0})[{event_var: 1}]
+    return (prob / {exposure_var: 1})[{event_var: 1}] / (prob / {exposure_var: 0})[
+        {event_var: 1}
+    ]
 
 
 def _val_prod_(tb):
@@ -479,10 +526,3 @@ def _val_add_(tb):
     tb['pval'] = tb['pval_x'] + tb['pval_y']
     tb.drop(labels=['pval_x', 'pval_y'], axis=1, inplace=True)
     return tb
-
-
-
-
-
-
-

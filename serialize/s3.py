@@ -6,6 +6,7 @@ import tempfile
 import pickle
 import os
 from ut.util.importing import get_environment_variable
+
 # import ut.serialize.utils as serialize_utils
 
 # use case. I need to check all code that uses these methods, as well as the test notebook.
@@ -16,8 +17,16 @@ class S3(object):
     Interaction with Amazon S3.
     """
 
-    def __init__(self, bucket_name=None, base_folder=None, extension=None, force_extension=False, encoding=None,
-                 access_key=None, secret=None):
+    def __init__(
+        self,
+        bucket_name=None,
+        base_folder=None,
+        extension=None,
+        force_extension=False,
+        encoding=None,
+        access_key=None,
+        secret=None,
+    ):
         """
         Creates an instance with a handle on the S3 bucket corresponding to bucket_name.
 
@@ -27,7 +36,7 @@ class S3(object):
         Connection and bucket are available to clients via self properties, in case clients wish to use those objects
         directly.
         """
-        assert not extension, "extension has not been implement yet for S3."
+        assert not extension, 'extension has not been implement yet for S3.'
 
         if access_key and not secret:
             if access_key == 'ut':
@@ -39,8 +48,8 @@ class S3(object):
             else:
                 ValueError('I cannot recognize that access_key')
         else:  # if access_key is not given, take a default
-            #access_key = access_key or os.environ['MON_AWS_ACCESS_KEY_ID']
-            #secret = secret or os.environ['MON_AWS_SECRET_ACCESS_KEY']
+            # access_key = access_key or os.environ['MON_AWS_ACCESS_KEY_ID']
+            # secret = secret or os.environ['MON_AWS_SECRET_ACCESS_KEY']
             access_key = access_key or get_environment_variable('VEN_AWS_ACCESS_KEY_ID')
             secret = secret or get_environment_variable('VEN_AWS_SECRET_ACCESS_KEY')
 
@@ -50,12 +59,13 @@ class S3(object):
         self.force_extension = force_extension
         self.encoding = encoding
 
-        self.connection = S3Connection(access_key, secret, host='s3-eu-west-1.amazonaws.com')
+        self.connection = S3Connection(
+            access_key, secret, host='s3-eu-west-1.amazonaws.com'
+        )
         if bucket_name:
             self.bucket = self.connection.get_bucket(bucket_name)
         else:
             self.bucket = None
-
 
     @property
     def base_folder(self):
@@ -121,13 +131,23 @@ class S3(object):
         return:
           number of bytes
         """
-        assert isinstance(the_str,
-                          str), 'the_str must be an instance of basestring, but was an instance of {}'.format(type(the_str))
+        assert isinstance(
+            the_str, str
+        ), 'the_str must be an instance of basestring, but was an instance of {}'.format(
+            type(the_str)
+        )
         bucket = self._get_new_bucket_or_default(bucket_name)
         s3_key = self._get_s3_key_for_dump(key_name, folder, bucket)
         return s3_key.set_contents_from_string(the_str)
 
-    def loado(self, key_name, folder=None, bucket_name='', local_file_name=None, deserialize_f=lambda x: pickle.load(x)):
+    def loado(
+        self,
+        key_name,
+        folder=None,
+        bucket_name='',
+        local_file_name=None,
+        deserialize_f=lambda x: pickle.load(x),
+    ):
         """
         --
         For loading objects from S3
@@ -189,7 +209,6 @@ class S3(object):
         # if client passed in a local file name, download to that file, else just return the contents
         s3_key.get_contents_to_filename(local_file_name)
 
-
     def mk_key_name(self, key_name, folder=None, bucket=None, **kwargs):
         # have bucket_name overwrite existing bucket
         if 'bucket_name' in list(kwargs.keys()):
@@ -207,25 +226,40 @@ class S3(object):
                 bucket = self.connection.get_bucket(kwargs['bucket_name'])
             else:
                 bucket = bucket or self.bucket
-            key_full_name = self.mk_key_name(key_name, folder=folder, bucket=bucket, **kwargs)
+            key_full_name = self.mk_key_name(
+                key_name, folder=folder, bucket=bucket, **kwargs
+            )
             key = bucket.lookup(key_full_name)
             if not key:
-                raise MissingS3KeyError("%s not found in %s" % (key_full_name, bucket.name))
+                raise MissingS3KeyError(
+                    '%s not found in %s' % (key_full_name, bucket.name)
+                )
             return key
         elif isinstance(key_name, Key):
             return key_name  # it's actually a boto.s3.key.Key already
 
-
-    def get_http_for_key(self, key_name, folder=None, bucket=None,
-                         expires_in=15*24*60*60, query_auth=True, force_http=True, **kwargs):
+    def get_http_for_key(
+        self,
+        key_name,
+        folder=None,
+        bucket=None,
+        expires_in=15 * 24 * 60 * 60,
+        query_auth=True,
+        force_http=True,
+        **kwargs
+    ):
         key = self.get_key(key_name, folder=folder, bucket=bucket, **kwargs)
-        return key.generate_url(expires_in=expires_in, query_auth=query_auth, force_http=force_http)
+        return key.generate_url(
+            expires_in=expires_in, query_auth=query_auth, force_http=force_http
+        )
 
-
-    def get_https_for_key(self, key_name, folder=None, bucket=None, expires_in=4*24*60*60, **kwargs):
+    def get_https_for_key(
+        self, key_name, folder=None, bucket=None, expires_in=4 * 24 * 60 * 60, **kwargs
+    ):
         key = self.get_key(key_name, folder=folder, bucket=bucket, **kwargs)
-        return key.generate_url(expires_in=expires_in, query_auth=True, force_http=False)
-
+        return key.generate_url(
+            expires_in=expires_in, query_auth=True, force_http=False
+        )
 
     def get_all_keys(self, folder, clean=True, bucket_name=''):
         """
@@ -242,13 +276,20 @@ class S3(object):
         key_result_set = bucket.list(prefix=folder)
 
         if clean:
-            key_result_set_no_empty = (k for k in key_result_set if k.name.replace(folder, '') != '')
-            key_result_set_no_folder_names = (self._remove_folder_from_name(k, folder) for k in key_result_set_no_empty)
+            key_result_set_no_empty = (
+                k for k in key_result_set if k.name.replace(folder, '') != ''
+            )
+            key_result_set_no_folder_names = (
+                self._remove_folder_from_name(k, folder)
+                for k in key_result_set_no_empty
+            )
             return key_result_set_no_folder_names
         else:
             return key_result_set
 
-    def update_metadata(self, metadata_dict, key_name=None, folder='', key=None, bucket_name=''):
+    def update_metadata(
+        self, metadata_dict, key_name=None, folder='', key=None, bucket_name=''
+    ):
         """
         In order to update metadata on an object, need to copy (==resave) it to same location
         Note: pass in EITHER an actual key or else a key name (for lookup)
@@ -259,8 +300,15 @@ class S3(object):
         # MJM - note, removing preserve ACL since we should not need it here
         key.copy(bucket.name, key.name, key.metadata)
 
-    def copy_and_return_errors(self, key_name_list, from_folder='', from_bucket_name='',
-                               to_folder='', to_bucket_name='', storage_class='REDUCED_REDUNDANCY'):
+    def copy_and_return_errors(
+        self,
+        key_name_list,
+        from_folder='',
+        from_bucket_name='',
+        to_folder='',
+        to_bucket_name='',
+        storage_class='REDUCED_REDUNDANCY',
+    ):
         """
         Take a list of key names and moves them from the specified bucket and folder to the specified bucket and folder.
         If no folder(s) is specified, the top level of the bucket is used.
@@ -274,8 +322,10 @@ class S3(object):
         to_bucket = bucket = self._get_new_bucket_or_default(to_bucket_name)
 
         to_and_from_key_names = [
-            (self._full_key_name(to_folder, key_name),
-             self._full_key_name(from_folder, key_name))
+            (
+                self._full_key_name(to_folder, key_name),
+                self._full_key_name(from_folder, key_name),
+            )
             for key_name in key_name_list
         ]
 
@@ -287,7 +337,7 @@ class S3(object):
                     new_key_name=to_from_names[0],
                     src_bucket_name=from_bucket.name,
                     src_key_name=to_from_names[1],
-                    storage_class=storage_class
+                    storage_class=storage_class,
                 )
             except S3ResponseError as e:
                 errors.append(e)
@@ -314,9 +364,8 @@ class S3(object):
         """
         key = bucket.lookup(self._full_key_name(folder, key_name))
         if not key:
-            raise MissingS3KeyError("%s not found in %s" % (key_name, bucket.name))
+            raise MissingS3KeyError('%s not found in %s' % (key_name, bucket.name))
         return key
-
 
     def _full_key_name(self, folder, key_name):
         folder_path = self.base_folder + self._ensure_good_folder_name(folder)

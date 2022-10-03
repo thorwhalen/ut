@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from sklearn.base import TransformerMixin, BaseEstimator
@@ -29,6 +27,7 @@ class ModelTransformer(TransformerMixin):
     This is useful when you want to use something like a KMeans clustering model to generate features for another model.
      It needs to be fitted in order to train the model it wraps.
     """
+
     def __init__(self, model):
         self.model = model
 
@@ -51,6 +50,7 @@ class KVExtractor(TransformerMixin):
     [{'a': 1, 'b': 2}, {'c': 3, 'b': 2}]
 
     """
+
     def __init__(self, kvpairs):
         self.kpairs = kvpairs
 
@@ -167,5 +167,4 @@ class NLTKBOW(TransformerMixin):
         return self
 
     def transform(self, X):
-        return [{word: True for word in word_tokenize(document)}
-                for document in X]
+        return [{word: True for word in word_tokenize(document)} for document in X]

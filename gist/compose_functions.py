@@ -44,16 +44,20 @@ class Compose:
         # Taking care of the signature...
         # Determining what the first and last function is.
         n_funcs = len(self.funcs)
-        if n_funcs == 0:  # really, it would make sense that this is the identity, but we'll implement only when needed
-            raise ValueError("You need to specify at least one function!")
+        if (
+            n_funcs == 0
+        ):  # really, it would make sense that this is the identity, but we'll implement only when needed
+            raise ValueError('You need to specify at least one function!')
         elif n_funcs == 1:
             first_func = last_func = funcs[0]
         else:
             first_func, *_, last_func = funcs
         # Finally, let's make the __call__ have a nice signature.
         # Argument information from first func and return annotation from last func
-        self.__signature__ = Signature(signature(first_func).parameters.values(),
-                                       return_annotation=signature(last_func).return_annotation)
+        self.__signature__ = Signature(
+            signature(first_func).parameters.values(),
+            return_annotation=signature(last_func).return_annotation,
+        )
 
     def __call__(self, *args, **kwargs):
         first_func, *other_funcs = self.funcs

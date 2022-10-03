@@ -28,8 +28,9 @@ def group_and_gather_unique_values_of_cols(df, groupby_cols, gather_col=None):
     # input processing
     groupby_cols = ut.util.ulist.ascertain_list(groupby_cols)
     if gather_col is None:
-        assert len(df.columns) == (len(groupby_cols)+1), \
-            "I can't guess what the gather_col is in your case (you must have exactly len(groupby_cols)+1 columns"
+        assert len(df.columns) == (
+            len(groupby_cols) + 1
+        ), "I can't guess what the gather_col is in your case (you must have exactly len(groupby_cols)+1 columns"
         gather_col = (set(df.columns) - set(groupby_cols)).pop()
     df = df[groupby_cols + [gather_col]]
     # the actual thing the function should do:
@@ -40,12 +41,14 @@ def group_and_gather_values(df, groupby_cols, gather_col=None):
     # input processing
     groupby_cols = ut.util.ulist.ascertain_list(groupby_cols)
     if gather_col is None:
-        assert len(df.columns) == (len(groupby_cols)+1), \
-            "I can't guess what the gather_col is in your case (you must have exactly len(groupby_cols)+1 columns"
+        assert len(df.columns) == (
+            len(groupby_cols) + 1
+        ), "I can't guess what the gather_col is in your case (you must have exactly len(groupby_cols)+1 columns"
         gather_col = (set(df.columns) - set(groupby_cols)).pop()
     df = df[groupby_cols + [gather_col]]
     # the actual thing the function should do:
     return df.groupby(groupby_cols).agg(lambda x: [list(x[gather_col])])
+
 
 # def group_by_non_hashable_columns(df, groupby_cols, **kwargs):
 #     if isinstance(groupby_cols, basestring):

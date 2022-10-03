@@ -14,15 +14,16 @@ def files_matching(file_path_pattern):
 
 def lines_matching(lines, searchtext):
     for line in lines:
-        if searchtext in line: yield line
+        if searchtext in line:
+            yield line
 
 
 def last_element(g):
     """
     DEPRECATED! Use pgenerator.util instead
     """
-    DeprecationWarning("Use pgenerator.util instead")
-    if hasattr(g,'__reversed__'):
+    DeprecationWarning('Use pgenerator.util instead')
+    if hasattr(g, '__reversed__'):
         last = next(reversed(g))
     else:
         for last in g:
@@ -31,7 +32,10 @@ def last_element(g):
 
 
 def dict_vals_product(dict_of_arrays):
-    return (dict(zip(dict_of_arrays, x)) for x in itertools.product(*iter(dict_of_arrays.values())))
+    return (
+        dict(zip(dict_of_arrays, x))
+        for x in itertools.product(*iter(dict_of_arrays.values()))
+    )
 
 
 def chunks(n, iterable):

@@ -9,7 +9,8 @@ import ut.pfile.to as file_to
 import ut.pfile.name as pfile_name
 import ut.pstr.to as str_to
 from ut.pstr.trans import str_to_unicode_or_bust
-#from os import environ # does this load the whole array? Can we just take MS_DATA instead?
+
+# from os import environ # does this load the whole array? Can we just take MS_DATA instead?
 
 try:
     MS_DATA = get_environment_variable('MS_DATA')
@@ -22,8 +23,14 @@ ENCODING_UTF8 = 2
 
 
 class Local(object):
-
-    def __init__(self, relative_root=None, extension='', force_extension=False, encoding='UTF-8', mother_root=MS_DATA):
+    def __init__(
+        self,
+        relative_root=None,
+        extension='',
+        force_extension=False,
+        encoding='UTF-8',
+        mother_root=MS_DATA,
+    ):
         if relative_root:
             self.root_folder = os.path.join(mother_root, relative_root)
         else:
@@ -31,7 +38,6 @@ class Local(object):
         self.extension = extension
         self.force_extension = force_extension
         self.encoding = encoding
-
 
     def filepath(self, filename=None):
 
@@ -46,22 +52,22 @@ class Local(object):
             if self.force_extension:
                 filename = pfile_name.replace_extension(filename, self.extension)
             else:
-                filename = pfile_name.add_extension_if_not_present(filename, self.extension)
+                filename = pfile_name.add_extension_if_not_present(
+                    filename, self.extension
+                )
         return os.path.join(self.root_folder, filename)
-
 
     def dumpo(self, obj, filename):
         """
         saves an object to a local location
         """
-        pickle.dump(obj,open(self.filepath(filename),'w'))
+        pickle.dump(obj, open(self.filepath(filename), 'w'))
 
     def loado(self, filename):
         """
         loads an object from a local location
         """
-        return pickle.load(open(self.filepath(filename),'r'))
-
+        return pickle.load(open(self.filepath(filename), 'r'))
 
     def dumps(self, the_str, filename, encoding=None):
         """
@@ -70,21 +76,20 @@ class Local(object):
         encoding = encoding or self.encoding
         str_to.file(the_str, self.filepath(filename), encoding=encoding)
 
-
     def loads(self, filename):
         """
         loads an object from a local location
         """
         return file_to.string(self.filepath(filename))
 
-
     def dumpu(self, the_str, filename, encoding=None):
         """
         saves an object to a local location
         """
         encoding = encoding or self.encoding
-        str_to.file(str_to_unicode_or_bust(the_str), self.filepath(filename), encoding=encoding)
-
+        str_to.file(
+            str_to_unicode_or_bust(the_str), self.filepath(filename), encoding=encoding
+        )
 
     def loadu(self, filename):
         """
@@ -92,14 +97,12 @@ class Local(object):
         """
         return str_to_unicode_or_bust(file_to.string(self.filepath(filename)))
 
-
     def df_to_csv(self, df, filename, encoding=None):
         """
         saves an object to a local location
         """
         encoding = encoding or self.encoding
-        return df.to_csv(self.filepath(filename), encoding=encoding, sep="\t")
-
+        return df.to_csv(self.filepath(filename), encoding=encoding, sep='\t')
 
     def df_to_excel(self, df, filename, **kwargs):
         """
@@ -107,7 +110,9 @@ class Local(object):
         """
         if filename.startswith('/'):
             filename = filename[1:]
-        if 'index' not in kwargs: # make the default index=False if not specified in input
+        if (
+            'index' not in kwargs
+        ):  # make the default index=False if not specified in input
             kwargs = dict({'index': False}, **kwargs)
         return df.to_excel(self.filepath(filename), **kwargs)
 

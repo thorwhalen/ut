@@ -7,6 +7,7 @@ import pickle
 import os
 
 import ut as ms
+
 # import ut.parse.html2text_formated as html2text_formated
 from pattern.web import plaintext
 import ut.pstr.trans
@@ -15,7 +16,6 @@ from ut.slurp.yboss import Yboss
 
 
 class YbossText(object):
-
     @staticmethod
     def flat_html(yb):
         return '\n'.join(yb['title']) + '\n'.join(yb['abstract'])
@@ -77,19 +77,26 @@ from oto.data_access.default_data_access_params import DefaultDataAccessParams
 
 class YbossSemantics(object):
     def __init__(self, **kwargs):
-        kwargs = dict({
-            'key_terms': list(),
-            'term_map': {'the': 'the'},  # dict() # TODO: dict() didn't work, so I put essentially empty {the:the}
-            'yb_to_tc': self.tc_flat_from_yb,
-            'yboss_kwargs': dict()
-        }, **kwargs)
+        kwargs = dict(
+            {
+                'key_terms': list(),
+                'term_map': {
+                    'the': 'the'
+                },  # dict() # TODO: dict() didn't work, so I put essentially empty {the:the}
+                'yb_to_tc': self.tc_flat_from_yb,
+                'yboss_kwargs': dict(),
+            },
+            **kwargs
+        )
         for k, v in kwargs.items():
             setattr(self, k, v)
         for w in self.key_terms:
             self.term_map = dict(self.term_map, **{w: '_' + w.replace(' ', '_')})
         self.key_terms_ts = TermStats.from_terms(list(self.term_map.values()))
         self.text_preprocess = compose(
-            TermReplacer(self.term_map, term_padding_exp=r'\b').replace_terms, YbossText.toascii_lower)
+            TermReplacer(self.term_map, term_padding_exp=r'\b').replace_terms,
+            YbossText.toascii_lower,
+        )
         self.yb = Yboss(**self.yboss_kwargs)
         delattr(self, 'yboss_kwargs')
 
@@ -106,7 +113,9 @@ class YbossSemantics(object):
 
     def get_info_of_term(self, term):
         d = {'term': term}
-        t = self.yb.slurp_content_as_dict(d['term'], service='limitedweb')['bossresponse']['limitedweb']
+        t = self.yb.slurp_content_as_dict(d['term'], service='limitedweb')[
+            'bossresponse'
+        ]['limitedweb']
         d['totalresults'] = t['totalresults']
         d['results'] = t['results']
         d['results_df'] = self.yb.content_to_results_df(t)
@@ -126,13 +135,17 @@ class YbossSemantics(object):
 
     def cos_of_terms(self, term1, term2):
         if isinstance(term1, str):
-            term1 = self.yb.slurp_content_as_dict(term1, service='limitedweb')['bossresponse']['limitedweb']
+            term1 = self.yb.slurp_content_as_dict(term1, service='limitedweb')[
+                'bossresponse'
+            ]['limitedweb']
         if isinstance(term1, dict):
             term1 = self.yb.content_to_results_df(term1)
         if not isinstance(term1, TermStats):
             term1 = self.tc_flat_from_yb(term1)
         if isinstance(term2, str):
-            term2 = self.yb.slurp_content_as_dict(term2, service='limitedweb')['bossresponse']['limitedweb']
+            term2 = self.yb.slurp_content_as_dict(term2, service='limitedweb')[
+                'bossresponse'
+            ]['limitedweb']
         if isinstance(term2, dict):
             term2 = self.yb.content_to_results_df(term2)
         if not isinstance(term2, TermStats):
@@ -143,17 +156,33 @@ class YbossSemantics(object):
         N = 2210000000  # took that to be the number of results for "the", but should be total number of pages indexed
         # http://arxiv.org/pdf/cs/0412098.pdf
         term1_total_results = np.log(
-            int(self.yb.slurp_content_as_dict(term1, service='limitedweb')['bossresponse']['limitedweb'][
-                    'totalresults']))
+            int(
+                self.yb.slurp_content_as_dict(term1, service='limitedweb')[
+                    'bossresponse'
+                ]['limitedweb']['totalresults']
+            )
+        )
         term2_total_results = np.log(
-            int(self.yb.slurp_content_as_dict(term2, service='limitedweb')['bossresponse']['limitedweb'][
-                    'totalresults']))
+            int(
+                self.yb.slurp_content_as_dict(term2, service='limitedweb')[
+                    'bossresponse'
+                ]['limitedweb']['totalresults']
+            )
+        )
         term1_term2_total_total_results = np.log(
-            int(self.yb.slurp_content_as_dict(term1 + ' ' + term2, service='limitedweb')
-                ['bossresponse']['limitedweb']['totalresults']))
+            int(
+                self.yb.slurp_content_as_dict(
+                    term1 + ' ' + term2, service='limitedweb'
+                )['bossresponse']['limitedweb']['totalresults']
+            )
+        )
         term2_term1_total_total_results = np.log(
-            int(self.yb.slurp_content_as_dict(term2 + ' ' + term1, service='limitedweb')
-                ['bossresponse']['limitedweb']['totalresults']))
+            int(
+                self.yb.slurp_content_as_dict(
+                    term2 + ' ' + term1, service='limitedweb'
+                )['bossresponse']['limitedweb']['totalresults']
+            )
+        )
         min_log = np.min([term1_total_results, term2_total_results])
         max_log = np.min([term1_total_results, term2_total_results])
         t12 = (max_log - term1_term2_total_total_results) / (np.log(N) - min_log)

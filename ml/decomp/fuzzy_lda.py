@@ -9,13 +9,15 @@ from sklearn.decomposition import PCA
 from collections import Counter
 from sklearn.utils.extmath import softmax
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.linear_model._base import LinearClassifierMixin  # if you don't have sklearn.linear_model._base, upgrade scikit-learn to latest (e.g. scikit-learn==0.24.2)
+from sklearn.linear_model._base import (
+    LinearClassifierMixin,
+)  # if you don't have sklearn.linear_model._base, upgrade scikit-learn to latest (e.g. scikit-learn==0.24.2)
 
-EPSILON = 1E-6
+EPSILON = 1e-6
 
 
 def class_freqs_df(y):
-    cc_df = pd.DataFrame.from_dict(y).fillna(value=0.)
+    cc_df = pd.DataFrame.from_dict(y).fillna(value=0.0)
     # tot = cc_df.values.sum()
     res = cc_df.sum(axis=0)
     res /= res.sum()
@@ -26,7 +28,9 @@ def class_freqs_df(y):
 
 def rescale_dict(dictionary, scalar):
     res_dict = {}
-    res_dict.update((key, value * float(scalar)) for (key, value) in list(dictionary.items()))
+    res_dict.update(
+        (key, value * float(scalar)) for (key, value) in list(dictionary.items())
+    )
     return res_dict
 
 
@@ -41,7 +45,7 @@ def class_freqs(y, sample_weight):
     for item in weighted_dict:
         cc.update(item)
     tot_weight = np.sum(sample_weight)
-    return rescale_dict(cc, 1. / tot_weight)
+    return rescale_dict(cc, 1.0 / tot_weight)
 
 
 def get_projection_dimension(X, tol=1e-08):
@@ -56,14 +60,17 @@ def get_projection_dimension(X, tol=1e-08):
 
 def _preprocess(X, y, sample_weight):
     all_labels = list(set().union(*(list(d.keys()) for d in y)))
-    return pd.DataFrame(X), pd.DataFrame.from_dict(list(y)).fillna(value=0.), \
-           pd.Series(sample_weight, name='X_weight'), \
-           all_labels, \
-           len(all_labels)
+    return (
+        pd.DataFrame(X),
+        pd.DataFrame.from_dict(list(y)).fillna(value=0.0),
+        pd.Series(sample_weight, name='X_weight'),
+        all_labels,
+        len(all_labels),
+    )
 
 
 def lda_decision_function(class_freqs, class_means, covar, X):
-    covar /= (X.shape[0] - class_means.shape[0])
+    covar /= X.shape[0] - class_means.shape[0]
     right_term = np.dot(np.linalg.inv(covar), class_means.T)
     linear_term = np.dot(X, right_term)
     bilin_term = np.diagonal(0.5 * np.dot(class_means, right_term))
@@ -104,8 +111,9 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
             Sw += EPSILON * np.eye(Sw.shape[0])
 
         evals, evecs = linalg.eig(Sb, Sw, right=True)  # eigh(Sb, Sw)
-        self.explained_variance_ratio_ = np.sort(evals / np.sum(evals)
-                                                 )[::-1][:self._max_components]
+        self.explained_variance_ratio_ = np.sort(evals / np.sum(evals))[::-1][
+            : self._max_components
+        ]
         evecs = evecs[:, np.argsort(evals)[::-1]]  # sort eigenvectors
         evecs /= np.linalg.norm(evecs, axis=0)
 
@@ -136,8 +144,10 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
         means = []
         for index, label in enumerate(self.all_labels):
             means.append(
-                (self.X_df.mul(self.df_weights, axis=0)).mul(self.y_df[label], axis=0)[self.y_df[label] > 0.].mean(
-                    axis=0))
+                (self.X_df.mul(self.df_weights, axis=0))
+                .mul(self.y_df[label], axis=0)[self.y_df[label] > 0.0]
+                .mean(axis=0)
+            )
 
         means_array = np.array(means)
         self.means_df = pd.DataFrame(means_array, index=self.all_labels)
@@ -165,7 +175,11 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
 
         weights = []
         for index, label in enumerate(self.all_labels):
-            weights.append(self.df_weights.mul(self.y_df[label], axis=0)[self.y_df[label] > 0.].sum(axis=0))
+            weights.append(
+                self.df_weights.mul(self.y_df[label], axis=0)[
+                    self.y_df[label] > 0.0
+                ].sum(axis=0)
+            )
 
         weights_array = np.array(weights)
 
@@ -178,8 +192,17 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
         within_scatter_matrix = []
         for label in self.all_labels:
             within_scatter_matrix.append(
-                np.cov((self.X_df[self.y_df[label] > 0.].mul(np.sqrt(self.df_weights[self.y_df[label] > 0.]), axis=0)) \
-                       .mul(np.sqrt(self.y_df[label][self.y_df[label] > 0.]), axis=0).values.T, bias=1))
+                np.cov(
+                    (
+                        self.X_df[self.y_df[label] > 0.0].mul(
+                            np.sqrt(self.df_weights[self.y_df[label] > 0.0]), axis=0
+                        )
+                    )
+                    .mul(np.sqrt(self.y_df[label][self.y_df[label] > 0.0]), axis=0)
+                    .values.T,
+                    bias=1,
+                )
+            )
 
         return np.array(within_scatter_matrix).mean(axis=0)
 
@@ -190,14 +213,25 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
         within_scatter_matrix = []
         for label in self.all_labels:
             within_scatter_matrix.append(
-                np.cov((self.X_df[self.y_df[label] > 0.].mul(np.sqrt(self.df_weights[self.y_df[label] > 0.]), axis=0)) \
-                       .mul(np.sqrt(self.y_df[label][self.y_df[label] > 0.]), axis=0).values.T, bias=1))
+                np.cov(
+                    (
+                        self.X_df[self.y_df[label] > 0.0].mul(
+                            np.sqrt(self.df_weights[self.y_df[label] > 0.0]), axis=0
+                        )
+                    )
+                    .mul(np.sqrt(self.y_df[label][self.y_df[label] > 0.0]), axis=0)
+                    .values.T,
+                    bias=1,
+                )
+            )
 
         return np.array(within_scatter_matrix)
 
     def between_classes_scatter(self, X, y, sample_weight):
         overall_mean = X.mean(axis=0)
-        mean_vectors = pd.DataFrame(self._class_means(X, y, sample_weight), index=self.all_labels)
+        mean_vectors = pd.DataFrame(
+            self._class_means(X, y, sample_weight), index=self.all_labels
+        )
         mean_vectors -= overall_mean
         sq_weights = np.sqrt(self.class_weights_df)[0]
 
@@ -240,10 +274,17 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
             y = np.array(new_y)
 
         self.classes_ = list(set().union(*(list(d.keys()) for d in y)))
-        self.X_df, self.y_df, self.df_weights, self.all_labels, self.num_labels = \
-            _preprocess(X, y, sample_weight)
+        (
+            self.X_df,
+            self.y_df,
+            self.df_weights,
+            self.all_labels,
+            self.num_labels,
+        ) = _preprocess(X, y, sample_weight)
 
-        self.class_weights_df = pd.DataFrame(self._class_weights(X, y, sample_weight), index=self.all_labels)
+        self.class_weights_df = pd.DataFrame(
+            self._class_weights(X, y, sample_weight), index=self.all_labels
+        )
         self.class_freqs_df = class_freqs_df(y)
 
         # Get the maximum number of components
@@ -258,11 +299,13 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
             self._max_components = min(self.n_components, n_dimensions)
             self.extract_more_dim(X, y, sample_weight, self._max_components)
 
-        if (self.solver == 'None' or self.solver == 'eigen'):
+        if self.solver == 'None' or self.solver == 'eigen':
             self._solve_eigen(X, y, sample_weight)
         else:
-            raise ValueError("unknown solver {} (valid solvers are None, "
-                             "and 'eigen').".format(self.solver))
+            raise ValueError(
+                'unknown solver {} (valid solvers are None, '
+                "and 'eigen').".format(self.solver)
+            )
         if len(self.classes_) == 2:  # treat binary case as a special case
             self.coef_ = np.array(self.coef_[1, :] - self.coef_[0, :], ndmin=2)
             # self.intercept_ = np.array(self.intercept_[1] - self.intercept_[0],
@@ -284,7 +327,7 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
         check_is_fitted(self, ['scalings_'], all_or_any=any)
         X_new = np.dot(X, self.scalings_)
 
-        return X_new[:, :self._max_components]  # done
+        return X_new[:, : self._max_components]  # done
 
     def predict_proba(self, X):
         """Assign new point to a class.
@@ -327,7 +370,7 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
 
     def extract_more_dim(self, X, y, sample_weight, n_dim):
 
-        assert len(X[0]) >= n_dim, "n_dim cannot be larger than the number of features"
+        assert len(X[0]) >= n_dim, 'n_dim cannot be larger than the number of features'
         n_labels = len(self.classes_)
         n_projections, remainder = divmod(n_dim, n_labels - 1)
         scalings = list()
@@ -337,7 +380,7 @@ class FuzzyLDA(BaseEstimator, LinearClassifierMixin, TransformerMixin):
             FLDA = FuzzyLDA(n_components=n_labels - 1)
             FLDA.fit(X, y, sample_weight)
             X = X - np.dot(np.dot(X, FLDA.scalings_), np.transpose(FLDA.scalings_))
-            scalings.append(FLDA.scalings_[:, :n_labels - 1])
+            scalings.append(FLDA.scalings_[:, : n_labels - 1])
 
         if remainder > 0:
             FLDA_remainder = FuzzyLDA(n_components=remainder)

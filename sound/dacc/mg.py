@@ -13,7 +13,9 @@ from ut.pstr.trans import str_to_utf8_or_bust
 
 
 class MgDacc(object):
-    def __init__(self, db, collection, root_folder, path_field='_id', mg_client_kwargs={}):
+    def __init__(
+        self, db, collection, root_folder, path_field='_id', mg_client_kwargs={}
+    ):
         self.mgc = MongoClient(**mg_client_kwargs)[db][collection]
         self.root_folder = root_folder
         self.path_field = path_field
@@ -55,9 +57,21 @@ class MgDacc(object):
 
 
 class SegmentDacc(MgDacc):
-    def __init__(self, db, collection, root_folder, path_field='_id', mg_client_kwargs={},
-                 segment_field='segments', feat_field='fv', tag_field='tags', kv_tag_field='kv_tags'):
-        super(SegmentDacc, self).__init__(db, collection, root_folder, path_field, mg_client_kwargs)
+    def __init__(
+        self,
+        db,
+        collection,
+        root_folder,
+        path_field='_id',
+        mg_client_kwargs={},
+        segment_field='segments',
+        feat_field='fv',
+        tag_field='tags',
+        kv_tag_field='kv_tags',
+    ):
+        super(SegmentDacc, self).__init__(
+            db, collection, root_folder, path_field, mg_client_kwargs
+        )
         self.segment_field = segment_field
         self.feat_field = feat_field
         self.tag_field = tag_field
@@ -75,7 +89,9 @@ class SegmentDacc(MgDacc):
                 dd.update(seg['fv'])
                 dd.update({'offset_s': seg['offset_s'], 'duration': seg['duration']})
                 d += [dd]
-        d = reorder_columns_as(pd.DataFrame(d), ['path', 'tags', 'offset_s', 'duration'])
+        d = reorder_columns_as(
+            pd.DataFrame(d), ['path', 'tags', 'offset_s', 'duration']
+        )
         return d
 
     def get_data_with_kv_tags(self, *args, **kwargs):
@@ -98,7 +114,9 @@ class SegmentDacc(MgDacc):
                 dd.update(seg['fv'])
                 dd.update({'offset_s': seg['offset_s'], 'duration': seg['duration']})
                 d += [dd]
-        d = reorder_columns_as(pd.DataFrame(d), ['path'] + kv_tag_keys + ['offset_s', 'duration'])
+        d = reorder_columns_as(
+            pd.DataFrame(d), ['path'] + kv_tag_keys + ['offset_s', 'duration']
+        )
         return d
 
     # def get_sound(self, *args, **kwargs):
@@ -106,10 +124,10 @@ class SegmentDacc(MgDacc):
     #     #     kwargs['path_or_doc'] = args[0]
     #     return super(SegmentDacc, self).get_sound(path_or_doc=, **kwargs)
 
-            # return super(SegmentDacc, self).get_sound(args[0], **kwargs)
-        # return super(SegmentDacc, self).get_sound(path_or_doc=kwargs['path'],
-        #                                           offset_s=kwargs['offset_s'],
-        #                                           duration=kwargs['duration'])
+    # return super(SegmentDacc, self).get_sound(args[0], **kwargs)
+    # return super(SegmentDacc, self).get_sound(path_or_doc=kwargs['path'],
+    #                                           offset_s=kwargs['offset_s'],
+    #                                           duration=kwargs['duration'])
 
     def get_segment_iterator(self, only_segments=True, fields=None, *args, **kwargs):
         cursor = self.mgc.find(*args, **kwargs)

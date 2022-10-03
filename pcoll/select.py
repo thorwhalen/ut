@@ -1,7 +1,9 @@
 inf = float('infinity')
 
 
-def gen_nearest_neighbor_matching_pairs(query_pts, match_pts, radius=inf, yield_indices_only=False):
+def gen_nearest_neighbor_matching_pairs(
+    query_pts, match_pts, radius=inf, yield_indices_only=False
+):
     from sklearn.neighbors import NearestNeighbors
     import numpy as np
 
@@ -20,18 +22,27 @@ def gen_nearest_neighbor_matching_pairs(query_pts, match_pts, radius=inf, yield_
     else:
         nn = NearestNeighbors(n_neighbors=1).fit(trans_wrt_ndim(match_pts))
 
-    match_dist, match_idx = nn.kneighbors(trans_wrt_ndim(query_pts), return_distance=True)
+    match_dist, match_idx = nn.kneighbors(
+        trans_wrt_ndim(query_pts), return_distance=True
+    )
     match_dist = match_dist[:, 0]
     match_idx = match_idx[:, 0]
     within_radius_lidx = match_dist <= radius
 
     if yield_indices_only:
-        yield from zip(np.arange(len(within_radius_lidx))[within_radius_lidx], match_idx[within_radius_lidx])
+        yield from zip(
+            np.arange(len(within_radius_lidx))[within_radius_lidx],
+            match_idx[within_radius_lidx],
+        )
     else:
-        yield from zip(query_pts[within_radius_lidx], match_pts[match_idx[within_radius_lidx]])
+        yield from zip(
+            query_pts[within_radius_lidx], match_pts[match_idx[within_radius_lidx]]
+        )
 
 
-def _first_pair_within_radius(it1, x2, radius=inf, dist_func=lambda x1, x2: abs(x1 - x2)):
+def _first_pair_within_radius(
+    it1, x2, radius=inf, dist_func=lambda x1, x2: abs(x1 - x2)
+):
     for i, x1 in enumerate(it1):
         if x1 > x2:
             return i, None
@@ -40,7 +51,9 @@ def _first_pair_within_radius(it1, x2, radius=inf, dist_func=lambda x1, x2: abs(
     return None, None
 
 
-def _close_pairs_helper(it1, it2, radius=inf, inverted=False, dist_func=lambda x1, x2: abs(x1 - x2)):
+def _close_pairs_helper(
+    it1, it2, radius=inf, inverted=False, dist_func=lambda x1, x2: abs(x1 - x2)
+):
     if len(it1) != 0 and len(it2) != 0:
         x1 = it1[0]
         x2 = it2[0]
@@ -53,7 +66,7 @@ def _close_pairs_helper(it1, it2, radius=inf, inverted=False, dist_func=lambda x
                         yield x2, x1
                     else:
                         yield x1, x2
-                    it1 = it1[(i + 1):]
+                    it1 = it1[(i + 1) :]
                     it2 = it2[1:]
                     if len(it1) == 0 or len(it2) == 0:
                         break
@@ -63,10 +76,14 @@ def _close_pairs_helper(it1, it2, radius=inf, inverted=False, dist_func=lambda x
                 else:
                     break
         else:
-            yield from _close_pairs_helper(it2, it1, radius=radius, inverted=not inverted, dist_func=dist_func)
+            yield from _close_pairs_helper(
+                it2, it1, radius=radius, inverted=not inverted, dist_func=dist_func
+            )
 
 
-def gen_of_close_pairs_from_iterables(it1, it2, radius=inf, dist_func=lambda x1, x2: abs(x1 - x2)):
+def gen_of_close_pairs_from_iterables(
+    it1, it2, radius=inf, dist_func=lambda x1, x2: abs(x1 - x2)
+):
     """Generate pairs of numbers taken from two iterators such that the values of the pairs are within a given distance
 
     Note: This function might be counter intuitive: You might want to use gen_nearest_neighbor_matching_pairs instead.
@@ -94,10 +111,14 @@ def gen_of_close_pairs_from_iterables(it1, it2, radius=inf, dist_func=lambda x1,
     it1 = sorted(it1)
     it2 = sorted(it2)
 
-    yield from _close_pairs_helper(sorted(it1), sorted(it2), radius, inverted=False, dist_func=dist_func)
+    yield from _close_pairs_helper(
+        sorted(it1), sorted(it2), radius, inverted=False, dist_func=dist_func
+    )
 
 
-def sublist_that_contains_segment(sorted_segment_mins, from_val=-inf, to_val=inf, key=None):
+def sublist_that_contains_segment(
+    sorted_segment_mins, from_val=-inf, to_val=inf, key=None
+):
     """
     Returns the smallest segment-covering of an interval where the segments are partitions of the real line and are
     given (in the sorted_segment_mins) by a sorted list of smallest value of a segment.
@@ -157,7 +178,7 @@ def sublist_that_contains_segment(sorted_segment_mins, from_val=-inf, to_val=inf
     for x in sorted_segment_mins:
         val = x_to_val(x)
         if val < previous_val:
-            raise AssertionError("sorted_ts is not sorted")
+            raise AssertionError('sorted_ts is not sorted')
         if val < from_val:
             sublist = [x]
         else:

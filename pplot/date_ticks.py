@@ -15,18 +15,20 @@ unit_str_to_unit_in_seconds = {
     'us': 1e-6,
 }
 
-unit_in_seconds = np.array([
-    60 * 60 * 24 * 365,  # year
-    60 * 60 * 24 * 30,  # month
-    60 * 60 * 24 * 7,  # week
-    60 * 60 * 24,  # day
-    60 * 60,  # hour
-    60,  # minute
-    1,  # second
-    1e-3,  # millisecond
-    1e-6,  # microsecond
-    1e-9  # nanosecond
-])
+unit_in_seconds = np.array(
+    [
+        60 * 60 * 24 * 365,  # year
+        60 * 60 * 24 * 30,  # month
+        60 * 60 * 24 * 7,  # week
+        60 * 60 * 24,  # day
+        60 * 60,  # hour
+        60,  # minute
+        1,  # second
+        1e-3,  # millisecond
+        1e-6,  # microsecond
+        1e-9,  # nanosecond
+    ]
+)
 
 strftime_format_for_unit = {
     60 * 60 * 24 * 30: '%y-%m-%d',  # month
@@ -113,12 +115,17 @@ def strftime_with_precision(tick, format, sub_secs_precision=2):
 
 def str_ticks(ticks, ticks_unit, sub_secs_precision=2):
     t_format = strftime_format_for_ticks(ticks, ticks_unit)
-    return [strftime_with_precision(utc_datetime_from_val_and_unit(x, ticks_unit), t_format, sub_secs_precision) for x
-            in ticks]
+    return [
+        strftime_with_precision(
+            utc_datetime_from_val_and_unit(x, ticks_unit), t_format, sub_secs_precision
+        )
+        for x in ticks
+    ]
 
 
 def use_time_ticks(ax=None, ticks_unit=0.001):
     from matplotlib.pylab import gca
+
     if ax is None:
         ax = gca()
     _xticks = ax.get_xticks()

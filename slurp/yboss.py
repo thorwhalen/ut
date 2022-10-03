@@ -15,24 +15,26 @@ from ut.pdict.get import mk_fixed_coordinates_value_getter
 from ut.webscrape.yboss import YbossText
 
 
-
-yboss_root_url = "http://yboss.yahooapis.com"
+yboss_root_url = 'http://yboss.yahooapis.com'
 yboss_search_root_url = yboss_root_url + '/ysearch/'
 
-default_universal_args = {
-    'start': 0,
-    'count': 50,
-    'market': 'en-us',
-    'format': 'json'
-}
+default_universal_args = {'start': 0, 'count': 50, 'market': 'en-us', 'format': 'json'}
 
 service_default_req_args = {
-    'web': {'count': 50, 'abstract': 'long', 'style': 'raw'},  # filter, type, view, title, url, sites
-    'limitedweb': {'count': 50, 'abstract': 'long', 'style': 'raw'},  # filter, type, view, title, url, sites
+    'web': {
+        'count': 50,
+        'abstract': 'long',
+        'style': 'raw',
+    },  # filter, type, view, title, url, sites
+    'limitedweb': {
+        'count': 50,
+        'abstract': 'long',
+        'style': 'raw',
+    },  # filter, type, view, title, url, sites
     'news': {'count': 50, 'style': 'raw'},  # age, sort, title, url
     'blogs': {'count': 20, 'style': 'raw'},  # age, sort, count, title, url
     'related': {'count': 10},  # age, sort, count, title, url
-    'images': {'count': 35}  # filter, queryfilter, dimensions, referurl, url
+    'images': {'count': 35},  # filter, queryfilter, dimensions, referurl, url
 }
 
 default_yboss_attrs = {
@@ -40,12 +42,20 @@ default_yboss_attrs = {
     'oauth_consumer_secret': get_environment_variable('MON_YB_SECRET'),
     'default_service': 'limitedweb',
     'default_params': {},
-    'default_save_folder': os.getcwd()
+    'default_save_folder': os.getcwd(),
 }
 
 service_list = ['limitedweb', 'web', 'blogs', 'news', 'related', 'images']
 
-major_cols = ['query', 'position', 'title', 'abstract', 'dispurl', 'num_of_slurped_results', 'author']
+major_cols = [
+    'query',
+    'position',
+    'title',
+    'abstract',
+    'dispurl',
+    'num_of_slurped_results',
+    'author',
+]
 minor_cols = ['date', 'url', 'clickurl']
 
 
@@ -56,13 +66,15 @@ class Yboss(object):
         'oauth_consumer_secret': get_environment_variable('MON_YB_SECRET'),
         'default_service': 'limitedweb',
         'default_params': {},
-        'default_save_folder': os.getcwd()
+        'default_save_folder': os.getcwd(),
     }
 
     def __init__(self, **kwargs):
         self.__dict__.update(Yboss.default_yboss_attrs)
         self.__dict__.update(kwargs)
-        self.consumer = oauth2.Consumer(key=self.oauth_consumer_key, secret=self.oauth_consumer_secret)
+        self.consumer = oauth2.Consumer(
+            key=self.oauth_consumer_key, secret=self.oauth_consumer_secret
+        )
 
     ####################################################################################
     ###### SLURPERS ####################################################################
@@ -76,7 +88,9 @@ class Yboss(object):
             'oauth_timestamp': int(time.time()),
         }
         oauth_request = oauth2.Request(method='GET', url=url, parameters=request_params)
-        oauth_request.sign_request(oauth2.SignatureMethod_HMAC_SHA1(), self.consumer, None)
+        oauth_request.sign_request(
+            oauth2.SignatureMethod_HMAC_SHA1(), self.consumer, None
+        )
         oauth_header = oauth_request.to_header(realm='yahooapis.com')
 
         # Get search results
@@ -93,36 +107,60 @@ class Yboss(object):
         return json.loads(self.slurp_content(query, service=service, params=params))
 
     def slurp_content_and_save(self, query, service=None, params=None, filepath=None):
-        filepath = self.get_filepath_for_params(query=query, service=service, params=params, filepath=filepath)
+        filepath = self.get_filepath_for_params(
+            query=query, service=service, params=params, filepath=filepath
+        )
         resp_content = self.slurp_raw(query, service=service, params=params)
         json.dump(resp_content['content'], open(filepath, 'w'))
 
-    def slurp_df_and_save(self, query, service=None, params=None, filepath=None, n_pages=1):
-        filepath = self.get_filepath_for_params(query=query, service=service, params=params, filepath=filepath)
-        df = self.slurp_results_df_multiple_pages(query=query, service=service, params=params, n_pages=n_pages)
+    def slurp_df_and_save(
+        self, query, service=None, params=None, filepath=None, n_pages=1
+    ):
+        filepath = self.get_filepath_for_params(
+            query=query, service=service, params=params, filepath=filepath
+        )
+        df = self.slurp_results_df_multiple_pages(
+            query=query, service=service, params=params, n_pages=n_pages
+        )
         pd.to_pickle(df, filepath)
         return df
 
-    def get_df(self, query, service=None, params=None, filepath=None, n_pages=1, overwrite=False):
-        filepath = self.get_filepath_for_params(query=query, service=service, params=params, filepath=filepath)
+    def get_df(
+        self,
+        query,
+        service=None,
+        params=None,
+        filepath=None,
+        n_pages=1,
+        overwrite=False,
+    ):
+        filepath = self.get_filepath_for_params(
+            query=query, service=service, params=params, filepath=filepath
+        )
         if not overwrite and os.path.exists(filepath):
             return pd.read_pickle(filepath)
         else:
-            return self.slurp_df_and_save(query=query, service=service, params=params, n_pages=n_pages)
+            return self.slurp_df_and_save(
+                query=query, service=service, params=params, n_pages=n_pages
+            )
 
     def slurp_results_df(self, query, service=None, params=None):
-        content_dict = json.loads(self.slurp_content(query, service=service, params=params))
+        content_dict = json.loads(
+            self.slurp_content(query, service=service, params=params)
+        )
         content_dict = self.get_item(content_dict)
         return self.content_to_results_df(content_dict)
 
     def content_to_results_df(self, content_dict):
         df = pd.DataFrame(content_dict['results'])
         start_position = int(content_dict['start'])
-        df['position'] = list(range(start_position, start_position+len(df)))
+        df['position'] = list(range(start_position, start_position + len(df)))
         df._metadata = {'totalresults': int(content_dict['totalresults'])}
         return df
 
-    def slurp_results_df_multiple_pages(self, query, service=None, params=None, n_pages=5):
+    def slurp_results_df_multiple_pages(
+        self, query, service=None, params=None, n_pages=5
+    ):
         service, params = self.fill_with_defaults(service, params)
         df = pd.DataFrame()
         new_df = pd.DataFrame()
@@ -137,10 +175,8 @@ class Yboss(object):
         df._metadata = new_df._metadata
         return df
 
-
     ####################################################################################
     ###### UTILS #######################################################################
-
 
     ####################################################################################
     ###### CONTENT ACCESSORS ###########################################################
@@ -177,13 +213,19 @@ class Yboss(object):
     def url(self, query, service=None, params=None):
         service = service or self.default_service
         params = params or self.default_params
-        return yboss_search_root_url + self.rel_url(query=query, service=service, params=params)
+        return yboss_search_root_url + self.rel_url(
+            query=query, service=service, params=params
+        )
 
     def rel_url(self, query, service=None, params=None):
         service = service or self.default_service
         params = params or self.default_params
         params = Yboss.mk_req_params(service, params)
-        return "%s?q=%s%s" % (service, self.url_encode_str(query), self.url_encode_params(params))
+        return '%s?q=%s%s' % (
+            service,
+            self.url_encode_str(query),
+            self.url_encode_params(params),
+        )
 
     def get_filename_for_query(self, query, service=None, params=None):
         return self.rel_url(query, service=service, params=params).replace('?', '--')
@@ -195,13 +237,20 @@ class Yboss(object):
             file_path = os.path.join(self.default_save_folder, filespec)
             if not os.path.exists(file_path):
                 # assume it's a query, and derive what the filepath should be
-                file_path = os.path.join(self.default_save_folder, self.get_filename_for_query(filespec))
+                file_path = os.path.join(
+                    self.default_save_folder, self.get_filename_for_query(filespec)
+                )
         return file_path
 
     def get_filepath_for_params(self, query, service=None, params=None, filepath=None):
         filepath = filepath or self.default_save_folder
-        if os.path.isdir(filepath):  # if filepath is a directory, need to make a filename for it
-            filepath = os.path.join(filepath, self.get_filename_for_query(query, service=service, params=params))
+        if os.path.isdir(
+            filepath
+        ):  # if filepath is a directory, need to make a filename for it
+            filepath = os.path.join(
+                filepath,
+                self.get_filename_for_query(query, service=service, params=params),
+            )
         return filepath
 
     def fill_with_defaults(self, service=None, params=None):
@@ -213,8 +262,8 @@ class Yboss(object):
     def mk_req_params(cls, service, params=None):
         params = params or {}
         return dict(
-            dict(default_universal_args, **service_default_req_args[service]),
-            **params)
+            dict(default_universal_args, **service_default_req_args[service]), **params
+        )
 
     @classmethod
     def url_encode_str(cls, s):
@@ -232,13 +281,15 @@ class Yboss(object):
 
     @classmethod
     def print_some_resources(cls):
-        print('''
+        print(
+            '''
             guide to yahoo BOSS: http://developer.yahoo.com/boss/search/boss_api_guide/index.html
             pricing (by service): http://developer.yahoo.com/boss/search/#pricing
             services: web, limitedweb, images, news, blogs, related
             response fields: http://developer.yahoo.com/boss/search/boss_api_guide/webv2_response.html
             market and languages: http://developer.yahoo.com/boss/search/boss_api_guide/supp_regions_lang.html
-                ''')
+                '''
+        )
 
     @classmethod
     def process_df(cls, df):
@@ -248,5 +299,3 @@ class Yboss(object):
         df = ms.daf.manip.reorder_columns_as(df, major_cols + minor_cols)
         df = df.reset_index(drop=True)
         return df
-
-

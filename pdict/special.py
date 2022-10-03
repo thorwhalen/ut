@@ -103,7 +103,9 @@ class KeyPathDict(dict):
                 val_so_far = super(KeyPathDict, self).get(key_path[0], d)
                 for key in key_path[1:]:
                     if isinstance(val_so_far, dict):
-                        val_so_far = val_so_far.get(key, val_unlikely_to_be_value_of_dict)
+                        val_so_far = val_so_far.get(
+                            key, val_unlikely_to_be_value_of_dict
+                        )
                         if val_so_far == val_unlikely_to_be_value_of_dict:
                             return d
                     else:

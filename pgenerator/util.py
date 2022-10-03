@@ -11,5 +11,3 @@ def last_element(g):
         for last in g:
             pass
     return last
-
-

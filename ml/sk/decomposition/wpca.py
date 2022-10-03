@@ -3,7 +3,11 @@ from scipy import linalg
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_array
-from ut.ml.sk.decomposition.wpca_utils import check_array_with_weights, weighted_mean, has_integer_value
+from ut.ml.sk.decomposition.wpca_utils import (
+    check_array_with_weights,
+    weighted_mean,
+    has_integer_value,
+)
 
 
 class WPCA(BaseEstimator, TransformerMixin):
@@ -54,8 +58,7 @@ class WPCA(BaseEstimator, TransformerMixin):
            http://arxiv.org/abs/1412.4533
     """
 
-    def __init__(self, n_components=None, xi=0, regularization=None,
-                 copy=True):
+    def __init__(self, n_components=None, xi=0, regularization=None, copy=True):
         self.n_components = n_components
         self.xi = xi
         self.regularization = regularization
@@ -66,8 +69,7 @@ class WPCA(BaseEstimator, TransformerMixin):
 
         If fit_mean is True, then also save the mean to self.mean_
         """
-        X, weights = check_array_with_weights(X, weights, dtype=float,
-                                              copy=self.copy)
+        X, weights = check_array_with_weights(X, weights, dtype=float, copy=self.copy)
 
         if fit_mean:
             self.mean_ = weighted_mean(X, weights, axis=0)
@@ -142,7 +144,7 @@ class WPCA(BaseEstimator, TransformerMixin):
         if n_components < min(X.shape[0], X.shape[1]):
             self.noise_variance_ = explained_variance_[n_components:].mean()
         else:
-            self.noise_variance_ = 0.
+            self.noise_variance_ = 0.0
 
     def transform(self, X, weights=None):
         """Apply dimensionality reduction on X.

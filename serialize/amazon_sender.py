@@ -42,7 +42,9 @@ class AmazonSender(object):
         self.aws_key = aws_key or get_environment_variable('VEN_S3_ACCESS_KEY')
         self.aws_secret = aws_secret or get_environment_variable('VEN_S3_SECRET')
 
-    def send_email(self, subject='', text='', html=None, reply_addresses=None, sender_ascii=None):
+    def send_email(
+        self, subject='', text='', html=None, reply_addresses=None, sender_ascii=None
+    ):
         if not sender_ascii:
             sender_ascii = self.sender
 
@@ -64,9 +66,9 @@ class AmazonSender(object):
         if html:
             message.attach(MIMEText(_encode_str(html), 'html'))
 
-        return client.send_raw_email(message.as_string(),
-                                     sender_ascii,
-                                     destinations=self.to_addresses)
+        return client.send_raw_email(
+            message.as_string(), sender_ascii, destinations=self.to_addresses
+        )
 
     def verify_email(self, email):
         client = self.get_client()
@@ -74,18 +76,18 @@ class AmazonSender(object):
 
     def get_client(self):
         if not self.client:
-            self.client = SESConnection(self.aws_key,
-                                        self.aws_secret)
+            self.client = SESConnection(self.aws_key, self.aws_secret)
         return self.client
 
 
-#--- Helpers ----------------------------------------------
+# --- Helpers ----------------------------------------------
 def _convert_to_strings(list_of_strs):
     if isinstance(list_of_strs, (list, tuple)):
         result = COMMASPACE.join(list_of_strs)
     else:
         result = list_of_strs
     return _encode_str(result)
+
 
 def _encode_str(s):
     if type(s) == str:

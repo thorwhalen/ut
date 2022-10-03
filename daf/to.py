@@ -63,14 +63,20 @@ def map_vals_to_ints_inplace(df, cols_to_map):
         mapping_dict, df[cols_to_map] = np.unique(df[cols_to_map], return_inverse=True)
         mapping_dict = {cols_to_map: mapping_dict}
     elif isinstance(cols_to_map, dict):  # mapping with a user specified map
-        assert set(cols_to_map.keys()).issubset(df.columns), "cols_to_map keys must be a subset of df columns"
+        assert set(cols_to_map.keys()).issubset(
+            df.columns
+        ), 'cols_to_map keys must be a subset of df columns'
         for c in list(cols_to_map.keys()):
             this_map = cols_to_map[c]
             if isinstance(this_map, dict):
-                assert all(np.unique(list(this_map.values())) == np.array(list(range(len(this_map))))), \
-                    "you must map to consecutive integers starting at 0"
+                assert all(
+                    np.unique(list(this_map.values()))
+                    == np.array(list(range(len(this_map))))
+                ), 'you must map to consecutive integers starting at 0'
                 df[c] = df[c].apply(lambda x: this_map[x])
-                mapping_dict[c] = sort_as(list(this_map.keys()), list(this_map.values()))
+                mapping_dict[c] = sort_as(
+                    list(this_map.keys()), list(this_map.values())
+                )
             else:
                 df[c] = np.array(this_map)[list(df[c])]
                 mapping_dict[c] = this_map
@@ -94,16 +100,30 @@ def to_html(df, template='hor-minimalist-b', template_overwrites=None, **kwargs)
     for k in list(template.keys()):
         if 'style' in list(template[k].keys()):
             if not isinstance(template[k]['style'], str):
-                template[k]['style'] = '; '.join([kk + ': ' + v for kk, v in list(template[k]['style'].items())])
+                template[k]['style'] = '; '.join(
+                    [kk + ': ' + v for kk, v in list(template[k]['style'].items())]
+                )
     # start with the pandas generated html (soup)
     b = BeautifulSoup(df.to_html(**kwargs))
     # update table formatting
     recursive_update(b.find('table').attrs, template['table'])
     # update thead.th formatting
-    [recursive_update(x.attrs, template['thead']) for x in b.find('thead').find_all('th')]
+    [
+        recursive_update(x.attrs, template['thead'])
+        for x in b.find('thead').find_all('th')
+    ]
     # update tboday.tr.td formatting
-    [recursive_update(x.attrs, template['tbody']) for x in
-        list(itertools.chain.from_iterable([x.find_all('td') for x in [xx for xx in b.find('tbody').find_all('tr')]]))]
+    [
+        recursive_update(x.attrs, template['tbody'])
+        for x in list(
+            itertools.chain.from_iterable(
+                [
+                    x.find_all('td')
+                    for x in [xx for xx in b.find('tbody').find_all('tr')]
+                ]
+            )
+        )
+    ]
     return b.renderContents()
 
 
@@ -116,12 +136,13 @@ def insert_in_mongdb(df, collection, delete_previous_contents=False, **kwargs):
         insert_in_mongdb(df, getattr(getattr(client, db_name), collection_name), **kwargs):
     """
     if delete_previous_contents:
-            collection_name = collection.name
-            mother_db = collection.database
-            mother_db.drop_collection(collection_name)
-            mother_db.create_collection(collection_name)
+        collection_name = collection.name
+        mother_db = collection.database
+        mother_db.drop_collection(collection_name)
+        mother_db.create_collection(collection_name)
     kwargs = dict(kwargs, **{'safe': True})  # default is safe=True
     collection.insert(dict_list_of_rows(df), **kwargs)
+
 
 ### Don't know where I was inspired by this version below, but anyway, I think my newer version is simpler and faster
 # def insert_in_mongdb(df, mongo_db, collection_name, ubiquitous_dict=None, **kwargs):
@@ -139,8 +160,10 @@ def insert_in_mongdb(df, collection, delete_previous_contents=False, **kwargs):
 
 def dict_list_of_rows(df, dropna=False):
     if dropna:
-        return [{k: v for k, v in x.items() if not isinstance(v, float) or not np.isnan(v)}
-                for x in df.transpose().to_dict().values()]
+        return [
+            {k: v for k, v in x.items() if not isinstance(v, float) or not np.isnan(v)}
+            for x in df.transpose().to_dict().values()
+        ]
     else:
         return [x for x in df.transpose().to_dict().values()]
     # is 1.62 times faster than [dict(row) for i, row in df.iterrows()] in case you were wondering
@@ -165,7 +188,9 @@ def gzip_pickle(df, filepath):
     return filepath + '.gzip'
 
 
-def excel_multiple_sheets(df_enum, xls_filepath='excel_multiple_sheets.xlsx', sheet_names=None, **kwargs):
+def excel_multiple_sheets(
+    df_enum, xls_filepath='excel_multiple_sheets.xlsx', sheet_names=None, **kwargs
+):
     """
     Saves multiple dataframes (or one if you want) to multiple sheets of a same excel file
     Works with an enumeration (so could come from a generator) of dataframes.

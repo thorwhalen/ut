@@ -7,14 +7,14 @@ from khan_utils.encoding import to_unicode_or_bust, to_utf8_or_bust
 
 # TODO ! put in rate-limiting code here for writes (if boto not handling this correctly). Also, handle reads > 1 Meg here
 class DDBParser(object):
-
-    def __init__(self,
-                 access_key=None,
-                 secret=None,
-                 failed_table_name='parsed_simple_failed',
-                 missing_table_name='parsed_simple_missing',
-                 success_table_name='parsed_simple_good'
-                 ):
+    def __init__(
+        self,
+        access_key=None,
+        secret=None,
+        failed_table_name='parsed_simple_failed',
+        missing_table_name='parsed_simple_missing',
+        success_table_name='parsed_simple_good',
+    ):
         """
         If access_key and/or secret are not passed in, assumes we are accessing erenev's aws account and that the
         access info is stored as environment variables on the current server.
@@ -25,14 +25,20 @@ class DDBParser(object):
 
         access_key = access_key or get_environment_variable('VEN_S3_ACCESS_KEY')
         secret = secret or get_environment_variable('VEN_S3_SECRET')
-        self.connection=boto.dynamodb2.connect_to_region(region_name='eu-west-1', aws_access_key_id=access_key, aws_secret_access_key=secret)
+        self.connection = boto.dynamodb2.connect_to_region(
+            region_name='eu-west-1',
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret,
+        )
 
         self.failed_table = Table(failed_table_name, connection=self.connection)
         self.missing_table = Table(missing_table_name, connection=self.connection)
         self.success_table = Table(success_table_name, connection=self.connection)
 
     def save_results(self, searchterm, col1, col2, col3):
-        self.success_table.put_item(data={'searchterm': searchterm, })
+        self.success_table.put_item(
+            data={'searchterm': searchterm,}
+        )
 
     def save_failure(self, searchterm, msg):
         self.failed_table.put_item(data={'searchterm': searchterm, 'msg': msg})
@@ -45,7 +51,6 @@ class DDBParser(object):
         #     with self.missing_table.batch_write() as batch:
         #         for s in searchterms:
         #             batch.put_item(data=s, overwrite=True)
-
 
     def get_slurp_info(self, search_term_=None):
         """
@@ -61,7 +66,9 @@ class DDBParser(object):
         # searchterm_ is a STRING
         if isinstance(search_term_, str):
             if search_term_:
-                slurp_info = list((self.slurps_table.get_item(searchterm=search_term_)).items())
+                slurp_info = list(
+                    (self.slurps_table.get_item(searchterm=search_term_)).items()
+                )
             else:
                 slurp_info = []
 
@@ -80,7 +87,11 @@ class DDBParser(object):
 
         # searchterm is an unexpected type
         else:
-            raise TypeError("search_term_ must be a dict or a list of dicts, not a {}".format(type(search_term_)))
+            raise TypeError(
+                'search_term_ must be a dict or a list of dicts, not a {}'.format(
+                    type(search_term_)
+                )
+            )
 
         return slurp_info
 
@@ -92,7 +103,9 @@ class DDBParser(object):
         # make sure in utf8 before we send request to the db
         input_sts_utf8 = [to_utf8_or_bust(i) for i in searchterm_list]
         found_sts_info = self.get_slurp_info(input_sts_utf8)
-        found_sts_uni = [to_unicode_or_bust(dict(i)['searchterm']) for i in found_sts_info]
+        found_sts_uni = [
+            to_unicode_or_bust(dict(i)['searchterm']) for i in found_sts_info
+        ]
         input_sts_uni = [to_unicode_or_bust(i) for i in input_sts_utf8]
         missing_sts_uni = list(set(input_sts_uni) - set(found_sts_uni))
         # make sure to compare unicode to unicode
@@ -108,7 +121,9 @@ class DDBParser(object):
         """
         WARNING! Only use for test mode table
         """
-        assert self.test_mode==True, "Will only truncate test slurps table. To truncate production table, run code manually"
+        assert (
+            self.test_mode == True
+        ), 'Will only truncate test slurps table. To truncate production table, run code manually'
         with self.slurps_table.batch_write() as batch:
             for item in self.slurps_table.scan():
                 batch.delete_item(searchterm=item['searchterm'])
@@ -117,7 +132,11 @@ class DDBParser(object):
         """
         WARNING! Only use for test mode table
         """
-        assert self.test_mode==True, "Will only truncate test failed slurps table. To truncate production table, run code manually"
+        assert (
+            self.test_mode == True
+        ), 'Will only truncate test failed slurps table. To truncate production table, run code manually'
         with self.failed_slurps_table.batch_write() as batch:
             for item in self.failed_slurps_table.scan():
-                batch.delete_item(searchterm=item['searchterm'], datetime=item['datetime'])
+                batch.delete_item(
+                    searchterm=item['searchterm'], datetime=item['datetime']
+                )

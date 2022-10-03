@@ -10,9 +10,12 @@ def url_to_html_func(kind='requests'):
         def url_to_html(url):
             r = requests.get(url)
             if r.status_code != 200:
-                print(f"An error occured. Returning the response object for you to analyze: {r}")
+                print(
+                    f'An error occured. Returning the response object for you to analyze: {r}'
+                )
                 return r
             return r.content
+
     elif kind == 'chrome':
         from selenium import webdriver
         from time import sleep
@@ -25,8 +28,9 @@ def url_to_html_func(kind='requests'):
             html = b.page_source
             b.close()
             return html
+
     else:
-        raise ValueError(f"Unknown url_to_html value: {url_to_html}")
+        raise ValueError(f'Unknown url_to_html value: {url_to_html}')
     assert callable(url_to_html), "Couldn't make a url_to_html function"
 
     return url_to_html

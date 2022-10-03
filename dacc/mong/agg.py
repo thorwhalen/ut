@@ -9,11 +9,15 @@ def drop_duplicates_pipe(val_cols, gr_cols=None, take_last=False, no_id=True):
     else:
         first_or_last = '$first'
     # making the util dicts
-    group_dict = dict(list({'_id': x_to_x_dict(gr_cols)}.items()) +
-                      list({k: {first_or_last: '$' + k} for k in val_cols}.items()))
-    project_dict = dict(list({'_id': 0}.items()) +
-                        list({k: '$_id.' + k for k in gr_cols}.items()) +
-                        list(x_to_x_dict(val_cols).items()))
+    group_dict = dict(
+        list({'_id': x_to_x_dict(gr_cols)}.items())
+        + list({k: {first_or_last: '$' + k} for k in val_cols}.items())
+    )
+    project_dict = dict(
+        list({'_id': 0}.items())
+        + list({k: '$_id.' + k for k in gr_cols}.items())
+        + list(x_to_x_dict(val_cols).items())
+    )
     return [{'$group': group_dict}, {'$project': project_dict}]
 
 
@@ -21,15 +25,28 @@ def popped_unwind_pipe(unwind_field, unwind_sub_fields, other_fields=None, no_id
     if other_fields is None and not isinstance(unwind_sub_fields, list):
         other_fields = unwind_sub_fields
     unwind_sub_fields = get_subfields(c=unwind_sub_fields, field=unwind_field)
-    other_fields = list(set(get_fields(other_fields, no_id=no_id)).difference([unwind_field]))
-    unwind_projection = {k: '${unwind_field}.{unwind_subfield}'.format(
-                unwind_field=unwind_field, unwind_subfield=k) for k in unwind_sub_fields}
+    other_fields = list(
+        set(get_fields(other_fields, no_id=no_id)).difference([unwind_field])
+    )
+    unwind_projection = {
+        k: '${unwind_field}.{unwind_subfield}'.format(
+            unwind_field=unwind_field, unwind_subfield=k
+        )
+        for k in unwind_sub_fields
+    }
     other_projection = {k: 1 for k in other_fields}
-    return [{'$unwind': '$' + unwind_field},
-            {'$project': dict(list(unwind_projection.items()) + list(other_projection.items()))}]
+    return [
+        {'$unwind': '$' + unwind_field},
+        {
+            '$project': dict(
+                list(unwind_projection.items()) + list(other_projection.items())
+            )
+        },
+    ]
 
 
 ###### UTILS #######################################################
+
 
 def x_to_x_dict(x):
     return {k: '$' + k for k in x}
@@ -89,10 +106,3 @@ def get_subfields(c, field=None, no_id=True):
                 c = c.collection.find_one()
         # now call get_subfields on THAT c:
         return get_subfields(c, field=field, no_id=no_id)
-
-
-
-
-
-
-

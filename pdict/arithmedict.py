@@ -7,7 +7,11 @@ def _apply_op(op, d1, dflt_1, d2, dflt_2):
         for k, v1 in d1.items():
             v2 = d2.get(k, dflt_2)
             out[k] = op(v1, v2)
-        for k in d2:  # take care of the remainder (those keys in dict_2 that were not in dict_1)
+        for (
+            k
+        ) in (
+            d2
+        ):  # take care of the remainder (those keys in dict_2 that were not in dict_1)
             if k not in out:
                 out[k] = op(dflt_1, d2[k])
     else:
@@ -17,9 +21,12 @@ def _apply_op(op, d1, dflt_1, d2, dflt_2):
 
 def _mk_op_method(op, dflt_1, dflt_2, for_reflexive_op=False):
     if not for_reflexive_op:
+
         def op_method(self, d):
             return self.__class__(_apply_op(op, self, dflt_1, d, dflt_2))
+
     else:
+
         def op_method(self, d):
             return self.__class__(_apply_op(op, d, dflt_1, self, dflt_2))
 
@@ -40,7 +47,7 @@ def _mk_unary_op_method(op):
 _ops_and_identity = [
     ({'__add__', '__sub__', '__lshift__', '__rshift__', '__or__'}, 0),
     ({'__mul__', '__truediv__', '__floordiv__', '__pow__'}, 1),
-    ({'__mod__', '__and__', '__xor__', '__matmul__'}, None)
+    ({'__mod__', '__and__', '__xor__', '__matmul__'}, None),
 ]
 
 _unary_ops = {'__pos__', '__neg__', '__abs__', '__invert__'}
@@ -169,4 +176,9 @@ class ArithmeDict(dict):
     for ops, identity_val in _ops_and_identity:
         for op in ops:
             op_func = getattr(operator, op)
-            locals()[op] = _mk_op_method(op_func, dflt_1=identity_val, dflt_2=identity_val, for_reflexive_op=False)
+            locals()[op] = _mk_op_method(
+                op_func,
+                dflt_1=identity_val,
+                dflt_2=identity_val,
+                for_reflexive_op=False,
+            )

@@ -14,8 +14,9 @@ import ut.coll.order_conserving as colloc
 LOCATION_LOCAL = 'LOCAL'
 LOCATION_S3 = 'S3'
 
-split_exp_01 = re.compile("[^&\w]*")
+split_exp_01 = re.compile('[^&\w]*')
 tokenizer_re = re.compile('[&\w]+')
+
 
 def mk_terms_df(df, text_cols, id_cols=None, tokenizer_re=tokenizer_re):
     text_cols = util_ulist.ascertain_list(text_cols)
@@ -24,7 +25,9 @@ def mk_terms_df(df, text_cols, id_cols=None, tokenizer_re=tokenizer_re):
     else:
         id_cols = util_ulist.ascertain_list(id_cols)
         id_cols_missing = colloc.setdiff(id_cols, df.columns)
-        if id_cols_missing: # if any columns are missing, try to get them from named index
+        if (
+            id_cols_missing
+        ):  # if any columns are missing, try to get them from named index
             df = df.reset_index(id_cols_missing)
     dd = pd.DataFrame()
     for c in text_cols:
@@ -34,8 +37,10 @@ def mk_terms_df(df, text_cols, id_cols=None, tokenizer_re=tokenizer_re):
         dd = pd.concat([dd, d])
     return dd
 
+
 def space_seperated_token_string_to_term_count(s):
     return list_to_term_count(s.split(' '))
+
 
 def list_to_term_count(term_list):
     """
@@ -47,8 +52,8 @@ def list_to_term_count(term_list):
     df = pd.DataFrame(term_list, columns=['term'])
     df = df.groupby('term').count()
     df.columns = ['count']
-    if len(df)==1:
-        df = pd.DataFrame({'term':term_list[:1], 'count':len(term_list)})
+    if len(df) == 1:
+        df = pd.DataFrame({'term': term_list[:1], 'count': len(term_list)})
         df = df.set_index('term')
     return df
 
@@ -56,36 +61,52 @@ def list_to_term_count(term_list):
 # def tokenize_text(gresult_text):
 #     return re.split(split_exp,gresult_text)
 
+
 def get_text_from_source_gresult(gresults):
-    if not isinstance(gresults,dict): # if not a dict assume it's a soup, html, or filename thereof
+    if not isinstance(
+        gresults, dict
+    ):  # if not a dict assume it's a soup, html, or filename thereof
         gresults = google.parse_tag_dict(google.mk_gresult_tag_dict(gresults))
-    elif is_tag_dict(gresults): # if gresults is a tag_dict, and make it a info dict
+    elif is_tag_dict(gresults):  # if gresults is a tag_dict, and make it a info dict
         gresults = google.parse_tag_dict(gresults)
     if 'organic_results_list' in gresults:
-        title_text_concatinated = ' '.join([x['title_text'] for x in gresults['organic_results_list'] if 'title_text' in x])
-        snippet_text_concatinated = ' '.join([x['st_text'] for x in gresults['organic_results_list'] if 'st_text' in x])
+        title_text_concatinated = ' '.join(
+            [
+                x['title_text']
+                for x in gresults['organic_results_list']
+                if 'title_text' in x
+            ]
+        )
+        snippet_text_concatinated = ' '.join(
+            [x['st_text'] for x in gresults['organic_results_list'] if 'st_text' in x]
+        )
         text_concatinated = title_text_concatinated + ' ' + snippet_text_concatinated
     else:
-        search_for_tag = ['_ires','_search','_res','_center_col']
+        search_for_tag = ['_ires', '_search', '_res', '_center_col']
         for t in search_for_tag:
             if t in gresults:
                 text_concatinated = soup_to_text(gresults[t])
                 break
-        if not text_concatinated: # if you still don't have anything
-            text_concatinated = soup_to_text(gresults) #... just get the text from the whole soup
+        if not text_concatinated:  # if you still don't have anything
+            text_concatinated = soup_to_text(
+                gresults
+            )  # ... just get the text from the whole soup
     return text_concatinated
+
 
 def is_tag_dict(x):
     try:
-        if isinstance(x[list(x.keys())[0]][0],Tag):
+        if isinstance(x[list(x.keys())[0]][0], Tag):
             return True
         else:
             return False
     except:
         return False
 
+
 def soup_to_text(element):
     return list(filter(visible, element.findAll(text=True)))
+
 
 def visible(element):
     if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
@@ -96,34 +117,34 @@ def visible(element):
 
 
 class TokenizerFactor(object):
-
     @classmethod
     def simple(cls):
-        split_exp = re.compile("[^&\w]*")
+        split_exp = re.compile('[^&\w]*')
 
     def tokenizer(self, text):
         return re.split(self.split_exp, text)
 
-class TokenizerFactory(object):
 
+class TokenizerFactory(object):
     @classmethod
     def get_simple_aw_tokenizer(cls):
-        return cls.NegAlphabetTokenizer(split_exp=re.compile("[^&\w]*"))
+        return cls.NegAlphabetTokenizer(split_exp=re.compile('[^&\w]*'))
 
     class NegAlphabetTokenizer(object):
-        def __init__(self,split_exp):
+        def __init__(self, split_exp):
             self.split_exp = split_exp
-        def tokenize(self,text):
+
+        def tokenize(self, text):
             return re.split(self.split_exp, text)
 
 
 class TermStatsMaker(object):
-
-    def __init__(self,
-                 get_text_from_source=get_text_from_source_gresult,
-                 preprocess_text=semantics_text_processors.preprocess_text_lower_ascii,
-                 tokenizer=TokenizerFactory.get_simple_aw_tokenizer().tokenize,
-                 mk_term_stats=list_to_term_count
+    def __init__(
+        self,
+        get_text_from_source=get_text_from_source_gresult,
+        preprocess_text=semantics_text_processors.preprocess_text_lower_ascii,
+        tokenizer=TokenizerFactory.get_simple_aw_tokenizer().tokenize,
+        mk_term_stats=list_to_term_count,
     ):
         self.get_text_from_source = get_text_from_source
         self.preprocess_text = preprocess_text
@@ -131,7 +152,7 @@ class TermStatsMaker(object):
         self.mk_term_stats = mk_term_stats
 
     def term_stats(self, text_source):
-        #return self.mk_term_stats(self.tokenizer(self.preprocess_text(self.get_text_from_source(text_source))))
+        # return self.mk_term_stats(self.tokenizer(self.preprocess_text(self.get_text_from_source(text_source))))
         text = self.get_text_from_source(text_source)
         precessed_text = self.preprocess_text(text)
         token_list = self.tokenizer(precessed_text)
@@ -147,7 +168,6 @@ class TermStatsMaker(object):
         #     )
         # )
 
-
     # @classmethod
     # def mk_term_stats_maker(cls):
     #     return TermStatsMaker(
@@ -157,33 +177,32 @@ class TermStatsMaker(object):
     #         mk_term_stats=list_to_term_count
     #     )
 
-
     @classmethod
     def mk_term_stats_maker(cls):
         return TermStatsMaker(
             get_text_from_source=get_text_from_source_gresult,
             preprocess_text=semantics_text_processors.preprocess_text_lower_ascii,
             tokenizer=TokenizerFactory.get_simple_aw_tokenizer().tokenize,
-            mk_term_stats=list_to_term_count
+            mk_term_stats=list_to_term_count,
         )
 
     @classmethod
     def mk_term_stats_maker_for_hotels(cls, term_map=None, location=LOCATION_LOCAL):
-        print("oh no! you commented this out!!")
-        #if term_map is None:
+        print('oh no! you commented this out!!')
+        # if term_map is None:
         #    import msvenere.factories as venere_factories
         #    if location==LOCATION_LOCAL:
         #        ds = venere_factories.data_source_for_local_term_stats_maker()
         #    elif location==LOCATION_S3:
         #        ds = venere_factories.data_source_for_s3_term_stats_maker()
         #    term_map = ds.d.term_map
-        #return TermStatsMaker(
+        # return TermStatsMaker(
         #    get_text_from_source=get_text_from_source_gresult,
         #    preprocess_text=venere_aw.erenev_kw_str_term_replacer(),
         #    # preprocess_text=semantics_text_processors.lower_ascii_term_replacer(map_spec=term_map),
         #    tokenizer=TokenizerFactory.get_simple_aw_tokenizer().tokenize,
         #    mk_term_stats=list_to_term_count
-        #)
+        # )
 
 
 # def mk_term_count_from_google_results(gresults):

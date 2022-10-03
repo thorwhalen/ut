@@ -1,9 +1,8 @@
-
-
 import os
 from glob import glob
 from shutil import copyfile
 import re
+
 
 def ensure_slash_suffix(str):
     if str:
@@ -13,7 +12,6 @@ def ensure_slash_suffix(str):
 
 
 class LocalFileAccess(object):
-
     def isdir(self, path):
         return os.path.isdir(path)
 
@@ -50,7 +48,9 @@ class LocalFileAccess(object):
     def rmdir(self, path):
         os.rmdir(path)
 
+
 DFLT_FILE_PATTERN = '.*'
+
 
 class FilesAccess(object):
     def __init__(self, root, file_pattern=DFLT_FILE_PATTERN):
@@ -70,7 +70,6 @@ class FilesAccess(object):
 
     # @classmethod
     # def for_local(cls, root, file_pattern=DFLT_FILE_PATTERN):
-
 
     def filepath_list(self, file_pattern=None):
         if file_pattern is None:

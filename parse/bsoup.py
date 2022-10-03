@@ -23,7 +23,9 @@ def open_tag_in_firefox(tag):
     parse_util.open_in_firefox(save_file)
 
 
-def add_text_to_parse_dict(soup, parse_dict, key, name, attrs, text_transform=pstr_trans.strip):
+def add_text_to_parse_dict(
+    soup, parse_dict, key, name, attrs, text_transform=pstr_trans.strip
+):
     tag = soup.find(name=name, attrs=attrs)
     if tag:
         if text_transform:
@@ -65,7 +67,7 @@ def get_elements(nodes, path_to_element):
                 _nodes = node.findAll(**p)
             else:
                 _nodes = node.findAll(*p)
-            _path_to_element = path_to_element[(i + 1):]
+            _path_to_element = path_to_element[(i + 1) :]
             if len(_path_to_element) > 0:
                 cumul.extend(get_elements(_nodes, _path_to_element))
             else:

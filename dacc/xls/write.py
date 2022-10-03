@@ -5,6 +5,7 @@ import pandas as pd
 from pandas import ExcelWriter
 from openpyxl import load_workbook
 from openpyxl.reader.excel import InvalidFileException
+
 try:
     from xlwings import Workbook, Sheet
 except ImportError as e:
@@ -36,7 +37,7 @@ def multiple_dfs_to_multiple_sheets(df_list, xls_filepath, sheet_list=None, **kw
             for i, df in enumerate(df_list):
                 name = df.name
                 if not name:
-                    name = "sheet {}".format(i)
+                    name = 'sheet {}'.format(i)
                 sheet_list.append(name)
 
     writer = ExcelWriter(xls_filepath)
@@ -85,4 +86,3 @@ def _replace_non_numeric_non_strings_with_strings(df):
                 df[c] = df[c].apply(str)
     df = df.set_index(index_names)
     return df
-

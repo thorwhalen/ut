@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from sklearn.decomposition import IncrementalPCA as IncrementalPCA_sk
@@ -13,9 +11,13 @@ class IncrementalPCA(IncrementalPCA_sk):
     This wrapper is to avoid this. It will accumulate the data fed by partial_fit until there's enough data to start
     doing the normal (sklearn's) partial_fit.
     """
-    def __init__(self, n_components=None, whiten=False, copy=True, batch_size=None, X_cumul=None):
-        super(self.__class__, self).__init__(n_components=n_components, whiten=whiten,
-                                             copy=copy, batch_size=batch_size)
+
+    def __init__(
+        self, n_components=None, whiten=False, copy=True, batch_size=None, X_cumul=None
+    ):
+        super(self.__class__, self).__init__(
+            n_components=n_components, whiten=whiten, copy=copy, batch_size=batch_size
+        )
         self.X_cumul = X_cumul
         self.fitted_ = False
         if n_components is not None and batch_size is not None:
@@ -51,4 +53,3 @@ class IncrementalPCA(IncrementalPCA_sk):
     def transform(self, X):
         self.flush_x_cumul()
         return super(self.__class__, self).transform(X)
-

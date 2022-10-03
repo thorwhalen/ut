@@ -10,7 +10,7 @@ def outlier_lidx(data, method='median_dist', **kwargs):
         thresh = kwargs['thresh']
         median_dist = np.abs(data - np.median(data))
         mdev = np.median(median_dist)
-        s = median_dist/mdev if mdev else np.zeros(len(median_dist))
+        s = median_dist / mdev if mdev else np.zeros(len(median_dist))
         return s >= thresh
     elif method == 'mean_dist':
         kwargs = dict({'thresh': 3}, **kwargs)
@@ -21,6 +21,4 @@ def outlier_lidx(data, method='median_dist', **kwargs):
         else:
             return np.array([False for i in range(len(data))])
     else:
-        raise ValueError("method not recognized")
-
-
+        raise ValueError('method not recognized')

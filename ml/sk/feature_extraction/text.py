@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 from sklearn.base import TransformerMixin, BaseEstimator
@@ -13,9 +11,9 @@ from itertools import chain
 from urllib.parse import urlsplit
 
 path_separator_pattern = re.compile('/+')
-word_inclusion_pattern = re.compile("\w+")
-path_inclusion_pattern = re.compile("[^/]+")
-url_extension_pattern = re.compile("\.\w+$")
+word_inclusion_pattern = re.compile('\w+')
+path_inclusion_pattern = re.compile('[^/]+')
+url_extension_pattern = re.compile('\.\w+$')
 
 
 class TreeTokenizer(BaseEstimator, TransformerMixin):
@@ -58,18 +56,20 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
     [['level_1=B', 'level_1=A-B', 'level_2=C']]
     """
 
-    def __init__(self,
-                 preprocessor=None,
-                 tokenizers=[lambda x: [x], word_inclusion_pattern.findall],
-                 token_prefixes='',
-                 max_df=1.0,
-                 min_df=1,
-                 max_features=None,
-                 stop_words=[],
-                 output_of_tokenizer_with_input_not_a_string=[],
-                 keep_tokens_count=False):
+    def __init__(
+        self,
+        preprocessor=None,
+        tokenizers=[lambda x: [x], word_inclusion_pattern.findall],
+        token_prefixes='',
+        max_df=1.0,
+        min_df=1,
+        max_features=None,
+        stop_words=[],
+        output_of_tokenizer_with_input_not_a_string=[],
+        keep_tokens_count=False,
+    ):
         args, _, _, values = getargvalues(currentframe())
-        values.pop("self")
+        values.pop('self')
         for arg, val in list(values.items()):
             setattr(self, arg, val)
 
@@ -81,14 +81,20 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
     def fit(self, text_collection, y=None):
         n_tokenizers = len(self.tokenizers)
         if not isinstance(self.token_prefixes, str):
-            assert n_tokenizers == len(self.token_prefixes), \
-                "Either all tokenizers must have the same prefix, " \
-                "or you should specify as many prefixes as there are tokenizers"
+            assert n_tokenizers == len(self.token_prefixes), (
+                'Either all tokenizers must have the same prefix, '
+                'or you should specify as many prefixes as there are tokenizers'
+            )
         else:
             self.token_prefixes = [self.token_prefixes] * n_tokenizers
 
         if self.preprocessor is not None:
-            text_collection = list(map(self.preprocessor, [x for x in text_collection if isinstance(x, str)]))
+            text_collection = list(
+                map(
+                    self.preprocessor,
+                    [x for x in text_collection if isinstance(x, str)],
+                )
+            )
         else:
             text_collection = [x for x in text_collection if isinstance(x, str)]
 
@@ -120,9 +126,20 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
                 # initialize tokens_count
                 tokens_count = Counter()
                 # accumulate the counts of the tokens created by the current tokenizer
-                list(filter(tokens_count.update,
-                       chain(*map(lambda kv: [{token: kv[1]} for token in tokenizer_info['tokenize'](kv[0])],
-                                   iter(remaining_element_counts.items())))))
+                list(
+                    filter(
+                        tokens_count.update,
+                        chain(
+                            *map(
+                                lambda kv: [
+                                    {token: kv[1]}
+                                    for token in tokenizer_info['tokenize'](kv[0])
+                                ],
+                                iter(remaining_element_counts.items()),
+                            )
+                        ),
+                    )
+                )
                 if len(tokens_count) > 0:  # if we got anything...
                     # ... remember the vocabulary
                     tokens_count = Series(tokens_count)
@@ -131,9 +148,13 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
                     # add anything frequent enough in this tokenizer's vocabulary
                     min_lidx = tokens_count >= self.min_df
                     vocab_tokens_count = tokens_count[min_lidx]
-                    tokenizer_info['vocab'] = set(vocab_tokens_count.index.values).difference(self.stop_words)
+                    tokenizer_info['vocab'] = set(
+                        vocab_tokens_count.index.values
+                    ).difference(self.stop_words)
                     if self.keep_tokens_count or self.max_features is not None:
-                        self.tokenizer_info_list_[i]['tokens_count'] = vocab_tokens_count.to_dict()
+                        self.tokenizer_info_list_[i][
+                            'tokens_count'
+                        ] = vocab_tokens_count.to_dict()
                     # what's not frequent enough will be treated by the next tokenizer
                     remaining_element_counts = tokens_count[~min_lidx].to_dict()
                     max_df_thresh = self.max_df * len(remaining_element_counts)
@@ -154,11 +175,19 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
             if not self._fitted:
                 tokens = []
                 to_be_tokenized_further = [text]
-                for level_tokenizer, token_prefix in zip(self.tokenizers, self.token_prefixes):
-                    to_be_tokenized_further = list(chain(*map(level_tokenizer, to_be_tokenized_further)))
-                    if len(to_be_tokenized_further) > 0:  # if any tokens were matched...
+                for level_tokenizer, token_prefix in zip(
+                    self.tokenizers, self.token_prefixes
+                ):
+                    to_be_tokenized_further = list(
+                        chain(*map(level_tokenizer, to_be_tokenized_further))
+                    )
+                    if (
+                        len(to_be_tokenized_further) > 0
+                    ):  # if any tokens were matched...
                         # ... keep them
-                        tokens.extend([token_prefix + x for x in to_be_tokenized_further])
+                        tokens.extend(
+                            [token_prefix + x for x in to_be_tokenized_further]
+                        )
                     else:  # if not, we're done
                         break
                 return tokens
@@ -167,15 +196,29 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
                 to_be_tokenized_further = [text]
                 for tokenizer_info in self.tokenizer_info_list_:
                     if len(to_be_tokenized_further) > 0:
-                        to_be_tokenized_further = \
-                            set(chain(*map(tokenizer_info['tokenize'], to_be_tokenized_further)))
+                        to_be_tokenized_further = set(
+                            chain(
+                                *map(
+                                    tokenizer_info['tokenize'], to_be_tokenized_further
+                                )
+                            )
+                        )
                         # to_be_tokenized_further = set(map(tokenizer_info['tokenize'], to_be_tokenized_further))
-                        matched_tokens = to_be_tokenized_further.intersection(tokenizer_info['vocab'])
+                        matched_tokens = to_be_tokenized_further.intersection(
+                            tokenizer_info['vocab']
+                        )
                         if len(matched_tokens) > 0:  # if any tokens were matched...
                             # ... keep them
-                            tokens.extend([tokenizer_info['token_prefix'] + x for x in matched_tokens])
+                            tokens.extend(
+                                [
+                                    tokenizer_info['token_prefix'] + x
+                                    for x in matched_tokens
+                                ]
+                            )
                             # and don't tokenize them further
-                            to_be_tokenized_further = to_be_tokenized_further.difference(matched_tokens)
+                            to_be_tokenized_further = to_be_tokenized_further.difference(
+                                matched_tokens
+                            )
                     else:
                         break
                 return tokens
@@ -192,18 +235,22 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
         return token_list_
 
     @classmethod
-    def mk_url_tree_tokenizer(cls,
-                              urls=None,
-                              preprocessor=lambda x: url_extension_pattern.sub('', x.lower()),
-                              tokenizers=[lambda url: [urlsplit(url.lower()).path],
-                                          path_inclusion_pattern.findall,
-                                          word_inclusion_pattern.findall],
-                              token_prefixes=['url=', 'url_section=', 'url_word='],
-                              max_df=1.0,
-                              min_df=1,
-                              max_features=None,
-                              stop_words=['aspx', 'html', 'asp', 'cgi'],
-                              keep_tokens_count=False):
+    def mk_url_tree_tokenizer(
+        cls,
+        urls=None,
+        preprocessor=lambda x: url_extension_pattern.sub('', x.lower()),
+        tokenizers=[
+            lambda url: [urlsplit(url.lower()).path],
+            path_inclusion_pattern.findall,
+            word_inclusion_pattern.findall,
+        ],
+        token_prefixes=['url=', 'url_section=', 'url_word='],
+        max_df=1.0,
+        min_df=1,
+        max_features=None,
+        stop_words=['aspx', 'html', 'asp', 'cgi'],
+        keep_tokens_count=False,
+    ):
         tree_tokenizer = TreeTokenizer(
             preprocessor=preprocessor,
             tokenizers=tokenizers,
@@ -212,7 +259,7 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
             min_df=min_df,
             max_features=max_features,
             stop_words=stop_words,
-            keep_tokens_count=keep_tokens_count
+            keep_tokens_count=keep_tokens_count,
         )
         if urls is None:
             return tree_tokenizer
@@ -232,13 +279,25 @@ class MultiTreeTokenizer(BaseEstimator, TransformerMixin):
         return self
 
     def tokenize(self, single_row):
-        return hstack(tuple([self.tree_tokenizers[i].tokenize(single_row[i]) for i in range(len(self.tree_tokenizers))]))
+        return hstack(
+            tuple(
+                [
+                    self.tree_tokenizers[i].tokenize(single_row[i])
+                    for i in range(len(self.tree_tokenizers))
+                ]
+            )
+        )
 
     def transform(self, X):
         # return map(self.tokenize, X)
-        separate_tokens = map(lambda i: self.tree_tokenizers[i].transform(X[:, i]),
-                              range(len(self.tree_tokenizers)))
-        return [hstack(tuple(x)) for x in array([x.reshape(len(X)) for x in separate_tokens]).T]
+        separate_tokens = map(
+            lambda i: self.tree_tokenizers[i].transform(X[:, i]),
+            range(len(self.tree_tokenizers)),
+        )
+        return [
+            hstack(tuple(x))
+            for x in array([x.reshape(len(X)) for x in separate_tokens]).T
+        ]
         # return map(self.tokenize, X)
 
     def token_list(self):
@@ -249,29 +308,31 @@ class MultiTreeTokenizer(BaseEstimator, TransformerMixin):
 
 
 class TreeCountVectorizer(CountVectorizer):
-    def __init__(self,
-            preprocessor=None,
-            tokenizers=[lambda x: [x], word_inclusion_pattern.findall],
-            token_prefixes='',
-            max_df=1.0,
-            min_df=1,
-            max_features=None,
-            output_of_tokenizer_with_input_not_a_string=[],
-            input='content',
-            encoding='utf-8',
-            decode_error='strict',
-            strip_accents=None,
-            lowercase=False,
-            stop_words=None,
-            ngram_range=(1, 1),
-            analyzer='word',
-            binary=False,
-            dtype=int64,
-            tokenizer=None,
-            vocabulary={}):
+    def __init__(
+        self,
+        preprocessor=None,
+        tokenizers=[lambda x: [x], word_inclusion_pattern.findall],
+        token_prefixes='',
+        max_df=1.0,
+        min_df=1,
+        max_features=None,
+        output_of_tokenizer_with_input_not_a_string=[],
+        input='content',
+        encoding='utf-8',
+        decode_error='strict',
+        strip_accents=None,
+        lowercase=False,
+        stop_words=None,
+        ngram_range=(1, 1),
+        analyzer='word',
+        binary=False,
+        dtype=int64,
+        tokenizer=None,
+        vocabulary={},
+    ):
         args, _, _, values = getargvalues(currentframe())
-        values.pop("self")
-        values.pop("preprocessor")
+        values.pop('self')
+        values.pop('preprocessor')
         # kwargs = {}
         for arg, val in list(values.items()):
             setattr(self, arg, val)
@@ -288,15 +349,17 @@ class TreeCountVectorizer(CountVectorizer):
             max_df=self.max_df,
             min_df=self.min_df,
             max_features=self.max_features,
-            output_of_tokenizer_with_input_not_a_string=self.output_of_tokenizer_with_input_not_a_string
+            output_of_tokenizer_with_input_not_a_string=self.output_of_tokenizer_with_input_not_a_string,
         )
         if not self.vocabulary:
             self.vocabulary = {}
 
     def fit(self, raw_documents=None, y=None):
         self.tree_tokenizer.fit(text_collection=raw_documents)
-        self.set_params(tokenizer=self.tree_tokenizer.tokenize,
-                        vocabulary={w: i for i, w in enumerate(self.token_list())})
+        self.set_params(
+            tokenizer=self.tree_tokenizer.tokenize,
+            vocabulary={w: i for i, w in enumerate(self.token_list())},
+        )
         super(TreeCountVectorizer, self).fit_transform(raw_documents=raw_documents)
         return self
 
@@ -311,35 +374,40 @@ class TreeCountVectorizer(CountVectorizer):
 
 
 class MultiTreeCountVectorizer(CountVectorizer):
-    def __init__(self,
-                 tree_tokenizers=None,
-                 input='content',
-                 preprocessor=None,
-                 encoding='utf-8',
-                 decode_error='strict',
-                 strip_accents=None,
-                 lowercase=False,
-                 max_df=1.0,
-                 min_df=1,
-                 max_features=None,
-                 stop_words=None,
-                 ngram_range=(1, 1),
-                 analyzer='word',
-                 binary=False,
-                 dtype=int64,
-                 tokenizer=None,
-                 vocabulary={}
-                 ):
+    def __init__(
+        self,
+        tree_tokenizers=None,
+        input='content',
+        preprocessor=None,
+        encoding='utf-8',
+        decode_error='strict',
+        strip_accents=None,
+        lowercase=False,
+        max_df=1.0,
+        min_df=1,
+        max_features=None,
+        stop_words=None,
+        ngram_range=(1, 1),
+        analyzer='word',
+        binary=False,
+        dtype=int64,
+        tokenizer=None,
+        vocabulary={},
+    ):
         args, _, _, values = getargvalues(currentframe())
-        values.pop("self")
+        values.pop('self')
         # kwargs = {}
         for arg, val in list(values.items()):
             setattr(self, arg, val)
 
     def fit(self, X, y=None):
         self.multi_tree_tokenizer_ = MultiTreeTokenizer(self.tree_tokenizers).fit(X)
-        self.set_params(tokenizer=self.multi_tree_tokenizer_.tokenize,
-                        vocabulary={w: i for i, w in enumerate(self.multi_tree_tokenizer_.token_list())})
+        self.set_params(
+            tokenizer=self.multi_tree_tokenizer_.tokenize,
+            vocabulary={
+                w: i for i, w in enumerate(self.multi_tree_tokenizer_.token_list())
+            },
+        )
         super(MultiTreeCountVectorizer, self).fit_transform(raw_documents=X)
         return self
 
@@ -348,4 +416,3 @@ class MultiTreeCountVectorizer(CountVectorizer):
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)
-

@@ -22,5 +22,5 @@ class FB(Facebook):
     def disp_result_html(res):
         s = ''
         for k in list(res.keys()):
-            s += "<b>%s</b>: %s<br>" % (k, res.get(k))
+            s += '<b>%s</b>: %s<br>' % (k, res.get(k))
         disp_html(s)

@@ -41,12 +41,16 @@ def dict_to_namedtuple(d, namedtuple_obj=None):
     elif isinstance(namedtuple_obj, type):
         namedtuple_cls = namedtuple_obj
     else:
-        raise TypeError(f"Can't resolve the nametuple class specification: {namedtuple_obj}")
+        raise TypeError(
+            f"Can't resolve the nametuple class specification: {namedtuple_obj}"
+        )
 
     return namedtuple_cls(**d)
 
 
-def update_fields_of_namedtuple(nt: tuple, *, name_of_output_type=None, remove_fields=(), **kwargs):
+def update_fields_of_namedtuple(
+    nt: tuple, *, name_of_output_type=None, remove_fields=(), **kwargs
+):
     """Replace fields of namedtuple
     >>> from collections import namedtuple
     >>> NT = namedtuple('NT', ('a', 'b', 'c'))
@@ -66,7 +70,9 @@ def update_fields_of_namedtuple(nt: tuple, *, name_of_output_type=None, remove_f
     NewGuy(b=2, hello='world')
     """
 
-    output_type_can_be_the_same_as_input_type = (not remove_fields) and set(kwargs.keys()).issubset(nt._fields)
+    output_type_can_be_the_same_as_input_type = (not remove_fields) and set(
+        kwargs.keys()
+    ).issubset(nt._fields)
     d = dict(namedtuple_to_dict(nt), **kwargs)
     for f in remove_fields:
         d.pop(f)
@@ -111,7 +117,9 @@ def sub_namedtuple(nt: tuple, index):
                 index_field_names = index._fields
             else:
                 index_field_names = index
-            index_field_values = [getattr(nt, x) for x in index_field_names]  # TODO: Potential bisect optimization
+            index_field_values = [
+                getattr(nt, x) for x in index_field_names
+            ]  # TODO: Potential bisect optimization
             cls = namedtuple(nt.__class__.__name__, index_field_names)
             return cls(*index_field_values)
         elif isinstance(index, slice):
@@ -158,13 +166,17 @@ def is_sub_namedtuple(t, tt, name_equality=False, order_equality=True):
     >>> is_sub_namedtuple(t, namedtuple('AnotherName', ('a', 'c'))(*t), name_equality=True)
     False
     """
-    return set(t._fields).issubset(tt._fields) \
-           and all(getattr(t, f) == getattr(tt, f) for f in t._fields) \
-           and ((not name_equality) or (t.__class__.__name__ == tt.__class__.__name__)) \
-           and ((not order_equality) or is_sub_list(t, tt))
+    return (
+        set(t._fields).issubset(tt._fields)
+        and all(getattr(t, f) == getattr(tt, f) for f in t._fields)
+        and ((not name_equality) or (t.__class__.__name__ == tt.__class__.__name__))
+        and ((not order_equality) or is_sub_list(t, tt))
+    )
 
 
-def print_is_sub_namedtuple_with_explanation(t, tt, name_equality=False, order_equality=True):
+def print_is_sub_namedtuple_with_explanation(
+    t, tt, name_equality=False, order_equality=True
+):
     """Says if t is a sub-namedtuple of tt or not.
     For t to be a sub-namedtuple of tt, the following need to apply:
         * t._fields must be a subset of tt._fields
@@ -173,13 +185,13 @@ def print_is_sub_namedtuple_with_explanation(t, tt, name_equality=False, order_e
         * if order_equality == False, we must also have the fields in the same order
     """
     if not set(t._fields).issubset(tt._fields):
-        print("t._fields not subset of tt._fields")
+        print('t._fields not subset of tt._fields')
     if not all(getattr(t, f) == getattr(tt, f) for f in t._fields):
-        print("some values of t are different in tt")
+        print('some values of t are different in tt')
     if not ((not name_equality) or (t.__class__.__name__ == tt.__class__.__name__)):
-        print("names are not the same")
+        print('names are not the same')
     if not ((not order_equality) or is_sub_list(t, tt)):
-        print("not the same order")
+        print('not the same order')
 
 
 # TODO: Use sub_namedtuple to not repeat code
@@ -194,7 +206,9 @@ def nametuple_extended(typename, field_names, **kwargs):
             return getattr(self, index)
         elif isinstance(index, tuple):
             index_field_names = index
-            index_field_values = [getattr(self, x) for x in index_field_names]  # TODO: Potential bisect optimization
+            index_field_values = [
+                getattr(self, x) for x in index_field_names
+            ]  # TODO: Potential bisect optimization
             cls = namedtuple(typename, index_field_names)
             cls.__getitem__ = getitem
             return cls(*index_field_values)

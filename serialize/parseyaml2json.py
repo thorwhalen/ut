@@ -30,10 +30,7 @@ class OrderlyJSONEncoder(json.JSONEncoder):
 
 
 def printmenu():
-    menu = ('1. Parse YAML to JSON\n'
-            '2. Parse JSON to YAML\n'
-            '3. Exit\n'
-            )
+    menu = '1. Parse YAML to JSON\n' '2. Parse JSON to YAML\n' '3. Exit\n'
     print(menu)
 
 
@@ -61,6 +58,7 @@ def walk_tree(base):
                     base[idx] = SingleQuotedScalarString(elem)
             else:
                 walk_tree(elem)
+
 
 def parseyaml(intype, outtype):
     infile = input('Please enter a {} filename to parse: '.format(intype))
@@ -111,4 +109,3 @@ while loop:
         sys.exit(0)
     else:
         print('Please make a selection')
-

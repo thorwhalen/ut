@@ -1,4 +1,4 @@
-__author__ = "thorwhalen"
+__author__ = 'thorwhalen'
 
 import pandas as pd
 import numpy as np
@@ -27,13 +27,13 @@ def from_zip(zipfilename, data_reader=pickle.load, **kwargs):
     loads a dataframe from a zip file
     """
     z = zipfile.ZipFile(zipfilename)
-    if "filename" in list(kwargs.keys()):
-        filename = kwargs["filename"]
+    if 'filename' in list(kwargs.keys()):
+        filename = kwargs['filename']
     else:
         filename = z.filelist
         if len(filename) > 1:
             raise ValueError(
-                "%s had several archived files: You need to specify which you want!"
+                '%s had several archived files: You need to specify which you want!'
                 % zipfilename
             )
         else:
@@ -57,7 +57,7 @@ def free_col_name(df, candidate_cols, raise_error=True):
         if col not in df.columns:
             return col
     if raise_error:
-        ValueError("All candidate_cols were already taken")
+        ValueError('All candidate_cols were already taken')
     else:
         return None
 
@@ -133,7 +133,7 @@ def unique(d, cols=None):
     return d.reindex(index)
 
 
-def get_data(dat, data_folder=""):
+def get_data(dat, data_folder=''):
     # input: dat (a csv pfile, a data pfile, or the data itself
     # output: load data
     if isinstance(dat, str):  # if input dat is a string
@@ -146,10 +146,10 @@ def get_data(dat, data_folder=""):
         else:
             delimFile = delim_file(dat)
             if delimFile:
-                log.printProgress("csv->DataFrame")
+                log.printProgress('csv->DataFrame')
                 df = pd.read_csv(delimFile)
             else:
-                raise NameError("FileNotFound")
+                raise NameError('FileNotFound')
         return df
     else:  # assume isinstance(dat,pd.DataFrame) or isinstance(dat,pd.Series)
         return dat
@@ -192,7 +192,7 @@ def rand(nrows=9, ncols=None, values_spec=None, columnTypes=None, columns=None):
     if not isinstance(values_spec, list):
         values_spec = [values_spec for x in range(ncols)]
     if columnTypes is None:
-        columnTypes = "int"  # possible types: 'int','float', or 'char'
+        columnTypes = 'int'  # possible types: 'int','float', or 'char'
     if not isinstance(columnTypes, list):
         columnTypes = [columnTypes for x in range(ncols)]
     if columns is None:
@@ -200,25 +200,25 @@ def rand(nrows=9, ncols=None, values_spec=None, columnTypes=None, columns=None):
 
     values_list = []
     for i in range(ncols):
-        if hasattr(values_spec[i], "__getitem__"):
+        if hasattr(values_spec[i], '__getitem__'):
             n_values = len(values_spec[i])
             new_values_idx = np.random.randint(0, n_values, nrows)
             new_values = list(map(values_spec[i].__getitem__, new_values_idx))
         else:
-            if columnTypes[i] == "int" or columnTypes[i] == int:
+            if columnTypes[i] == 'int' or columnTypes[i] == int:
                 new_values = np.random.randint(1, values_spec[i] + 1, nrows)
-            elif columnTypes[i] == "float" or columnTypes[i] == float:
+            elif columnTypes[i] == 'float' or columnTypes[i] == float:
                 new_values = np.random.rand(nrows) * (values_spec[i] - 1)
-            elif columnTypes[i] == "char":
+            elif columnTypes[i] == 'char':
                 assert (
                     values_spec[i] <= 26
-                ), "can only get a max of 26 distinct chars at this point"
+                ), 'can only get a max of 26 distinct chars at this point'
                 letter_idx = np.random.randint(0, values_spec[i] - 1, nrows)
                 new_values = [string.ascii_lowercase[:10][x] for x in letter_idx]
-            elif columnTypes[i] in [str, str, str, "str", "string"]:
+            elif columnTypes[i] in [str, str, str, 'str', 'string']:
                 word_bag = np.array(
                     [
-                        "".join(random.choice(string.ascii_lowercase) for i in range(3))
+                        ''.join(random.choice(string.ascii_lowercase) for i in range(3))
                         for i in range(values_spec[i])
                     ]
                 )
@@ -227,7 +227,7 @@ def rand(nrows=9, ncols=None, values_spec=None, columnTypes=None, columns=None):
             else:
                 raise ValueError(
                     "columnTypes must be 'float','int', 'char', 'string', 'str', "
-                    "float, int, str, unicode, or basestring"
+                    'float, int, str, unicode, or basestring'
                 )
         values_list.append(list(new_values))
     df = pd.DataFrame(values_list).transpose()
@@ -242,7 +242,7 @@ def rand(nrows=9, ncols=None, values_spec=None, columnTypes=None, columns=None):
 
 
 rand_df = rand
-rand_df.__name__ = "rand_df"
+rand_df.__name__ = 'rand_df'
 
 
 def chunks(df, chk_size):

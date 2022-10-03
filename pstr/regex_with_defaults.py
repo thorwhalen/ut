@@ -67,9 +67,13 @@ def re_compile(pattern, flags=0, **dflt_if_none):
     my_regex_compilation = type('MyRegexCompilation', (object,), {})()
 
     for _name, _dflt in dflt_if_none.items():
-        setattr(my_regex_compilation, _name, add_dflt(getattr(compiled_regex, _name), _dflt))
-    for _name in filter(lambda x: not x.startswith('__') and x not in intercepted_names,
-                        dir(compiled_regex)):
+        setattr(
+            my_regex_compilation, _name, add_dflt(getattr(compiled_regex, _name), _dflt)
+        )
+    for _name in filter(
+        lambda x: not x.startswith('__') and x not in intercepted_names,
+        dir(compiled_regex),
+    ):
         setattr(my_regex_compilation, _name, getattr(compiled_regex, _name))
 
     return my_regex_compilation

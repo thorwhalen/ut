@@ -15,6 +15,7 @@ __author__ = 'Eric Naeseth <eric@naeseth.com>'
 __copyright__ = 'Copyright © 2009 Eric Naeseth'
 __license__ = 'MIT License'
 
+
 def find_frequent_itemsets(transactions, minimum_support, include_support=False):
     """
     Find frequent itemsets in the given transactions using FP-growth. This
@@ -27,7 +28,7 @@ def find_frequent_itemsets(transactions, minimum_support, include_support=False)
     If `include_support` is true, yield (itemset, support) pairs instead of
     just the itemsets.
     """
-    items = defaultdict(lambda: 0) # mapping from items to their supports
+    items = defaultdict(lambda: 0)  # mapping from items to their supports
     processed_transactions = []
 
     # Load the passed-in transactions and count the support that individual
@@ -40,8 +41,9 @@ def find_frequent_itemsets(transactions, minimum_support, include_support=False)
         processed_transactions.append(processed)
 
     # Remove infrequent items from the item support dictionary.
-    items = dict((item, support) for item, support in items.items()
-        if support >= minimum_support)
+    items = dict(
+        (item, support) for item, support in items.items() if support >= minimum_support
+    )
 
     # Build our FP-tree. Before any transactions can be added to the tree, they
     # must be stripped of infrequent items and their surviving items must be
@@ -65,10 +67,11 @@ def find_frequent_itemsets(transactions, minimum_support, include_support=False)
 
                 # Build a conditional tree and recursively search for frequent
                 # itemsets within it.
-                cond_tree = conditional_tree_from_paths(tree.prefix_paths(item),
-                    minimum_support)
+                cond_tree = conditional_tree_from_paths(
+                    tree.prefix_paths(item), minimum_support
+                )
                 for s in find_with_suffix(cond_tree, found_set):
-                    yield s # pass along the good news to our caller
+                    yield s  # pass along the good news to our caller
 
     # Search for frequent itemsets, and yield the results we find.
     for itemset in find_with_suffix(master, []):
@@ -128,7 +131,7 @@ class FPTree(object):
 
         try:
             route = self._routes[point.item]
-            route[1].neighbor = point # route[1] is the tail
+            route[1].neighbor = point  # route[1] is the tail
             self._routes[point.item] = self.Route(route[0], point)
         except KeyError:
             # First node for this item; start a new route.
@@ -194,7 +197,7 @@ class FPTree(object):
         else:
             for n in self.nodes(node.item):
                 if n.neighbor is node:
-                    n.neighbor = node.neighbor # skip over
+                    n.neighbor = node.neighbor  # skip over
                     if node is tail:
                         self._routes[node.item] = self.Route(head, n)
                     break
@@ -245,7 +248,7 @@ def conditional_tree_from_paths(paths, minimum_support):
     # Finally, remove the nodes corresponding to the item for which this
     # conditional tree was generated.
     for node in tree.nodes(condition_item):
-        if node.parent is not None: # the node might already be an orphan
+        if node.parent is not None:  # the node might already be an orphan
             node.parent.remove(node)
 
     return tree
@@ -266,7 +269,7 @@ class FPNode(object):
         """Adds the given FPNode `child` as a child of this node."""
 
         if not isinstance(child, FPNode):
-            raise TypeError("Can only add other FPNodes as children")
+            raise TypeError('Can only add other FPNodes as children')
 
         if not child.item in self._children:
             self._children[child.item] = child
@@ -294,16 +297,16 @@ class FPNode(object):
                         # Merger case: we already have a child for that item, so
                         # add the sub-child's count to our child's count.
                         self._children[sub_child.item]._count += sub_child.count
-                        sub_child.parent = None # it's an orphan now
+                        sub_child.parent = None  # it's an orphan now
                     except KeyError:
                         # Turns out we don't actually have a child, so just add
                         # the sub-child as our own child.
                         self.add(sub_child)
                 child._children = {}
             else:
-                raise ValueError("that node is not a child of this node")
+                raise ValueError('that node is not a child of this node')
         except KeyError:
-            raise ValueError("that node is not a child of this node")
+            raise ValueError('that node is not a child of this node')
 
     def __contains__(self, item):
         return item in self._children
@@ -326,7 +329,7 @@ class FPNode(object):
     def increment(self):
         """Increments the count associated with this node's item."""
         if self._count is None:
-            raise ValueError("Root nodes have no associated count.")
+            raise ValueError('Root nodes have no associated count.')
         self._count += 1
 
     @property
@@ -341,31 +344,39 @@ class FPNode(object):
 
     def parent():
         doc = "The node's parent."
+
         def fget(self):
             return self._parent
+
         def fset(self, value):
             if value is not None and not isinstance(value, FPNode):
-                raise TypeError("A node must have an FPNode as a parent.")
+                raise TypeError('A node must have an FPNode as a parent.')
             if value and value.tree is not self.tree:
-                raise ValueError("Cannot have a parent from another tree.")
+                raise ValueError('Cannot have a parent from another tree.')
             self._parent = value
+
         return locals()
+
     parent = property(**parent())
 
     def neighbor():
-        doc = """
+        doc = '''
         The node's neighbor; the one with the same value that is "to the right"
         of it in the tree.
-        """
+        '''
+
         def fget(self):
             return self._neighbor
+
         def fset(self, value):
             if value is not None and not isinstance(value, FPNode):
-                raise TypeError("A node must have an FPNode as a neighbor.")
+                raise TypeError('A node must have an FPNode as a neighbor.')
             if value and value.tree is not self.tree:
-                raise ValueError("Cannot have a neighbor from another tree.")
+                raise ValueError('Cannot have a neighbor from another tree.')
             self._neighbor = value
+
         return locals()
+
     neighbor = property(**neighbor())
 
     @property
@@ -380,8 +391,8 @@ class FPNode(object):
 
     def __repr__(self):
         if self.root:
-            return "<%s (root)>" % type(self).__name__
-        return "<%s %r (%r)>" % (type(self).__name__, self.item, self.count)
+            return '<%s (root)>' % type(self).__name__
+        return '<%s %r (%r)>' % (type(self).__name__, self.item, self.count)
 
 
 # if __name__ == '__main__':

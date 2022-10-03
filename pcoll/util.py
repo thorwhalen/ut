@@ -28,6 +28,7 @@ class WindowCollector(deque):
     >>> t
     deque([2, 3, 4])
     """
+
     def __init__(self, window_width, empty_val=None):
         super(WindowCollector, self).__init__([empty_val] * window_width)
 

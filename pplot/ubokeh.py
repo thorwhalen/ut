@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 import itertools
@@ -25,39 +23,55 @@ def _distance(df, dist_fun, sort=None):
     col_name = df.columns.name or 'col'
     cumul = list()
     for row, col in itertools.product(df.index.values, df.index.values):
-        cumul.append({row_name: row, col_name: col, 'val': dist_fun(df.loc[row], df.loc[col])})
+        cumul.append(
+            {row_name: row, col_name: col, 'val': dist_fun(df.loc[row], df.loc[col])}
+        )
     cumul = pd.DataFrame(cumul)
     cumul = cumul.set_index([col_name, row_name]).unstack(col_name)['val']
     if sort is not None:
         if sort == 'val_sum':
-            var_order = [x for (y,x) in sorted(zip(cumul.sum().as_matrix(), cumul.index.values))]
+            var_order = [
+                x for (y, x) in sorted(zip(cumul.sum().as_matrix(), cumul.index.values))
+            ]
             cumul = cumul[var_order].loc[var_order]
     return cumul
 
 
-def _mk_distance_matrix(dd,
-                        dist_fun=cityblock,
-                        n_clus=1,
-                        linkage_method='complete',
-                        clus_criterion='maxclust'):
+def _mk_distance_matrix(
+    dd,
+    dist_fun=cityblock,
+    n_clus=1,
+    linkage_method='complete',
+    clus_criterion='maxclust',
+):
     ddd = dd / dd.sum()  # normalize the observations
-    ddd = _distance(ddd, dist_fun=dist_fun)  # make the distance matrix (between each observation)
+    ddd = _distance(
+        ddd, dist_fun=dist_fun
+    )  # make the distance matrix (between each observation)
 
     Z = linkage(dd, method=linkage_method, metric=dist_fun)
 
-    idx_df = pd.DataFrame({'clus_idx': array(fcluster(Z, t=n_clus, criterion=clus_criterion)),
-                           'distance_sum': ddd.sum().values})
-    idx = idx_df.sort_values(by=['clus_idx', 'distance_sum'], axis=0, ascending=True).index.values
+    idx_df = pd.DataFrame(
+        {
+            'clus_idx': array(fcluster(Z, t=n_clus, criterion=clus_criterion)),
+            'distance_sum': ddd.sum().values,
+        }
+    )
+    idx = idx_df.sort_values(
+        by=['clus_idx', 'distance_sum'], axis=0, ascending=True
+    ).index.values
 
     return ddd.iloc[idx, idx]
 
 
-def compute_and_display_distances(dd,
-                                  distance_matrix_fun=_mk_distance_matrix,
-                                  cmap=cm.gray_r,
-                                  data_to_01_color=None,
-                                  graph_title="",
-                                  output_filepath='bokeh_distance_matrix.html'):
+def compute_and_display_distances(
+    dd,
+    distance_matrix_fun=_mk_distance_matrix,
+    cmap=cm.gray_r,
+    data_to_01_color=None,
+    graph_title='',
+    output_filepath='bokeh_distance_matrix.html',
+):
 
     dist_mat = distance_matrix_fun(dd)
 
@@ -79,32 +93,45 @@ def compute_and_display_distances(dd,
 
     output_file(output_filepath)
 
-
     p = _mk_matrix_bokeh_fig(graph_title, names, source)
 
     hover = p.select(dict(type=HoverTool))
-    hover.tooltips = OrderedDict([
-        ('y,x=', '@yname, @xname'),
-        ('', '@ydata, @xdata'),
-        ('val', '@vals'),
-        ('what', '@poo')
-    ])
+    hover.tooltips = OrderedDict(
+        [
+            ('y,x=', '@yname, @xname'),
+            ('', '@ydata, @xdata'),
+            ('val', '@vals'),
+            ('what', '@poo'),
+        ]
+    )
 
     return p
 
 
 def _mk_matrix_bokeh_fig(graph_title, names, source):
-    p = figure(title=graph_title,
-               x_axis_location="above", tools="resize,hover,save",
-               x_range=list(reversed(names)), y_range=names)
+    p = figure(
+        title=graph_title,
+        x_axis_location='above',
+        tools='resize,hover,save',
+        x_range=list(reversed(names)),
+        y_range=names,
+    )
     p.plot_width = 800
     p.plot_height = 800
-    p.rect('xname', 'yname', 0.9, 0.9, source=source,
-           color='colors', alpha='alphas', line_color=None)
+    p.rect(
+        'xname',
+        'yname',
+        0.9,
+        0.9,
+        source=source,
+        color='colors',
+        alpha='alphas',
+        line_color=None,
+    )
     p.grid.grid_line_color = None
     p.axis.axis_line_color = None
     p.axis.major_tick_line_color = None
-    p.axis.major_label_text_font_size = "5pt"
+    p.axis.major_label_text_font_size = '5pt'
     p.axis.major_label_standoff = 0
     p.xaxis.major_label_orientation = np.pi / 3
     return p
@@ -132,11 +159,7 @@ def _mk_distmat_name_and_source(cmap, data, data_to_01_color):
             color.append(rgb2hex(color_spec[:3]))
     source = ColumnDataSource(
         data=dict(
-            xname=xname,
-            yname=yname,
-            colors=color,
-            alphas=alpha,
-            vals=vals.flatten()
+            xname=xname, yname=yname, colors=color, alphas=alpha, vals=vals.flatten()
         )
     )
     return names, source
@@ -174,17 +197,19 @@ def _mk_distmat_name_and_source_including_data(cmap, data, data_to_01_color):
             alphas=alpha,
             vals=vals.flatten(),
             xdata=xdata,
-            ydata=ydata
+            ydata=ydata,
         )
     )
     return names, source
 
 
-def square_df_heatmap(df,
-                      cmap=cm.gray_r,
-                      data_to_01_color=None,
-                      graph_title="",
-                      output_filepath='bokeh_heatmap.html'):
+def square_df_heatmap(
+    df,
+    cmap=cm.gray_r,
+    data_to_01_color=None,
+    graph_title='',
+    output_filepath='bokeh_heatmap.html',
+):
 
     # input handling
     if isinstance(cmap, str):
@@ -207,10 +232,7 @@ def square_df_heatmap(df,
     p = _mk_matrix_bokeh_fig(graph_title, names, source)
 
     hover = p.select(dict(type=HoverTool))
-    hover.tooltips = OrderedDict([
-        ('y,x=', '@yname, @xname'),
-        ('val', '@vals'),
-    ])
+    hover.tooltips = OrderedDict([('y,x=', '@yname, @xname'), ('val', '@vals'),])
 
     return p
 
@@ -220,7 +242,9 @@ def _square_df_to_bokeh_graph(df):
     node_names = df.index.values
     n = len(node_names)
     data['nodes'] = [{'name': v} for i, v in enumerate(node_names)]
-    data['links'] = [{'source': source, 'target': target, 'value': df.iloc[source, target]}
-                     for source, target in itertools.product(list(range(n)), list(range(n)))]
+    data['links'] = [
+        {'source': source, 'target': target, 'value': df.iloc[source, target]}
+        for source, target in itertools.product(list(range(n)), list(range(n)))
+    ]
     # data['df'] = df
     return data

@@ -73,7 +73,6 @@
     """
 
 
-
 from collections import defaultdict
 
 
@@ -120,6 +119,7 @@ def print_flush(buf):
 
     return inject_post_flush_func(buf, print_flush)
 
+
 def reroute_flush_to_push(from_buf, to_buf):
     inject_post_flush_func(from_buf, to_buf.push)
 
@@ -143,10 +143,10 @@ class AbstractBuffer(object):
             return self.push(item)
 
     def push(self, item):
-        raise NotImplementedError("Needs to be implemented in a concrete class.")
+        raise NotImplementedError('Needs to be implemented in a concrete class.')
 
     def flush(self):
-        raise NotImplementedError("Needs to be implemented in a concrete class.")
+        raise NotImplementedError('Needs to be implemented in a concrete class.')
 
     def flush_all(self):
         """
@@ -239,7 +239,7 @@ class WrappedRouter(AbstractBuffer):
                 self.buf_list[i] = {
                     'buf': self.buf_list[i],
                     'pre_push': lambda x: x,
-                    'post_flush': lambda x: x
+                    'post_flush': lambda x: x,
                 }
 
     def push(self, item):
@@ -382,7 +382,9 @@ class BufferPipeline(AbstractBuffer):
         """
         self.buf_list = buf_list
         for i in range(len(self.buf_list) - 1):
-            self.buf_list[i] = inject_post_flush_func(self.buf_list[i], self.buf_list[i + 1].push)
+            self.buf_list[i] = inject_post_flush_func(
+                self.buf_list[i], self.buf_list[i + 1].push
+            )
 
     def push(self, item):
         if item is not None:
@@ -458,7 +460,6 @@ class PassThroughBuffer(AbstractBuffer):
             for func in self.post_flush_funcs:
                 item = func(item)
             return item
-
 
 
 class Buffer(AbstractBuffer):
@@ -663,8 +664,8 @@ class BucketBuffer(ThreshBuffer):
         :param bucket_step: The integer to divide the item[index_field] value by to determine the bucket it should be
             stored in.
         """
-        assert isinstance(thresh, int), "thresh must be an int"
-        assert isinstance(bucket_step, int), "bucket_step must be an int"
+        assert isinstance(thresh, int), 'thresh must be an int'
+        assert isinstance(bucket_step, int), 'bucket_step must be an int'
         self.index_field = index_field
         self.bucket_step = bucket_step
         self._buf = defaultdict(list)

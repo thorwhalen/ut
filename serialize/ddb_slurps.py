@@ -1,4 +1,3 @@
-
 __author__ = 'mattjmorris'
 
 from .dynamo import Dynamo
@@ -9,7 +8,6 @@ from ut.coll import order_conserving
 
 
 class DDBSlurps(Dynamo):
-
     @classmethod
     def from_test_mode(cls, access_key=None, secret=None):
         """
@@ -17,7 +15,9 @@ class DDBSlurps(Dynamo):
         """
         instance = cls(access_key, secret)
         instance.slurps_table = Table('test_slurps', connection=instance.connection)
-        instance.failed_slurps_table = Table('test_failed_slurps', connection=instance.connection)
+        instance.failed_slurps_table = Table(
+            'test_failed_slurps', connection=instance.connection
+        )
         return instance
 
     def __init__(self, access_key=None, secret=None):
@@ -41,11 +41,17 @@ class DDBSlurps(Dynamo):
                 for s in slurp_info_:
                     batch.put_item(data=s, overwrite=overwrite)
         else:
-            raise TypeError("slurp_info must be a dict or a list of dicts, not a {}".format(type(slurp_info_)))
+            raise TypeError(
+                'slurp_info must be a dict or a list of dicts, not a {}'.format(
+                    type(slurp_info_)
+                )
+            )
 
     def save_failed_slurp(self, searchterm):
-        self.failed_slurps_table.put_item(data={'searchterm': searchterm, 'datetime': datetime.now().isoformat()},
-                                          overwrite=True)
+        self.failed_slurps_table.put_item(
+            data={'searchterm': searchterm, 'datetime': datetime.now().isoformat()},
+            overwrite=True,
+        )
 
     def get_slurp_info(self, search_term_=None):
         """
@@ -59,7 +65,9 @@ class DDBSlurps(Dynamo):
         # searchterm_ is a STRING
         if isinstance(search_term_, str):
             if search_term_:
-                slurp_info = list((self.slurps_table.get_item(searchterm=search_term_)).items())
+                slurp_info = list(
+                    (self.slurps_table.get_item(searchterm=search_term_)).items()
+                )
             else:
                 slurp_info = []
 
@@ -81,7 +89,11 @@ class DDBSlurps(Dynamo):
 
         # searchterm is an unexpected type
         else:
-            raise TypeError("search_term_ must be a dict or a list of dicts, not a {}".format(type(search_term_)))
+            raise TypeError(
+                'search_term_ must be a dict or a list of dicts, not a {}'.format(
+                    type(search_term_)
+                )
+            )
 
         return slurp_info
 
@@ -93,7 +105,9 @@ class DDBSlurps(Dynamo):
         # make sure in utf8 before we send request to the db
         input_sts_utf8 = [to_utf8_or_bust(i) for i in searchterm_list]
         found_sts_info = self.get_slurp_info(input_sts_utf8)
-        found_sts_uni = [to_unicode_or_bust(dict(i)['searchterm']) for i in found_sts_info]
+        found_sts_uni = [
+            to_unicode_or_bust(dict(i)['searchterm']) for i in found_sts_info
+        ]
         input_sts_uni = [to_unicode_or_bust(i) for i in input_sts_utf8]
         missing_sts_uni = order_conserving.setdiff(input_sts_uni, found_sts_uni)
         return found_sts_uni, missing_sts_uni
@@ -115,21 +129,26 @@ class DDBSlurps(Dynamo):
         """
         WARNING! Only use for test mode table
         """
-        assert self.slurps_table.table_name == 'test_slurps', "Will only truncate test slurps table. To truncate production table, run code manually"
+        assert (
+            self.slurps_table.table_name == 'test_slurps'
+        ), 'Will only truncate test slurps table. To truncate production table, run code manually'
         test_slurps_table = Table('test_slurps', connection=self.connection)
         with test_slurps_table.batch_write() as batch:
             for item in self.slurps_table.scan():
                 batch.delete_item(searchterm=item['searchterm'])
 
     def modify_failed_slurps_throughput(self, requested_read, requested_write):
-        return self.modify_throughput(requested_read, requested_write, self.failed_slurps_table)
+        return self.modify_throughput(
+            requested_read, requested_write, self.failed_slurps_table
+        )
 
     def modify_slurps_throughput(self, requested_read, requested_write):
-        return self.modify_throughput(requested_read, requested_write, self.slurps_table)
+        return self.modify_throughput(
+            requested_read, requested_write, self.slurps_table
+        )
 
     def get_slurps_table_info(self):
         return self.get_table_info(self.slurps_table)
 
     def get_failed_slurps_table_info(self):
         return self.get_table_info(self.failed_slurps_table)
-

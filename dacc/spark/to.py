@@ -1,5 +1,3 @@
-
-
 __author__ = 'thor'
 
 import numpy as np
@@ -15,6 +13,7 @@ def sklearn_model(model):
 
     if model_name == 'pyspark.mllib.clustering.GaussianMixtureModel':
         from sklearn.mixture import GMM
+
         n_components = len(model.gaussians)
         sk_model = GMM(n_components=n_components, covariance_type='full')
         sk_model.weights_ = model.weights

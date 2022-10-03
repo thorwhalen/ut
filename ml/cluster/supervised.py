@@ -20,7 +20,6 @@ from collections import defaultdict, Counter
 import pandas as pd
 
 
-
 def y_idx_dict(y):
     y_idx = defaultdict(list)
     list(map(lambda i, y_item: y_idx[y_item].append(i), *list(zip(*enumerate(y)))))
@@ -40,6 +39,7 @@ class SupervisedKMeans(ClusterMixin):
     """
 
     """
+
     def __init__(self, n_clusters=8):
         self.n_clusters = n_clusters
 
@@ -47,7 +47,7 @@ class SupervisedKMeans(ClusterMixin):
         y_count = pd.Series(Counter(y)).sort_values(ascending=False)
         if len(y_count) > self.n_clusters:
             # if there's more unique ys than the requested labels, only take the most frequent ones for the fit
-            hi_count_ys = y_count.iloc[:self.n_clusters].index.values
+            hi_count_ys = y_count.iloc[: self.n_clusters].index.values
             is_a_hi_count_y_lidx = array(pd.Series(y).isin(hi_count_ys))
             XX = X[is_a_hi_count_y_lidx, :]
             yy = y[is_a_hi_count_y_lidx]
@@ -59,17 +59,22 @@ class SupervisedKMeans(ClusterMixin):
         n_ys = len(y_idx)
         kmeans_for_y = kmeans_per_y_dict(XX, yy, y_idx)
         inertias_for_y = {y: km.inertia_ for y, km in kmeans_for_y.items()}
-        y_n_clusters_for_y = ones(n_ys) \
-                             + _choose_distribution_according_to_weights(weights=list(inertias_for_y.values()),
-                                                                         total_int_to_distribute=self.n_clusters - n_ys)
+        y_n_clusters_for_y = ones(n_ys) + _choose_distribution_according_to_weights(
+            weights=list(inertias_for_y.values()),
+            total_int_to_distribute=self.n_clusters - n_ys,
+        )
         y_n_clusters_for_y = y_n_clusters_for_y.astype(int)
-        y_n_clusters_for_y = {y: x for y, x in zip(list(inertias_for_y.keys()), y_n_clusters_for_y)}
+        y_n_clusters_for_y = {
+            y: x for y, x in zip(list(inertias_for_y.keys()), y_n_clusters_for_y)
+        }
 
         centroids_ = list()
         km = dict()
         for this_y, idx in y_idx.items():
             km[this_y] = dict()
-            km[this_y]['km'] = KMeans(n_clusters=y_n_clusters_for_y[this_y]).fit(XX[idx, :])
+            km[this_y]['km'] = KMeans(n_clusters=y_n_clusters_for_y[this_y]).fit(
+                XX[idx, :]
+            )
             km[this_y]['idx_offset'] = len(centroids_)
             centroids_.extend(list(km[this_y]['km'].cluster_centers_))
 
@@ -88,9 +93,14 @@ class SupervisedKMeans(ClusterMixin):
             for yy in unique(y):
                 lidx = y == yy
                 if yy in self.km_for_y_:
-                    cluster_idx[lidx] = self.km_for_y_[yy]['km'].predict(X[lidx, :]) + self.km_for_y_[yy]['idx_offset']
+                    cluster_idx[lidx] = (
+                        self.km_for_y_[yy]['km'].predict(X[lidx, :])
+                        + self.km_for_y_[yy]['idx_offset']
+                    )
                 else:
-                    cluster_idx[lidx] = self.knn_.kneighbors(X[lidx, :], return_distance=False)[:, 0]
+                    cluster_idx[lidx] = self.knn_.kneighbors(
+                        X[lidx, :], return_distance=False
+                    )[:, 0]
             return cluster_idx
 
     def fit_predict(self, X, y=None):
@@ -105,11 +115,13 @@ class SupervisedKMeans(ClusterMixin):
 
 
 class SeperateClassKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
-    def __init__(self,
-                 n_clusters=8,
-                 method='volume',
-                 clusterer=KMeans(),
-                 keep_seperated_cluster_centroids=False):
+    def __init__(
+        self,
+        n_clusters=8,
+        method='volume',
+        clusterer=KMeans(),
+        keep_seperated_cluster_centroids=False,
+    ):
 
         self.n_clusters = n_clusters
         self.method = method
@@ -126,13 +138,19 @@ class SeperateClassKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
             self.n_clusters = int(self.n_clusters)
 
         if isinstance(self.n_clusters, int):
-            num_of_clusters_for_class = \
-                _choose_class_weights(X, y, n_clusters=self.n_clusters, method=self.method, clusterer=self.clusterer)
+            num_of_clusters_for_class = _choose_class_weights(
+                X,
+                y,
+                n_clusters=self.n_clusters,
+                method=self.method,
+                clusterer=self.clusterer,
+            )
         else:
             num_of_clusters_for_class = np.array(list(map(int, self.n_clusters)))
             self.n_clusters = int(np.sum(num_of_clusters_for_class))
-            assert len(num_of_clusters_for_class) == n_classes, \
-                "n_clusters should be a number or an array of #classes numbers"
+            assert (
+                len(num_of_clusters_for_class) == n_classes
+            ), 'n_clusters should be a number or an array of #classes numbers'
 
         cluster_center_closeness = np.zeros(n_classes)
         cluster_centers_ = list()
@@ -239,7 +257,6 @@ def _choose_class_weights(X, y, n_clusters=8, method='volume', clusterer=KMeans(
         # Take the number of pts per class to decide on how many clusters to get
         weights = list(y_counts.values())
 
-
     elif method == 'inertia':
         ################################################################################################################
         # Make a first pass with a single cluster for each class, and assign intertia to weights
@@ -250,16 +267,20 @@ def _choose_class_weights(X, y, n_clusters=8, method='volume', clusterer=KMeans(
             weights[i] = clusterer.inertia_
 
     else:
-        ValueError("Unknown method {}".format(method))
+        ValueError('Unknown method {}'.format(method))
 
     weights = np.array(weights)
     # total_weight = np.sum(weights)
     # weight_covered_by_ones_blanket_ofor_each_class = total_weight * (n_clusters - n_classes) / float(n_clusters)
     weight_proportion_covered_by_blanket_of_ones = n_classes / float(n_clusters)
-    remaining_weights = np.array([max(x, 0.0) for x in weights - weight_proportion_covered_by_blanket_of_ones])
-    num_of_clusters_for_class = np.ones(n_classes) \
-                                + _choose_distribution_according_to_weights(remaining_weights,
-                                                                            n_clusters - n_classes)
+    remaining_weights = np.array(
+        [max(x, 0.0) for x in weights - weight_proportion_covered_by_blanket_of_ones]
+    )
+    num_of_clusters_for_class = np.ones(
+        n_classes
+    ) + _choose_distribution_according_to_weights(
+        remaining_weights, n_clusters - n_classes
+    )
 
     return num_of_clusters_for_class
 
