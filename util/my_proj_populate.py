@@ -13,7 +13,7 @@ name_for_url_root = {
 
 proj_root_dir_for_name = {
     'i2mint': 'i',
-    'otosense': 'po',
+    'otosense': 'o',
     'thor': 't',
 }
 
