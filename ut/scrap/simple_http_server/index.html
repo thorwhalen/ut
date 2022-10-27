@@ -1,0 +1,40 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    h1 {
+        color: red
+    }
+</style>
+
+<div id="demo"></div>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+    d3.json('demo_data.json', function (error, data) {
+        var demo = d3.select('#demo'),
+                messages = demo.selectAll('messages').data(data).enter();
+        messages.append('h1').html(function (d) {
+            return d.title;
+        });
+        messages.append('p').html(function (d) {
+            return d.body;
+        });
+    });
+</script>
+
+<!--
+RUNNING A DEVELOPMENT SERVER
+The easy way, from the project directory just type and enter
+$ python -m SimpleHTTPServer
+Open the default address in your browser and hey presto!
+
+Note: node's http-server is faster and can handle streaming video etc..
+$ npm install http-server -g; http-server -p 8000
+A trivial data pipeline from Python -> JSON -> Javascript but most data visualization work will be increasingly sophisticated variations on this theme.
+A LITTLE ORGANIZATION
+Best-practice 101, getting those files organized early will save a lot of time in the long run.
+
+ADJUST THE INDEX.HTML ENTRY-POINT
+-->
