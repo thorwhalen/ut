@@ -65,7 +65,7 @@ def get_github_project_description(
         else:
             return default_factory(org_slash_proj)
     else:
-        raise RuntimeError(f"Request response status wasn't 200. Was {r.status_code}")
+        raise RuntimeError(f"Request response status for {api_url} wasn't 200. Was {r.status_code}")
 
 
 def populate_proj_from_url(
