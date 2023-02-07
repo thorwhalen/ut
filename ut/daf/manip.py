@@ -43,8 +43,8 @@ def type_counts(df):
     return {k: dict(Counter(v)) for k, v in df.applymap(none_or_type).items()}
 
 
-int_types = {int, np.int0, np.int8, np.int16, np.float64, np.float128}
-float_types = {float, np.float16, np.float32, np.float64, np.float128}
+int_types = {int, np.int0, np.int8, np.int16, np.float64}
+float_types = {float, np.float16, np.float32, np.float64}
 
 
 # TODO: Find or make numpy type hierarchy poset (total order?) and write "maximal casting" function
@@ -56,7 +56,7 @@ def common_numerical_type(iterable):
     >>> assert common_numerical_type([3, 1, np.nan, 2, None]) == int
     """
     counts = set(map(none_or_type, iterable))
-    if counts.isdisjoint({float, np.float16, np.float32, np.float64, np.float128}):
+    if counts.isdisjoint({float, np.float16, np.float32, np.float64}):
         return int
     else:
         return float
