@@ -303,17 +303,8 @@ def set_value_in_nested_key_path(d, key_path, val):
     >>> input_dict
     {'a': {'c': 'val of a.c', 'b': 1}, '10': 10, 'b': {'B': {'AA': 3}}, 'new': {'key': 'new val'}}
     """
-    if isinstance(key_path, str):
-        key_path = key_path.split('.')
-    first_key = key_path[0]
-    if len(key_path) == 1:
-        d[first_key] = val
-    else:
-        if first_key in d:
-            set_value_in_nested_key_path(d[first_key], key_path[1:], val)
-        else:
-            d[first_key] = {}
-            set_value_in_nested_key_path(d[first_key], key_path[1:], val)
+    from dol import path_set
+    return path_set(d, key_path, val)
 
 
 def mk_fixed_coordinates_value_getter(get_key_list):
