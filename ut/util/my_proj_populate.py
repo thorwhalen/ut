@@ -17,7 +17,7 @@ proj_root_dir_for_name = {
     'thor': 't',
 }
 
-DFLT_PROJ_ROOT_ENVVAR = 'PPPP'
+DFLT_PROJ_ROOT_ENVVAR = 'DFLT_PROJ_ROOT_ENVVAR'
 
 
 def clog(*args, condition=True, log_func=print, **kwargs):
