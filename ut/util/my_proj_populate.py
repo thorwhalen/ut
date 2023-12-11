@@ -65,7 +65,9 @@ def get_github_project_description(
         else:
             return default_factory(org_slash_proj)
     else:
-        raise RuntimeError(f"Request response status for {api_url} wasn't 200. Was {r.status_code}")
+        raise RuntimeError(
+            f"Request response status for {api_url} wasn't 200. Was {r.status_code}"
+        )
 
 
 def populate_proj_from_url(
@@ -78,7 +80,9 @@ def populate_proj_from_url(
     url = _ensure_no_slash_suffix(url)
 
     proj_rootdir = proj_rootdir or os.environ.get(DFLT_PROJ_ROOT_ENVVAR, None)
-    assert isinstance(proj_rootdir, str)
+    assert (
+        proj_rootdir
+    ), "Your proj_rootdir was empty -- specify it or set the proj_rootdir envvar"
 
     root_url, proj_name = os.path.dirname(url), os.path.basename(url)
     if description is None:
