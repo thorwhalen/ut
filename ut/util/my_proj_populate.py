@@ -3,7 +3,7 @@ import os
 import subprocess
 from wads.populate import populate_pkg_dir, wads_configs
 from wads.util import git
-from ut.util.context_managers import 
+from ut.util.context_managers import cd
 
 from wads.populate import (
     name_for_url_root,
