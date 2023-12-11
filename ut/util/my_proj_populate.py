@@ -3,109 +3,16 @@ import os
 import subprocess
 from wads.populate import populate_pkg_dir, wads_configs
 from wads.util import git
-from ut.util.context_managers import cd
+from ut.util.context_managers import 
 
-name_for_url_root = {
-    'https://github.com/i2mint': 'i2mint',
-    'https://github.com/otosense': 'otosense',
-    'https://github.com/thorwhalen': 'thor',
-}
-
-proj_root_dir_for_name = {
-    'i2mint': 'i',
-    'otosense': 'o',
-    'thor': 't',
-}
-
-DFLT_PROJ_ROOT_ENVVAR = 'DFLT_PROJ_ROOT_ENVVAR'
-
-
-def clog(*args, condition=True, log_func=print, **kwargs):
-    if condition:
-        return log_func(*args, **kwargs)
-
-
-from functools import partial
-
-
-def _ensure_no_slash_suffix(string: str) -> str:
-    if string.endswith('/'):
-        string = string[:-1]
-    return string
-
-
-def _get_org_slash_proj(repo: str) -> str:
-    """Gets an org/proj_name string from a url (assuming it's at the end)
-
-    >>> _get_org_slash_proj('https://github.com/thorwhalen/ut/')
-    'thorwhalen/ut'
-    """
-    *_, org, proj_name = _ensure_no_slash_suffix(repo).split('/')
-    return f'{org}/{proj_name}'
-
-
-def _mk_default_project_description(org_slash_proj: str) -> str:
-    org, proj_name = org_slash_proj.split('/')
-    return f'{proj_name} should say it all, no?'
-
-
-def get_github_project_description(
-    repo: str, default_factory=_mk_default_project_description
-):
-    """Get project description from github repository, or default if not found"""
-    import requests
-
-    org_slash_proj = _get_org_slash_proj(repo)
-    api_url = f'https://api.github.com/repos/{org_slash_proj}'
-    r = requests.get(api_url)
-    if r.status_code == 200:
-        description = r.json().get('description', None)
-        if description:
-            return description
-        else:
-            return default_factory(org_slash_proj)
-    else:
-        raise RuntimeError(
-            f"Request response status for {api_url} wasn't 200. Was {r.status_code}"
-        )
-
-
-def populate_proj_from_url(
-    url, proj_rootdir=None, description=None, license='apache-2.0', **kwargs
-):
-    """git clone a repository and set the resulting folder up for packaging."""
-    verbose = kwargs.get('verbose', True)
-    _clog = partial(clog, condition=verbose)
-
-    url = _ensure_no_slash_suffix(url)
-
-    proj_rootdir = proj_rootdir or os.environ.get(DFLT_PROJ_ROOT_ENVVAR, None)
-    assert (
-        proj_rootdir
-    ), "Your proj_rootdir was empty -- specify it or set the proj_rootdir envvar"
-
-    root_url, proj_name = os.path.dirname(url), os.path.basename(url)
-    if description is None:
-        description = get_github_project_description(url)
-    url_name = name_for_url_root.get(root_url, None)
-    if url_name:
-        _clog(f'url_name={url_name}')
-
-    if url_name is not None and url_name in proj_root_dir_for_name:
-        proj_rootdir = os.path.join(proj_rootdir, proj_root_dir_for_name[url_name])
-    _clog(f'proj_rootdir={proj_rootdir}')
-
-    with cd(proj_rootdir):
-        _clog(f'cloning {url}...')
-        subprocess.check_output(f'git clone {url}', shell=True).decode()
-        _clog(f'populating package folder...')
-        populate_pkg_dir(
-            os.path.join(proj_rootdir, proj_name),
-            defaults_from=url_name,
-            description=description,
-            license=license,
-            **kwargs,
-        )
+from wads.populate import (
+    name_for_url_root,
+    proj_root_dir_for_name,
+    DFLT_PROJ_ROOT_ENVVAR,
+    clog,
+    get_github_project_description,
+    populate_proj_from_url,
+)
 
 
 def gen_key_content_and_description(
