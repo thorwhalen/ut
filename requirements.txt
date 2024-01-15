@@ -49,7 +49,7 @@ dropbox==9.5.0
 entrypoints==0.3
 et-xmlfile==1.0.1
 face==20.1.1
-Flask==1.1.1
+Flask==2.2.5
 Flask-Compress==1.4.0
 Flask-Cors==3.0.8
 fsspec==0.7.1
