@@ -51,7 +51,7 @@ et-xmlfile==1.0.1
 face==20.1.1
 Flask==2.2.5
 Flask-Compress==1.4.0
-Flask-Cors==3.0.8
+Flask-Cors==3.0.9
 fsspec==0.7.1
 future==0.18.3
 gevent==23.9.0
