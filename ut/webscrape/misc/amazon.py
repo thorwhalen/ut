@@ -1,24 +1,21 @@
-"""Scraping and parsing amazon"""
-__author__ = 'thor'
+"""
+Scraping and parsing amazon. 
+"""
 
-import os
 from ut.util.importing import get_environment_variable
 import ut as ms
-import ut.dacc.mong.util
 import pandas as pd
 import numpy as np
 import requests
 import re
-from BeautifulSoup import BeautifulSoup as bs3_BeautifulSoup
+from bs4 import BeautifulSoup
 from datetime import timedelta
 from datetime import datetime
-from pymongo import MongoClient
 import matplotlib as mpl
 
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as dates
-from ut.serialize.s3 import S3
 import tempfile
 from ut.viz.util import insert_nans_in_x_and_y_when_there_is_a_gap_in_x
 import pylab
@@ -79,7 +76,7 @@ class Amazon(object):
     # @classmethod
     # def get_dynamic_book_info(cls, asin, **kwargs):
     #     html = Amazon.slurp(what='product_page', **kwargs)
-    #     b = bs3_BeautifulSoup(b)
+    #     b = BeautifulSoup(b)
 
     @classmethod
     def get_info(cls, asin, country='co.uk', **kwargs):
@@ -99,14 +96,14 @@ class Amazon(object):
 
     @classmethod
     def parse_product_title(cls, b, **kwargs):
-        if not isinstance(b, bs3_BeautifulSoup):
-            b = bs3_BeautifulSoup(b)
+        if not isinstance(b, BeautifulSoup):
+            b = BeautifulSoup(b)
         return b.find('span', attrs={'id': 'productTitle'}).text
 
     @classmethod
     def parse_sales_rank(cls, b, **kwargs):
-        if not isinstance(b, bs3_BeautifulSoup):
-            b = bs3_BeautifulSoup(b)
+        if not isinstance(b, BeautifulSoup):
+            b = BeautifulSoup(b)
         t = b.find('li', attrs={'id': re.compile('SalesRank')})
         sales_rank_re = re.compile('(\d[\d,]+) in ([\w\ ]+)')
         tt = sales_rank_re.findall(t.text)
@@ -117,8 +114,8 @@ class Amazon(object):
 
     @classmethod
     def parse_sales_sub_rank(cls, b, **kwargs):
-        if not isinstance(b, bs3_BeautifulSoup):
-            b = bs3_BeautifulSoup(b)
+        if not isinstance(b, BeautifulSoup):
+            b = BeautifulSoup(b)
         t = b.find('li', attrs={'id': re.compile('SalesRank')})
         tt = t.findAll('li', 'zg_hrsr_item')
         sales_sub_rank = list()
@@ -135,15 +132,15 @@ class Amazon(object):
 
     @classmethod
     def parse_avg_rating(cls, b, **kwargs):
-        if not isinstance(b, bs3_BeautifulSoup):
-            b = bs3_BeautifulSoup(b)
+        if not isinstance(b, BeautifulSoup):
+            b = BeautifulSoup(b)
         t = b.find('span', 'reviewCountTextLinkedHistogram')
         return float(re.compile('[\d\.]+').findall(t['title'])[0])
 
     @classmethod
     def parse_product_title(cls, b, **kwargs):
-        if not isinstance(b, bs3_BeautifulSoup):
-            b = bs3_BeautifulSoup(b)
+        if not isinstance(b, BeautifulSoup):
+            b = BeautifulSoup(b)
         t = b.find('div', attrs={'id': 'title'})
         return t.find('span', attrs={'id': 'productTitle'}).text
 
@@ -173,6 +170,8 @@ class Amazon(object):
 
 
 class AmazonBookWatch(object):
+    from pymongo import MongoClient
+
     default = dict()
     default['product_list'] = [
         {'title': 'The Nanologues', 'asin': '9350095173'},
@@ -228,6 +227,8 @@ class AmazonBookWatch(object):
     db = MongoClient()['misc']['book_watch']
 
     def __init__(self, **kwargs):
+        from ut.serialize.s3 import S3
+
         self.s3 = S3(bucket_name='public-ut-images', access_key='ut')
         attribute_name = 'product_list'
         setattr(
