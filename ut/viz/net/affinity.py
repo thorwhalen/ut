@@ -65,7 +65,7 @@ def affinity_propagation_network(X, names=None):
     n_labels = labels.max()
 
     for i in range(n_labels + 1):
-        print(('Cluster %i: %s' % ((i + 1), ', '.join(names[labels == i]))))
+        print('Cluster %i: %s' % ((i + 1), ', '.join(names[labels == i])))
 
     ###############################################################################
     # Find a low-dimension embedding for visualization: find the best position of

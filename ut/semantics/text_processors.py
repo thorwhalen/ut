@@ -17,7 +17,7 @@ from pattern.web import plaintext
 ########################################################################################################################
 # FACTORIES
 def lower_ascii_slash_w_terms():
-    w_terms_re = re.compile('[^\w]+')
+    w_terms_re = re.compile(r'[^\w]+')
     w_terms = lambda x: ' '.join(w_terms_re.sub(' ', x).split()).strip()
     return TextProcessor(text_processors=[preprocess_text_lower_ascii, w_terms]).process
 
@@ -48,7 +48,7 @@ def erenev_kw_str_term_replacer(rep_col=None, by_col=None, term_padding_exp=r'\b
 
 ########################################################################################################################
 # Class that composes mutilple text processors
-class TextProcessor(object):
+class TextProcessor:
     def __init__(self, text_processors):
         self.text_processors = text_processors
 
@@ -74,7 +74,7 @@ def preprocess_text_lower_ascii(text):
     return pstr_trans.toascii(text).lower()
 
 
-class TermReplacer(object):
+class TermReplacer:
     def __init__(self, map_spec, rep_col=None, by_col=None, term_padding_exp=r'\b'):
         if isinstance(map_spec, pd.DataFrame):
             # if map_spec is given by a dataframe, make a mapto dict out of it

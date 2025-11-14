@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# coding: utf-8
 
 # Author: João S. O. Bueno
 # Copyright (c) 2009 - Fundação CPqD
@@ -35,7 +34,7 @@ def get_reversed_first_level_tree(tree):
             if dep_module is module:
                 continue
             if not dep_module in new_tree:
-                new_tree[dep_module] = set([module])
+                new_tree[dep_module] = {module}
             else:
                 new_tree[dep_module].add(module)
     return new_tree

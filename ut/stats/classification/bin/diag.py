@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-class ProbAndRateAnalysis(object):
+class ProbAndRateAnalysis:
     def __init__(self, actual, probs):
         self.d = pd.DataFrame({'probs': probs, 'actual': actual}, columns=['probs', 'actual'])
         self.d['actual'] = self.d['actual'] > 0
@@ -105,7 +105,7 @@ class ZeroEstimator(sk.base.BaseEstimator):
         return tile([1 - self._mean_y, self._mean_y], [len(x), 1])
 
 
-class ModelDiagnosis01(object):
+class ModelDiagnosis01:
     def __init__(self, x, y, test_size=0.5, random_state=None, bench_model=ZeroEstimator):
         self.x = x
         self.y = y  #sk.utils.validation.column_or_1d(y)

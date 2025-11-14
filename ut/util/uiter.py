@@ -121,7 +121,7 @@ def _inefficient_indexed_sliding_window_chunk_iter(
         tt += chk_step
 
 
-class GeneratorLen(object):
+class GeneratorLen:
     def __init__(self, gen, length):
         """
         A class to wrap a generator, allowing it to have a length (which should be specified).
@@ -946,18 +946,15 @@ def print_iter_progress(
                 t = datetime.now().time()
                 if data_to_string is None:
                     print(
-                        (
                             print_template.format(
                                 hour=t.hour,
                                 minute=t.minute,
                                 second=t.second,
                                 iteration=i,
                             )
-                        )
                     )
                 else:
                     print(
-                        (
                             print_template.format(
                                 hour=t.hour,
                                 minute=t.minute,
@@ -965,7 +962,6 @@ def print_iter_progress(
                                 iteration=i,
                                 data_str=data_to_string(x),
                             )
-                        )
                     )
             yield x
 

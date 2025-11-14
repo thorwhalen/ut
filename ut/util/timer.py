@@ -5,7 +5,7 @@ __author__ = 'thorwhalen'
 import time
 
 
-class Timer(object):
+class Timer:
     def __init__(self):
         self.start_time = time.time()
         self.last_tick_time = time.time()

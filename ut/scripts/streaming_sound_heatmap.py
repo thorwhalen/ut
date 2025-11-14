@@ -163,13 +163,11 @@ if __name__ == '__main__':
     # (@) Send fig to Plotly, initialize streaming plot, open new tab
     unique_url = py.plot(fig, filename='s7_first-stream', auto_open=False)
     print(
-        (
             'Json request REST url:\n\t{}'.format(
                 _get_request_url(minutes=windows_minutes, account=account)
             )
-        )
     )
-    print(('Stream image URL:\n\t{}'.format(unique_url)))
+    print(f'Stream image URL:\n\t{unique_url}')
 
     # (@) Make instance of the Stream link object,
     # with same stream id as Stream id object

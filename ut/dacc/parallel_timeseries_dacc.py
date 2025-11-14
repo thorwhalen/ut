@@ -8,7 +8,7 @@ import re
 from ut.pplot.to import simple_plotly
 
 
-class ParallelTimeSeriesDacc(object):
+class ParallelTimeSeriesDacc:
     def __init__(self, data_source, date_var, index_var, ts_vars_name='vars', **kwargs):
         if isinstance(data_source, pd.DataFrame):
             self.df = data_source
@@ -32,16 +32,16 @@ class ParallelTimeSeriesDacc(object):
 
             else:
                 raise NotImplementedError(
-                    'Unrecognized data_source: {}'.format(data_source)
+                    f'Unrecognized data_source: {data_source}'
                 )
         else:
             raise NotImplementedError(
-                'Unrecognized data_source type: {}'.format(type(data_source))
+                f'Unrecognized data_source type: {type(data_source)}'
             )
 
-        assert set([date_var, index_var]).issubset(
+        assert {date_var, index_var}.issubset(
             self.df.columns
-        ), 'Both {} and {} must be columns of the data'.format(date_var, index_var)
+        ), f'Both {date_var} and {index_var} must be columns of the data'
         self.date_var = date_var
         self.index_var = index_var
         self.ts_vars_name = ts_vars_name
@@ -83,13 +83,13 @@ class ParallelTimeSeriesDacc(object):
         """
         Drop columns that don't have a minimum number of non-NaN dates
         """
-        print(('original shape: {}'.format(d.shape)))
+        print(f'original shape: {d.shape}')
         num_of_dates = (~d.isnull()).sum()
         num_of_dates = num_of_dates[num_of_dates > min_num_of_dates].sort(
             inplace=False, ascending=False
         )
         d = d[num_of_dates.index.values].dropna(how='all')
-        print(('shape with at least {} dates: {}'.format(min_num_of_dates, d.shape)))
+        print(f'shape with at least {min_num_of_dates} dates: {d.shape}')
         return d
 
     @staticmethod
@@ -112,7 +112,6 @@ class ParallelTimeSeriesDacc(object):
         t = t[t[yvar] >= min_y]
         n_xvar_more_than_yvar = sum(t[xvar] > t[yvar])
         print(
-            (
                 "{:.2f}% ({}/{}) of '{}' > '{}'".format(
                     100 * n_xvar_more_than_yvar / float(len(t)),
                     n_xvar_more_than_yvar,
@@ -120,7 +119,6 @@ class ParallelTimeSeriesDacc(object):
                     xvar,
                     yvar,
                 )
-            )
         )
 
     def plot_time_series(

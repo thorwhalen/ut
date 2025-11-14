@@ -90,7 +90,7 @@ def init_and_add(s):
 
 
 def print_pdbrc():
-    with open(pdbrc_file, 'r') as f:
+    with open(pdbrc_file) as f:
         print(f.read())
 
 
@@ -103,7 +103,7 @@ def add_breakpoint(filename, lineno=1):
         add('break %s:%d' % (filename, lineno))
 
 
-class Bugger(object):
+class Bugger:
     def __init__(self, relative_root='', root_path=PROJECT_PATH):
         self.facc = pfile_accessor.for_local(
             root_folder=root_path,
@@ -132,7 +132,7 @@ class Bugger(object):
         init_and_add(s)
 
     def print_pdbrc(self):
-        with open(pdbrc_file, 'r') as f:
+        with open(pdbrc_file) as f:
             print(f.read())
 
     def run(self, s):

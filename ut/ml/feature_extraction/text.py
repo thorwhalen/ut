@@ -16,7 +16,7 @@ from ut.ml.sk.feature_extraction.text import TreeTokenizer
 from functools import reduce
 
 path_separator_pattern = re.compile('/+')
-word_inclusion_pattern = re.compile('\w+')
+word_inclusion_pattern = re.compile(r'\w+')
 path_inclusion_pattern = re.compile('[^/]+')
 
 
@@ -98,7 +98,7 @@ def mk_deep_tokenizer(
     min_df=1,
     return_tokenizer_info=False,
 ):
-    """
+    r"""
     Makes a tokenizer that is the result of multiple different tokenizers that might either all be applied to the
     same text, or are used recursively to break up the text into finner pieces.
     In a deep_tokenizer tokenizers[0] tokenizes the text, then the next tokenizer, tokeizers[1] is applied to these
@@ -183,7 +183,7 @@ def mk_deep_tokenizer(
             this_tokenizer_info = dict()
             this_tokenizer_info['tokenize'] = tokenizers[i]
             this_tokenizer_info['token_prefix'] = token_prefixes[i]
-            this_tokenizer_info['vocab'] = set([])
+            this_tokenizer_info['vocab'] = set()
             tokenizer_info_list.append(this_tokenizer_info)
 
         # initialize remaining_element_counts to everything (with counts set to 1)

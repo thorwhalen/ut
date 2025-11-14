@@ -8,14 +8,14 @@ from ut.semantics.text_processors import html2text
 from pattern.web import plaintext
 
 
-class TermStats(object):
+class TermStats:
     default = dict()
     default['name'] = None
     default['term_col'] = 'term'
     default['stat_col'] = 'stat'
     default['html2text'] = plaintext
     default['text_preprocess'] = preprocess_text_lower_ascii
-    default['tokenizer'] = re.compile('\w+').findall
+    default['tokenizer'] = re.compile(r'\w+').findall
 
     def __init__(self, data):
         self.sr = data
@@ -148,7 +148,7 @@ class TermStats(object):
 
     @staticmethod
     def from_text(text, **kwargs):
-        """
+        r"""
         after preprocessing the text (default is lower ascii, but can be overwritten - by None for example),
         the function tokenizes the text (default is re.compile('\w+').findall) and returns a termcount
         """

@@ -3,7 +3,7 @@ __author__ = 'thor'
 from ut.util.decorators import autoargs
 
 
-class A(object):
+class A:
     @autoargs()
     def __init__(self, foo, path, debug=False):
         pass
@@ -15,7 +15,7 @@ assert a.path == 'pie'
 assert a.debug == True
 
 
-class B(object):
+class B:
     @autoargs()
     def __init__(self, foo, path, debug=False, *args):
         pass
@@ -28,7 +28,7 @@ assert a.debug == True
 assert a.args == (100, 101)
 
 
-class C(object):
+class C:
     @autoargs()
     def __init__(self, foo, path, debug=False, *args, **kw):
         pass
@@ -42,7 +42,7 @@ assert a.verbose == True
 assert a.args == (100, 101)
 
 
-class C(object):
+class C:
     @autoargs('bar', 'baz', 'verbose')
     def __init__(self, foo, bar, baz, verbose=False):
         pass
@@ -58,7 +58,7 @@ except AttributeError:
     print("Yep, that's what's expected!")
 
 
-class C(object):
+class C:
     @autoargs(exclude=('bar', 'baz', 'verbose'))
     def __init__(self, foo, bar, baz, verbose=False):
         pass

@@ -45,7 +45,7 @@ def set_containment_matrix(family_of_sets, family_of_sets_2=None):
         family_of_sets_2 = family_of_sets
     x = matrix((~family_of_sets.astype(bool)).astype(int))
     xx = matrix((family_of_sets_2.astype(bool)).astype(int)).T
-    return squeeze(asarray(~(((x * xx)).astype(bool))))
+    return squeeze(asarray(~((x * xx).astype(bool))))
 
 
 def family_of_sets_to_bitmap(family_of_sets, output='df'):
@@ -87,7 +87,7 @@ def bitmap_to_family_of_sets(bitmap, set_labels=None):
     return [set_labels[lidx] for lidx in bitmap]
 
 
-class SetFamily(object):
+class SetFamily:
     def __init__(self, set_family, element_labels=None):
         if isinstance(set_family, pd.DataFrame):
             element_labels = array(set_family.columns)

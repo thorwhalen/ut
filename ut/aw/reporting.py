@@ -53,7 +53,7 @@ def get_client(clientCustomerId='7998744469'):
         'validateOnly': 'n',
         'partialFailure': 'n',
     }
-    print('Getting client for clientCustomerId={}'.format(clientCustomerId))
+    print(f'Getting client for clientCustomerId={clientCustomerId}')
     return AdWordsClient(headers=headers)
 
 
@@ -212,7 +212,7 @@ def get_df_concatination_of_several_accounts(
     )
     df = None
     for a in account_list:
-        print('%s: downloading %s' % (datetime.now(), a))
+        print('{}: downloading {}'.format(datetime.now(), a))
         report_downloader = get_report_downloader(a)
         print('  %s: concatinating' % datetime.now())
         df = pd.concat(

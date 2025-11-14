@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# encoding: utf-8
 #
 # Peteris Krumins (peter@catonmat.net)
 # http://www.catonmat.net  --  good coders code, great reuse
@@ -54,7 +53,7 @@ class SearchResult:
         return 'Google Search Result: "%s"' % self.title
 
 
-class GoogleSearch(object):
+class GoogleSearch:
     SEARCH_URL_0 = (
         'http://www.google.%(tld)s/search?hl=%(lang)s&q=%(query)s&btnG=Google+Search'
     )
@@ -236,7 +235,7 @@ class GoogleSearch(object):
         try:
             page = self.browser.get_page(safe_url)
         except BrowserError as e:
-            raise SearchError('Failed getting %s: %s' % (e.url, e.error))
+            raise SearchError('Failed getting {}: {}'.format(e.url, e.error))
 
         return BeautifulSoup(page)
 

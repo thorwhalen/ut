@@ -1,5 +1,5 @@
 from itertools import chain, starmap, product, repeat
-from typing import Mapping, Generator, Iterable
+from collections.abc import Mapping, Generator, Iterable
 
 
 def pair_count_sr_to_coo_matrix(sr):

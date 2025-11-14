@@ -33,7 +33,7 @@ import scipy.sparse.linalg
 import math
 
 
-class Model(object):
+class Model:
     """
     A wrapper class for storing data, eigenvectors, and coefficients.
 
@@ -415,7 +415,7 @@ def lower_rank(data, weights=None, niter=25, nvec=5, randseed=1):
     return m
 
 
-class SavitzkyGolay(object):
+class SavitzkyGolay:
     """
     Utility class for performing Savitzky Golay smoothing
 

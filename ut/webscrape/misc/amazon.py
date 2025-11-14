@@ -21,7 +21,7 @@ from ut.viz.util import insert_nans_in_x_and_y_when_there_is_a_gap_in_x
 import pylab
 
 
-class Amazon(object):
+class Amazon:
     url_template = dict()
     url_template['product_page'] = 'http://www.amazon.{country}/dp/{asin}/'
     url_template[
@@ -30,10 +30,10 @@ class Amazon(object):
 
     regexp = dict()
     regexp['nreviews_re'] = {
-        'com': re.compile('\d[\d,]*(?= customer review)'),
-        'co.uk': re.compile('\d[\d,]*(?= customer review)'),
-        'in': re.compile('\d[\d,]*(?= customer review)'),
-        'de': re.compile('\d[\d\.]*(?= Kundenrezens\w\w)'),
+        'com': re.compile(r'\d[\d,]*(?= customer review)'),
+        'co.uk': re.compile(r'\d[\d,]*(?= customer review)'),
+        'in': re.compile(r'\d[\d,]*(?= customer review)'),
+        'de': re.compile(r'\d[\d\.]*(?= Kundenrezens\w\w)'),
     }
     regexp['no_reviews_re'] = {
         'com': re.compile('no customer reviews'),
@@ -105,10 +105,10 @@ class Amazon(object):
         if not isinstance(b, BeautifulSoup):
             b = BeautifulSoup(b)
         t = b.find('li', attrs={'id': re.compile('SalesRank')})
-        sales_rank_re = re.compile('(\d[\d,]+) in ([\w\ ]+)')
+        sales_rank_re = re.compile(r'(\d[\d,]+) in ([\w\ ]+)')
         tt = sales_rank_re.findall(t.text)
         return {
-            'sales_rank': int(re.compile('\D').sub('', tt[0][0])),
+            'sales_rank': int(re.compile(r'\D').sub('', tt[0][0])),
             'sales_rank_category': tt[0][1].strip(' '),
         }
 
@@ -122,7 +122,7 @@ class Amazon(object):
         for tti in tt:
             d = dict()
             d['sales_rank'] = int(
-                re.compile('\D').sub('', tti.find('span', 'zg_hrsr_rank').text)
+                re.compile(r'\D').sub('', tti.find('span', 'zg_hrsr_rank').text)
             )
             ttt = tti.find('span', 'zg_hrsr_ladder')
             ttt = ttt.text.split('&nbsp;')[1]
@@ -135,7 +135,7 @@ class Amazon(object):
         if not isinstance(b, BeautifulSoup):
             b = BeautifulSoup(b)
         t = b.find('span', 'reviewCountTextLinkedHistogram')
-        return float(re.compile('[\d\.]+').findall(t['title'])[0])
+        return float(re.compile(r'[\d\.]+').findall(t['title'])[0])
 
     @classmethod
     def parse_product_title(cls, b, **kwargs):
@@ -158,7 +158,7 @@ class Amazon(object):
         html = requests.get(url).text
         try:
             return int(
-                re.compile('\D').sub(
+                re.compile(r'\D').sub(
                     '', Amazon.regexp['nreviews_re'][country].search(html).group(0)
                 )
             )
@@ -169,7 +169,7 @@ class Amazon(object):
                 return None  # to distinguish from 0, and handle more cases if necessary
 
 
-class AmazonBookWatch(object):
+class AmazonBookWatch:
     from pymongo import MongoClient
 
     default = dict()
@@ -446,7 +446,7 @@ class AmazonBookWatch(object):
             d,
             template='box-table-c',
             index=False,
-            float_format=lambda x: '{:,.0f}'.format(x),
+            float_format=lambda x: f'{x:,.0f}',
         )
 
         # html += d.to_html(index=False).replace(

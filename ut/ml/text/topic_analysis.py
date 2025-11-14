@@ -8,7 +8,7 @@ from pandas import Series
 import matplotlib.pyplot as plt
 
 
-class TopicExplorer(object):
+class TopicExplorer:
     def __init__(
         self,
         url_vectorizer,
@@ -76,7 +76,7 @@ class TopicExplorer(object):
             :-1
         ]
         for h in h_list:
-            self.topic_color.append('hsl({}, 100%, 50%)'.format(h))
+            self.topic_color.append(f'hsl({h}, 100%, 50%)')
 
     def topic_weights(self, text_collection):
         if isinstance(text_collection, str):
@@ -140,7 +140,7 @@ class TopicExplorer(object):
                     return color
 
             elif not callable(color_func):
-                TypeError('Unrecognized hsl_color type ()'.format(type(color_func)))
+                TypeError(f'Unrecognized hsl_color type ()')
 
             # kwargs = dict(self.word_art_params, **kwargs)
             wc = WordCloud(random_state=random_state, **kwargs)

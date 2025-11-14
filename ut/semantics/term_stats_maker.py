@@ -14,8 +14,8 @@ import ut.coll.order_conserving as colloc
 LOCATION_LOCAL = 'LOCAL'
 LOCATION_S3 = 'S3'
 
-split_exp_01 = re.compile('[^&\w]*')
-tokenizer_re = re.compile('[&\w]+')
+split_exp_01 = re.compile(r'[^&\w]*')
+tokenizer_re = re.compile(r'[&\w]+')
 
 
 def mk_terms_df(df, text_cols, id_cols=None, tokenizer_re=tokenizer_re):
@@ -116,21 +116,21 @@ def visible(element):
     return True
 
 
-class TokenizerFactor(object):
+class TokenizerFactor:
     @classmethod
     def simple(cls):
-        split_exp = re.compile('[^&\w]*')
+        split_exp = re.compile(r'[^&\w]*')
 
     def tokenizer(self, text):
         return re.split(self.split_exp, text)
 
 
-class TokenizerFactory(object):
+class TokenizerFactory:
     @classmethod
     def get_simple_aw_tokenizer(cls):
-        return cls.NegAlphabetTokenizer(split_exp=re.compile('[^&\w]*'))
+        return cls.NegAlphabetTokenizer(split_exp=re.compile(r'[^&\w]*'))
 
-    class NegAlphabetTokenizer(object):
+    class NegAlphabetTokenizer:
         def __init__(self, split_exp):
             self.split_exp = split_exp
 
@@ -138,7 +138,7 @@ class TokenizerFactory(object):
             return re.split(self.split_exp, text)
 
 
-class TermStatsMaker(object):
+class TermStatsMaker:
     def __init__(
         self,
         get_text_from_source=get_text_from_source_gresult,

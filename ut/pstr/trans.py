@@ -132,7 +132,7 @@ def format_str_vals_of_dict(d, *, max_formatting_loops=10, **kwargs):
     return d
 
 
-multiple_spaces_exp = re.compile('\s\s*')
+multiple_spaces_exp = re.compile(r'\s\s*')
 
 
 def pycli_of_str(s):

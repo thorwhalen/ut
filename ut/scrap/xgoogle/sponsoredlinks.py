@@ -49,7 +49,7 @@ class SLParseError(Exception):
 GET_ALL_SLEEP_FUNCTION = object()
 
 
-class SponsoredLink(object):
+class SponsoredLink:
     """ a single sponsored link """
 
     def __init__(self, title, url, display_url, desc):
@@ -59,7 +59,7 @@ class SponsoredLink(object):
         self.desc = desc
 
 
-class SponsoredLinks(object):
+class SponsoredLinks:
     SEARCH_URL_0 = 'http://www.google.com/sponsoredlinks?q=%(query)s&btnG=Search+Sponsored+Links&hl=en'
     NEXT_PAGE_0 = (
         'http://www.google.com/sponsoredlinks?q=%(query)s&sa=N&start=%(start)d&hl=en'
@@ -169,7 +169,7 @@ class SponsoredLinks(object):
         try:
             page = self.browser.get_page(safe_url)
         except BrowserError as e:
-            raise SLError('Failed getting %s: %s' % (e.url, e.error))
+            raise SLError('Failed getting {}: {}'.format(e.url, e.error))
 
         return BeautifulSoup(page)
 

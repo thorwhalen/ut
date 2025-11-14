@@ -3,7 +3,7 @@ import re
 
 
 class PVar:
-    p = re.compile('^(.+)-(\d+)$|^(.+)$')
+    p = re.compile(r'^(.+)-(\d+)$|^(.+)$')
 
     def __init__(self, var: str, i: int = 0):
         self.var = var
@@ -110,7 +110,7 @@ class VarSet:
         return iter(self.varset)
 
     def __repr__(self):
-        s = ', '.join(map(lambda x: "'{}'".format(x), self.varset))
+        s = ', '.join(map(lambda x: f"'{x}'", self.varset))
         return f'{self.__class__.__name__}({s})'
 
     def __str__(self):

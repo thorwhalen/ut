@@ -147,8 +147,8 @@ def corner(
             axes = np.array(fig.axes).reshape((K, K))
         except:
             raise ValueError(
-                'Provided figure has {0} axes, but data has '
-                'dimensions K={1}'.format(len(fig.axes), K)
+                'Provided figure has {} axes, but data has '
+                'dimensions K={}'.format(len(fig.axes), K)
             )
     lb = lbdim / dim
     tr = (lbdim + plotdim) / dim
@@ -165,9 +165,9 @@ def corner(
             raise ValueError(
                 (
                     'It looks like the parameter(s) in column(s) '
-                    '{0} have no dynamic range. Please provide an '
+                    '{} have no dynamic range. Please provide an '
                     '`extent` argument.'
-                ).format(', '.join(map('{0}'.format, np.arange(len(m))[m])))
+                ).format(', '.join(map('{}'.format, np.arange(len(m))[m])))
             )
     else:
         # If any of the extents are percentiles, convert them to ranges.
@@ -212,13 +212,13 @@ def corner(
                 q_m, q_p = q_50 - q_16, q_84 - q_50
 
                 # Format the quantile display.
-                fmt = '{{0:{0}}}'.format(title_fmt).format
+                fmt = f'{{0:{title_fmt}}}'.format
                 title = r'${{{0}}}_{{-{1}}}^{{+{2}}}$'
                 title = title.format(fmt(q_50), fmt(q_m), fmt(q_p))
 
                 # Add in the column name if it's given.
                 if labels is not None:
-                    title = '{0} = {1}'.format(labels[i], title)
+                    title = f'{labels[i]} = {title}'
 
                 # Add the title to the axis.
                 ax.set_title(title, **title_args)

@@ -403,7 +403,7 @@ class NavigableString(str, PageElement):
             return self
         else:
             raise AttributeError(
-                "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
+                "'{}' object has no attribute '{}'".format(self.__class__.__name__, attr)
             )
 
     def __unicode__(self):
@@ -507,7 +507,7 @@ class Tag(PageElement):
         # Convert any HTML, XML, or numeric entities in the attribute values.
         convert = lambda k_val: (
             k_val[0],
-            re.sub('&(#\d+|#x[0-9a-fA-F]+|\w+);', self._convertEntities, k_val[1]),
+            re.sub(r'&(#\d+|#x[0-9a-fA-F]+|\w+);', self._convertEntities, k_val[1]),
         )
         self.attrs = list(map(convert, self.attrs))
 
@@ -578,7 +578,7 @@ class Tag(PageElement):
         elif tag.find('__') != 0:
             return self.find(tag)
         raise AttributeError(
-            "'%s' object has no attribute '%s'" % (self.__class__, tag)
+            "'{}' object has no attribute '{}'".format(self.__class__, tag)
         )
 
     def __eq__(self, other):
@@ -614,7 +614,7 @@ class Tag(PageElement):
         return self.__str__(None)
 
     BARE_AMPERSAND_OR_BRACKET = re.compile(
-        '([<>]|' + '&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)' + ')'
+        '([<>]|' + r'&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)' + ')'
     )
 
     def _sub_entity(self, x):
@@ -696,7 +696,7 @@ class Tag(PageElement):
                 attributeString = ' ' + ' '.join(attrs)
             if prettyPrint:
                 s.append(space)
-            s.append('<%s%s%s>' % (encodedName, attributeString, close))
+            s.append('<{}{}{}>'.format(encodedName, attributeString, close))
             if prettyPrint:
                 s.append('\n')
             s.append(contents)
@@ -843,7 +843,7 @@ class SoupStrainer:
         if self.text:
             return self.text
         else:
-            return '%s|%s' % (self.name, self.attrs)
+            return '{}|{}'.format(self.name, self.attrs)
 
     def searchTag(self, markupName=None, markupAttrs={}):
         found = None
@@ -1016,7 +1016,7 @@ class BeautifulStoneSoup(Tag, SGMLParser):
 
     MARKUP_MASSAGE = [
         (re.compile('(<[^<>]*)/>'), lambda x: x.group(1) + ' />'),
-        (re.compile('<!\s+([^<>]*)>'), lambda x: '<!' + x.group(1) + '>'),
+        (re.compile(r'<!\s+([^<>]*)>'), lambda x: '<!' + x.group(1) + '>'),
     ]
 
     ROOT_TAG_NAME = '[document]'
@@ -1311,8 +1311,8 @@ class BeautifulStoneSoup(Tag, SGMLParser):
         if self.quoteStack:
             # This is not a real tag.
             # print "<%s> is not real!" % name
-            attrs = ''.join([' %s="%s"' % (x_y[0], x_y[1]) for x_y in attrs])
-            self.handle_data('<%s%s>' % (name, attrs))
+            attrs = ''.join([' {}="{}"'.format(x_y[0], x_y[1]) for x_y in attrs])
+            self.handle_data('<{}{}>'.format(name, attrs))
             return
         self.endData()
 
@@ -1577,7 +1577,7 @@ class BeautifulSoup(BeautifulStoneSoup):
     )
 
     # Used to detect the charset in a META tag; see start_meta
-    CHARSET_RE = re.compile('((^|;)\s*charset=)([^;]*)')
+    CHARSET_RE = re.compile(r'((^|;)\s*charset=)([^;]*)')
 
     def start_meta(self, attrs):
         """Beautiful Soup can detect a charset included in a META tag,
@@ -1959,7 +1959,7 @@ class UnicodeDammit:
                 sniffed_xml_encoding = 'ascii'
                 pass
             xml_encoding_match = re.compile(
-                '^<\?.*encoding=[\'"](.*?)[\'"].*\?>'
+                '^<\\?.*encoding=[\'"](.*?)[\'"].*\\?>'
             ).match(xml_data)
         except:
             xml_encoding_match = None

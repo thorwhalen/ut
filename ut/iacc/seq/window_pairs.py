@@ -238,7 +238,7 @@ def past_present_future_idx_and_duration_iter(
     idx, dur, timestamp_seq = _idx_and_duration(timestamp_seq, timestamps_are_sorted)
     dur = hstack((dur, 0))
     if DEBUG_LEVEL:
-        print(('idx={}\ndur={}\ntimestamp_seq={}'.format(idx, dur, timestamp_seq)))
+        print(f'idx={idx}\ndur={dur}\ntimestamp_seq={timestamp_seq}')
     first_timestamp = timestamp_seq[0]
     # dur = diff(timestamp_seq)
     # idx = arange(len(timestamp_seq)).astype(int)
@@ -266,7 +266,7 @@ def past_present_future_idx_and_duration_iter(
         )
 
         if DEBUG_LEVEL:
-            print(('time_to_next={}'.format(time_to_next)))
+            print(f'time_to_next={time_to_next}')
         return present_timestamp, time_to_next.argsort()
 
     def _shift_dimension(this_idx, shift_by):
@@ -283,26 +283,22 @@ def past_present_future_idx_and_duration_iter(
                 if this_idx != 0:
                     time_to_next[this_idx] = dur[ppf_idx[this_idx]]
                     if DEBUG_LEVEL:
-                        print(('ppf_idx={}'.format(ppf_idx)))
+                        print(f'ppf_idx={ppf_idx}')
                         print(
-                            (
                                 'time_to_next[{}] = dur[{}] = {}'.format(
                                     this_idx, ppf_idx[this_idx], dur[ppf_idx[this_idx]]
                                 )
-                            )
                         )
                 else:
                     time_to_next[this_idx] = dur[ppf_idx[this_idx] - 1]
                     if DEBUG_LEVEL:
-                        print(('--ppf_idx={}'.format(ppf_idx)))
+                        print(f'--ppf_idx={ppf_idx}')
                         print(
-                            (
                                 '--time_to_next[{}] = dur[{}] = {}'.format(
                                     this_idx,
                                     ppf_idx[this_idx] - 1,
                                     dur[ppf_idx[this_idx] - 1],
                                 )
-                            )
                         )
         else:
             time_to_next[this_idx] -= shift_by
@@ -312,7 +308,7 @@ def past_present_future_idx_and_duration_iter(
     def _shift_state(time_to_next_order, present_timestamp):
         shift_by = time_to_next[time_to_next_order[0]]
         if DEBUG_LEVEL:
-            print(('---> shifting by {}'.format(shift_by)))
+            print(f'---> shifting by {shift_by}')
         present_timestamp += shift_by
 
         if (
@@ -342,10 +338,10 @@ def past_present_future_idx_and_duration_iter(
 
     if DEBUG_LEVEL:
         print('---------------')
-        print(('ppf_idx: {}'.format(ppf_idx)))
-        print(('time_to_next: {}'.format(time_to_next)))
-        print(('time_to_next_order: {}'.format(_time_to_next_order)))
-        print(('present_timestamp: {}'.format(_present_timestamp)))
+        print(f'ppf_idx: {ppf_idx}')
+        print(f'time_to_next: {time_to_next}')
+        print(f'time_to_next_order: {_time_to_next_order}')
+        print(f'present_timestamp: {_present_timestamp}')
     _duration = time_to_next[_time_to_next_order[0]]
     if _duration != 0:
         yield (
@@ -362,10 +358,10 @@ def past_present_future_idx_and_duration_iter(
         else:
             if DEBUG_LEVEL:
                 print('---------------')
-                print(('ppf_idx: {}'.format(ppf_idx)))
-                print(('time_to_next: {}'.format(time_to_next)))
-                print(('time_to_next_order: {}'.format(_time_to_next_order)))
-                print(('present_timestamp: {}'.format(_present_timestamp)))
+                print(f'ppf_idx: {ppf_idx}')
+                print(f'time_to_next: {time_to_next}')
+                print(f'time_to_next_order: {_time_to_next_order}')
+                print(f'present_timestamp: {_present_timestamp}')
             _duration = time_to_next[_time_to_next_order[0]]
             if _duration != 0:
                 yield (
@@ -375,7 +371,7 @@ def past_present_future_idx_and_duration_iter(
                 ), _duration, _present_timestamp
 
 
-class FeaturePairFactory(object):
+class FeaturePairFactory:
     def __init__(
         self,
         past_feat_func,

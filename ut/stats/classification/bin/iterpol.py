@@ -18,7 +18,7 @@ class BinaryClassificationByInterpolatedProbabilities(BinaryClassifierBase2D):
     The ys of every other point of the x space are then estimated by interpolating over these clusters centers.
     """
     def __init__(self, n_clusters=500, n_neighbors=3000, interpolator='cubic', **kwargs):
-        super(BinaryClassificationByInterpolatedProbabilities, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.n_clusters = n_clusters
         self.n_neighbors = n_neighbors
         self.interpolator = interpolator
@@ -31,7 +31,7 @@ class BinaryClassificationByInterpolatedProbabilities(BinaryClassifierBase2D):
     def fit(self, x, y):
         t0 = time.time()
 
-        assert set(y.flatten()) == set([0, 1]), "y data (target data) needs to have only 0s and 1s"
+        assert set(y.flatten()) == {0, 1}, "y data (target data) needs to have only 0s and 1s"
 
         # determine the clusters
         self.clus = sk.cluster.MiniBatchKMeans(n_clusters=self.n_clusters)

@@ -11,7 +11,7 @@ from ut.ppi.pot import Pot
 from ut.pdict.special import DictDefaultDict
 
 
-class EdgeCounter(object):
+class EdgeCounter:
     def __init__(self, item_set_iterator=None):
         self.num_of_sets = 0
         self.node = Counter()
@@ -70,7 +70,7 @@ class EdgeCounter(object):
         }
 
 
-class NaiveGraph(object):
+class NaiveGraph:
     """
     A naive graph is essentially a collection of Naive Bayes Networks, when propagation_depth is 1 (the default).
     """
@@ -137,7 +137,7 @@ class BinaryNaiveGraph(NaiveGraph):
         prior_numerator=0.0,
         **kwargs
     ):
-        super(BinaryNaiveGraph, self).__init__(
+        super().__init__(
             data=data, propagation_depth=propagation_depth
         )
 

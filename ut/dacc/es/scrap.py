@@ -4,7 +4,7 @@ from elasticsearch import Elasticsearch
 import pandas as pd
 
 
-class ElasticCom(object):
+class ElasticCom:
     def __init__(self, index, doc_type, hosts='localhost:9200', **kwargs):
         self.index = index
         self.doc_type = doc_type

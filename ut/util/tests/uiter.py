@@ -58,10 +58,10 @@ def indexed_chunking_random_test(
 
     kwargs = random_kwargs_for_list(x)
     if verbose:
-        print(('x: {} elements. min: {}, max: {}'.format(len(x), x[0], x[-1])))
+        print(f'x: {len(x)} elements. min: {x[0]}, max: {x[-1]}')
     t = {k: v for k, v in kwargs.items() if k != 'key'}
     if verbose:
-        print(('kwargs: {}\n'.format(json.dumps(t, indent=2))))
+        print(f'kwargs: {json.dumps(t, indent=2)}\n')
 
     b = list(f_list[0](iter(x), **kwargs))
     bb = None
@@ -74,17 +74,15 @@ def indexed_chunking_random_test(
             all_good &= False
             if verbose:
                 print(
-                    (
                         '{}: Not the same length! Base had {} elements, comp has {}'.format(
                             i, len(b), len(bb)
                         )
-                    )
                 )
         idx_where_different = where([x[0] != x[1] for x in zip(b, bb)])[0]
         if len(idx_where_different) > 0:
             all_good &= False
             if verbose:
-                print(('{} values where different'.format(len(idx_where_different))))
+                print(f'{len(idx_where_different)} values where different')
         if not all_good:
             if verbose:
                 print('STOPPING HERE: Check the variables for diagnosis')

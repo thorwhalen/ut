@@ -26,7 +26,7 @@ ms_seconds = 0.001
 inf = float('inf')
 
 
-class TimeseriesPlot(object):
+class TimeseriesPlot:
     def __init__(
         self,
         ts_field=DFLT_TS_FIELD,
@@ -85,7 +85,7 @@ class TimeseriesPlot(object):
         return fig
 
 
-class SegmentPlot(object):
+class SegmentPlot:
     def __init__(
         self,
         bt_field=DFLT_BT_FIELD,
@@ -204,7 +204,7 @@ class MgSegmentPlot(SegmentPlot):
             val_field = self.mg_val_key_path[-1]
         elif val_field == 'mg_val_field_head':
             val_field = self.mg_val_key_path[0]
-        super(MgSegmentPlot, self).__init__(
+        super().__init__(
             bt_field=bt_field,
             tt_field=tt_field,
             val_field=val_field,

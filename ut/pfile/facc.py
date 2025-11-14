@@ -11,7 +11,7 @@ def ensure_slash_suffix(str):
     return str
 
 
-class LocalFileAccess(object):
+class LocalFileAccess:
     def isdir(self, path):
         return os.path.isdir(path)
 
@@ -52,7 +52,7 @@ class LocalFileAccess(object):
 DFLT_FILE_PATTERN = '.*'
 
 
-class FilesAccess(object):
+class FilesAccess:
     def __init__(self, root, file_pattern=DFLT_FILE_PATTERN):
         """
         :param root: Folder where the data is stored

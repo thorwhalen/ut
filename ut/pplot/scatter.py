@@ -57,11 +57,9 @@ def plot_with_label_color(
             elif decompose == 'tsne':
                 if len(X) > MAX_PTS_FOR_TSNE:
                     print(
-                        (
                             'TSNE would be too slow with thatm much data: Taking a set of {} random pts...'.format(
                                 MAX_PTS_FOR_TSNE
                             )
-                        )
                     )
                     idx = np.random.choice(len(X), size=MAX_PTS_FOR_TSNE, replace=False)
                     X = X[idx, :]

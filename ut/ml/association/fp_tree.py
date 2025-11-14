@@ -14,7 +14,7 @@ from collections import defaultdict, namedtuple
 
 def print_rules(rules_tuples):
     for h in rules_tuples:
-        print(('{} --> {} (sup = {})'.format(', '.join(h[0]), ', '.join(h[1]), h[2])))
+        print('{} --> {} (sup = {})'.format(', '.join(h[0]), ', '.join(h[1]), h[2]))
 
 
 def fpgrowth(dataset, min_support=0.5, include_support=False, verbose=False):
@@ -100,7 +100,7 @@ def find_frequent_itemsets(dataset, min_support, include_support=False, verbose=
         Include support in output (default=False).
 
     """
-    items = defaultdict(lambda: 0)  # mapping from items to their supports
+    items = defaultdict(int)  # mapping from items to their supports
     processed_transactions = []
 
     # Load the passed-in transactions and count the support that individual
@@ -113,9 +113,9 @@ def find_frequent_itemsets(dataset, min_support, include_support=False, verbose=
         processed_transactions.append(processed)
 
     # Remove infrequent items from the item support dictionary.
-    items = dict(
-        (item, support) for item, support in items.items() if support >= min_support
-    )
+    items = {
+        item: support for item, support in items.items() if support >= min_support
+    }
 
     # Build our FP-tree. Before any transactions can be added to the tree, they
     # must be stripped of infrequent items and their surviving items must be
@@ -145,21 +145,18 @@ def find_frequent_itemsets(dataset, min_support, include_support=False, verbose=
                 cond_tree = conditional_tree_from_paths(
                     tree.prefix_paths(item), min_support
                 )
-                for s in find_with_suffix(cond_tree, found_set):
-                    yield s  # pass along the good news to our caller
+                yield from find_with_suffix(cond_tree, found_set)
 
     if verbose:
         # Print a list of all the frequent itemsets.
         for itemset, support in find_with_suffix(master, []):
             print(
-                (
                     ''
                     + '{'
                     + ''.join(str(i) + ', ' for i in iter(itemset)).rstrip(', ')
                     + '}'
                     + ':  sup = '
                     + str(round(support_data[frozenset(itemset)], 3))
-                )
             )
 
     # Search for frequent itemsets, and yield the results we find.
@@ -167,7 +164,7 @@ def find_frequent_itemsets(dataset, min_support, include_support=False, verbose=
         yield itemset
 
 
-class FPTree(object):
+class FPTree:
     """
     An FP tree.
 
@@ -270,9 +267,9 @@ class FPTree(object):
         print('')
         print('Routes:')
         for item, nodes in list(self.items()):
-            print(('  %r' % item))
+            print('  %r' % item)
             for node in nodes:
-                print(('    %r' % node))
+                print('    %r' % node)
 
     def _removed(self, node):
         """Called when `node` is removed from the tree; performs cleanup."""
@@ -344,7 +341,7 @@ def conditional_tree_from_paths(paths, min_support):
     return tree
 
 
-class FPNode(object):
+class FPNode:
     """A node in an FP tree."""
 
     def __init__(self, tree, item, count=1):
@@ -475,14 +472,14 @@ class FPNode(object):
         return tuple(self._children.values())
 
     def inspect(self, depth=0):
-        print((('  ' * depth) + repr(self)))
+        print(('  ' * depth) + repr(self))
         for child in self.children:
             child.inspect(depth + 1)
 
     def __repr__(self):
         if self.root:
             return '<%s (root)>' % type(self).__name__
-        return '<%s %r (%r)>' % (type(self).__name__, self.item, self.count)
+        return '<{} {!r} ({!r})>'.format(type(self).__name__, self.item, self.count)
 
 
 def rules_from_conseq(
@@ -613,7 +610,6 @@ def calc_confidence(
 
             if verbose:
                 print(
-                    (
                         ''
                         + '{'
                         + ''.join(
@@ -628,7 +624,6 @@ def calc_confidence(
                         + str(round(conf, 3))
                         + ', sup = '
                         + str(round(support_data[freq_set], 3))
-                    )
                 )
 
     return pruned_H

@@ -48,7 +48,7 @@ def degree_distribution(df, from_cols, to_cols=None, name=None, group_degrees=Tr
 
 
 def bin_to_bin_name(bin, last_bin='10'):
-    t = str(int(re.search('\d+', bin).group()) + 1)
+    t = str(int(re.search(r'\d+', bin).group()) + 1)
     if t == last_bin:
         t += '+'
     return t
@@ -67,7 +67,7 @@ def bin_the_counts(dd, bins=default_bins):
 def plot_degree_distribution(d, logy=False):
     ax = d.plot(kind='bar', logy=logy)
     for degree, count in d.iterrows():
-        degree = int(re.compile('\d+').findall(degree)[0])
+        degree = int(re.compile(r'\d+').findall(degree)[0])
         count = count.iloc[0]
         ax.text(
             degree - 1,

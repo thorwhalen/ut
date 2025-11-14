@@ -8,7 +8,7 @@ import nltk
 import pandas as pd
 
 
-class TermWeightGetter(object):
+class TermWeightGetter:
     def __init__(self, term_gweight_selector):
         self.term_gweight_selector = term_gweight_selector
 
@@ -97,7 +97,7 @@ def __process_term_doc_var_names__(term_doc_df, doc_var=None, term_var='term'):
                 'In order to guess the doc_var, there needs to be only two columns'
             )
         else:
-            doc_var = list(set(cols) - set([term_var]))[0]
+            doc_var = list(set(cols) - {term_var})[0]
     return (term_doc_df, doc_var, term_var)
 
 
@@ -124,7 +124,7 @@ def mk_termCounts(dat, indexColName, strColName, data_folder=''):
 
 
 def to_kw_tokens(dat, indexColName, strColName, data_folder=''):
-    """
+    r"""
     input: daf of strings
     output: series of the tokens of the strings, processed for AdWords keywords
       i.e. string is lower capsed and asciied, and words are [\w&]+
@@ -141,13 +141,13 @@ def to_kw_tokens(dat, indexColName, strColName, data_folder=''):
     sr = sr.map(lambda x: x.lower())
     sr = sr.map(lambda x: ut.pstr.trans.toascii(x))
     # tokenize
-    sr = sr.map(lambda x: nltk.regexp_tokenize(x, '[\w&]+'))
+    sr = sr.map(lambda x: nltk.regexp_tokenize(x, r'[\w&]+'))
     # return this
     return sr
 
 
 def to_kw_fd(s):
-    """
+    r"""
     input: string, series (with string columns)
     output: nltk.FreqDist (word count) of the tokens of the string, processed for AdWords keywords
       i.e. string is lower capsed and asciied, and words are [\w&]+
@@ -159,14 +159,14 @@ def to_kw_fd(s):
         s = s.map(lambda x: x.lower())
         s = s.map(lambda x: ut.pstr.trans.toascii(x))
         # tokenize
-        s = s.map(lambda x: nltk.regexp_tokenize(x, '[\w&]+'))
+        s = s.map(lambda x: nltk.regexp_tokenize(x, r'[\w&]+'))
         # return series of fds
         return s.map(lambda tokens: nltk.FreqDist(tokens))
     elif isinstance(s, str):
         # preprocess string
         s = ut.pstr.trans.toascii(s.lower())
         # tokenize
-        tokens = nltk.regexp_tokenize(s, '[\w&]+')
+        tokens = nltk.regexp_tokenize(s, r'[\w&]+')
         return nltk.FreqDist(tokens)
 
 

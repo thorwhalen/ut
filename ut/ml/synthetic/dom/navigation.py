@@ -8,7 +8,7 @@ from numpy import *
 from datetime import datetime, timedelta
 
 
-class RandomHour(object):
+class RandomHour:
     def __init__(self, loc, scale):
         self.loc = loc
         self.scale = scale
@@ -78,7 +78,7 @@ HOURS_PER_DAY = 24.0
 SECONDS_PER_DAY = HOURS_PER_DAY * 60.0 * 60.0
 
 
-class UserModel(object):
+class UserModel:
     def __init__(
         self,
         anchor_date=None,

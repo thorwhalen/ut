@@ -44,7 +44,7 @@ def _how_spectral_library_expects_data_and_distance(X, distance):
             elif distance.lower() in ['cityblock', 'manhattan', 'l1']:
                 distance = spectral.clustering.L1
             else:
-                raise ValueError('Unknown distance specification: {}'.format(distance))
+                raise ValueError(f'Unknown distance specification: {distance}')
         else:
             raise ValueError('distance should be a string or a callable')
 

@@ -9,7 +9,7 @@ from ut.serialize.local import Local
 from ut.serialize.s3 import S3
 
 
-class DataAccessor(object):
+class DataAccessor:
 
     LOCATION_LOCAL = 'LOCAL'
     LOCATION_S3 = 'S3'
@@ -124,7 +124,7 @@ class DataAccessor(object):
             if name in dir(target):
                 return getattr(target, name)(*args, **kwargs)
             else:
-                raise AttributeError('{} does not exist in {}'.format(name, target))
+                raise AttributeError(f'{name} does not exist in {target}')
 
         return _missing
 

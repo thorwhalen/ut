@@ -11,7 +11,7 @@ import serialize.utils as serialize_utils
 # use case. I need to check all code that uses these methods, as well as the test notebook.
 
 
-class S3(object):
+class S3:
     """
     Interaction with Amazon S3.
     """

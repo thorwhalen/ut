@@ -22,9 +22,9 @@ else:
 def github_codeblocks(filepath, safe):
     codeblocks = []
     codeblock_re = r'^```.*'
-    codeblock_open_re = r'^```(`*)(py|python){0}$'.format('' if safe else '?')
+    codeblock_open_re = r'^```(`*)(py|python){}$'.format('' if safe else '?')
 
-    with open(filepath, 'r') as f:
+    with open(filepath) as f:
         block = []
         python = True
         in_codeblock = False

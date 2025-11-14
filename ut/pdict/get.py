@@ -62,7 +62,7 @@ class Subdict(dict):
             cls = type(k)
             return cls(super(Subdict, self).__getitem__(kk) for kk in k)
         else:
-            return super(Subdict, self).__getitem__(k)
+            return super().__getitem__(k)
 
     def __call__(self, *args, **kwargs):
         d = {}
@@ -363,7 +363,7 @@ def get_subdict(d, list_of_keys):
     :param subset_of_keys: list of keys
     :return: the subset of key:value pairs of d where key is in list_of_keys
     """
-    return dict([(i, d[i]) for i in list_of_keys if i in d])
+    return {i: d[i] for i in list_of_keys if i in d}
 
 
 def get_subdict_and_remainder(d, list_of_keys):
@@ -374,7 +374,7 @@ def get_subdict_and_remainder(d, list_of_keys):
     """
     keys_in = set(d.keys()).intersection(list_of_keys)
     keys_not_in = set(d.keys()).difference(list_of_keys)
-    return (dict([(i, d[i]) for i in keys_in]), dict([(i, d[i]) for i in keys_not_in]))
+    return ({i: d[i] for i in keys_in}, {i: d[i] for i in keys_not_in})
 
 
 def all_but(d, exclude_keys):

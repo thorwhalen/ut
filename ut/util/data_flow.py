@@ -7,7 +7,7 @@ import ut.pdict.get as pdict_get
 import ut.util.ulist as util_ulist
 
 
-class DataFlow(object):
+class DataFlow:
     """
     DataFlow is a framework to pipeline data processes.
     """
@@ -50,15 +50,15 @@ class DataFlow(object):
                 )
 
     def put_in_store(self, name, data):
-        self.print_progress('  Storing {} in store'.format(name))
+        self.print_progress(f'  Storing {name} in store')
         self.store.put(name, data)
 
     def put_in_attr(self, name, data):
-        self.print_progress('  Storing {} in attribute'.format(name))
+        self.print_progress(f'  Storing {name} in attribute')
         setattr(self, name, data)
 
     def put_in_data_dict(self, name, data):
-        self.print_progress('  Storing {} in data_dict attribute'.format(name))
+        self.print_progress(f'  Storing {name} in data_dict attribute')
         try:
             setattr(self, 'data_dict', self.data_dict.update({'name': data}))
         except AttributeError:
@@ -71,7 +71,7 @@ class DataFlow(object):
             hasattr(self, 'store') and data_name in self.store
         ):  # if no data is input and the data exists in the store...
             # return the stored data
-            self.print_progress(2, '  Getting {} from store'.format(data_name))
+            self.print_progress(2, f'  Getting {data_name} from store')
             return self.store[data_name]
         elif util_pobj.has_non_callable_attr(self, data_name):
             return getattr(self, data_name)
@@ -99,7 +99,7 @@ class DataFlow(object):
         # make the data
         if data_name in list(self.data_makers.keys()):
             # here the data needs to be made from data
-            self.print_progress(1, '  Making {}'.format(data_name))
+            self.print_progress(1, f'  Making {data_name}')
             kwargs = dict(input_data, **kwargs)
             made_data = self.data_makers[data_name](**kwargs)
             # store it if necessary

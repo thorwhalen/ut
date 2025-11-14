@@ -58,7 +58,7 @@ class MongoStruct:
 
     def __str__(self):
         return '{}'.format(
-            str(', '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.items()))
+            str(', '.join('{} : {}'.format(k, repr(v)) for (k, v) in self.__dict__.items()))
         )
 
     def __repr__(self):

@@ -346,9 +346,9 @@ def _validate_str_format_arg_and_kwargs_keys(args_keys, kwargs_keys):
         return args_keys, kwargs_keys
 
 
-pipe_split_p = re.compile('\s*\|\s*')
-func_and_arg_p = re.compile('(?P<func>\w+)\((?P<args>.*)\)', flags=re.DOTALL)
-comma_sep_p = re.compile('\s*,\s*')
+pipe_split_p = re.compile(r'\s*\|\s*')
+func_and_arg_p = re.compile(r'(?P<func>\w+)\((?P<args>.*)\)', flags=re.DOTALL)
+comma_sep_p = re.compile(r'\s*,\s*')
 
 
 def get_func_and_arg_dict(s):
@@ -462,14 +462,14 @@ class PipelineTemplate(Formatter):
                             'f(value)'
                         )  # TODO: evals are not secure. Put safety checks in place.
                     except Exception:
-                        value = super(PipelineTemplate, self).format_field(value, spec)
+                        value = super().format_field(value, spec)
             except ValueError as e:
-                raise ValueError('{}: {}'.format(spec, e.args[0]))
+                raise ValueError(f'{spec}: {e.args[0]}')
         return str(value)
 
 
 def wrapper(prefix='', suffix=''):
-    return '{prefix}{{}}{suffix}'.format(prefix=prefix, suffix=suffix).format
+    return f'{prefix}{{}}{suffix}'.format
 
 
 def mapper(func):

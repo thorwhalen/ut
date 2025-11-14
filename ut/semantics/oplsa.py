@@ -51,8 +51,7 @@ class Plsa:
                 d[k] = v.__dict__
             else:
                 d[k] = v
-        if sys.version_info[0] == 3:
-            fname = fname + '.3'
+        fname = fname + '.3'
         if not iszip:
             marshal.dump(d, open(fname, 'wb'))
         else:
@@ -61,15 +60,14 @@ class Plsa:
             f.close()
 
     def load(self, fname, iszip=True):
-        if sys.version_info[0] == 3:
-            fname = fname + '.3'
+        fname = fname + '.3'
         if not iszip:
             d = marshal.load(open(fname, 'rb'))
         else:
             try:
                 f = gzip.open(fname, 'rb')
                 d = marshal.loads(f.read())
-            except IOError:
+            except OSError:
                 f = open(fname, 'rb')
                 d = marshal.loads(f.read())
             f.close()

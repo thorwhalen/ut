@@ -6,8 +6,8 @@ from numpy import *
 
 def multiple_similarity_alignment(simil_matrix, y):
     """
-    Let $x, y, z$ be items such that $y,z\in C$ but $x\notin C$.
-    A similarity $s$ function is good on this pair if $y$ is is more similar to $z$ then $x$ is, i.e. $s(x,z) \leq s(y,z)$.
+    Let $x, y, z$ be items such that $y,z\\in C$ but $x\notin C$.
+    A similarity $s$ function is good on this pair if $y$ is is more similar to $z$ then $x$ is, i.e. $s(x,z) \\leq s(y,z)$.
 
     If with have $n$ items, $k$ of which are in $C$,
     then there's $k(n-k)$ possible pairs that could be checked for this alignment.

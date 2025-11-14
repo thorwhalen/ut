@@ -19,7 +19,7 @@ from ut.util.ulist import all_true
 from ut.pstr.trans import to_unicode_or_bust
 from serialize.data_accessor import DataAccessor
 
-split_exp = re.compile('[^&\w]*')
+split_exp = re.compile(r'[^&\w]*')
 
 travel_domain_list = [
     'expedia',

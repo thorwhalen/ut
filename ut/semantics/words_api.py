@@ -5,7 +5,7 @@ import os
 __doc__ = ''' Copied from https://github.com/ehwhydubya/pywords (MIT licence)'''
 
 
-class Words(object):
+class Words:
     """A class that interfaces with the Words API at https://wordsapi.com"""
 
     pretty_print_error = ValueError(

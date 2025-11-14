@@ -99,7 +99,7 @@ def validate_kwargs(
                 ):  # if you have a validation check for it
                     if not validation_funs[check](val, check_val):  # check it's valid
                         raise AssertionError(
-                            '{} must {} {}'.format(var, check, check_val)
+                            f'{var} must {check} {check_val}'
                         )  # and raise an error if not
                 elif (
                     not ignore_misunderstood_validation_instructions
@@ -236,7 +236,7 @@ def example_dict_from_dict_list(dict_list, recursive=False):
     else:
         if not all([isinstance(x, dict) for x in dict_list]):
             raise TypeError('dict_list must be a dict or a list of dicts')
-    all_keys = set([])
+    all_keys = set()
     [
         all_keys.update(list(this_dict.keys())) for this_dict in dict_list
     ]  # this constructs a list of all keys encountered in the list of dicts

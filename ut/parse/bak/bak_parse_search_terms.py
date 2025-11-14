@@ -3,7 +3,7 @@ __author__ = 'thorwhalen'
 import functools
 
 
-class ParseSearchTerms(object):
+class ParseSearchTerms:
     def __init__(
         self,
         html_pull=None,
@@ -65,7 +65,7 @@ class ParseSearchTerms(object):
 # I'm showing this so that their interface is clearer
 
 
-class HtmlPuller(object):
+class HtmlPuller:
     def __init__(self, html_folder):
         self.html_folder = html_folder
 
@@ -77,7 +77,7 @@ class parser:
     pass
 
 
-class Pusher(object):
+class Pusher:
     def __init__(self, x):
         self.x = x
 

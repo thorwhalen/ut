@@ -25,7 +25,7 @@ import logging
 from khan_utils.encoding import to_utf8_or_bust
 
 
-class ParseSearchTerms(object):
+class ParseSearchTerms:
 
     # def __init__(self,
     #              get_and_save_html_if_not_saved_already=None,
@@ -455,7 +455,7 @@ def diagnose_words_domains(info_dict):
 ##### Success handlers
 
 
-class SaveDictLocally(object):
+class SaveDictLocally:
     def __init__(self, save_folder):
         self.data_accessor = pfile_accessor.for_local(
             relative_root=save_folder, extension='.dict', force_extension=True
@@ -465,7 +465,7 @@ class SaveDictLocally(object):
         self.data_accessor.save(parse_result, name)
 
 
-class SaveDictToS3(object):
+class SaveDictToS3:
     def __init__(self, save_folder):
         print('S3 pfile.Accessor created for %s' % save_folder)
         self.data_accessor = pfile_accessor.for_s3(
@@ -495,13 +495,13 @@ def print_info_dict_success(search_term, info_dict):
 
 
 ##### Failure handlers
-class PrintFailure(object):
+class PrintFailure:
     def print_it(self, *args, **kwargs):
         print('!!!!!!!!!!!!!!!!')
         for arg in args:
             print(arg)
         for k, v in kwargs:
-            print('{}={}'.format(k, v))
+            print(f'{k}={v}')
 
     def debug(self, *args, **kwargs):
         self.print_it(args, kwargs)

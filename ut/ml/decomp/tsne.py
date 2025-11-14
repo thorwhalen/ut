@@ -179,7 +179,7 @@ def tsne(
 if __name__ == '__main__':
     import pickle
 
-    X = pickle.load(open('/D/Dropbox/dev/py/notebooks/soto/all_iatis_tags_X.p', 'r'))
+    X = pickle.load(open('/D/Dropbox/dev/py/notebooks/soto/all_iatis_tags_X.p'))
     XX = tsne(X, print_progress_every=10)
     # print "Run Y = tsne.tsne(X, no_dims, perplexity) to perform t-SNE on your dataset."
     # print "Running example on 2,500 MNIST digits..."

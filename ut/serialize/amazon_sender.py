@@ -32,7 +32,7 @@ from ut.util.importing import get_environment_variable
 from boto.ses import SESConnection
 
 
-class AmazonSender(object):
+class AmazonSender:
 
     client = None
 

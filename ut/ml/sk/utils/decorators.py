@@ -120,7 +120,7 @@ methods_set = (
 ######### (to make it easier to see what's available)
 
 
-class Struct(object):
+class Struct:
     def __init__(self, method_names):
         for method_name in method_names:
             setattr(self, method_name, getattr(sys.modules[__name__], method_name))

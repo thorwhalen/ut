@@ -4,7 +4,7 @@ __author__ = 'thor'
 import pandas as pd
 
 
-class DistanceClf(object):
+class DistanceClf:
     def __init__(
         self,
         dist_df,  # a df (or ndarray) indexed (rows and columns) by record ids and where df.loc[i,j]=dist(i,j)
@@ -32,11 +32,9 @@ class DistanceClf(object):
                 "Indices of labels and dist_df weren't aligned. Kept only records present in labels"
             )
             print(
-                (
                     '--> original_dist_df_shape={}, new_dist_df_shape={}'.format(
                         original_dist_df_shape, self.dist_df.shape
                     )
-                )
             )
 
     def sort_records(self, record_order=None):

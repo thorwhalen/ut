@@ -12,7 +12,7 @@ from numpy import array
 __author__ = 'thor'
 
 
-class FLDA(object):
+class FLDA:
     def __init__(
         self, pca_n_components=3, knn_n_neighs=10, n_scented_clusters=5, **kwargs
     ):

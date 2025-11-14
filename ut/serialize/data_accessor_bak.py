@@ -10,7 +10,7 @@ import pstr.to as str_to
 from khan_utils.encoding import to_unicode_or_bust
 
 
-class DataAccessor(object):
+class DataAccessor:
     def __init__(
         self,
         data_root_location=None,
@@ -53,7 +53,7 @@ class DataAccessor(object):
         """
         loads an object from a local location
         """
-        return pickle.load(open(self.filepath(filename), 'r'))
+        return pickle.load(open(self.filepath(filename)))
 
     def dumps(self, the_str, filename, encoding='UTF-8'):
         """

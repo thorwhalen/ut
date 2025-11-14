@@ -9,7 +9,7 @@ __author__ = 'thor'
 file_sep = os.sep
 
 
-class FilePatterns(object):
+class FilePatterns:
     NOT_HIDDEN_FILE = '^[^.].+'
     WAV_EXTENSION = '.wav$'
 
@@ -58,10 +58,9 @@ def recursive_file_walk_iterator_with_name_filter(
     for name in iter_relative_files_and_folder(root_folder):
         full_path = os.path.join(root_folder, name)
         if os.path.isdir(full_path):
-            for entry in recursive_file_walk_iterator_with_name_filter(
+            yield from recursive_file_walk_iterator_with_name_filter(
                 full_path, filt, return_full_path
-            ):
-                yield entry
+            )
         else:
             if os.path.isfile(full_path):
                 if filt(name):
@@ -79,10 +78,9 @@ def recursive_file_walk_iterator_with_filepath_filter(
     for name in iter_relative_files_and_folder(root_folder):
         full_path = os.path.join(root_folder, name)
         if os.path.isdir(full_path):
-            for entry in recursive_file_walk_iterator_with_filepath_filter(
+            yield from recursive_file_walk_iterator_with_filepath_filter(
                 full_path, filt, return_full_path
-            ):
-                yield entry
+            )
         else:
             if os.path.isfile(full_path):
                 if filt(full_path):

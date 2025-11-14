@@ -9,7 +9,7 @@ def _train_test_keys_split(grouped_keys, n_train, if_insufficient_data='only_tra
     groups = list(grouped_keys)
     if n_train > len(groups):
         if if_insufficient_data == 'only_train':
-            return set(groups), set([])
+            return set(groups), set()
         else:
             raise ValueError(
                 f"Don't know how to handle if_insufficient_data: {if_insufficient_data}"

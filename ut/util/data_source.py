@@ -88,7 +88,7 @@ def for_basic_local():
 # CLASSES
 
 
-class DataSource(object):
+class DataSource:
     def __init__(
         self,
         location=LOCATION_LOCAL,
@@ -138,23 +138,23 @@ class DataSource(object):
         print('')
         print('------- .dir (directories) ------')
         for k, v in list(self.dir.__dict__.items()):
-            print('  %s: %s' % (k, v))
+            print('  {}: {}'.format(k, v))
         print('')
         print('------- .a (accessors) ----------')
         for k, v in list(self.a.__dict__.items()):
-            print('  %s: %s' % (k, v.filepath('')))
+            print('  {}: {}'.format(k, v.filepath('')))
         print('')
         print('------- .f (files) --------------')
         for k, v in list(self.f.__dict__.items()):
-            print('  %s: %s' % (k, v))
+            print('  {}: {}'.format(k, v))
         if 'print_data' not in kwargs or kwargs['print_data'] == True:
             print('')
             print('------- .d (data) ---------------')
             for k, v in list(self.d.__dict__.items()):
-                print('  %s: %s' % (k, v))
+                print('  {}: {}'.format(k, v))
 
 
-class Directories(object):
+class Directories:
     def __init__(self, mother_root=None, dir_dict=None):
         if mother_root[-1] != '/':
             mother_root = mother_root + '/'
@@ -162,7 +162,7 @@ class Directories(object):
             self.__setattr__(k, mother_root + v)
 
 
-class Accessors(object):
+class Accessors:
     def __init__(self, location, a_dict, mother_root=''):
         if location == LOCATION_LOCAL:
             for k, v in list(a_dict.items()):
@@ -179,13 +179,13 @@ class Accessors(object):
                     self.__setattr__(k, pfile_accessor.for_local(**v))
 
 
-class Files(object):
+class Files:
     def __init__(self, f_dict, mother_root=''):
         for k, v in list(f_dict.items()):
             self.__setattr__(k, mother_root + v)
 
 
-class Data(object):
+class Data:
     def __init__(self, d_dict, load_if_existing_file=True, mother_root=''):
         if d_dict:
             for k, v in list(d_dict.items()):
@@ -199,7 +199,7 @@ class Data(object):
                     if v_path:
                         try:
                             # try to unpickle
-                            v = pickle.load(open(v_path, 'r'))
+                            v = pickle.load(open(v_path))
                         except:
                             # load as a string
                             v = pfile_to.string(v_path)

@@ -26,7 +26,7 @@ def to_lower_ascii(d):
         return d
     else:
         raise NotImplementedError(
-            "the input format '{}' is not handled".format(type(d))
+            f"the input format '{type(d)}' is not handled"
         )
 
 

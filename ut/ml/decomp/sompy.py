@@ -30,7 +30,7 @@ import matplotlib
 import pandas as pd
 
 
-class SOM(object):
+class SOM:
     def __init__(
         self,
         name,
@@ -93,7 +93,7 @@ class SOM(object):
                 s = int(mapsize[0] / 2)
                 self.mapsize = [1, mapsize[0]]
                 print('input was considered as the numbers of nodes')
-                print('map size is [{0},{1}]'.format(s, s))
+                print(f'map size is [{s},{s}]')
             self.nnodes = self.mapsize[0] * self.mapsize[1]
 
         # to set component names

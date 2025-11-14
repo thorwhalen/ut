@@ -108,7 +108,7 @@ def highlight(
 
 import re
 
-num_re = re.compile('[^\d]+')
+num_re = re.compile(r'[^\d]+')
 format_tags = re.compile('(?<={)[^}]+(?=})')
 
 

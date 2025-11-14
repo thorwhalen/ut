@@ -135,7 +135,7 @@ print('Computing LLE embedding')
 clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=2, method='standard')
 t0 = time()
 X_lle = clf.fit_transform(X)
-print(('Done. Reconstruction error: %g' % clf.reconstruction_error_))
+print('Done. Reconstruction error: %g' % clf.reconstruction_error_)
 plot_embedding(
     X_lle, 'Locally Linear Embedding of the digits (time %.2fs)' % (time() - t0)
 )
@@ -147,7 +147,7 @@ print('Computing modified LLE embedding')
 clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=2, method='modified')
 t0 = time()
 X_mlle = clf.fit_transform(X)
-print(('Done. Reconstruction error: %g' % clf.reconstruction_error_))
+print('Done. Reconstruction error: %g' % clf.reconstruction_error_)
 plot_embedding(
     X_mlle,
     'Modified Locally Linear Embedding of the digits (time %.2fs)' % (time() - t0),
@@ -160,7 +160,7 @@ print('Computing Hessian LLE embedding')
 clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=2, method='hessian')
 t0 = time()
 X_hlle = clf.fit_transform(X)
-print(('Done. Reconstruction error: %g' % clf.reconstruction_error_))
+print('Done. Reconstruction error: %g' % clf.reconstruction_error_)
 plot_embedding(
     X_hlle,
     'Hessian Locally Linear Embedding of the digits (time %.2fs)' % (time() - t0),
@@ -173,7 +173,7 @@ print('Computing LTSA embedding')
 clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=2, method='ltsa')
 t0 = time()
 X_ltsa = clf.fit_transform(X)
-print(('Done. Reconstruction error: %g' % clf.reconstruction_error_))
+print('Done. Reconstruction error: %g' % clf.reconstruction_error_)
 plot_embedding(
     X_ltsa, 'Local Tangent Space Alignment of the digits (time %.2fs)' % (time() - t0)
 )
@@ -184,7 +184,7 @@ print('Computing MDS embedding')
 clf = manifold.MDS(n_components=2, n_init=1, max_iter=100)
 t0 = time()
 X_mds = clf.fit_transform(X)
-print(('Done. Stress: %f' % clf.stress_))
+print('Done. Stress: %f' % clf.stress_)
 plot_embedding(X_mds, 'MDS embedding of the digits (time %.2fs)' % (time() - t0))
 
 # ----------------------------------------------------------------------

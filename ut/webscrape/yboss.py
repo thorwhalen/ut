@@ -15,7 +15,7 @@ from ut.semantics.termstats import TermStats
 from ut.slurp.yboss import Yboss
 
 
-class YbossText(object):
+class YbossText:
     @staticmethod
     def flat_html(yb):
         return '\n'.join(yb['title']) + '\n'.join(yb['abstract'])
@@ -36,7 +36,7 @@ class YbossText(object):
             return yb
         else:
             if os.path.exists(yb):
-                return YbossText.ascertain_df(pickle.load(open(yb, 'r')))
+                return YbossText.ascertain_df(pickle.load(open(yb)))
             else:
                 raise NotImplementedError("Didn't implement this case yet")
 
@@ -49,7 +49,7 @@ class YbossText(object):
 
     @staticmethod
     def simple_tokenizer(text):
-        text = re.compile('\W+').sub(' ', text).split(' ')
+        text = re.compile(r'\W+').sub(' ', text).split(' ')
         if text[-1] == '':
             text = text[:-1]
         return text
@@ -75,7 +75,7 @@ from oto.data_access.default_data_access_params import DefaultDataAccessParams
 # from ut.semantics.termstats import TermStats
 
 
-class YbossSemantics(object):
+class YbossSemantics:
     def __init__(self, **kwargs):
         kwargs = dict(
             {

@@ -139,14 +139,12 @@ def apriori(dataset, min_support=0.5, verbose=False):
         for kset in F:
             for item in kset:
                 print(
-                    (
                         ''
                         + '{'
                         + ''.join(str(i) + ', ' for i in iter(item)).rstrip(', ')
                         + '}'
                         + ':  sup = '
                         + str(round(support_data[item], 3))
-                    )
                 )
 
     return F, support_data
@@ -176,7 +174,7 @@ def create_candidates(dataset, verbose=False):
     if verbose:
         # Print a list of all the candidate items.
         print(
-            ('' + '{' + ''.join(str(i[0]) + ', ' for i in iter(c1)).rstrip(', ') + '}')
+            '' + '{' + ''.join(str(i[0]) + ', ' for i in iter(c1)).rstrip(', ') + '}'
         )
 
     # Map c1 to a frozenset because it will be the key of a dictionary.
@@ -233,18 +231,16 @@ def support_prune(dataset, candidates, min_support, verbose=False):
     if verbose:
         for kset in retlist:
             for item in kset:
-                print(('{' + str(item) + '}'))
+                print('{' + str(item) + '}')
         print('')
         for key in sscnt:
             print(
-                (
                     ''
                     + '{'
                     + ''.join([str(i) + ', ' for i in iter(key)]).rstrip(', ')
                     + '}'
                     + ':  sup = '
                     + str(support_data[key])
-                )
             )
 
     return retlist, support_data
@@ -378,7 +374,6 @@ def calc_confidence(
 
             if verbose:
                 print(
-                    (
                         ''
                         + '{'
                         + ''.join(
@@ -393,7 +388,6 @@ def calc_confidence(
                         + str(round(conf, 3))
                         + ', sup = '
                         + str(round(support_data[freq_set], 3))
-                    )
                 )
 
     return pruned_H

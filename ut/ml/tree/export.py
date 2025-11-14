@@ -13,7 +13,7 @@ def tree_to_json(decision_tree, feature_names=None):
     js = ''
 
     def node_to_str(tree, node_id, criterion):
-        if not isinstance(criterion, string_types):
+        if not isinstance(criterion, str):
             criterion = 'impurity'
 
         value = tree.value[node_id]
@@ -37,7 +37,7 @@ def tree_to_json(decision_tree, feature_names=None):
             else:
                 feature = tree.feature[node_id]
 
-            return '"id": "%s", "rule": "%s <= %.4f", "%s": "%s", "samples": "%s"' % (
+            return '"id": "{}", "rule": "{} <= {:.4f}", "{}": "{}", "samples": "{}"'.format(
                 node_id,
                 feature,
                 tree.threshold[node_id],

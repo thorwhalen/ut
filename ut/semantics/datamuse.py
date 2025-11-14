@@ -121,7 +121,7 @@ class Datamuse:
         for arg in args:
             if arg not in param_set:
                 raise ValueError(
-                    '{0} is not a valid parameter for this endpoint.'.format(arg)
+                    f'{arg} is not a valid parameter for this endpoint.'
                 )
 
     def get_resource(self, endpoint, **kwargs):

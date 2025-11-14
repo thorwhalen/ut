@@ -1,7 +1,7 @@
 __author__ = 'thorwhalen'
 
 
-class Counter(object):
+class Counter:
     def __init__(self, start=1):
         self.count = start - 1
 

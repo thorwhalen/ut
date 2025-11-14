@@ -40,6 +40,6 @@ class Dogpile(Browser):
         )
 
         if not r.ok:
-            print(('HTTP Error: {} for query {}'.format(r.status_code, query)))
+            print(f'HTTP Error: {r.status_code} for query {query}')
         else:
             return r.text

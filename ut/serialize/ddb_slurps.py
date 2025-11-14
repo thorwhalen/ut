@@ -24,7 +24,7 @@ class DDBSlurps(Dynamo):
         """
         ! Use test_mode factory method for instantiating this class with test_slurps and test_failed_slurps tables
         """
-        super(DDBSlurps, self).__init__(access_key, secret)
+        super().__init__(access_key, secret)
 
         self.slurps_table = Table('slurps', connection=self.connection)
         self.failed_slurps_table = Table('failed_slurps', connection=self.connection)

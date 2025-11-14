@@ -32,7 +32,7 @@ def to_curl(request, headers='simple', print_it=True):
 
     if command is None:
         if isinstance(headers, dict):
-            headers = ["'{}: {}'".format(k, v) for k, v in headers.items()]
+            headers = [f"'{k}: {v}'" for k, v in headers.items()]
             headers = ' -H '.join(sorted(headers))
         elif isinstance(headers, list):
             headers = ' -H '.join(['"' + x + '"' for x in sorted(headers)])

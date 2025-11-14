@@ -128,7 +128,7 @@ def side_by_side_bar(
     else:
         assert (
             len(colors) >= n_bars
-        ), "There's not enough colors for the number of bars ({})".format(n_bars)
+        ), f"There's not enough colors for the number of bars ({n_bars})"
     ax = plt.subplot(111)
     # making each of the bar plot
     for i, list_of_values_for_bars in enumerate(list_of_values_for_bars):

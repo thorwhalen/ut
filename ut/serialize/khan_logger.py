@@ -12,7 +12,7 @@ from serialize.amazon_sender import AmazonSender
 from collections import OrderedDict
 
 
-class KhanLogger(object):
+class KhanLogger:
     @classmethod
     def get_most_recent_log_as_df(cls):
         return cls.get_log_as_df(cls.most_recent_log())

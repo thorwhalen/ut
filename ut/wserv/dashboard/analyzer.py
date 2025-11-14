@@ -5,7 +5,7 @@ from collections import OrderedDict
 from ut.util.pobj import methods_of
 
 
-class Analyzer(object):
+class Analyzer:
     """
     An Analyzer is a class to manage a simple dashboard that takes inputs from an html form, and takes action on these
     inputs.
@@ -75,7 +75,7 @@ class Analyzer(object):
     def __repr__(self):
         s = ''
         for k, v in self.input.items():
-            s += '{input}: {val}\n'.format(input=k, val=v)
+            s += f'{k}: {v}\n'
         return s
 
     def __str__(self):
@@ -103,7 +103,7 @@ class InputElementCollection(OrderedDict):
         form_element_list = [(x['name'], InputElement(x)) for x in form_elements]
         # for form_element in form_elements:
         #     form_element_list.append((form_element['name'], form_element))
-        super(InputElementCollection, self).__init__(form_element_list)
+        super().__init__(form_element_list)
 
     def to_html(self, **kwargs):
         kwargs.update(**self.to_html_kwargs)
@@ -131,7 +131,7 @@ class InputElement(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        super(InputElement, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.verify_inputs()
 
     def verify_inputs(self):
@@ -151,7 +151,7 @@ class InputElement(dict):
         #         self.update(function=self['name'])
 
     def update(self, *args, **kwargs):
-        super(InputElement, self).update(*args, **kwargs)
+        super().update(*args, **kwargs)
         self.verify_inputs()
 
     def to_html(self, **kwargs):
@@ -170,8 +170,8 @@ class InputElement(dict):
         )
         # d.pop('function', None)  # get rid of function
         for k, v in d.items():
-            html += ' {}="{}"'.format(k, v)
+            html += f' {k}="{v}"'
         if element_type == 'button':
-            html += ' onclick="getResult(\'{}\')"'.format(element_name)
+            html += f' onclick="getResult(\'{element_name}\')"'
         html += '>'
         return html

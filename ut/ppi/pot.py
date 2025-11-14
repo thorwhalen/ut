@@ -25,7 +25,7 @@ import ut.pplot.get
 from functools import reduce
 
 
-class Pot(object):
+class Pot:
     def __init__(self, data=None):
         if isinstance(data, Pot):
             self.tb = data.tb
@@ -411,7 +411,7 @@ class Pot(object):
 
 class ProbPot(Pot):
     def __init__(self, data=None):
-        super(ProbPot, self).__init__(data=data)
+        super().__init__(data=data)
 
     def prob_of(self, var_val_dict):
         t = self.get_slice(var_val_dict)

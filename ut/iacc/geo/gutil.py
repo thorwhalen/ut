@@ -8,7 +8,7 @@ from bson import SON
 degree_kms = 111.12
 
 
-class GeoMongoDacc(object):
+class GeoMongoDacc:
     def __init__(self, db, collection, coordinate_field):
         self.collection = MongoClient()[db][collection]
         self.coordinate_field = coordinate_field

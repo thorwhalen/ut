@@ -8,7 +8,7 @@ from .khan_logger import KhanLogger
 __author__ = 'mattjmorris'
 
 
-class Dynamo(object):
+class Dynamo:
     def __init__(self, access_key=None, secret=None):
         """
         If access_key and/or secret are not passed in, assumes we are accessing erenev's aws account and that the
@@ -45,7 +45,7 @@ class Dynamo(object):
             )
 
             self.logger.info(
-                msg='going to request read {} and write {}'.format(new_read, new_write)
+                msg=f'going to request read {new_read} and write {new_write}'
             )
 
             if (new_read < read or new_write < write) and num_dec_today >= 4:
@@ -56,11 +56,11 @@ class Dynamo(object):
             sleep_secs = 30
             table_status = 'UPDATING'
             self.logger.info(
-                msg='Sleeping for {} secs before starting'.format(sleep_secs)
+                msg=f'Sleeping for {sleep_secs} secs before starting'
             )
             sleep(sleep_secs)
             while table_status == 'UPDATING':
-                self.logger.info(msg='Sleeping for {} secs'.format(sleep_secs))
+                self.logger.info(msg=f'Sleeping for {sleep_secs} secs')
                 sleep(sleep_secs)
                 read, write, num_dec_today, table_status = self.get_table_info(table)
 

@@ -68,7 +68,7 @@ while True:
                 )
                 amazon_sender = AmazonSender(to_addresses=ispec['subscriber_emails'])
                 amazon_sender.send_email(
-                    subject="{author}'s Book Watch".format(author=author), html=html
+                    subject=f"{author}'s Book Watch", html=html
                 )
         except Exception as e:
             error_amazon_sender = AmazonSender(to_addresses='thor@mscoms.com')

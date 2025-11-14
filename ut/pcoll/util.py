@@ -30,11 +30,11 @@ class WindowCollector(deque):
     """
 
     def __init__(self, window_width, empty_val=None):
-        super(WindowCollector, self).__init__([empty_val] * window_width)
+        super().__init__([empty_val] * window_width)
 
     def append(self, val):
         self.popleft()
-        super(WindowCollector, self).append(val)
+        super().append(val)
 
 
 def duplicated_values(arr):

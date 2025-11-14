@@ -90,7 +90,7 @@ def sound_file_info_dict(filepath):
             d['frames'] = f.getnframes()
             d['frame_rate'] = f.getframerate()
             d['duration'] = d['frames'] / float(d['frame_rate'])
-        with open(filepath, 'r') as f:
+        with open(filepath) as f:
             text_info = get_wav_text_info(f)
             if text_info is not None:
                 d['inner_wav_text'] = text_info
@@ -155,7 +155,7 @@ def stereo_to_mono_and_extreme_silence_cropping(
         for i, filepath in enumerate(iglob(source + '*.wav')):
             filename = os.path.basename(filepath)
             if print_progress:
-                printProgress('{}: {}'.format(i, filename))
+                printProgress(f'{i}: {filename}')
             stereo_to_mono_and_extreme_silence_cropping(
                 filepath, os.path.join(target, filename)
             )
@@ -168,7 +168,7 @@ def stereo_to_mono_and_extreme_silence_cropping(
 
 def get_wav_text_info(filespec):
     if isinstance(filespec, str):
-        with open(filespec, 'r') as fd:
+        with open(filespec) as fd:
             m = wav_text_info_exp.match(fd.read())
             if m is not None:
                 return m.groups()[0]
@@ -369,7 +369,7 @@ def plot_melspectrogram(spect_mat, sr=default_sr, hop_length=512, name=None):
     )
     # Put a descriptive title on the plot
     if name is not None:
-        plt.title('mel power spectrogram of "{}"'.format(name))
+        plt.title(f'mel power spectrogram of "{name}"')
     else:
         plt.title('mel power spectrogram')
     # draw a color bar
@@ -378,7 +378,7 @@ def plot_melspectrogram(spect_mat, sr=default_sr, hop_length=512, name=None):
     plt.tight_layout()
 
 
-class Sound(object):
+class Sound:
     def __init__(self, wf=None, sr=default_sr, name=''):
         if wf is None:
             wf = np.array([])
@@ -404,7 +404,7 @@ class Sound(object):
             * ensure_mono (if present and True (the default), will convert to mono)
         :return:
         """
-        file_name, extension = os.path.splitext((os.path.basename(filepath)))
+        file_name, extension = os.path.splitext(os.path.basename(filepath))
         name = name or file_name
         # kwargs = dict({'always_2d': False, 'ensure_mono': True}, **kwargs)
 

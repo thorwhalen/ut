@@ -9,7 +9,7 @@ dflt_ignore_misunderstood_validation_instructions = False
 dflt_arg_pattern = r'.+'
 
 day_format = '%Y-%m-%d'
-day_format_pattern = re.compile('\d{4}-\d{2}-\d{2}')
+day_format_pattern = re.compile(r'\d{4}-\d{2}-\d{2}')
 #
 # # CHUNK_SREF = 'chunk_sref'
 # # uploads_SREF = 'uploads_sref'
@@ -165,7 +165,7 @@ def example_process_kwargs(**kwargs):
 naming_kwargs_for_kind = dict(
     example=dict(
         template='s3://bucket-{group}/example/files/{user}/{subuser}/{day}/{s_ums}_{e_ums}',
-        format_dict={'s_ums': '\d+', 'e_ums': '\d+', 'day': '[^/]+'},
+        format_dict={'s_ums': r'\d+', 'e_ums': r'\d+', 'day': '[^/]+'},
         process_kwargs=example_process_kwargs,
         process_info_dict=process_info_dict_for_example,
     ),
@@ -176,7 +176,7 @@ naming_kwargs_for_kind = dict(
 )
 
 
-class LinearNaming(object):
+class LinearNaming:
     def __init__(
         self, template, format_dict=None, process_kwargs=None, process_info_dict=None
     ):
@@ -429,11 +429,11 @@ class LinearNaming(object):
         for k, v in kv.items():
             if hasattr(v, 'pattern'):
                 v = v.pattern
-            s += '  * {}: {}\n\n'.format(k, v)
+            s += f'  * {k}: {v}\n\n'
         return s
 
 
-class NamingInterface(object):
+class NamingInterface:
     def __init__(
         self,
         params=None,

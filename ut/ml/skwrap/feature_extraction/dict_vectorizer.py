@@ -133,8 +133,8 @@ class IterDictVectorizer(DictVectorizer):
             feature_names = list(self.feature_counts_.keys())
         else:
             for x in X:
-                for f, v in six.iteritems(x):
-                    if isinstance(v, six.string_types):
+                for f, v in x.items():
+                    if isinstance(v, str):
                         f = feature_template.format(f, v)
                     if f not in vocab:
                         feature_names.append(f)
@@ -142,7 +142,7 @@ class IterDictVectorizer(DictVectorizer):
 
         if self.sort:
             feature_names.sort()
-            vocab = dict((f, i) for i, f in enumerate(feature_names))
+            vocab = {f: i for i, f in enumerate(feature_names)}
 
         self.feature_names_ = feature_names
         self.vocabulary_ = vocab
@@ -153,14 +153,14 @@ class IterDictVectorizer(DictVectorizer):
         if isinstance(X, DataFrame):
             X = map(lambda x: x[1].dropna().to_dict(), X.iterrows())
 
-        return super(IterDictVectorizer, self).transform(X)
+        return super().transform(X)
 
     def fit_transform(self, X, y=None):
         self.fit(X)
         return self.transform(X)
 
 
-class IterDictVectorizerWithText(object):
+class IterDictVectorizerWithText:
     def __init__(
         self,
         dtype=np.float64,
@@ -185,7 +185,7 @@ class IterDictVectorizerWithText(object):
         if not set(self.text_vectorizers.keys()).issubset(X.columns):
             RuntimeError(
                 'The following columns were specified in text_vectorizers, but were not in X:\n'
-                + '  {}'.format(set(self.text_vectorizers.keys()).difference(X.columns))
+                + f'  {set(self.text_vectorizers.keys()).difference(X.columns)}'
             )
 
         # carry out the normal IterDictVectorizer.fit() for columns not in text_vectorizers
@@ -209,11 +209,9 @@ class IterDictVectorizerWithText(object):
     def transform(self, X, y=None):
         X1 = self.dict_vectorizer.transform(X[self.dict_vectorizer_cols_])
         X2 = np.hstack(
-            (
                 map(
                     lambda col: self.text_vectorizers[col].transform(X[col]),
                     list(self.text_vectorizers.keys()),
                 )
-            )
         )
         return np.hstack((X1, X2))

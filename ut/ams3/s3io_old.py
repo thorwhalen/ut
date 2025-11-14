@@ -9,7 +9,7 @@ import os
 from ut.util.importing import get_environment_variable
 
 
-class S3(object):
+class S3:
     """
     Storage to Amazon S3.
     """

@@ -5,8 +5,8 @@ import re
 import ut.pstr.trans as pstr_trans
 import ut.parse.bsoup as parse_bsoup
 
-pois_near_hotel_exp_0 = re.compile('(?<=\. )[\w ]+(?=- 0\.\d km / 0\.\d mi)')
-pois_near_hotel_exp = re.compile('(.+)- (\d+[\.\d]*) km / (\d+[\.\d]*) mi')
+pois_near_hotel_exp_0 = re.compile(r'(?<=\. )[\w ]+(?=- 0\.\d km / 0\.\d mi)')
+pois_near_hotel_exp = re.compile(r'(.+)- (\d+[\.\d]*) km / (\d+[\.\d]*) mi')
 
 
 def get_pois_near_hotel_location(html):

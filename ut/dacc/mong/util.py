@@ -58,7 +58,7 @@ def restart_find_cursor(cursor, docs_retrieved_so_far=None):
     return cursor._Cursor__collection.find(**kwargs)
 
 
-class BulkMgUpdates(object):
+class BulkMgUpdates:
     """
     A class to accumulate update instructions and flush them (to perform a bulk mongo update).
     See also BulkUpdateBuffer.
@@ -169,12 +169,12 @@ class BulkUpdateBuffer(ThreshBuffer):
         11
         """
         self.mgc = mgc
-        super(BulkUpdateBuffer, self).__init__(thresh=max_buf_size)
+        super().__init__(thresh=max_buf_size)
         self.initialize()
         self.upsert = upsert
 
     def initialize(self):
-        super(BulkUpdateBuffer, self).initialize()
+        super().initialize()
         self._buf_size = 0
         self._buf = self.mgc.initialize_unordered_bulk_op()
 
@@ -205,7 +205,7 @@ class BulkUpdateBuffer(ThreshBuffer):
         :param item: A bulk operation. A dict containing a "spec" and a "document" field.
         :return: If operations were flushed, returns what every flush_operation returns, if not returns None.
         """
-        return super(BulkUpdateBuffer, self).push(item)
+        return super().push(item)
 
     def flush(self):
         """
@@ -213,7 +213,7 @@ class BulkUpdateBuffer(ThreshBuffer):
         Also reinitialize the buffer_size to 0 and reintialize unordered_bulk_op.
         :return: What ever bulk_mgc.execute() returns
         """
-        return super(BulkUpdateBuffer, self).flush()
+        return super().flush()
 
 
 class KeyedBulkUpdateBuffer(BulkUpdateBuffer):
@@ -265,7 +265,7 @@ class KeyedBulkUpdateBuffer(BulkUpdateBuffer):
         >>> print(len(list(mgc.find())))
         11
         """
-        super(KeyedBulkUpdateBuffer, self).__init__(
+        super().__init__(
             mgc=mgc, max_buf_size=max_buf_size, upsert=upsert
         )
         self.key_fields = set(key_fields)
@@ -284,7 +284,7 @@ class KeyedBulkUpdateBuffer(BulkUpdateBuffer):
             ), 'Some update keys are missing. All items should have fields: {}'.format(
                 self.key_fields
             )
-        super(KeyedBulkUpdateBuffer, self)._push(_item)
+        super()._push(_item)
 
 
 def bulk_update_collection(mgc, operations, verbose=0):
@@ -305,13 +305,13 @@ def bulk_update_collection(mgc, operations, verbose=0):
         bulk_mgc.find(operation.get('spec')).update(operation.get('document'))
 
     if verbose > 0:
-        print(('Starting bulk update {}'.format(datetime.now())))
+        print(f'Starting bulk update {datetime.now()}')
 
     result = bulk_mgc.execute()
 
     if verbose > 0:
-        print(('Stoping bulk update {}'.format(datetime.now())))
-        print(('Update result {}'.format(result)))
+        print(f'Stoping bulk update {datetime.now()}')
+        print(f'Update result {result}')
 
 
 def bulk_insert_collection(mgc, docs):
@@ -553,21 +553,19 @@ def copy_collection_from_remote_to_local(
     local_db_connection = mg.MongoClient()[local_db]
     if local_collection in local_db_connection.collection_names():
         print(
-            (
                 "Local collection '{}' existed and is being deleted".format(
                     local_collection
                 )
-            )
         )
         try:
             local_db_connection[local_collection].drop()
         except mg.errors.OperationFailure as e:
-            print(("  !!! Nope, can't delete that: {}".format(e.message)))
+            print(f"  !!! Nope, can't delete that: {e.message}")
     local_collection_connection = local_db_connection[local_collection]
     for i, d in enumerate(remote_collection_connection.find()):
         if i < max_docs_per_collection:
             if verbose:
-                printProgress('item {}'.format(i))
+                printProgress(f'item {i}')
             local_collection_connection.insert(d)
         else:
             break
@@ -663,7 +661,7 @@ def backup_to_s3(
     )
     s3 = S3(bucket_name=bucket_name)
     s3.dumpf(zip_filename, zip_filename, folder=folder)
-    print('removing {zip_filename}'.format(zip_filename=zip_filename))
+    print(f'removing {zip_filename}')
     os.remove(zip_filename)
 
 
@@ -695,11 +693,11 @@ def restore_from_s3_dump(
         bucket_name=bucket_name,
     )
 
-    print('unzip {zip_filename}'.format(zip_filename=s3_zip_filename))
+    print(f'unzip {s3_zip_filename}')
     unzipped_filename = s3_zip_filename.replace('.gz', '')
     ungzip(gzip_file=s3_zip_filename, destination_file=unzipped_filename)
 
-    print('removing {gzip_file}'.format(gzip_file=s3_zip_filename))
+    print(f'removing {s3_zip_filename}')
     os.remove(s3_zip_filename)
 
     mongorestore(
@@ -710,7 +708,7 @@ def restore_from_s3_dump(
         print_the_command=print_the_command,
     )
 
-    print('removing {unzipped_filename}'.format(unzipped_filename=unzipped_filename))
+    print(f'removing {unzipped_filename}')
     os.remove(unzipped_filename)
 
 
@@ -718,7 +716,7 @@ def _get_db_and_collection_from_filename(filename, db=None, collection=None):
     if db is None:
         if collection:
             db_coll_re = re.compile(
-                'mongo_(.*?)_{collection}___'.format(collection=collection)
+                f'mongo_(.*?)_{collection}___'
             )
             return db_coll_re.findall(filename)[0], collection
         else:
@@ -728,7 +726,7 @@ def _get_db_and_collection_from_filename(filename, db=None, collection=None):
         if collection:
             return db, collection
         else:
-            db_coll_re = re.compile('mongo_{db}_(.*?)___'.format(db=db))
+            db_coll_re = re.compile(f'mongo_{db}_(.*?)___')
             return db, db_coll_re.findall(filename)[0]
 
 

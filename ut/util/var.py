@@ -9,7 +9,7 @@ from types import MethodType
 
 
 class Returns:
-    """
+    r"""
     Makes an object that pretends to have all possible methods, but returns the same value (default None)
     no matter what this method, or its arguments, is.
 
@@ -159,9 +159,9 @@ def print_info(x, max_depth=30, print_contents=False, depth=0, tab=''):
     if depth <= max_depth:
         class_info = x.__class__
         if hasattr(x, '__name__'):
-            print('%s%s %s' % (tab + '  ', x.__name__, type.mro(class_info)[0]))
+            print('{}{} {}'.format(tab + '  ', x.__name__, type.mro(class_info)[0]))
         else:
-            print('%s%s' % (tab + '  ', type.mro(class_info)[0]))
+            print('{}{}'.format(tab + '  ', type.mro(class_info)[0]))
         new_depth = depth + 1
         if hasattr(x, '__dict__'):
             dict_info = x.__dict__

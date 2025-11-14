@@ -117,7 +117,7 @@ def for_s3(
 ####################################################################################################################
 
 
-class Accessor(object):
+class Accessor:
     LOCATION_LOCAL = LOCATION_LOCAL
     LOCATION_S3 = LOCATION_S3
 
@@ -396,7 +396,7 @@ def fullpath_to_s3_kargs(filename):
     return {'bucket_name': mother_root, 'key_name': rest_of_the_filepath}
 
 
-class ExtensionHandler(object):
+class ExtensionHandler:
     def __init__(self, extension=None, force_extension=False):
         self.extension = extension
         self.force_extension = force_extension
@@ -408,7 +408,7 @@ class ExtensionHandler(object):
             return pfile_name.add_extension_if_not_present(file_spec, self.extension)
 
 
-class FilepathHandler(object):
+class FilepathHandler:
     def __init__(self, relative_root=''):
         self.relative_root = relative_root
 
@@ -419,7 +419,7 @@ class FilepathHandler(object):
 ##### LOCAL METHODS
 
 
-class LocalIOMethods(object):
+class LocalIOMethods:
     def __init__(self, encoding='UTF-8'):
         self.encoding = encoding
 
@@ -461,7 +461,7 @@ class LocalIOMethods(object):
             try:  # getting it as a pandas object
                 return pd.read_pickle(path=filepath)
             except Exception:  # getting it as a pickled object
-                return pickle.load(file=open(filepath, 'r'))
+                return pickle.load(file=open(filepath))
         except Exception:  # getting it as a string
             return file_to.string(filename=filepath)
 
@@ -469,7 +469,7 @@ class LocalIOMethods(object):
 ##### S3 METHODS
 
 
-class S3IOMethods(object):
+class S3IOMethods:
     def __init__(self, **kwargs):
         self.s3 = S3(**kwargs)
 

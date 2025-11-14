@@ -35,7 +35,7 @@ from ut.pstr.trans import str_to_utf8_or_bust
 from ut.util.log import printProgress
 
 
-class Geopop(object):
+class Geopop:
     def __init__(
         self,
         pop_db='util',
@@ -189,7 +189,7 @@ def _import_data_into_mongo(
     bits = _meters_to_bits(index_precision_meters)
     printProgress('importing %s into dataframe' % filepath)
     d = pd.read_csv(filepath, header=0, sep=',', quotechar="'")
-    space_re = re.compile('\s')
+    space_re = re.compile(r'\s')
     d.columns = [
         space_re.sub('_', str(x).lower()) for x in d.columns
     ]  # I want lower and no-space_columns

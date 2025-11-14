@@ -23,7 +23,7 @@ import ut.dacc.es.queries as es_queries
 import ut.dacc.es.get as es_get
 
 
-class ElasticCom(object):
+class ElasticCom:
     def __init__(self, index, doc_type=None, hosts='localhost:9200', **kwargs):
         self.index = index
         self.doc_type = doc_type
@@ -190,7 +190,7 @@ class ElasticCom(object):
         d = list()
         for i, item in enumerate(extracting_scanner, start=start):
             if np.mod(i, print_progress_every) == 0:
-                printProgress('offset: {}'.format(i))
+                printProgress(f'offset: {i}')
             if item is not None:
                 d.append(item)
 

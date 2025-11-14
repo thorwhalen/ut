@@ -54,10 +54,10 @@ class PoolHTTPConnection(http.client.HTTPConnection):
             try:
                 self.sock = socket.socket(af, socktype, proto)
                 if self.debuglevel > 0:
-                    print('connect: (%s, %s)' % (self.host, self.port))
+                    print('connect: ({}, {})'.format(self.host, self.port))
                 self.sock.settimeout(TIMEOUT)
                 self.sock.connect(sa)
-            except socket.error as msg:
+            except OSError as msg:
                 if self.debuglevel > 0:
                     print('connect fail:', (self.host, self.port))
                 if self.sock:
@@ -66,7 +66,7 @@ class PoolHTTPConnection(http.client.HTTPConnection):
                 continue
             break
         if not self.sock:
-            raise socket.error(msg)
+            raise OSError(msg)
 
 
 class PoolHTTPHandler(urllib.request.HTTPHandler):
@@ -74,7 +74,7 @@ class PoolHTTPHandler(urllib.request.HTTPHandler):
         return self.do_open(PoolHTTPConnection, req)
 
 
-class Browser(object):
+class Browser:
     def __init__(self, user_agent=BROWSERS[0], debug=False, use_pool=False):
         self.headers = {
             'User-Agent': user_agent,
@@ -94,9 +94,9 @@ class Browser(object):
             return response.read()
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             raise BrowserError(url, str(e))
-        except (socket.error, socket.sslerror) as msg:
+        except (OSError, socket.sslerror) as msg:
             raise BrowserError(url, msg)
-        except socket.timeout as e:
+        except TimeoutError as e:
             raise BrowserError(url, 'timeout')
         except KeyboardInterrupt:
             raise

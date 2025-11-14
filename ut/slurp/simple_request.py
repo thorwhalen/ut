@@ -5,7 +5,7 @@ from serialize.khan_logger import KhanLogger
 import logging
 
 
-class SimpleRequest(object):
+class SimpleRequest:
     def __init__(self, log_file_name=None, log_level=logging.INFO):
         full_log_path_and_name = KhanLogger.default_log_path_with_unique_name(
             log_file_name
@@ -21,11 +21,11 @@ class SimpleRequest(object):
         if not r.ok:
             self.logger.log(
                 level=logging.WARN,
-                simple_request='HTTP Error: {} for url {}'.format(r.status_code, url),
+                simple_request=f'HTTP Error: {r.status_code} for url {url}',
             )
         else:
             self.logger.log(
-                level=logging.INFO, simple_request='Slurped url {}'.format(url)
+                level=logging.INFO, simple_request=f'Slurped url {url}'
             )
             return r.text
 

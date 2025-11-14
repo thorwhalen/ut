@@ -59,7 +59,7 @@ from ut.pplot.matrix import heatmap
 from ut.pplot.my import vlines
 
 
-class PPR(object):
+class PPR:
     indent = 2
     pretty_printer = PrettyPrinter(indent=indent)
 
@@ -91,7 +91,7 @@ class PPR(object):
             else:
                 v = repr(v)
 
-            s.append('%s%r: %s,\n' % ('  ' * tab, k, v))
+            s.append('{}{!r}: {},\n'.format('  ' * tab, k, v))
         s.append('%s}' % ('  ' * tab))
         return ''.join(s)
 

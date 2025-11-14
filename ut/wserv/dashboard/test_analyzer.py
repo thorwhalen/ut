@@ -26,7 +26,7 @@ class TestAnalyzer(Analyzer):
         analyzer_name='test_analyzer',
         work_folder='.',
     ):
-        super(TestAnalyzer, self).__init__(
+        super().__init__(
             form_elements=input_element_collection, analyzer_name=analyzer_name
         )
         self.a = dict()
@@ -57,7 +57,7 @@ class TestAnalyzer(Analyzer):
             d,
             template='box-table-c',
             index=False,
-            float_format=lambda x: '{:,.0f}'.format(x),
+            float_format=lambda x: f'{x:,.0f}',
         )
         return html
 

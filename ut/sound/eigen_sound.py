@@ -114,7 +114,7 @@ class DeAmplitudedEigenSound(BaseEstimator, TransformerMixin):
         plt.axis('tight')
 
 
-class EigenSound(object):
+class EigenSound:
     def __init__(self, pca_components, mel_kwargs, n_components=None):
         if n_components is not None:
             self.n_components = n_components
@@ -164,11 +164,11 @@ class EigenSound(object):
                 title = 'two first eigensounds'
                 if isinstance(sound, Sound):
                     if sound.name:
-                        title += '\n of {}'.format(sound.name)
+                        title += f'\n of {sound.name}'
             plt.title(title)
 
 
-class GeneralEigenSound(object):
+class GeneralEigenSound:
     def __init__(self, decomp, mel_kwargs):
         self.decomp = decomp
         self.mel_kwargs = mel_kwargs
@@ -212,5 +212,5 @@ class GeneralEigenSound(object):
                 title = 'two first eigensounds'
                 if isinstance(sound, Sound):
                     if sound.name:
-                        title += '\n of {}'.format(sound.name)
+                        title += f'\n of {sound.name}'
             plt.title(title)

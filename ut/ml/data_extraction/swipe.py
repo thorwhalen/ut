@@ -1,7 +1,7 @@
 from ut.util.ulist import KeepMaxK
 
 
-class HighestScoreSwipe(object):
+class HighestScoreSwipe:
     def __init__(self, score_of, chk_size, chk_step=1):
         self.score_of = score_of
         self.chk_size = chk_size
@@ -43,6 +43,6 @@ def highest_score_swipe(it, score_of=None, k=1, info_of=None, output=None):
         elif output == 'top_score_items':
             return [x[1] for x in sorted(km, key=lambda x: x[0])]
         else:
-            raise ValueError('Unrecognized output: '.format(output))
+            raise ValueError(f'Unrecognized output: ')
     else:
         return km

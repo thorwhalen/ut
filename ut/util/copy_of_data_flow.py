@@ -7,7 +7,7 @@ import ut.util.ulist as util_ulist
 import pandas as pd
 
 
-class DataFlow(object):
+class DataFlow:
     """
     DataFlow is a framework to pipeline data processes.
     """
@@ -78,7 +78,7 @@ class DataFlow(object):
             if missing_data_names:
                 self.print_progress(
                     3,
-                    '  --> %s requires %s' % (data_name, ', '.join(missing_data_names)),
+                    '  --> {} requires {}'.format(data_name, ', '.join(missing_data_names)),
                 )
                 for missing_dependency in missing_data_names:
                     input_data[missing_dependency] = self.get_data(
@@ -112,7 +112,7 @@ class DataFlow(object):
         return ('verbose' in list(kwargs.keys())) and (kwargs['verbose'] >= min_level)
 
 
-class StoreDataGetter(object):
+class StoreDataGetter:
     def __init__(self, store, key):
         self.store = store
         self.key = key
@@ -121,7 +121,7 @@ class StoreDataGetter(object):
         return self.store[self.key]
 
 
-class AttrDataGetter(object):
+class AttrDataGetter:
     def __init__(self, obj, attr):
         self.obj = obj
         self.attr = attr
@@ -130,7 +130,7 @@ class AttrDataGetter(object):
         return getattr(self.obj, self.attr)
 
 
-class CallDataGetter(object):
+class CallDataGetter:
     def __init__(self, fun):
         self.fun = fun
 

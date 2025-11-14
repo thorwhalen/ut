@@ -12,7 +12,7 @@ import re
 # import ut.daf.get
 
 
-class BipartiteStats(object):
+class BipartiteStats:
     """
     The class that manages the count data.
     """
@@ -70,7 +70,7 @@ def get_b_list_from_item_default(pair_set):
     return pair_set[1]
 
 
-class BipartiteEdgeCounts(object):
+class BipartiteEdgeCounts:
     """
     The class that manages the count data.
     """
@@ -106,7 +106,7 @@ class BipartiteEdgeCounts(object):
                     self.ba_count.add(KeyVal({b: KeyVal({a: Val(1.0)})}))
 
 
-class Val(object):
+class Val:
     """
     The mother class of other Val classes.
     A Val should hold a value and be able to add and subtract from it.
@@ -179,7 +179,7 @@ class CountVal(Val):
     v = 0.0
 
     def __init__(self, v=0.0):
-        super(CountVal, self).__init__(v)
+        super().__init__(v)
         self.v = float(v)
 
     def increment(self):
@@ -197,7 +197,7 @@ class LHVal(Val):
     # where the value will be stored
 
     def __init__(self, v=0.5):
-        super(LHVal, self).__init__(v)
+        super().__init__(v)
         self.v = float(v)
 
     def add(self, y):
@@ -222,7 +222,7 @@ class KeyVal(Val):
         if v is None:
             self.v = dict()
         else:
-            super(KeyVal, self).__init__(v)
+            super().__init__(v)
 
     def add(self, kv):
         if hasattr(kv.v, 'keys'):
@@ -291,7 +291,7 @@ class KeyCount(KeyVal):
         if v is None:
             self.v = dict()
         else:
-            super(KeyCount, self).__init__(v)
+            super().__init__(v)
 
     def increment(self, k):
         if k in self.v:

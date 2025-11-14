@@ -26,7 +26,7 @@ class DDBRuns(Dynamo):
         """
         When called directly (as should be done for production code), sets table to the production 'runs' table.
         """
-        super(DDBRuns, self).__init__(access_key, secret)
+        super().__init__(access_key, secret)
         self.table = Table('runs', connection=self.connection)
 
     def save_new_run(self, dt_str=None, start_date_str=None, end_date_str=None):
@@ -88,7 +88,7 @@ class DDBRuns(Dynamo):
 
     def modify_throughput(self, requested_read, requested_write, table=None):
         table = table or self.table
-        return super(DDBRuns, self).modify_throughput(
+        return super().modify_throughput(
             requested_read, requested_write, table
         )
 

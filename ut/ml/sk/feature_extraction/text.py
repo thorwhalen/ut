@@ -11,13 +11,13 @@ from itertools import chain
 from urllib.parse import urlsplit
 
 path_separator_pattern = re.compile('/+')
-word_inclusion_pattern = re.compile('\w+')
+word_inclusion_pattern = re.compile(r'\w+')
 path_inclusion_pattern = re.compile('[^/]+')
-url_extension_pattern = re.compile('\.\w+$')
+url_extension_pattern = re.compile(r'\.\w+$')
 
 
 class TreeTokenizer(BaseEstimator, TransformerMixin):
-    """
+    r"""
     A tokenizer that is the result of multiple different tokenizers that might either all be applied to the
     same text, or are used recursively to break up the text into finner pieces.
     In a deep_tokenizer tokenizers[0] tokenizes the text, then the next tokenizer, tokeizers[1] is applied to these
@@ -111,7 +111,7 @@ class TreeTokenizer(BaseEstimator, TransformerMixin):
                 this_tokenizer_info = dict()
                 this_tokenizer_info['tokenize'] = self.tokenizers[i]
                 this_tokenizer_info['token_prefix'] = self.token_prefixes[i]
-                this_tokenizer_info['vocab'] = set([])
+                this_tokenizer_info['vocab'] = set()
                 self.tokenizer_info_list_.append(this_tokenizer_info)
 
             # initialize remaining_element_counts to everything (with counts set to 1)
@@ -360,11 +360,11 @@ class TreeCountVectorizer(CountVectorizer):
             tokenizer=self.tree_tokenizer.tokenize,
             vocabulary={w: i for i, w in enumerate(self.token_list())},
         )
-        super(TreeCountVectorizer, self).fit_transform(raw_documents=raw_documents)
+        super().fit_transform(raw_documents=raw_documents)
         return self
 
     def transform(self, raw_documents):
-        return super(TreeCountVectorizer, self).transform(raw_documents=raw_documents)
+        return super().transform(raw_documents=raw_documents)
 
     def fit_transform(self, raw_documents, y=None):
         return self.fit(raw_documents).transform(raw_documents)
@@ -408,11 +408,11 @@ class MultiTreeCountVectorizer(CountVectorizer):
                 w: i for i, w in enumerate(self.multi_tree_tokenizer_.token_list())
             },
         )
-        super(MultiTreeCountVectorizer, self).fit_transform(raw_documents=X)
+        super().fit_transform(raw_documents=X)
         return self
 
     def transform(self, X):
-        return super(MultiTreeCountVectorizer, self).transform(raw_documents=X)
+        return super().transform(raw_documents=X)
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)

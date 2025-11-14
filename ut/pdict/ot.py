@@ -24,4 +24,4 @@ def keyval_df(df, key_col=None, val_col=None, warn=False):
 
 
 def json_str_file(filepath):
-    return json.loads(json.load(open(filepath, 'r')))
+    return json.loads(json.load(open(filepath)))

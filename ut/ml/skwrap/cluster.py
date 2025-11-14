@@ -28,7 +28,7 @@ class SpectralClustering(sk_SpectralClustering):
         coef0=1,
         kernel_params=None,
     ):
-        super(SpectralClustering, self).__init__(
+        super().__init__(
             n_clusters=n_clusters,
             eigen_solver=eigen_solver,
             random_state=random_state,
@@ -44,7 +44,7 @@ class SpectralClustering(sk_SpectralClustering):
         )
 
     def fit(self, X, y=None):
-        super(SpectralClustering, self).fit(X=X, y=y)
+        super().fit(X=X, y=y)
         self.cluster_centers_ = vstack(
             [mean(X[self.labels_ == i], axis=0) for i in sorted(unique(self.labels_))]
         )
@@ -67,7 +67,7 @@ class MiniBatchKMeans(MiniBatchKMeans_sk):
         reassignment_ratio=0.01,
         X_cumul=None,
     ):
-        super(MiniBatchKMeans, self).__init__(
+        super().__init__(
             n_clusters=n_clusters,
             init=init,
             max_iter=max_iter,
@@ -99,7 +99,7 @@ class MiniBatchKMeans(MiniBatchKMeans_sk):
 
         n_samples, n_features = self.X_cumul.shape
         if n_samples > self.n_clusters:
-            super(MiniBatchKMeans, self).partial_fit(X=self.X_cumul, y=y)
+            super().partial_fit(X=self.X_cumul, y=y)
             self.n_partial_fit_calls_actually_fitted_ += 1
             self.n_data_points_fitted_ += len(X)
             self.X_cumul = None

@@ -83,7 +83,6 @@ def pr_numof(data, column=None, op=ge, comp_val=0, str_format='sparse', op2str=N
     n = len(data)
     k = sum(op(data, comp_val))
     print(
-        (
             str_format.format(
                 k=k,
                 n=n,
@@ -92,7 +91,6 @@ def pr_numof(data, column=None, op=ge, comp_val=0, str_format='sparse', op2str=N
                 column=column,
                 comp_val=comp_val,
             )
-        )
     )
 
 
@@ -116,10 +114,10 @@ def get_unique(d, cols=None):
 
 def print_unique_counts(d):
     column_list = d.columns.tolist()
-    print('number of rows: \t{}'.format(len(d[column_list[0]])))
+    print(f'number of rows: \t{len(d[column_list[0]])}')
     print('')
     for c in column_list:
-        print('number of unique {}: \t{}'.format(c, len(arraysetops.unique(d[c]))))
+        print(f'number of unique {c}: \t{len(arraysetops.unique(d[c]))}')
 
 
 def mk_fanout_score_df(df, fromVars, toVars, statVars=None, keep_statVars=False):

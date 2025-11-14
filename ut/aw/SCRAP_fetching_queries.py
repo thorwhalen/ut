@@ -24,7 +24,7 @@ def getting_a_bunch_of_queries():
     account_list = ['test']
     for account in account_list:
         i = i + 1
-        print('({}/{}) downloading {}'.format(i, len(account_list), account))
+        print(f'({i}/{len(account_list)}) downloading {account}')
         report_downloader = rp.get_report_downloader(account)
         df = rp.download_report(
             report_downloader=report_downloader,
@@ -32,7 +32,7 @@ def getting_a_bunch_of_queries():
             download_format='df',
         )
     saveFile = save_file(account)
-    print('   Saving to {}'.format(saveFile))
+    print(f'   Saving to {saveFile}')
     df.save(saveFile)
 
 

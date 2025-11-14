@@ -69,7 +69,7 @@ def count_dicts(d):
 
 class Struct(dict):
     def __init__(self, *args, **kwargs):
-        super(Struct, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for arg in args:
             if isinstance(arg, dict):
                 for k, v in arg.items():
@@ -91,19 +91,19 @@ class Struct(dict):
         self.__setitem__(key, value)
 
     def __setitem__(self, key, value):
-        super(Struct, self).__setitem__(key, value)
+        super().__setitem__(key, value)
         self.__dict__.update({key: value})
 
     def __delattr__(self, item):
         self.__delitem__(item)
 
     def __delitem__(self, key):
-        super(Struct, self).__delitem__(key)
+        super().__delitem__(key)
         del self.__dict__[key]
 
     def __repr__(self):
         return '{%s}' % str(
-            ', '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.items())
+            ', '.join('{} : {}'.format(k, repr(v)) for (k, v) in self.__dict__.items())
         )
 
 
@@ -132,7 +132,7 @@ def inverse_one_to_one(d):
     assert len(value_list) == len(
         set(value_list)
     ), 'You cannot use values_to_keys_dict() if there are duplicate values'
-    return dict((v, k) for k, v in d.items())
+    return {v: k for k, v in d.items()}
 
 
 def inverse_one_to_many(d):

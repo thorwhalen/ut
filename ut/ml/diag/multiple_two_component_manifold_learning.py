@@ -96,7 +96,7 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
     print('Computing random projection')
     rp = random_projection.SparseRandomProjection(n_components=2, random_state=42)
     X_projected = rp.fit_transform(X)
-    plot_embedding(X_projected, 'Random Projection of the {}'.format(data_name))
+    plot_embedding(X_projected, f'Random Projection of the {data_name}')
 
     # ----------------------------------------------------------------------
     # Projection on to the first 2 principal components
@@ -134,7 +134,7 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
     print('Done.')
     plot_embedding(
         X_iso,
-        'Isomap projection of the {} (time {:.2f})'.format(data_name, time() - t0),
+        f'Isomap projection of the {data_name} (time {time() - t0:.2f})',
     )
 
     # ----------------------------------------------------------------------
@@ -145,7 +145,7 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
     )
     t0 = time()
     X_lle = clf.fit_transform(X)
-    print(('Done. Reconstruction error: %g' % clf.reconstruction_error_))
+    print('Done. Reconstruction error: %g' % clf.reconstruction_error_)
     plot_embedding(
         X_lle,
         'Locally Linear Embedding of the {} (time {:.2f})'.format(
@@ -161,7 +161,7 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
     )
     t0 = time()
     X_mlle = clf.fit_transform(X)
-    print(('Done. Reconstruction error: %g' % clf.reconstruction_error_))
+    print('Done. Reconstruction error: %g' % clf.reconstruction_error_)
     plot_embedding(
         X_mlle,
         'Modified Locally Linear Embedding of the {} (time {:.2f})'.format(
@@ -175,7 +175,7 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
     clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=2, method='hessian')
     t0 = time()
     X_hlle = clf.fit_transform(X)
-    print(('Done. Reconstruction error: %g' % clf.reconstruction_error_))
+    print('Done. Reconstruction error: %g' % clf.reconstruction_error_)
     plot_embedding(
         X_hlle,
         'Hessian Locally Linear Embedding of the {} (time {:.2f})'.format(
@@ -189,7 +189,7 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
     clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=2, method='ltsa')
     t0 = time()
     X_ltsa = clf.fit_transform(X)
-    print(('Done. Reconstruction error: %g' % clf.reconstruction_error_))
+    print('Done. Reconstruction error: %g' % clf.reconstruction_error_)
     plot_embedding(
         X_ltsa,
         'Local Tangent Space Alignment of the {} (time {:.2f})'.format(
@@ -203,9 +203,9 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
     clf = manifold.MDS(n_components=2, n_init=1, max_iter=100)
     t0 = time()
     X_mds = clf.fit_transform(X)
-    print(('Done. Stress: %f' % clf.stress_))
+    print('Done. Stress: %f' % clf.stress_)
     plot_embedding(
-        X_mds, 'MDS embedding of the {} (time {:.2f})'.format(data_name, time() - t0)
+        X_mds, f'MDS embedding of the {data_name} (time {time() - t0:.2f})'
     )
 
     # ----------------------------------------------------------------------
@@ -237,7 +237,7 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
 
     plot_embedding(
         X_se,
-        'Spectral embedding of the {} (time {:.2f})'.format(data_name, time() - t0),
+        f'Spectral embedding of the {data_name} (time {time() - t0:.2f})',
     )
 
     # ----------------------------------------------------------------------
@@ -248,7 +248,7 @@ def analyze(X=None, y=None, plot_fun=scatter_plot, data_name='data'):
     X_tsne = tsne.fit_transform(X)
 
     plot_embedding(
-        X_tsne, 't-SNE embedding of the {} (time {:.2f})'.format(data_name, time() - t0)
+        X_tsne, f't-SNE embedding of the {data_name} (time {time() - t0:.2f})'
     )
 
     plt.show()

@@ -13,7 +13,7 @@ class DDBToBeSlurped(Dynamo):
         """
         ! Use test_mode factory method for instantiating this class with test_slurps and test_failed_slurps tables
         """
-        super(DDBToBeSlurped, self).__init__(access_key, secret)
+        super().__init__(access_key, secret)
 
         self.table = Table('to_be_slurped', connection=self.connection)
 

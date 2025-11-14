@@ -260,7 +260,7 @@ def decompose_data(X, decompose, n_components=None, y=None, decompose_params={})
             n_components=n_components, whiten=True, **decompose_params
         )
     except TypeError:
-        print(('No whiten option in {}'.format(decompose)))
+        print(f'No whiten option in {decompose}')
         decomposer = decompose(n_components=n_components, **decompose_params)
     try:
         if y is None:
@@ -289,7 +289,7 @@ def plot_score(clf_results, score_to_plot, parameter='nfeats', **kwargs):
     ax = t.plot(**kwargs)
     plt.xlabel(parameter)
     plt.ylabel(score_to_plot)
-    plt.title('{} vs {}'.format(score_to_plot, parameter))
+    plt.title(f'{score_to_plot} vs {parameter}')
     return ax
 
 

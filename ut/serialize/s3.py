@@ -12,7 +12,7 @@ from ut.util.importing import get_environment_variable
 # use case. I need to check all code that uses these methods, as well as the test notebook.
 
 
-class S3(object):
+class S3:
     """
     Interaction with Amazon S3.
     """
@@ -113,7 +113,7 @@ class S3(object):
           number of bytes
         """
         if isinstance(f, str) and os.path.exists(f):
-            f = open(f, 'r')
+            f = open(f)
         bucket = self._get_new_bucket_or_default(bucket_name)
         s3_key = self._get_s3_key_for_dump(key_name, folder, bucket)
         return s3_key.set_contents_from_file(f)
@@ -232,7 +232,7 @@ class S3(object):
             key = bucket.lookup(key_full_name)
             if not key:
                 raise MissingS3KeyError(
-                    '%s not found in %s' % (key_full_name, bucket.name)
+                    '{} not found in {}'.format(key_full_name, bucket.name)
                 )
             return key
         elif isinstance(key_name, Key):
@@ -364,7 +364,7 @@ class S3(object):
         """
         key = bucket.lookup(self._full_key_name(folder, key_name))
         if not key:
-            raise MissingS3KeyError('%s not found in %s' % (key_name, bucket.name))
+            raise MissingS3KeyError('{} not found in {}'.format(key_name, bucket.name))
         return key
 
     def _full_key_name(self, folder, key_name):

@@ -25,7 +25,7 @@ def get_cached_model_or_make_and_cache_it(model_code, model_name=None):
     for directory in stan_models_directory_paths:
         filepath = os.path.join(directory, filename)
         if os.path.exists(filepath):
-            print(('Using cached StanModel found at %s' % filepath))
+            print('Using cached StanModel found at %s' % filepath)
             sm = pickle.load(open(filepath, 'rb'))
             break
     if sm is None:

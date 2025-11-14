@@ -1,4 +1,4 @@
-"""
+r"""
 A module to get extractors from regular expressions more easily.
 
 For example:
@@ -17,7 +17,8 @@ For example:
 [('I', 3), ('do', 2), ('not', 2), ('like', 2), ('green', 1)]
 """
 import re
-from typing import Pattern, Callable
+from collections.abc import Callable
+from re import Pattern
 from operator import itemgetter, attrgetter
 from functools import reduce
 

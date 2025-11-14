@@ -58,7 +58,7 @@ for root_name, alternatives in alternative_rate_metric_names.items():
         rate_metric_mats.update({alt: rate_metric_mats[root_name]})
 
 
-class SingleMetricGauger(object):
+class SingleMetricGauger:
     def __init__(self, actual, probs, prob_thresh=100, metric=None,
                  percentile_thresh=False, **kwargs):
         self.metric_mat = metric_mat
@@ -90,7 +90,7 @@ class SingleMetricGauger(object):
 
     @staticmethod
     def mk_single_metric_gauger_with_mean_pred(actual, **kwargs):
-        return SingleMetricGauger(actual, probs=mean(actual) * ones((shape(actual))), **kwargs)
+        return SingleMetricGauger(actual, probs=mean(actual) * ones(shape(actual)), **kwargs)
 
     @staticmethod
     def mk_profit_gauger(actual, probs, cost_of_trial, revenue_of_success, **kwargs):
@@ -267,7 +267,7 @@ def f1_score(cm):
 def matthews_correlation_coefficient(cm):
     """
     Matthews correlation coefficient (MCC)
-     \frac{ TP \times TN - FP \times FN  {\sqrt{ (TP+FP) ( TP + FN ) ( TN + FP ) ( TN + FN )
+     \frac{ TP \times TN - FP \times FN  {\\sqrt{ (TP+FP) ( TP + FN ) ( TN + FP ) ( TN + FN )
     """
     return (cm[1][1] * cm[0][0] - cm[0][1] * cm[1][0]) \
            / sqrt((cm[1][1] + cm[0][1])(cm[1][1] + cm[1][0])(cm[0][0] + cm[0][1])(cm[0][0] + cm[1][0]))

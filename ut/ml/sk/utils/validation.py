@@ -131,10 +131,10 @@ def compare_model_attributes(
         except AssertionError as e:
             not_close_attribs.append(attr)
     if len(not_close_attribs) > 0:
-        print((msg_prefix + "Fitted attributes whose values weren't close enough:"))
-        print(('  ' + '\n  '.join(not_close_attribs)))
+        print(msg_prefix + "Fitted attributes whose values weren't close enough:")
+        print('  ' + '\n  '.join(not_close_attribs))
     else:
-        print((msg_prefix + 'all fitted attributes were close'))
+        print(msg_prefix + 'all fitted attributes were close')
 
 
 def repeat_rows(X, row_repetition=None):

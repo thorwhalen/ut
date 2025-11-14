@@ -57,7 +57,7 @@ def pickle_dump(obj, filepath=None, protocol=None):
         else:  # still didn't find a name for the variable
             filepath = 'pickle.p'
 
-    print(('Saving object to {}'.format(filepath)))
+    print(f'Saving object to {filepath}')
     try:
         return pickle.dump(obj, open(filepath, 'wb'), protocol=protocol or 0)
     except (ValueError, TypeError):
@@ -211,7 +211,7 @@ def get_info_dict(store, key=None):
     """
     s = store.__repr__()
     t = re.split('\n', s)
-    t = [re.split('\s+', x) for x in t[2:]]
+    t = [re.split(r'\s+', x) for x in t[2:]]
     info_dict = dict()
     for ti in t:
         info_dict[ti[0]] = {'isa': ti[1], 'descr': ti[2][1:-1]}
@@ -219,13 +219,13 @@ def get_info_dict(store, key=None):
     for k, v in info_dict.items():
         descr = v['descr']
         # take out the dc-> part if present (because it can point to something with commas in it)
-        m = re.findall('dc->\[[^\]]+\]', descr)
+        m = re.findall(r'dc->\[[^\]]+\]', descr)
         if m:
             dc_list = m[0][5:-1].split(',')
             info_dict[k]['dc'] = dc_list
-            descr = re.sub('dc->\[[^\]]+\]', '', descr)
+            descr = re.sub(r'dc->\[[^\]]+\]', '', descr)
         # take care of the remaining key->value
-        m = re.findall('(\w+)->([^,]+)', descr)
+        m = re.findall(r'(\w+)->([^,]+)', descr)
         for ti in m:
             info_dict[k][ti[0]] = ti[1]
         del info_dict[k]['descr']
@@ -433,7 +433,7 @@ class MyStore(pd.HDFStore):
         # if key exists, remove it's contents
         if key in list(self.keys()):
             self.remove(key=key)
-        super(MyStore, self).append(key=key, value=value, nan_rep=nan_rep, **kwargs)
+        super().append(key=key, value=value, nan_rep=nan_rep, **kwargs)
 
     def remove_and_put(self, key=None, value=None, **kwargs):
         key = key or self.key
@@ -451,7 +451,7 @@ class MyStore(pd.HDFStore):
         # if key exists, remove it's contents
         if key in self:
             self.remove(key=key)
-        super(MyStore, self).put(key=key, value=value, **kwargs)
+        super().put(key=key, value=value, **kwargs)
 
     def remove_all_but(self, keys_not_to_remove):
         keys_not_to_remove = ascertain_prefix_slash(keys_not_to_remove)
@@ -470,7 +470,7 @@ class MyStore(pd.HDFStore):
             UnicodeWarning('Failed to convert to utf8')
         # replace nans with empty spaces
         value = daf_ch.replace_nans_with_spaces_in_object_columns(value)
-        super(MyStore, self).put(key=key, value=value, **kwargs)
+        super().put(key=key, value=value, **kwargs)
 
     def append(self, key=None, value=None, nan_rep=str_to_rep_by_nan, **kwargs):
         key = key or self.key
@@ -482,7 +482,7 @@ class MyStore(pd.HDFStore):
             UnicodeWarning('Failed to convert to utf8')
         # replace nans with empty spaces
         value = daf_ch.replace_nans_with_spaces_in_object_columns(value)
-        super(MyStore, self).append(key=key, value=value, nan_rep=nan_rep, **kwargs)
+        super().append(key=key, value=value, nan_rep=nan_rep, **kwargs)
 
     def head(self, key=None, nRows=5):
         key = key or self.key
@@ -490,10 +490,10 @@ class MyStore(pd.HDFStore):
 
     def select(self, *args, **kwargs):
         try:
-            return super(MyStore, self).select(*args, **kwargs)
+            return super().select(*args, **kwargs)
         except Exception as e:
             try:
-                return super(MyStore, self).select(key=self.key, *args, **kwargs)
+                return super().select(key=self.key, *args, **kwargs)
             except:
                 raise e
 
@@ -529,11 +529,11 @@ class StoreSelector(pd.HDFStore):
     # "major_axis>=20130101"
     def __init__(self, store, key, selection_col, columns=None):
         try:
-            super(StoreSelector, self).__init__(path=store, mode='r')
+            super().__init__(path=store, mode='r')
         except:
             self.__setattr__('_mode', 'r')
         print(store)
-        super(StoreSelector, self).__init__(path=store, mode='r')
+        super().__init__(path=store, mode='r')
         self.key = key
         self.selection_col = selection_col
         self.columns = columns
@@ -548,7 +548,7 @@ class StoreSelector(pd.HDFStore):
         )
 
 
-class StoreAccessor(object):
+class StoreAccessor:
     def __init__(self, **kwargs):
         self.store = dict()
         self.store_info = dict()

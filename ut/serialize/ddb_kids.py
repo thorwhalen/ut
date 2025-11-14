@@ -15,7 +15,7 @@ class DDBKids(Dynamo):
         return instance
 
     def __init__(self, access_key=None, secret=None):
-        super(DDBKids, self).__init__(access_key, secret)
+        super().__init__(access_key, secret)
         self.table = Table('kids', connection=self.connection)
 
     def set_max_kid(self, account_name, kid):
@@ -47,7 +47,7 @@ class DDBKids(Dynamo):
 
     def modify_throughput(self, requested_read, requested_write, table=None):
         table = table or self.table
-        return super(DDBKids, self).modify_throughput(
+        return super().modify_throughput(
             requested_read, requested_write, table
         )
 

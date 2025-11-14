@@ -19,15 +19,15 @@ current_file_absolute_path = __file__
 containing_folder = os.path.dirname(current_file_absolute_path)
 
 
-print(('\nThe working directory is: {}'.format(os.getcwd())))
-print(('\nThe folder where the code of the script is: {}\n'.format(containing_folder)))
+print(f'\nThe working directory is: {os.getcwd()}')
+print(f'\nThe folder where the code of the script is: {containing_folder}\n')
 
 relative_path = 'hello_relative_world.txt'
 absolute_path_from_relative_path = os.path.join(containing_folder, relative_path)
 
 
-print(('Checking if filepath {} exists...'.format(absolute_path_from_relative_path)))
+print(f'Checking if filepath {absolute_path_from_relative_path} exists...')
 assert os.path.isfile(
     absolute_path_from_relative_path
-), "Couldn't find file: {}".format(absolute_path_from_relative_path)
+), f"Couldn't find file: {absolute_path_from_relative_path}"
 print('Yep, it worked')

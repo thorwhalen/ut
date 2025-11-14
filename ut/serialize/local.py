@@ -22,7 +22,7 @@ ENCODING_UNICODE = 1
 ENCODING_UTF8 = 2
 
 
-class Local(object):
+class Local:
     def __init__(
         self,
         relative_root=None,
@@ -67,7 +67,7 @@ class Local(object):
         """
         loads an object from a local location
         """
-        return pickle.load(open(self.filepath(filename), 'r'))
+        return pickle.load(open(self.filepath(filename)))
 
     def dumps(self, the_str, filename, encoding=None):
         """

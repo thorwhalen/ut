@@ -1,5 +1,4 @@
 __author__ = 'thor'
-# -*- coding: utf-8 -*-
 import requests
 
 currency_map = {

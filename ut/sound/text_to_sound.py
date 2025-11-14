@@ -9,11 +9,11 @@ folder_containing_current_file, _ = os.path.split(__file__)
 data_folder = os.path.join(folder_containing_current_file, 'data')
 
 DFLT_SR = 44100
-DFLT_ALPHABET_STR = '#$%&()*+,-./0123456789:<=>?[\]^_abcdefghijklmnopqrstuvwxyz~'
+DFLT_ALPHABET_STR = r'#$%&()*+,-./0123456789:<=>?[\]^_abcdefghijklmnopqrstuvwxyz~'
 DFLT_ALPHABET_WAV_FILE = os.path.join(data_folder, 'abcdef_etc.wav')
 
 
-class TextToSound(object):
+class TextToSound:
     def __init__(self, char_wf, sr=DFLT_SR):
         self.char_wf = char_wf
         self.sr = sr

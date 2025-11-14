@@ -14,8 +14,7 @@ def recursive_file_walk_iterator(directory, pattern=''):
         full_path = os.path.join(directory, name)
         # print full_path
         if os.path.isdir(full_path):
-            for entry in recursive_file_walk_iterator(full_path, pattern):
-                yield entry
+            yield from recursive_file_walk_iterator(full_path, pattern)
         elif os.path.isfile(full_path):
             # print full_path
             if pattern.search(full_path):

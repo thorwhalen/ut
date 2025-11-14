@@ -1,5 +1,4 @@
 """Frequent itemsets -- paired counts fp-tree"""
-# encoding: utf-8
 
 __author__ = 'thor'
 
@@ -39,7 +38,7 @@ def find_frequent_itemsets(transactions, transaction_values, minimum_support):
 def mk_fptree(transactions, transaction_values, minimum_support, item_counts=None):
     # Load the passed-in transactions and count the support that individual
     if item_counts is None:
-        item_counts = defaultdict(lambda: 0)  # mapping from items to their supports
+        item_counts = defaultdict(int)  # mapping from items to their supports
         # processed_transactions = []
         for transaction in transactions:
             # processed = []
@@ -49,11 +48,11 @@ def mk_fptree(transactions, transaction_values, minimum_support, item_counts=Non
             # processed_transactions.append(processed)
 
     # Remove infrequent items from the item support dictionary.
-    item_counts = dict(
-        (item, support)
+    item_counts = {
+        item: support
         for item, support in item_counts.items()
         if support >= minimum_support
-    )
+    }
 
     # Build our FP-tree. Before any transactions can be added to the tree, they
     # must be stripped of infrequent items and their surviving items must be
@@ -97,15 +96,13 @@ def find_frequent_itemsets_from_fp_tree(fp_tree, minimum_support):
                 cond_tree = conditional_tree_from_paths(
                     tree.prefix_paths(item), minimum_support
                 )
-                for s in find_with_suffix(cond_tree, found_set):
-                    yield s  # pass along the good news to our caller
+                yield from find_with_suffix(cond_tree, found_set)
 
     # Search for frequent itemsets, and yield the results we find.
-    for itemset in find_with_suffix(fptree, []):
-        yield itemset
+    yield from find_with_suffix(fptree, [])
 
 
-class FPTree(object):
+class FPTree:
     """
     An FP tree.
     This object may only store transaction items that are hashable (i.e., all
@@ -286,7 +283,7 @@ def conditional_tree_from_paths(paths, minimum_support):
     return tree
 
 
-class FPNode(object):
+class FPNode:
     """A node in an FP tree."""
 
     def __init__(self, tree, item, count, value):
@@ -437,7 +434,7 @@ class FPNode(object):
     def __repr__(self):
         if self.root:
             return '<%s (root)>' % type(self).__name__
-        return '<%s %r count=%r, value=%r>' % (
+        return '<{} {!r} count={!r}, value={!r}>'.format(
             type(self).__name__,
             self.item,
             self.count,

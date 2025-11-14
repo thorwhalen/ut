@@ -27,10 +27,10 @@ def zip_file(source_file, destination_file=None):
     elif os.path.isdir(destination_file):
         destination_file = os.path.join(destination_file, source_file + '.zip')
     source_file = source_file.replace(
-        '$', '\$'
+        '$', r'\$'
     )  # replacing the unix-escape character $ with \$
     os_system_result = os.system(
-        'zip "' + destination_file.replace('$', '\$') + '" "' + source_file + '"'
+        'zip "' + destination_file.replace('$', r'\$') + '" "' + source_file + '"'
     )
     return destination_file
 
@@ -66,7 +66,7 @@ def tail(f, window=20):
     Returns the last `window` lines of file `f` as a list.
     """
     if isinstance(f, str):
-        f = open(f, 'r')
+        f = open(f)
         file_should_be_closed = True
     else:
         file_should_be_closed = False

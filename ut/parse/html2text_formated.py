@@ -176,8 +176,8 @@ def unescape(s):
 def onlywhite(line):
     """Return true if the line does only consist of whitespace characters."""
     for c in line:
-        if c is not ' ' and c is not '  ':
-            return c is ' '
+        if c != ' ' and c != '  ':
+            return c == ' '
     return line
 
 
@@ -219,12 +219,10 @@ def hn(tag):
 
 def dumb_property_dict(style):
     """returns a hash of css attributes"""
-    return dict(
-        [
-            (x.strip(), y.strip())
+    return {
+            x.strip(): y.strip()
             for x, y in [z.split(':', 1) for z in style.split(';') if ':' in z]
-        ]
-    )
+    }
 
 
 def dumb_css_parser(data):
@@ -237,7 +235,7 @@ def dumb_css_parser(data):
 
     # parse the css. reverted from dictionary compehension in order to support older pythons
     elements = [x.split('{') for x in data.split('}') if '{' in x.strip()]
-    elements = dict([(a.strip(), dumb_property_dict(b)) for a, b in elements])
+    elements = {a.strip(): dumb_property_dict(b) for a, b in elements}
 
     return elements
 
@@ -321,9 +319,9 @@ class _html2text(html.parser.HTMLParser):
             []
         )  # empty list to store output characters before they are  "joined"
         try:
-            self.outtext = str()
+            self.outtext = ''
         except NameError:  # Python3
-            self.outtext = str()
+            self.outtext = ''
         self.quiet = 0
         self.p_p = 0  # number of newline character to print before next output
         self.outcount = 0
@@ -721,7 +719,7 @@ class _html2text(html.parser.HTMLParser):
                     self.drop_white_space = 0
 
             if puredata and not self.pre:
-                data = re.sub('\s+', ' ', data)
+                data = re.sub(r'\s+', ' ', data)
                 if data and data[0] == ' ':
                     self.space = 1
                     data = data[1:]

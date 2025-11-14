@@ -45,7 +45,7 @@ def compute_shapley_values_from_coalition_values_using_formula(
     n = len(players)
     factorial_n = float(factorial(n))
     if verbose:
-        print(('Normalizing factor: {}'.format(factorial_n)))
+        print(f'Normalizing factor: {factorial_n}')
 
     def _shapley_unnormalized_weight(s):
         return factorial(s) * factorial(
@@ -58,7 +58,7 @@ def compute_shapley_values_from_coalition_values_using_formula(
     shapley_values = dict()
     for player in players:
         if verbose:
-            print(('\n-------------------- {} ----------------------'.format(player)))
+            print(f'\n-------------------- {player} ----------------------')
         shapley_values[player] = 0.0
         for s in map(_coalition_of, powerset(players - {player})):
             shapley_values[player] += _shapley_unnormalized_weight(len(s)) * (
@@ -72,7 +72,6 @@ def compute_shapley_values_from_coalition_values_using_formula(
                 ]
                 s_alone = coalition_values[s]
                 print(
-                    (
                         '... contributed {} * ({} - {}) = {} \tto {} \t(running sum is {})'.format(
                             weight,
                             s_with_player,
@@ -81,7 +80,6 @@ def compute_shapley_values_from_coalition_values_using_formula(
                             _coalition_of(list(set(s).union({player}))),
                             shapley_values[player],
                         )
-                    )
                 )
         shapley_values[
             player
@@ -182,7 +180,7 @@ def _complete_missing_coalitions_with_zero_valued_coalitions_in_place(
         coalition_values[subset] = coalition_values.get(subset, 0.0)
 
 
-class ShapleyDataModel(object):
+class ShapleyDataModel:
     def __init__(self, data=None, data_type=None):
         """
         Inputs:
@@ -288,11 +286,9 @@ class ShapleyDataModel(object):
 
             if verbose:
                 print(
-                    (
                         '  after {} contributions:\n     {}'.format(
                             coalition, coalition_contributions
                         )
-                    )
                 )
 
         # # complete coalition_contributions with missing combinations (assigning 0.0 to them)
@@ -355,7 +351,7 @@ def rand_shapley_values(items=3):
     return items
 
 
-class LinearValuedCoalitionGenerator(object):
+class LinearValuedCoalitionGenerator:
     def __init__(self, shapley_values=3, normalize=False):
         shapley_values = shapley_values or 3
         if not isinstance(shapley_values, dict):

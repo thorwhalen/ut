@@ -10,7 +10,7 @@ from adwords.mutations import Mutations
 from adwords.operations import Operations
 
 
-class KeywordOperationsBase(object):
+class KeywordOperationsBase:
     def __init__(
         self,
         account_id='7998744469',

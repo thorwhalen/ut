@@ -190,7 +190,7 @@ def export_model_params_to_json(
         if filepath == '':
             return dumps(model_params, indent=indent, cls=NumpyAwareJSONEncoder)
         else:
-            print(('Saving the centroid_model_params to {}'.format(filepath)))
+            print(f'Saving the centroid_model_params to {filepath}')
             dump(
                 model_params,
                 open(filepath, 'w'),

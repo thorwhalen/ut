@@ -4,7 +4,7 @@ import ut.dacc.spark.util as sutil
 import ut.dacc.spark.to as sto
 
 
-class RDD(object):
+class RDD:
     def __init__(self, rdd):
         self.rdd = rdd
 

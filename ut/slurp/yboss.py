@@ -59,7 +59,7 @@ major_cols = [
 minor_cols = ['date', 'url', 'clickurl']
 
 
-class Yboss(object):
+class Yboss:
 
     default_yboss_attrs = {
         'oauth_consumer_key': get_environment_variable('MON_YB_KEY'),
@@ -183,7 +183,7 @@ class Yboss(object):
 
     def load_json_dict(self, filepath):
         filepath = self.get_filepath(filepath)
-        return json.loads(json.load(open(filepath, 'r')))
+        return json.loads(json.load(open(filepath)))
 
     def get_service_results_getter(self, service):
         service = service or self.default_save_folder
@@ -221,7 +221,7 @@ class Yboss(object):
         service = service or self.default_service
         params = params or self.default_params
         params = Yboss.mk_req_params(service, params)
-        return '%s?q=%s%s' % (
+        return '{}?q={}{}'.format(
             service,
             self.url_encode_str(query),
             self.url_encode_params(params),
@@ -274,9 +274,9 @@ class Yboss(object):
         u = ''
         for p, v in params.items():
             if isinstance(v, str):
-                u += '&%s=%s' % (p, v)
+                u += '&{}={}'.format(p, v)
             else:
-                u += '&%s=%s' % (p, str(v))
+                u += '&{}={}'.format(p, str(v))
         return u
 
     @classmethod

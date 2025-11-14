@@ -267,7 +267,7 @@ def _choose_class_weights(X, y, n_clusters=8, method='volume', clusterer=KMeans(
             weights[i] = clusterer.inertia_
 
     else:
-        ValueError('Unknown method {}'.format(method))
+        ValueError(f'Unknown method {method}')
 
     weights = np.array(weights)
     # total_weight = np.sum(weights)
@@ -298,7 +298,7 @@ def _choose_distribution_according_to_weights(weights, total_int_to_distribute):
     return distribution
 
 
-class WeightedRandomGenerator(object):
+class WeightedRandomGenerator:
     def __init__(self, weights):
         self.totals = np.cumsum(weights)
 

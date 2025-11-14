@@ -37,6 +37,6 @@ def add_correlation_line(line2d=None, xy_line=True, include_corr=True):
 
         if include_corr:
             corr = np.corrcoef(x, y)[0, 1]
-            plt.text(min_val * 1.01, max_val * 0.99, 'corr={:.4f}'.format(corr))
+            plt.text(min_val * 1.01, max_val * 0.99, f'corr={corr:.4f}')
 
     plt.plot(x, m * x + b, 'k-')

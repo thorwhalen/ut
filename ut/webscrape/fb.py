@@ -14,7 +14,7 @@ class FB(Facebook):
 
     def __init__(self, **kwargs):
         kwargs = dict(FB.default, **kwargs)
-        super(FB, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # self.key = kwargs['key']
         # # self.fb = pweb_fb
 
@@ -22,5 +22,5 @@ class FB(Facebook):
     def disp_result_html(res):
         s = ''
         for k in list(res.keys()):
-            s += '<b>%s</b>: %s<br>' % (k, res.get(k))
+            s += '<b>{}</b>: {}<br>'.format(k, res.get(k))
         disp_html(s)

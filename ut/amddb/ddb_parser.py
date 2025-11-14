@@ -6,7 +6,7 @@ from khan_utils.encoding import to_unicode_or_bust, to_utf8_or_bust
 
 
 # TODO ! put in rate-limiting code here for writes (if boto not handling this correctly). Also, handle reads > 1 Meg here
-class DDBParser(object):
+class DDBParser:
     def __init__(
         self,
         access_key=None,

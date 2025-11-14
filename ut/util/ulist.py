@@ -21,7 +21,7 @@ class KeepMaxK(list):
             heappush(self, item)
 
 
-class KeepMaxUnikK(object):
+class KeepMaxUnikK:
     def __init__(self, k):
         self.min_val_items = KeepMaxK(k)
         self.item_set = set()

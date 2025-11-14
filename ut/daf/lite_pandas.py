@@ -2,7 +2,7 @@ from collections import defaultdict
 import numpy as np
 
 
-class MatrixDataFrame(object):
+class MatrixDataFrame:
     def __init__(self, data=None, index=None, columns=None):
         if data is None:
             data = {}
@@ -43,15 +43,15 @@ class MatrixDataFrame(object):
 
     def __str__(self):
         s = ''
-        s += '{}\n'.format(self.columns)
-        s += '{}'.format(self._d)
+        s += f'{self.columns}\n'
+        s += f'{self._d}'
         return s
 
     def __repr__(self):
         return self.__str__()
 
 
-class RecDataFrame(object):
+class RecDataFrame:
     def __init__(self, data=None, index=None, columns=None):
         if isinstance(data, np.recarray):
             self._d = data
@@ -80,6 +80,6 @@ class RecDataFrame(object):
         return self._d.__repr__()
 
 
-class DictDataFrame(object):
+class DictDataFrame:
     def __init__(self, data=None, index=None, columns=None):
         pass

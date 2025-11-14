@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from ut.stats.util import df_picker_data_prep
 
 
-class BinaryClassifierBase2D(object):
+class BinaryClassifierBase2D:
     """
     Base class for binary classification with 2D explanatory variable space.
     It follows the pattern of sklearn classifiers, with a fit, predict_proba, and predict methods.
@@ -30,7 +30,7 @@ class BinaryClassifierBase2D(object):
 
     # the three following methods (fit, predict_proba, and predict) are methods that are found in many sklearn models
     def fit(self, x, y):
-        assert set(y[:, 0]) == set([0, 1]), "y data (target data) needs to have only 0s and 1s"
+        assert set(y[:, 0]) == {0, 1}, "y data (target data) needs to have only 0s and 1s"
         self.mean_y = nanmean(y)
         self.x_range = [(nanmin(x[:, 0]), nanmax(x[:, 0])), (nanmin(x[:, 1]), nanmax(x[:, 1]))]
 

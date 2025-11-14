@@ -46,7 +46,7 @@ LARGE_SET = 1
 SMALL_SET = 2
 
 
-class GoogleSets(object):
+class GoogleSets:
     URL_LARGE = (
         'http://labs.google.com/sets?hl=en&q1=%s&q2=%s&q3=%s&q4=%s&q5=%s&btn=Large+Set'
     )
@@ -85,7 +85,7 @@ class GoogleSets(object):
         try:
             page = self.browser.get_page(safe_url)
         except BrowserError as e:
-            raise GSError('Failed getting %s: %s' % (e.url, e.error))
+            raise GSError('Failed getting {}: {}'.format(e.url, e.error))
 
         return BeautifulSoup(page)
 

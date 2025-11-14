@@ -75,7 +75,7 @@ def rounded_numeric_string(amount, num_dec_places=2):
     return str(rounded)
 
 
-class DiscreteCoordLinearizer(object):
+class DiscreteCoordLinearizer:
     def __init__(self, dims, order='C'):
         self.dims = dims
         self.order = order

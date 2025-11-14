@@ -67,7 +67,7 @@ def download(
         except TypeError:
             print('WARNING: Cannot get file size, displaying bytes instead!')
             file_size = 100
-        print(('Downloading: %s Bytes: %s' % (server_fname, file_size)))
+        print('Downloading: {} Bytes: {}'.format(server_fname, file_size))
         file_size_dl = 0
         block_sz = int(1e7)
         p = 0
@@ -318,7 +318,7 @@ def nsgcwin(fmin, fmax, n_bins, fs, signal_len, gamma):
         cqtbw = cqtbw[minidx[-1] + 1 :]
 
     fbas_len = len(fbas)
-    fbas_new = np.zeros((2 * (len(fbas) + 1)))
+    fbas_new = np.zeros(2 * (len(fbas) + 1))
     fbas_new[1 : len(fbas) + 1] = fbas
     fbas = fbas_new
     fbas[fbas_len + 1] = nyq
@@ -416,7 +416,7 @@ def nsgtf_real(X, multiscale, shift, window_lens):
 
     fill = np.sum(shift) - signal_len
     if fill > 0:
-        X_fft_tmp = np.zeros((signal_len + shift))
+        X_fft_tmp = np.zeros(signal_len + shift)
         X_fft_tmp[: len(X_fft)] = X_fft
         X_fft = X_fft_tmp
     posit = np.cumsum(shift) - shift[0]
@@ -642,7 +642,7 @@ def icqt(X_cq, c_dc, c_nyq, multiscale, shift, window_lens):
 
 
 def rolling_mean(X, window_size):
-    w = 1.0 / window_size * np.ones((window_size))
+    w = 1.0 / window_size * np.ones(window_size)
     return np.correlate(X, w, 'valid')
 
 
@@ -819,7 +819,7 @@ def lpc_analysis(
 
     lp_coefficients = np.zeros((n_windows, order + 1))
     per_frame_gain = np.zeros((n_windows, 1))
-    residual_excitation = np.zeros(int(((n_windows - 1) * window_step + window_size)))
+    residual_excitation = np.zeros(int((n_windows - 1) * window_step + window_size))
     # Pre-emphasis high-pass filter
     X = sg.lfilter([1, -emphasis], 1, X)
     # stride_tricks.as_strided?
@@ -1015,7 +1015,7 @@ def lpc_synthesis(
         if voiced_frames is None:
             # No voiced/unvoiced info
             voiced_frames = np.ones((lp_coefficients.shape[0], 1))
-        residual_excitation = np.zeros((n_excitation_points))
+        residual_excitation = np.zeros(n_excitation_points)
         f, m = lpc_to_frequency(lp_coefficients, per_frame_gain)
         t = np.linspace(0, 1, window_size, endpoint=False)
         hanning = sg.hanning(window_size)
@@ -1037,7 +1037,7 @@ def lpc_synthesis(
     if voiced_frames is None:
         voiced_frames = np.ones_like(per_frame_gain)
 
-    synthesized = np.zeros((n_points))
+    synthesized = np.zeros(n_points)
     for window in range(n_windows):
         window_base = window * window_step
         oldbit = synthesized[window_base + np.arange(window_step)]
@@ -1050,7 +1050,7 @@ def lpc_synthesis(
         g_coefs = voiced_frames[window] * per_frame_gain[window]
         index = window_base + np.arange(window_size)
         newbit = g_coefs * sg.lfilter([1], w_coefs, residual_excitation[index])
-        synthesized[index] = np.hstack((oldbit, np.zeros((window_size - window_step))))
+        synthesized[index] = np.hstack((oldbit, np.zeros(window_size - window_step)))
         synthesized[index] += sg.hanning(window_size) * newbit
     synthesized = sg.lfilter([1], [1, -emphasis], synthesized)
     return synthesized
@@ -1312,7 +1312,7 @@ def dct_compress(X, n_components, window_size=128):
     http://nbviewer.ipython.org/github/craffel/crucialpython/blob/master/week3/stride_tricks.ipynb
     """
     if len(X) % window_size != 0:
-        append = np.zeros((window_size - len(X) % window_size))
+        append = np.zeros(window_size - len(X) % window_size)
         X = np.hstack((X, append))
     num_frames = len(X) // window_size
     X_strided = X.reshape((num_frames, window_size))
@@ -1419,7 +1419,7 @@ def overlap(X, window_size, window_step):
     if window_size % 2 != 0:
         raise ValueError('Window size must be even!')
     # Make sure there are an even number of windows before stridetricks
-    append = np.zeros((window_size - len(X) % window_size))
+    append = np.zeros(window_size - len(X) % window_size)
     X = np.hstack((X, append))
     overlap_sz = window_size - window_step
     new_shape = X.shape[:-1] + ((X.shape[-1] - overlap_sz) // window_step, window_size)
@@ -1449,7 +1449,7 @@ def halfoverlap(X, window_size):
         raise ValueError('Window size must be even!')
     window_step = window_size // 2
     # Make sure there are an even number of windows before stridetricks
-    append = np.zeros((window_size - len(X) % window_size))
+    append = np.zeros(window_size - len(X) % window_size)
     X = np.hstack((X, append))
     num_frames = len(X) // window_step - 1
     row_stride = X.itemsize * window_step
@@ -1511,7 +1511,7 @@ def overlap_add(X_strided, window_step, wsola=False):
     X = np.zeros(((n_rows + 2) * window_size,)).astype(X_strided.dtype)
     start_index = 0
 
-    total_windowing_sum = np.zeros((X.shape[0]))
+    total_windowing_sum = np.zeros(X.shape[0])
     win = 0.54 - 0.46 * np.cos(2 * np.pi * np.arange(window_size) / (window_size - 1))
     for i in range(n_rows):
         end_index = start_index + window_size
@@ -1749,10 +1749,8 @@ def hebbian_kmeans(
             if e == 0 or e > (0.05 * n_epochs + last_print):
                 last_print = e
                 print(
-                    (
                         'Epoch %i of %i, cost %.4f'
                         % (e + 1, n_epochs, D.min(axis=0).sum())
-                    )
                 )
     return W
 
@@ -1921,10 +1919,10 @@ def invert_spectrogram(X_s, step, calculate_offset=True, set_zero_phase=True):
     Language Processing, 08/2007.
     """
     size = int(X_s.shape[1] // 2)
-    wave = np.zeros((X_s.shape[0] * step + size))
+    wave = np.zeros(X_s.shape[0] * step + size)
     # Getting overflow warnings with 32 bit...
     wave = wave.astype('float64')
-    total_windowing_sum = np.zeros((X_s.shape[0] * step + size))
+    total_windowing_sum = np.zeros(X_s.shape[0] * step + size)
     win = 0.54 - 0.46 * np.cos(2 * np.pi * np.arange(size) / (size - 1))
 
     est_start = int(size // 2) - 1
@@ -1944,7 +1942,7 @@ def invert_spectrogram(X_s, step, calculate_offset=True, set_zero_phase=True):
             offset_size = size - step
             if offset_size <= 0:
                 print(
-                    'WARNING: Large step size >50\% detected! '
+                    r'WARNING: Large step size >50\% detected! '
                     'This code works best with high overlap - try '
                     'with 75% or greater'
                 )
@@ -1991,7 +1989,7 @@ def iterate_invert_spectrogram(
     try:
         for i in range(n_iter):
             if verbose:
-                print(('Runnning iter %i' % i))
+                print('Runnning iter %i' % i)
             if i == 0 and not complex_input:
                 X_t = invert_spectrogram(
                     X_best, step, calculate_offset=True, set_zero_phase=True
@@ -2292,7 +2290,7 @@ def harvest_get_refined_f0(x, fs, current_time, current_f0, f0_floor, f0_ceil):
     half_window_length = np.ceil(3.0 * fs / current_f0 / 2.0)
     window_length_in_time = (2.0 * half_window_length + 1) / float(fs)
     base_time = np.arange(-half_window_length, half_window_length + 1) / float(fs)
-    fft_size = int(2 ** np.ceil(np.log2((half_window_length * 2 + 1)) + 1))
+    fft_size = int(2 ** np.ceil(np.log2(half_window_length * 2 + 1) + 1))
     frequency_axis = np.arange(fft_size) / fft_size * float(fs)
 
     base_index = np.round((current_time + base_time) * fs + 0.001)
@@ -2301,7 +2299,7 @@ def harvest_get_refined_f0(x, fs, current_time, current_f0, f0_floor, f0_ceil):
     part1 = np.cos(2 * np.pi * window_time / window_length_in_time)
     part2 = np.cos(4 * np.pi * window_time / window_length_in_time)
     main_window = 0.42 + 0.5 * part1 + 0.08 * part2
-    ext = np.zeros((len(main_window) + 2))
+    ext = np.zeros(len(main_window) + 2)
     ext[1:-1] = main_window
     diff_window = -((ext[1:-1] - ext[:-2]) + (ext[2:] - ext[1:-1])) / float(2)
     safe_index = np.maximum(1, np.minimum(len(x), base_index)).astype('int32') - 1
@@ -2574,7 +2572,7 @@ def harvest_fix_step_4(f0_step3, threshold):
             continue
         boundary0 = f0_step3[boundary_list[(2 * i) - 1]] + 1
         boundary1 = f0_step3[boundary_list[(2 * i)]] - 1
-        coefficient = (boundary1 - boundary0) / float((distance + 1))
+        coefficient = (boundary1 - boundary0) / float(distance + 1)
         count = 1
         st = boundary_list[(2 * i) - 1] + 1
         ed = boundary_list[(2 * i)]
@@ -3781,11 +3779,11 @@ def _sp2mgc(
             """
             err = np.abs((eta_t - eta) / eta)
             if verbose:
-                print(('iter %i, criterion: %f' % (i, err)))
+                print('iter %i, criterion: %f' % (i, err))
             if i >= miniter:
                 if err < criteria:
                     if verbose:
-                        print(('optimization complete at iter %i' % i))
+                        print('optimization complete at iter %i' % i)
                     break
             eta_t = eta
     mgc_arr = _mgc_mgcepnorm(b_gamma, alpha, gamma, otype)
@@ -3864,7 +3862,7 @@ def sp2mgc(
         p = Pool()
         start = time.time()
         if verbose:
-            print(('Starting conversion of %i frames' % sp.shape[0]))
+            print('Starting conversion of %i frames' % sp.shape[0])
             print('This may take some time...')
 
         # takes ~360s for 630 frames, 1 process
@@ -3894,7 +3892,7 @@ def sp2mgc(
             if verbose:
                 if remaining != last_remaining:
                     last_remaining = remaining
-                    print(('%i chunks of %i complete' % (sz - remaining, sz)))
+                    print('%i chunks of %i complete' % (sz - remaining, sz))
             if itr.ready():
                 break
             time.sleep(0.5)
@@ -3916,7 +3914,7 @@ def sp2mgc(
         p.join()
         stop = time.time()
         if verbose:
-            print(('Processed %i frames in %s seconds' % (sp.shape[0], stop - start)))
+            print('Processed %i frames in %s seconds' % (sp.shape[0], stop - start))
         # map_async result comes in chunks
         flat = [a_i for a in _sp_convert_results for a_i in a]
         final = [o[1] for o in sorted(flat, key=lambda x: x[0])]
@@ -4048,7 +4046,7 @@ def mgc2sp(
         f0_low_limit = 71
         fftlen = int(2 ** np.ceil(np.log2(3.0 * float(fs) / f0_low_limit + 1)))
         if verbose:
-            print(('setting fftlen to %i' % fftlen))
+            print('setting fftlen to %i' % fftlen)
 
     if len(mgc_arr.shape) == 1:
         c = _mgc_mgc2mgc(mgc_arr, alpha, gamma, fftlen // 2, 0.0, 0.0)
@@ -4063,7 +4061,7 @@ def mgc2sp(
         p = Pool()
         start = time.time()
         if verbose:
-            print(('Starting conversion of %i frames' % mgc_arr.shape[0]))
+            print('Starting conversion of %i frames' % mgc_arr.shape[0])
             print('This may take some time...')
         # itr = p.map(functools.partial(_mgc_convert, alpha=alpha, gamma=gamma, fftlen=fftlen), c)
         # raise ValueError()
@@ -4085,7 +4083,7 @@ def mgc2sp(
             if verbose:
                 if last_remaining != remaining:
                     last_remaining = remaining
-                    print(('%i chunks of %i complete' % (sz - remaining, sz)))
+                    print('%i chunks of %i complete' % (sz - remaining, sz))
             if itr.ready():
                 break
             time.sleep(0.5)
@@ -4094,7 +4092,7 @@ def mgc2sp(
         stop = time.time()
         if verbose:
             print(
-                ('Processed %i frames in %s seconds' % (mgc_arr.shape[0], stop - start))
+                'Processed %i frames in %s seconds' % (mgc_arr.shape[0], stop - start)
             )
         # map_async result comes in chunks
         flat = [a_i for a in _mgc_convert_results for a_i in a]
@@ -4110,7 +4108,7 @@ def mgc2sp(
 def implot(arr, scale=None, title='', cmap='gray'):
     import matplotlib.pyplot as plt
 
-    if scale is 'specgram':
+    if scale == 'specgram':
         # plotting part
         mag = 20.0 * np.log10(np.abs(arr))
         # Transpose so time is X axis, and invert y axis so

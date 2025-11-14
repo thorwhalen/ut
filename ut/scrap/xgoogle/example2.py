@@ -16,7 +16,7 @@ def mk_nice_domain(domain):
     """
     convert domain into a nicer one (eg. www3.google.com into google.com)
     """
-    domain = re.sub('^www(\d+)?\.', '', domain)
+    domain = re.sub(r'^www(\d+)?\.', '', domain)
     # add more here
     return domain
 

@@ -82,7 +82,7 @@ class BiDistanceDataBasedLabeling(DataBasedLabeling):
                 )
             else:
                 raise ValueError(
-                    'Unknow label_distance: {}'.format(self.label_distance)
+                    f'Unknow label_distance: {self.label_distance}'
                 )
         if isinstance(self.feature_distance, str):
             feature_distance = lambda pt_mat_1, pt_mat_2: cdist(

@@ -10,7 +10,7 @@ def compose(f, g):
 
 
 def filter_kwargs_to_func_arguments(func, kwargs):
-    return dict([(k, v) for k, v in kwargs.items() if k in func.__code__.co_varnames])
+    return {k: v for k, v in kwargs.items() if k in func.__code__.co_varnames}
 
 
 def multi_compose(x):

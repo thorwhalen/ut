@@ -160,14 +160,14 @@ def recursive_update(d, u, inplace=True):
     if inplace:
         if u:
             for k, v in list(u.items()):
-                if isinstance(v, collections.Mapping):
+                if isinstance(v, collections.abc.Mapping):
                     recursive_update(d.get(k, {}), v, inplace=True)
                 else:
                     d[k] = u[k]
     else:
         if u:
             for k, v in list(u.items()):
-                if isinstance(v, collections.Mapping):
+                if isinstance(v, collections.abc.Mapping):
                     r = recursive_update(d.get(k, {}), v, inplace=False)
                     d[k] = r
                 else:

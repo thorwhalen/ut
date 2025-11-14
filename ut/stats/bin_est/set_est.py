@@ -21,7 +21,7 @@ default[
 ] = 'set'  # name of column that contains the sets (which will index the data)
 
 
-class SetEst(object):
+class SetEst:
     def __init__(self, d, **kwargs):
         # process inputs
         kwargs = dict(default, **kwargs)
@@ -49,7 +49,7 @@ class SetEst(object):
         self.hash_to_value = dict()
 
     def bitmap_to_hash(self, bitmap):
-        return array((bitmap * self.hash_base_matrix))
+        return array(bitmap * self.hash_base_matrix)
 
     # def mk_hash_to_value(self, val_col=None):
     #     val_col = val_col or self.success
@@ -187,7 +187,7 @@ class SetEst(object):
 
 class Shapley(SetEst):
     def __init__(self, d, **kwargs):
-        super(Shapley, self).__init__(d, **kwargs)
+        super().__init__(d, **kwargs)
         self.val_col = kwargs.get('val_col', self.success)
         self.subset_val_map = None
         self.compute_subset_val_map()
@@ -265,7 +265,7 @@ class Shapley(SetEst):
 
 class WithOrWithout(SetEst):
     def __init__(self, d, **kwargs):
-        super(WithOrWithout, self).__init__(d, **kwargs)
+        super().__init__(d, **kwargs)
 
     def with_and_without_stats_for_element(self, element, extra_group_vars=[]):
         grvars = extra_group_vars + [element]

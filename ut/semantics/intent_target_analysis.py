@@ -5,7 +5,7 @@ import numpy as np
 import semantics.term_stats as ts
 
 
-class IntentTargetAnalysis(object):
+class IntentTargetAnalysis:
     def __init__(
         self,
         get_intent_termstats=None,

@@ -15,7 +15,7 @@ import imp
 def extract_package_list_from_filepath(filepath):
     s = file_to_str(filepath)
     ss = s.split('\n')
-    import_capture_p = re.compile('(import|from)\s([^\.\s\n]+)')
+    import_capture_p = re.compile('(import|from)\\s([^\\.\\s\n]+)')
     return [x.group(2) for x in [_f for _f in map(import_capture_p.match, ss) if _f]]
 
 
@@ -35,15 +35,15 @@ PIPFREEZE_ALL = [PIPFREEZE_AIR, PIPFREEZE_PRO]
 
 def put_pip_freeze_output_into_file(output_file_path, environment=None):
     if environment:
-        os.system('workon '.format(environment))
-    s = os.system('pip freeze > {}'.format(output_file_path))
+        os.system(f'workon ')
+    s = os.system(f'pip freeze > {output_file_path}')
     print(s)
 
 
 def import_subdirs_of(dir):
     subdirs = [x for x in get_immediate_subdirectories(dir) if x[0] != '.']
     for s in subdirs:
-        print('importing to sys path: {}'.format(s))
+        print(f'importing to sys path: {s}')
         sys.path.append(s)
 
 
@@ -62,12 +62,12 @@ def recursively_reload_all_submodules(module, loaded=None):
 
 
 def mk_list_file_name(computer_name, environment=None):
-    return 'pipfreeze_{}_{}.txt'.format(computer_name, environment)
+    return f'pipfreeze_{computer_name}_{environment}.txt'
 
 
 def mk_pip_freeze_list_file(computer_name, environment=None):
     if environment:
-        os.system('workon '.format(environment))
+        os.system(f'workon ')
     s = os.system(
         'pip freeze > {}'.format(
             PIPFREEZE_LIST_FOLDER
@@ -86,7 +86,7 @@ def pipfreeze_list(filepath, unversioned=True):
             )
     else:
         filepath = get_filepath_of_pipinstall_list(filepath)
-        with open(filepath, 'r') as myfile:
+        with open(filepath) as myfile:
             package_list = [x.replace('\n', '') for x in myfile.readlines()]
     if unversioned == True:
         package_list = [re.match('[^=]*', x).group() for x in package_list]
@@ -139,11 +139,11 @@ def missing_pip_installs(compare_set, unversioned=True):
 
 def pip_install_list(package_names, environment='sem'):
     if environment:
-        os.system('workon '.format(environment))
+        os.system(f'workon ')
     for pak in package_names:
         # TODO: Not sure this actually installs it in the appropriate environment...
-        print('------- pip install {}'.format(pak))
-        s = subprocess.check_output('pip install {}'.format(pak).split(' '))
+        print(f'------- pip install {pak}')
+        s = subprocess.check_output(f'pip install {pak}'.split(' '))
         print(s)
 
 

@@ -54,7 +54,7 @@ class KeywordOperationsMS(KeywordOperationsBase):
             self.store.put('jobs/_' + job_id.replace('-', 'N'), df)
             self.logger.log(
                 level=logging.DEBUG,
-                ko='Pushed new job to google, id = {}'.format(job_id),
+                ko=f'Pushed new job to google, id = {job_id}',
             )
 
         return self.job_ids

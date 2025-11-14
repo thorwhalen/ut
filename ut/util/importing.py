@@ -19,7 +19,7 @@ def get_environment_variable(var, ignore=True):
                     )
                 )
             )
-            return "You don't have the environment variable {}".format(var)
+            return f"You don't have the environment variable {var}"
         else:
             raise RuntimeError
 

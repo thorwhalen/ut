@@ -12,7 +12,7 @@ def get_step_func_name_obj_and_call_method(step):
         return step[0], step[1], step[2:]
 
 
-class ComputationPipeline(object):
+class ComputationPipeline:
     def __init__(self, steps):
         """
         Constructs a callable object that composes the steps listed in the input.

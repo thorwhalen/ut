@@ -29,15 +29,12 @@ from six import string_types
 
 import sys
 
-if sys.version_info >= (3, 5):
-    try:
-        from sklearn.cluster import _k_means_fast as _k_means
-    except ImportError as e:
-        # TODO: Just putting this to make things go through. Should update with more
-        # careful alternative.
-        from sklearn.cluster import k_means as _kmeans
-else:
-    from sklearn.cluster import _k_means
+try:
+    from sklearn.cluster import _k_means_fast as _k_means
+except ImportError as e:
+    # TODO: Just putting this to make things go through. Should update with more
+    # careful alternative.
+    from sklearn.cluster import k_means as _kmeans
 
 
 ###############################################################################
@@ -313,11 +310,11 @@ def _init_centroids_with_weights(
     elif n_samples < k:
         raise ValueError('n_samples=%d should be larger than k=%d' % (n_samples, k))
 
-    if isinstance(init, string_types) and init == 'kmeans++_with_weights':
+    if isinstance(init, str) and init == 'kmeans++_with_weights':
         centers = _k_init_with_weights(
             X, weights, k, random_state=random_state, x_squared_norms=x_squared_norms
         )
-    elif isinstance(init, string_types) and init == 'random':
+    elif isinstance(init, str) and init == 'random':
         seeds = np.random.permutation(n_samples)[:k]
         centers = X[seeds]
     elif hasattr(init, '__array__'):
@@ -473,7 +470,7 @@ def _kmeans_single_with_weights(
         inertia = np.sum(weights * row_norms_diff)
 
         if verbose:
-            print(('Iteration %2d, inertia %.3f' % (i, inertia)))
+            print('Iteration %2d, inertia %.3f' % (i, inertia))
 
         if best_inertia is None or inertia < best_inertia:
             best_labels = labels.copy()
@@ -483,7 +480,7 @@ def _kmeans_single_with_weights(
         shift = squared_norm(centers_old - centers)
         if shift <= tol:
             if verbose:
-                print(('Converged at iteration %d' % i))
+                print('Converged at iteration %d' % i)
 
             break
 
@@ -810,7 +807,7 @@ def k_means_with_weights(
         return best_centers, best_labels, best_inertia
 
 
-class KMeansWeighted(object):
+class KMeansWeighted:
     """K-Means clustering with weights
     Read more in the :ref:`User Guide <k_means>`.
     Parameters
@@ -932,9 +929,9 @@ class KMeansWeighted(object):
         """
         random_state = np.random  # random_state is always np.random
         if debug:
-            print((type(X)))
+            print(type(X))
             print(X)
-            print((X.shape))
+            print(X.shape)
         X = self._check_fit_data(X)
 
         (

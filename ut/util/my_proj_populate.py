@@ -81,7 +81,7 @@ def mk_and_deploy_new_pkgs_from_existing_modules(
     version='0.0.1',
 ):
     """Copy individual modules to a single module new project, and package and deploy it (to pypi)"""
-    from typing import Iterable, Callable
+    from collections.abc import Iterable, Callable
     from wads.pack import go
     from ut import print_progress
     from time import sleep

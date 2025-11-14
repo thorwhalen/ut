@@ -11,7 +11,7 @@ def partial_leave_one_out_test(
     )
     n_splits = loo.get_n_splits()
     if verbose > 0:
-        printProgress('Number of tests: {}'.format(n_splits))
+        printProgress(f'Number of tests: {n_splits}')
 
     predicted = list()
     actual = list()
@@ -20,7 +20,7 @@ def partial_leave_one_out_test(
         yy = y[train_idx]
         if verbose > 0:
             printProgress(
-                'Test {}/{}'.format(i, n_splits), refresh=True, refresh_suffix='   '
+                f'Test {i}/{n_splits}', refresh=True, refresh_suffix='   '
             )
         model.fit(XX, yy)
         test_x = X[test_idx, :]

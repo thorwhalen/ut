@@ -22,10 +22,10 @@ def get_non_low_str_of_col(d, col):
 
 def print_unique_counts(d):
     column_list = d.columns.tolist()
-    print('number of rows: {}'.format(len(d[column_list[0]])))
+    print(f'number of rows: {len(d[column_list[0]])}')
     print('')
     for c in column_list:
-        print('number of unique {}: {}'.format(c, len(arraysetops.unique(d[c]))))
+        print(f'number of unique {c}: {len(arraysetops.unique(d[c]))}')
 
 
 def get_kw_duplicates(df):
@@ -54,7 +54,7 @@ def add_col(df, colname, overwrite=True):
             return df  # just return the df as is
         else:
             if colname == 'lower_kw':
-                assert_dependencies(df, 'Keyword', 'to get {}'.format(colname))
+                assert_dependencies(df, 'Keyword', f'to get {colname}')
                 df['lower_kw'] = lower_series(df['Keyword'])
             else:
                 raise RuntimeError('unknown colname requested')

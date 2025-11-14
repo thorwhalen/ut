@@ -6,7 +6,7 @@ import re
 from warnings import warn
 import pandas as pd
 
-super_methods_p = re.compile('super\(\)\.(?P<super_method>\w+)\(')
+super_methods_p = re.compile(r'super\(\)\.(?P<super_method>\w+)\(')
 
 ordered_unik_elements = partial(
     reduce, lambda unik, new_items: unik + [x for x in new_items if x not in unik]
@@ -91,7 +91,7 @@ def mro_for_method(
 
     if method_not_found_error and len(super_methods) == 0:
         raise MethodNotFoundInMro(
-            "Method {} isn't implemented in the mro of class {}".format(method, cls)
+            f"Method {method} isn't implemented in the mro of class {cls}"
         )
 
     return super_methods
@@ -336,7 +336,7 @@ def mro_class_methods(
     else:
         if not exclude:
             # if not include or exclude, exclude all base object methods except __init__
-            exclude = set([k for k in object.__dict__.keys() if k not in {'__init__'}])
+            exclude = {k for k in object.__dict__.keys() if k not in {'__init__'}}
         all_methods = [method for method in all_methods if method not in exclude]
 
     # handle methods calling super methods of the same name (and warn if supers without resolution)

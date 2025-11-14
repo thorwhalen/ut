@@ -7,7 +7,7 @@ import csv
 from http.cookiejar import CookieJar
 
 
-class pyGTrends(object):
+class pyGTrends:
     """
     Google Trends API
     

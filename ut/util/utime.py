@@ -107,7 +107,7 @@ def day_datetime_from_utc_ms(ums):
 
 
 def seconds_to_mmss_str(s):
-    return '{:.0f}m{:02.0f}s'.format(s / 60, s % 60)
+    return f'{s / 60:.0f}m{s % 60:02.0f}s'
 
 
 #################### Deprecated

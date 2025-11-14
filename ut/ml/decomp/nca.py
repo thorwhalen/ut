@@ -9,7 +9,7 @@ from numpy.linalg import inv, cholesky
 from matplotlib.pyplot import fill_betweenx
 
 
-class BaseMetricLearner(object):
+class BaseMetricLearner:
     def __init__(self):
         raise NotImplementedError('BaseMetricLearner should not be instantiated')
 

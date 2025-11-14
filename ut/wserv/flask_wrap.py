@@ -19,7 +19,7 @@ DFLT_RESULT_FIELD = 'result'
 
 
 def get_pattern_from_attr_permissions_dict(attr_permissions):
-    """
+    r"""
     Construct a compiled regular expression from a permissions dict containing a list of what to include and exclude.
     Will be used in ObjWrapper if permissible_attr_pattern is a dict.
     Note that the function enforces certain patterns (like inclusions ending with $ unless they end with *, etc.
@@ -56,7 +56,7 @@ def get_pattern_from_attr_permissions_dict(attr_permissions):
             if not include.endswith('$'):
                 include += '$'
         else:  # ends with "*"
-            if include.endswith('\.*'):
+            if include.endswith(r'\.*'):
                 # assume that's not what the user meant, so change
                 include = include[:-3] + '.*'
             elif include[-2] != '.':
@@ -72,7 +72,7 @@ def get_pattern_from_attr_permissions_dict(attr_permissions):
             # add to exclude all subpaths if not explicitly ending with "$"
             exclude += '.*'
         else:  # ends with "*"
-            if exclude.endswith('\.*'):
+            if exclude.endswith(r'\.*'):
                 # assume that's not what the user meant, so change
                 exclude = exclude[:-3] + '.*'
             elif exclude[-2] != '.':
@@ -151,7 +151,7 @@ def extract_kwargs(request, convert_arg=None, file_var='file'):
     return kwargs
 
 
-class ObjWrapper(object):
+class ObjWrapper:
     def __init__(
         self,
         obj_constructor,
@@ -164,7 +164,7 @@ class ObjWrapper(object):
         cache_size=5,
         debug=0,
     ):
-        """
+        r"""
         An class to wrap a "controller" class for a web service API.
         It takes care of LRU caching objects constructed before (so they don't need to be re-constructed for every
         API call), and converting request.json and request.args arguments to the types that will be recognized by
@@ -273,7 +273,7 @@ class ObjWrapper(object):
         """
         kwargs = self._get_kwargs_from_request(request)
         if self.debug > 0:
-            print(('robj: kwargs = {}'.format(kwargs)))
+            print(f'robj: kwargs = {kwargs}')
         obj_kwargs = {
             k: kwargs.pop(k) for k in self.obj_constructor_arg_names if k in kwargs
         }
@@ -287,11 +287,9 @@ class ObjWrapper(object):
             raise err.ForbiddenAttribute(attr)
         if self.debug > 0:
             print(
-                (
                     'robj: attr={}, obj_kwargs = {}, kwargs = {}'.format(
                         attr, obj_kwargs, kwargs
                     )
-                )
             )
         return self.obj(obj=obj_kwargs, attr=attr, **kwargs)
 

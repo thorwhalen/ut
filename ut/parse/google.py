@@ -18,8 +18,8 @@ import ut.parse.util as putil
 from urllib.parse import urlparse, parse_qs
 
 # RE_HAS_NEW_LINE = re.compile('\n|\r')
-RE_NUM_SEP = '[,\.\s]'
-RE_NUMBER = '\d[\d,\.\s]+\d|\d'
+RE_NUM_SEP = r'[,\.\s]'
+RE_NUMBER = r'\d[\d,\.\s]+\d|\d'
 CRE_NUMBER = re.compile(RE_NUMBER)
 XP_NRESULT = '//*[@id="ab_ps_r"]/text()'
 # PARSE_DEF = {
@@ -438,7 +438,7 @@ def html_to_info_dicts(source, tag_folder, info_folder, printProgress=True):
         ), 'source must be a folder or a list of filepaths'
     for i, f in enumerate(source):
         if printProgress == True:
-            print('{}: {}'.format(i, f))
+            print(f'{i}: {f}')
         d = mk_gresult_tag_dict(f)
         pickle.dump(d, open(replace_folder_and_ext(f, tag_folder, 'tag_dict'), 'w'))
         d = parse_tag_dict(d)

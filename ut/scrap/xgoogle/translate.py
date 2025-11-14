@@ -21,7 +21,7 @@ class TranslationError(Exception):
     pass
 
 
-class Translator(object):
+class Translator:
     translate_url = 'http://ajax.googleapis.com/ajax/services/language/translate?v=1.0&q=%(message)s&langpair=%(from)s%%7C%(to)s'
 
     def __init__(self):
@@ -60,7 +60,7 @@ class Translator(object):
             return data['responseData']['translatedText']
         except BrowserError as e:
             raise TranslationError(
-                'Failed translating (getting %s failed): %s' % (e.url, e.error)
+                'Failed translating (getting {} failed): {}'.format(e.url, e.error)
             )
         except ValueError as e:
             raise TranslationError('Failed translating (json failed): %s' % e.message)
@@ -76,7 +76,7 @@ class DetectionError(Exception):
     pass
 
 
-class Language(object):
+class Language:
     def __init__(self, lang, confidence, is_reliable):
         self.lang_code = lang
         self.lang = _languages[lang]
@@ -84,10 +84,10 @@ class Language(object):
         self.is_reliable = is_reliable
 
     def __repr__(self):
-        return '<Language: %s (%s)>' % (self.lang_code, self.lang)
+        return '<Language: {} ({})>'.format(self.lang_code, self.lang)
 
 
-class LanguageDetector(object):
+class LanguageDetector:
     detect_url = (
         'http://ajax.googleapis.com/ajax/services/language/detect?v=1.0&q=%(message)s'
     )
@@ -118,7 +118,7 @@ class LanguageDetector(object):
 
         except BrowserError as e:
             raise DetectionError(
-                'Failed detecting language (getting %s failed): %s' % (e.url, e.error)
+                'Failed detecting language (getting {} failed): {}'.format(e.url, e.error)
             )
         except ValueError as e:
             raise DetectionErrro(

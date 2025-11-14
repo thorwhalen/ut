@@ -4,7 +4,7 @@ from numpy import inf, random, array, ravel, amin, amax, ndim, vectorize
 from ut.ml.util.feature_analysis import plot_feat_ranges
 
 
-class Range(object):
+class Range:
     """
     Class implementing simple interval arithmetic
     """
@@ -16,7 +16,7 @@ class Range(object):
             self.M = float(upper)
         else:
             raise ValueError(
-                'lower limit %s must be smaller than upper limit %s' % (lower, upper)
+                'lower limit {} must be smaller than upper limit {}'.format(lower, upper)
             )
 
     @staticmethod
@@ -151,10 +151,10 @@ class Range(object):
         return [self.m, self.M]
 
     def __str__(self):
-        return '[%g, %g]' % (self.m, self.M)
+        return '[{:g}, {:g}]'.format(self.m, self.M)
 
     def __repr__(self):
-        return '%s(%g, %g)' % (self.__class__.__name__, self.m, self.M)
+        return '{}({:g}, {:g})'.format(self.__class__.__name__, self.m, self.M)
 
     def min_dist_to_interval(self, c):
         """

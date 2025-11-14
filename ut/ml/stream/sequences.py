@@ -116,7 +116,7 @@ class MarkovNextElementPred(NextElementPredictor):
         return self.partial_fit(snips_list)
 
     def partial_fit(self, snips_list):
-        if not set(['snip_tuples_counter_']).issubset(list(self.__dict__.keys())):
+        if not {'snip_tuples_counter_'}.issubset(list(self.__dict__.keys())):
             self._initialize_params()
         for snips in snips_list:
             self._partial_fit_of_a_single_snips(snips)

@@ -39,7 +39,7 @@ def formula_str(fit_func, params, num_format_or_precision=2):
 
     # get the param names from the code of the function
     param_names = (
-        re.compile('def [^(]+\(([^)]+)\)')
+        re.compile(r'def [^(]+\(([^)]+)\)')
         .findall(inspect.getsource(fit_func))[0]
         .split(', ')[1:]
     )
@@ -48,10 +48,10 @@ def formula_str(fit_func, params, num_format_or_precision=2):
     formula_str = re.compile('return ([^\n]*)').findall(inspect.getsource(fit_func))[0]
 
     # replace the param values in the formula string to get the result
-    rep = dict(
-        (re.escape(k), num_format_or_precision.format(v))
+    rep = {
+        re.escape(k): num_format_or_precision.format(v)
         for k, v in zip(param_names, params)
-    )
+    }
     pattern = re.compile('|'.join(list(rep.keys())))
     formula_str_with_nums = pattern.sub(
         lambda m: rep[re.escape(m.group(0))], formula_str

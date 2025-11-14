@@ -13,7 +13,7 @@ import selenium.webdriver.common.keys
 import ut.util.pobj
 
 
-class Browser(object):
+class Browser:
     """ Base class for slurpers """
 
     # Load up scraper config stuff from config file upon loading class definition

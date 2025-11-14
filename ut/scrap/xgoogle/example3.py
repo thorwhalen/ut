@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 from xgoogle.search import GoogleSearch, SearchError
 
 
-class Geo(object):
+class Geo:
     GEO_PATH = '/usr/local/geo_ip/GeoLiteCity.dat'
 
     def __init__(self):

@@ -6,7 +6,7 @@ import ut.pcoll.order_conserving
 from functools import reduce
 
 
-class SquareMatrix(object):
+class SquareMatrix:
     def __init__(self, df, index_vars=None, sort=False):
         if isinstance(df, SquareMatrix):
             self = df.copy()

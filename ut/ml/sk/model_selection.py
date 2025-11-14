@@ -30,8 +30,7 @@ class SupervisedLeaveOneOut(BaseCrossValidator):
 
         for yy, idx in self.y_idx_.items():
             yy_idx = choice(idx, self.n_to_choose_from_y_[yy], replace=False)
-            for this_yy_idx in yy_idx:
-                yield this_yy_idx
+            yield from yy_idx
 
     def get_n_splits(self, X=None, y=None, groups=None):
         """Returns the number of splitting iterations in the cross-validator"""

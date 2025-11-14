@@ -61,10 +61,10 @@ def walk_tree(base):
 
 
 def parseyaml(intype, outtype):
-    infile = input('Please enter a {} filename to parse: '.format(intype))
-    outfile = input('Please enter a {} filename to output: '.format(outtype))
+    infile = input(f'Please enter a {intype} filename to parse: ')
+    outfile = input(f'Please enter a {outtype} filename to output: ')
 
-    with open(infile, 'r') as stream:
+    with open(infile) as stream:
         try:
             datamap = yaml.load(stream)
             with open(outfile, 'w') as output:
@@ -76,10 +76,10 @@ def parseyaml(intype, outtype):
 
 
 def parsejson(intype, outtype):
-    infile = input('Please enter a {} filename to parse: '.format(intype))
-    outfile = input('Please enter a {} filename to output: '.format(outtype))
+    infile = input(f'Please enter a {intype} filename to parse: ')
+    outfile = input(f'Please enter a {outtype} filename to output: ')
 
-    with open(infile, 'r') as stream:
+    with open(infile) as stream:
         try:
             datamap = json.load(stream, object_pairs_hook=CommentedMap)
             walk_tree(datamap)

@@ -21,7 +21,7 @@ class DictDefaultDict(dict):
     """
 
     def __init__(self, default_dict):
-        super(DictDefaultDict, self).__init__()
+        super().__init__()
         self.default_dict = default_dict
 
     def __getitem__(self, item):
@@ -98,9 +98,9 @@ class KeyPathDict(dict):
         if isinstance(key_path, list):
             k_length = len(key_path)
             if k_length == 0:
-                return super(KeyPathDict, self).get(key_path[0], d)
+                return super().get(key_path[0], d)
             else:
-                val_so_far = super(KeyPathDict, self).get(key_path[0], d)
+                val_so_far = super().get(key_path[0], d)
                 for key in key_path[1:]:
                     if isinstance(val_so_far, dict):
                         val_so_far = val_so_far.get(
@@ -112,7 +112,7 @@ class KeyPathDict(dict):
                         return d
                 return val_so_far
         else:
-            return super(KeyPathDict, self).get(key_path, d)
+            return super().get(key_path, d)
 
     def __getitem__(self, val):
         return self.get(val, None)
@@ -129,7 +129,7 @@ class KeyPathDict(dict):
         if isinstance(key_path, list):
             first_key = key_path[0]
             if len(key_path) == 1:
-                super(KeyPathDict, self).__setitem__(first_key, val)
+                super().__setitem__(first_key, val)
                 # self[first_key] = val
             else:
                 if first_key in self:
@@ -138,20 +138,20 @@ class KeyPathDict(dict):
                     self[first_key] = {}
                     set_value_in_nested_key_path(self[first_key], key_path[1:], val)
         else:
-            super(KeyPathDict, self).__setitem__(key_path, val)
+            super().__setitem__(key_path, val)
 
     def __contains__(self, key_path):
         if isinstance(key_path, str):
             key_path = key_path.split('.')
         if isinstance(key_path, list):
             if len(key_path) == 1:
-                return super(KeyPathDict, self).__contains__(key_path[0])
+                return super().__contains__(key_path[0])
             else:
-                tmp = super(KeyPathDict, self).__getitem__(key_path[0])
+                tmp = super().__getitem__(key_path[0])
                 for k in key_path[1:]:
                     if not isinstance(tmp, dict) or k not in tmp:
                         return False
                     tmp = tmp[k]
                 return True
         else:
-            return super(KeyPathDict, self).__contains__(key_path)
+            return super().__contains__(key_path)

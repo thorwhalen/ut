@@ -12,7 +12,7 @@ LOCATION_LOCAL = 'LOCAL'
 LOCATION_S3 = 'S3'
 
 
-class GResultInfoRetriever(object):
+class GResultInfoRetriever:
     """
     GResultInfoRetriever defines a google result info parser.
     Once an instance gr_info of GResultInfo is setup, one can call gr_info.get_info(data_source)

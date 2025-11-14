@@ -24,12 +24,12 @@ import ut.aw.reporting
 
 from ut.util.ulist import get_first_item_contained_in_intersection_of
 
-tokenizer_re = re.compile('[&\w]+')
-non_w_re = re.compile('\W+')
+tokenizer_re = re.compile(r'[&\w]+')
+non_w_re = re.compile(r'\W+')
 
 
 def process_aw_column_names(df):
-    """
+    r"""
     Processes (in place) column names for aw name normalization.
     It replaces some synonyms (using ut.aw.reporting.x_to_lu_name()), lower cases them, and
     replaces all non \w characters by an underscore.
@@ -142,7 +142,7 @@ def strip_kw(keyword):
         are considered by google adwords (namely, letters, numbers, and & (and underscore too, which I left hoping they'd
         never show up (they shouldn't since google doesn't allow them, or if they do, that we can just leave these)
     """
-    exp = re.compile('[^\w&]', re.UNICODE)
+    exp = re.compile(r'[^\w&]', re.UNICODE)
     if isinstance(keyword, str):
         return ' '.join(re.sub(exp, ' ', keyword).split())
     else:  # assume it's an iterable collection of keywords
@@ -286,13 +286,13 @@ def add_col(df, colname=None, overwrite=True, **kwargs):
                     df['clicks'] + prior_clicks
                 )
             elif colname == 'kw_lower':
-                assert_dependencies(df, 'keyword', 'to get {}'.format(colname))
+                assert_dependencies(df, 'keyword', f'to get {colname}')
                 df[colname] = lower_series(df['keyword'])
             elif colname == 'kw_lower_ascii':
-                assert_dependencies(df, 'keyword', 'to get {}'.format(colname))
+                assert_dependencies(df, 'keyword', f'to get {colname}')
                 df[colname] = pstr_trans.toascii(lower_series(df['keyword']))
             elif colname == 'kw_lower_ascii_ordered':
-                assert_dependencies(df, 'keyword', 'to get {}'.format(colname))
+                assert_dependencies(df, 'keyword', f'to get {colname}')
                 df[colname] = [
                     ' '.join(np.sort(x.split(' ')))
                     for x in pstr_trans.toascii(lower_series(df['keyword']))

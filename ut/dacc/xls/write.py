@@ -37,7 +37,7 @@ def multiple_dfs_to_multiple_sheets(df_list, xls_filepath, sheet_list=None, **kw
             for i, df in enumerate(df_list):
                 name = df.name
                 if not name:
-                    name = 'sheet {}'.format(i)
+                    name = f'sheet {i}'
                 sheet_list.append(name)
 
     writer = ExcelWriter(xls_filepath)
@@ -56,7 +56,7 @@ def df_to_excel_without_overwriting_it(df, xls_filepath, sheet_name, **kwargs):
         book = load_workbook(xls_filepath)
         writer = pd.ExcelWriter(xls_filepath, engine='openpyxl')
         writer.book = book
-        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        writer.sheets = {ws.title: ws for ws in book.worksheets}
         try:
             df.to_excel(excel_writer=writer, sheet_name=sheet_name, **kwargs)
         except TypeError:

@@ -12,7 +12,7 @@ from ut.util.importing import get_environment_variable
 S3_DEFAULT_REGION = 'eu-west-1'
 
 
-class S3(object):
+class S3:
     """
     Storage to Amazon S3.
     """

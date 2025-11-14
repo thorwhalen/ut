@@ -104,7 +104,7 @@ class AttributeTransformer(BaseEstimator, TransformerMixin):
         items = []
         for k, v in list(d.items()):
             new_key = parent_key + sep + k if parent_key else k
-            if isinstance(v, collections.MutableMapping):
+            if isinstance(v, collections.abc.MutableMapping):
                 items.extend(list(self._flatten(v, new_key, sep=sep).items()))
             else:
                 new_v = 1 if v == True else 0

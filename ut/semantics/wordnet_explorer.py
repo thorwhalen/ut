@@ -52,15 +52,14 @@ def pprint_hypos(syn, tab=''):
             pprint_hypos(hi, tab + '  ')
 
 
-class iTree(object):
+class iTree:
     def __init__(self, value=None):
         self.value = value
         self.children = []
         self.default_node_2_str = lambda node: str(node.value)
 
     def __iter__(self):
-        for v in itertools.chain(*map(iter, self.children)):
-            yield v
+        yield from itertools.chain(*map(iter, self.children))
         yield self
 
     def tree_info_str(
@@ -81,7 +80,7 @@ class HyponymTree(iTree):
     def __init__(self, value=None):
         if isinstance(value, str):
             value = wn.synset(value)
-        super(HyponymTree, self).__init__(value=value)
+        super().__init__(value=value)
         for hypo in value.hyponyms():
             self.children.append(HyponymTree(hypo))
         self.set_default_node_2_str('name')
@@ -183,7 +182,7 @@ class HyponymTree(iTree):
         d.to_excel(filepath, sheet_name=sheet_name, header=False, index=False)
 
 
-class HyponymForest(object):
+class HyponymForest:
     def __init__(self, tree_list):
         assert len(tree_list) == len(
             np.unique(tree_list)

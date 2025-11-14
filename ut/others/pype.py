@@ -173,7 +173,7 @@ pUniq = Sink(_uniq)
 def _writeToFile(values, filename=None, file=None, delim='\n'):
     out = open(filename, 'w') if filename else file
     for v in values:
-        out.write('%s%s' % (v, delim))
+        out.write('{}{}'.format(v, delim))
     if filename:
         out.close()
 

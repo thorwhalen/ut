@@ -25,8 +25,8 @@ from IPython.core.display import display as ipython_display
 
 
 RE_HAS_NEW_LINE = re.compile('\n|\r')
-RE_NUM_SEP = '[,\.\s]'
-RE_NUMBER = '\d[\d,\.\s]+\d|\d'
+RE_NUM_SEP = r'[,\.\s]'
+RE_NUMBER = r'\d[\d,\.\s]+\d|\d'
 CRE_NUMBER = re.compile(RE_NUMBER)
 
 
@@ -99,16 +99,16 @@ def printable_text(tag, sep='\n'):
     this is a hack to get rid of this by using unidecode
     """
     try:
-        return '{}'.format(sep.join(tag.strings))
+        return f'{sep.join(tag.strings)}'
     except:
-        return '{}'.format(unidecode(sep.join(tag.strings)))
+        return f'{unidecode(sep.join(tag.strings))}'
 
 
 def print_text(tag, sep='\n'):
     try:
-        print('{}'.format(sep.join(tag.strings)))
+        print(f'{sep.join(tag.strings)}')
     except:
-        print('{}'.format(unidecode(sep.join(tag.strings))))
+        print(f'{unidecode(sep.join(tag.strings))}')
 
 
 def print_names_and_attrs(tag, max_depth=1, indent=''):
@@ -127,8 +127,8 @@ def print_names_and_attrs(tag, max_depth=1, indent=''):
 def open_in_firefox(url):
     if isinstance(url, str):
         # -new-tab
-        print('opening {}'.format(url))
-        os.system('open -a FireFox "{}"'.format(url))
+        print(f'opening {url}')
+        os.system(f'open -a FireFox "{url}"')
     elif isinstance(url, list):
         for u in url:
             open_in_firefox(url)
@@ -150,11 +150,9 @@ def pretty(soup):
     from lxml import etree, html
 
     print(
-        (
             etree.tostring(
                 html.fromstring(str(soup)), encoding='unicode', pretty_print=True
             )
-        )
     )
 
 

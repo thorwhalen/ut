@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import importlib
 import pandas as pd
 import numpy as np
-from typing import Callable, Iterator
+from collections.abc import Callable, Iterator
 import inspect
 from types import ModuleType
 

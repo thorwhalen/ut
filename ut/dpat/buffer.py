@@ -106,7 +106,7 @@ def inject_post_flush_func(buf, post_flush_func):
 
 def print_buf_pre_push(buf):
     def print_buf(item):
-        print((buf._buf))
+        print(buf._buf)
         return item
 
     return inject_pre_push_func(buf, print_buf)
@@ -133,7 +133,7 @@ def name_buffer(buffer, name):
     return buffer
 
 
-class AbstractBuffer(object):
+class AbstractBuffer:
     """
     An abstract buffer just specifies that there needs to be a push and a flush method
     """
@@ -585,7 +585,7 @@ class ThreshBuffer(Buffer):
         :param thresh: The threshold that determines when to flush.
         """
 
-        super(ThreshBuffer, self).__init__()
+        super().__init__()
         self.thresh = thresh
 
     def buf_val_for_thresh(self):
@@ -669,7 +669,7 @@ class BucketBuffer(ThreshBuffer):
         self.index_field = index_field
         self.bucket_step = bucket_step
         self._buf = defaultdict(list)
-        super(BucketBuffer, self).__init__(thresh=thresh)
+        super().__init__(thresh=thresh)
 
     def initialize(self):
         """

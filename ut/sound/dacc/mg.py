@@ -12,7 +12,7 @@ from ut.sound.util import Sound
 from ut.pstr.trans import str_to_utf8_or_bust
 
 
-class MgDacc(object):
+class MgDacc:
     def __init__(
         self, db, collection, root_folder, path_field='_id', mg_client_kwargs={}
     ):
@@ -69,7 +69,7 @@ class SegmentDacc(MgDacc):
         tag_field='tags',
         kv_tag_field='kv_tags',
     ):
-        super(SegmentDacc, self).__init__(
+        super().__init__(
             db, collection, root_folder, path_field, mg_client_kwargs
         )
         self.segment_field = segment_field

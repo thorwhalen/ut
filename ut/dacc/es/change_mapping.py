@@ -17,7 +17,7 @@ class ElasticSearch:
     def request(self, method, path, data=None):
         return requests.request(
             method,
-            'http://%s/%s' % (self.url, path),
+            'http://{}/{}'.format(self.url, path),
             data=data,
             headers={'Content-type': 'application/json'},
         ).json()
@@ -62,7 +62,7 @@ class ElasticSearch:
         return self.request('delete', index)
 
     def alias(self, index, to):
-        return self.request('put', '%s/_alias/%s' % (index, to))
+        return self.request('put', '{}/_alias/{}'.format(index, to))
 
 
 def change_mapping_and_reindex(elasticsearch, mapping_file, index):
@@ -97,26 +97,22 @@ def change_mapping_and_reindex(elasticsearch, mapping_file, index):
             print('OK, same number of raws in both index.')
             break
         print(
-            (
                 'Not the same number of raws in old and new... '
                 'waiting a bit...'
                 '(old=%d, new=%d)' % (old_index_count, new_index_count)
-            )
         )
         if i > 10:
             print(
-                (
                     'Oh fsck, not the same number of raws in old and new... '
                     'aborting.'
                     '(old=%d, new=%d)' % (old_index_count, new_index_count)
-                )
             )
             return
         sleep(1)
 
     print('Deleting %s' % index)
     es.drop(index)
-    print('Aliasing %s to %s' % (temporary_index, index))
+    print('Aliasing {} to {}'.format(temporary_index, index))
     es.alias(temporary_index, index)
 
 

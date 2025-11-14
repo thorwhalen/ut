@@ -6,7 +6,7 @@ import ut.pstr.trans as pstr_trans
 import numpy as np
 import re
 
-non_w_letter_re = re.compile('[^\w]+')
+non_w_letter_re = re.compile(r'[^\w]+')
 
 
 def empty_index(df):
@@ -41,7 +41,7 @@ def replace_nans_with_spaces_in_object_columns(df):
 def force_col_type_as_type_of_first_element(df):
     col_types = daf_get.column_types(df)
     for k, v in col_types.items():
-        print('%s %s' % (k, v))
+        print('{} {}'.format(k, v))
         df[k] = df[k].astype(v)
     return df
 

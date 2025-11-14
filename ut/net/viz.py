@@ -97,10 +97,10 @@ def re_compile(pattern, flags=0, **dflt_if_none):
 
 
 class rx:
-    name = re.compile('^:(\w+)')
+    name = re.compile(r'^:(\w+)')
     lines = re.compile('\n|\r|\n\r|\r\n')
     comments = re.compile('#.+$')
-    non_space = re.compile('\S')
+    non_space = re.compile(r'\S')
     nout_nin = re.compile(r'(\w+)\W+(\w+)')
     arrow = re.compile(r'\s*->\s*')
     instruction = re.compile(r'(\w+):\s+(.+)')
@@ -125,7 +125,7 @@ class ModifiedDot:
     class rx:
         lines = re.compile('\n|\r|\n\r|\r\n')
         comments = re.compile('#.+$')
-        non_space = re.compile('\S')
+        non_space = re.compile(r'\S')
         nout_nin = re.compile(r'(\w+)\W+(\w+)')
         arrow = re.compile(r'\s*->\s*')
         instruction = re.compile(r'(\w+):\s+(.+)')
@@ -256,7 +256,7 @@ class ModifiedDot:
 
 def dgdisp(
     commands,
-    node_shapes: Optional[dict] = None,
+    node_shapes: dict | None = None,
     attrs_for_node=None,
     minilang=ModifiedDot,
     engine=None,

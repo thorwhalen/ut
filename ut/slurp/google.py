@@ -56,7 +56,7 @@ class Google(Browser):
         )
 
         if not r.ok:
-            raise ValueError('HTTP Error: {} for query {}'.format(r.status_code, query))
+            raise ValueError(f'HTTP Error: {r.status_code} for query {query}')
         else:
             return r.text
 
@@ -85,6 +85,6 @@ class Google(Browser):
         )
 
         if not r.ok:
-            print(('HTTP Error: {} for query {}'.format(r.status_code, query)))
+            print(f'HTTP Error: {r.status_code} for query {query}')
         else:
             return r.text
