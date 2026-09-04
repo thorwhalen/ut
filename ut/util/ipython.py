@@ -132,15 +132,3 @@ def ipynb_filepath_list(root_folder='.', recursive=False):
             lambda x: os.path.abspath(os.path.join(root_folder, x)),
             filter(lambda x: x.endswith('.ipynb'), os.listdir(root_folder)),
         )
-
-
-if __name__ == '__main__':
-    import argh
-
-    argh.dispatch_command(all_table_of_contents_html_from_notebooks)
-
-    # parser = argh.ArghParser()
-    # parser.add_commands([all_table_of_contents_html_from_notebooks,
-    #                      table_of_contents_html_from_notebook,
-    #                      ipynb_filepath_list])
-    # parser.dispatch()

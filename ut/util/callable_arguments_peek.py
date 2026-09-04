@@ -360,15 +360,3 @@ def plot_nonnull_counts_of_signatures(
     tt.iloc[:n_top_items].plot(kind='bar')
     plt.subplots_adjust(hspace=hspace)
     plt.show()
-
-
-if __name__ == '__main__':
-    import argh
-
-    argh.dispatch_commands(
-        [
-            callables_signatures_df,
-            heatmap_of_signatures,
-            plot_nonnull_counts_of_signatures,
-        ]
-    )

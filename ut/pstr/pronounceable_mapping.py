@@ -216,16 +216,3 @@ class FunTests:
                 print(''.join(map(str, (text_for_num(i)))))
             else:
                 print('\t' + ''.join(map(str, (text_for_num(i)))))
-
-
-if __name__ == '__main__':
-    try:
-        import argh
-    except ImportError:
-        raise ImportError(
-            "You don't have argh. You can install it by doing:\n"
-            '     pip install argh\n'
-            'In your terminal/environment,'
-        )
-
-    argh.dispatch_command(text_to_pronounceable_text)
