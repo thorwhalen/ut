@@ -3,7 +3,6 @@ alabaster==0.7.12
 anymarkup==0.8.1
 anymarkup-core==0.8.1
 appnope==0.1.0
-argh==0.26.2
 asn1crypto==1.3.0
 attrs==19.3.0
 audioread==2.1.8
