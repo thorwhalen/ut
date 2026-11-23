@@ -369,7 +369,7 @@ column_names_to_preproc_function = {
     'conv_rate': _percentage_str_to_ratio_float,
     'day': _date_str_to_datetime,
     'date': _date_str_to_datetime,
-    'hour_of_day': lambda x: x.apply(int),
+    'hour_of_day': lambda x: x.astype(int),
 }
 
 columns_that_should_be_floats = [
